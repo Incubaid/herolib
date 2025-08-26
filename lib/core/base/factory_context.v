@@ -1,9 +1,6 @@
 module base
 
 import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.ui
-import freeflowuniverse.herolib.ui.console
-import crypto.md5
 
 @[params]
 pub struct ContextConfigArgs {

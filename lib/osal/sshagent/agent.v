@@ -74,10 +74,10 @@ pub fn sshkey_delete(mut agent SSHAgent, name string) ! {
 		return
 	}
 
-	// Remove from agent if loaded (temporarily disabled due to reset_ssh panic)
-	// if key.loaded {
-	// 	key.forget()!
-	// }
+	// Remove from agent if loaded
+	if key.loaded {
+		key.forget()!
+	}
 
 	// Delete key files
 	if key_path.exists() {

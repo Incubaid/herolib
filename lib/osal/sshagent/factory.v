@@ -27,8 +27,8 @@ pub fn new(args_ SSHAgentNewArgs) !SSHAgent {
 }
 
 pub fn loaded() bool {
-	res := os.execute('ssh-add -l')
-	return res.exit_code == 0
+	mut agent := new() or { return false }
+	return agent.active
 }
 
 // create new SSH agent with single instance guarantee

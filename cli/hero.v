@@ -86,6 +86,7 @@ fn do() ! {
 	herocmds.cmd_generator(mut cmd)
 	herocmds.cmd_docusaurus(mut cmd)
 	herocmds.cmd_web(mut cmd)
+	herocmds.cmd_sshagent(mut cmd)
 
 	cmd.setup()
 	cmd.parse(os.args)

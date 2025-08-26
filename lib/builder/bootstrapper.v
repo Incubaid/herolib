@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui
 import v.embed_file
 
 const heropath_ = os.dir(@FILE) + '/../'

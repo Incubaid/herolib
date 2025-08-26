@@ -3,7 +3,6 @@ module core
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core
-import os
 
 // update the package list
 pub fn package_refresh() ! {

@@ -2,7 +2,6 @@ module linux
 
 import os
 import json
-import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
 
@@ -288,9 +287,43 @@ fn (mut lf LinuxFactory) create_ssh_agent_profile(username string) ! {
 	user_home := '/home/${username}'
 	profile_script := '${user_home}/.profile_sshagent'
 
-	// script_content := ''
+	// Create SSH agent auto-start script content
+	script_content := '#!/bin/bash
+# Auto-start ssh-agent if not running
+SSH_AGENT_SOCKET="/tmp/ssh-agent-${username}.sock"
 
-	panic('implement')
+# Check if agent is already running and responsive
+if [ -n "\$SSH_AUTH_SOCK" ] && ssh-add -l >/dev/null 2>&1; then
+    # Agent is running and responsive
+    exit 0
+fi
+
+# Check if our socket exists and is responsive
+if [ -S "\$SSH_AGENT_SOCKET" ]; then
+    export SSH_AUTH_SOCK="\$SSH_AGENT_SOCKET"
+    if ssh-add -l >/dev/null 2>&1; then
+        # Socket is responsive
+        exit 0
+    fi
+fi
+
+# Clean up any orphaned agents
+pkill -u ${username} ssh-agent >/dev/null 2>&1 || true
+
+# Remove stale socket
+rm -f "\$SSH_AGENT_SOCKET"
+
+# Start new ssh-agent with consistent socket
+ssh-agent -a "\$SSH_AGENT_SOCKET" >/dev/null 2>&1
+
+# Export the socket path
+export SSH_AUTH_SOCK="\$SSH_AGENT_SOCKET"
+
+# Verify agent is responsive
+if ! ssh-add -l >/dev/null 2>&1; then
+    echo "Warning: SSH agent started but is not responsive" >&2
+fi
+'
 
 	osal.file_write(profile_script, script_content)!
 	osal.exec(cmd: 'chown ${username}:${username} ${profile_script}')!
