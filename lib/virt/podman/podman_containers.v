@@ -1,4 +1,4 @@
-module herocontainers
+module podman
 
 import freeflowuniverse.herolib.osal.core as osal { exec }
 // import freeflowuniverse.herolib.data.ipaddress { IPAddress }
@@ -8,7 +8,7 @@ import freeflowuniverse.herolib.virt.utils
 
 // load all containers, they can be consulted in self.containers
 // see obj: Container as result in self.containers
-fn (mut self PodmanFactory) containers_load() ! {
+pub fn (mut self PodmanFactory) containers_load() ! {
 	self.containers = []Container{}
 	mut ljob := exec(
 		// we used || because sometimes the command has | in it and this will ruin all subsequent columns

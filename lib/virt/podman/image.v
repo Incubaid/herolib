@@ -1,4 +1,4 @@
-module herocontainers
+module podman
 
 import freeflowuniverse.herolib.osal.core as osal { exec }
 import time

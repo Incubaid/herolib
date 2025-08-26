@@ -1,16 +1,18 @@
-module herocontainers
+module podman
 
 import freeflowuniverse.herolib.osal.core as osal { exec }
 import freeflowuniverse.herolib.core
 import freeflowuniverse.herolib.installers.virt.podman as podman_installer
+import freeflowuniverse.herolib.installers.lang.herolib
 
 @[heap]
 pub struct PodmanFactory {
 pub mut:
 	// sshkeys_allowed []string // all keys here have access over ssh into the machine, when ssh enabled
-	images          []Image
-	containers      []Container
-	buildpath       string
+	images     []Image
+	containers []Container
+	builders   []Builder
+	buildpath  string
 	// cache           bool = true
 	// push            bool
 	// platform        []BuildPlatformType // used to build
@@ -31,12 +33,32 @@ pub mut:
 	herocompile bool
 }
 
+pub fn new(args_ NewArgs) !PodmanFactory {
+	mut args := args_
+
+	// Support both Linux and macOS
+	if !core.is_linux()! && !core.is_osx()! {
+		return error('only linux and macOS supported as host for now')
+	}
 
 	if args.install {
 		mut podman_installer0 := podman_installer.get()!
 		podman_installer0.install()!
 	}
 
+	if args.herocompile {
+		herolib.check()! // will check if install, if not will do
+		herolib.hero_compile(reset: true)!
+	}
+
+	mut factory := PodmanFactory{}
+	factory.init()!
+	if args.reset {
+		factory.reset_all()!
+	}
+
+	return factory
+}
 
 fn (mut e PodmanFactory) init() ! {
 	if e.buildpath == '' {
@@ -66,7 +88,8 @@ pub fn (mut e PodmanFactory) reset_all() ! {
 	exec(cmd: 'podman rmi -a -f', stdout: false)!
 	e.builders_delete_all()!
 	osal.done_reset()!
-	if core.platform()! == core.PlatformType.arch {
+	// Only check systemctl on Linux
+	if core.is_linux()! && core.platform()! == core.PlatformType.arch {
 		exec(cmd: 'systemctl status podman.socket', stdout: false)!
 	}
 	e.load()!

@@ -1,11 +1,9 @@
-module herocontainers
+module podman
 
 import time
 import freeflowuniverse.herolib.osal.core as osal { exec }
 import freeflowuniverse.herolib.data.ipaddress
 import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.virt.utils
-import freeflowuniverse.herolib.ui.console
 
 // info see https://docs.podman.io/en/latest/markdown/podman-run.1.html
 

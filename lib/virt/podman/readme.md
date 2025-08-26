@@ -1,32 +1,37 @@
 
-# Herocontainers
+# Podman Module
 
-Tools to work with containers
+Tools to work with containers using Podman and Buildah.
 
-```go
-#!/usr/bin/env -S  v -n -cg -w -enable-globals run
+## Platform Support
 
-import freeflowuniverse.herolib.virt.herocontainers
+- **Linux**: Full support
+- **macOS**: Full support (requires podman installation)
+- **Windows**: Not supported
+
+## Basic Usage
+
+```v
+#!/usr/bin/env -S v -n -w -enable-globals run
+
+import freeflowuniverse.herolib.virt.podman
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.builder
 
-//interative means will ask for login/passwd
+console.print_header("PODMAN Demo")
 
-console.print_header("BUILDAH Demo.")
+// Create a new podman factory
+// install: true will install podman if not present
+// herocompile: true will compile hero for use in containers
+mut factory := podman.new(install: false, herocompile: false)!
 
-//if herocompile on, then will forced compile hero, which might be needed in debug mode for hero 
-// to execute hero scripts inside build container
-mut factory:=herocontainers.new(herocompile=true)!
-//mut b:=factory.builder_new(name:"test")!
+// Create a new builder
+mut builder := factory.builder_new(name: 'test', from: 'docker.io/ubuntu:latest')!
 
-//create 
-factory.builderv_create()!
+// Run commands in the builder
+builder.run('apt-get update && apt-get install -y curl')!
 
-//get the container
-//mut b2:=factory.builder_get("builderv")!
-//b2.shell()!
-
-
+// Open interactive shell
+builder.shell()!
 ```
 
 ## buildah tricks
@@ -39,7 +44,6 @@ buildah images
 ```
 
 result is something like
-
 
 ```bash
 CONTAINER ID  BUILDER  IMAGE ID     IMAGE NAME                       CONTAINER NAME
@@ -66,25 +70,22 @@ apt install ncdu
 ncdu
 ```
 
-## create container
+## Create Container
 
-
-```go
-import freeflowuniverse.herolib.virt.herocontainers
+```v
+import freeflowuniverse.herolib.virt.podman
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.builder
 
-//interative means will ask for login/passwd
+console.print_header("Create a container")
 
-console.print_header("Get a container.")
+mut factory := podman.new()!
 
-mut e:=herocontainers.new()!
-
-//info see https://docs.podman.io/en/latest/markdown/podman-run.1.html
-
-mut c:=e.container_create(
+// Create a container with advanced options
+// See https://docs.podman.io/en/latest/markdown/podman-run.1.html
+mut container := factory.container_create(
     name: 'mycontainer'
     image_repo: 'ubuntu'
+    image_tag: 'latest'
     // Resource limits
     memory: '1g'
     cpus: 0.5
@@ -103,15 +104,19 @@ mut c:=e.container_create(
     ]
     published_ports: [
         '127.0.0.1:8080:80'
-    ]    
+    ]
 )!
 
+// Start the container
+container.start()!
 
+// Execute commands in the container
+container.execute('apt-get update', false)!
 
-
+// Open interactive shell
+container.shell()!
 ```
-
 
 ## future
 
-should make this module compatible with https://github.com/containerd/nerdctl
+should make this module compatible with <https://github.com/containerd/nerdctl>

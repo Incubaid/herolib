@@ -1,11 +1,11 @@
-module herocontainers
+module podman
 
 import freeflowuniverse.herolib.virt.utils
 import freeflowuniverse.herolib.osal.core as osal { exec }
 import time
 import freeflowuniverse.herolib.ui.console
 
-fn (mut self PodmanFactory) images_load() ! {
+pub fn (mut self PodmanFactory) images_load() ! {
 	self.images = []Image{}
 	mut lines := osal.execute_silent("podman images --format '{{.ID}}||{{.Id}}||{{.Repository}}||{{.Tag}}||{{.Digest}}||{{.Size}}||{{.CreatedAt}}'")!
 	for line in lines.split_into_lines() {
