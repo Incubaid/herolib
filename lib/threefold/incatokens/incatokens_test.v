@@ -1,16 +1,18 @@
 module incatokens
 import freeflowuniverse.herolib.biz.spreadsheet
 import os
+import incatokens.defaults
+import incatokens.factory
 
 fn test_simulation_creation() {
 	mut params := default_params()
 	params.name = 'test_sim_creation'
 	
-	mut sim := simulation_new_from_params(params)!
-	sim.run_full_simulation(params)! // Initialize investor_rounds and vesting schedules
+	mut sim := factory.simulation_new(params)!
+	sim.run_simulation()! // Run the simulation
 	
 	assert sim.name == 'test_sim_creation'
-	assert sim.total_supply == params.distribution.total_supply
+	assert sim.params.distribution.total_supply == params.distribution.total_supply
 	assert sim.investor_rounds.len == params.investor_rounds.len
 }
 
@@ -18,8 +20,8 @@ fn test_scenario_execution() {
 	mut params := default_params()
 	params.name = 'test_scenario_exec'
 	
-	mut sim := simulation_new_from_params(params)!
-	sim.run_full_simulation(params)!
+	mut sim := factory.simulation_new(params)!
+	sim.run_simulation()!
 	
 	// Get the 'Low' scenario results
 	low_scenario := sim.scenarios['Low']!
@@ -39,8 +41,8 @@ fn test_vesting_schedules() {
 	mut params := default_params()
 	params.name = 'test_vesting_schedules'
 	
-	mut sim := simulation_new_from_params(params)!
-	sim.run_full_simulation(params)!
+	mut sim := factory.simulation_new(params)!
+	sim.run_simulation()!
 	
 	// Check team vesting
 	team_row := sim.vesting_sheet.row_get('team_vesting')!
@@ -52,7 +54,7 @@ fn test_vesting_schedules() {
 	assert team_row.cells[12].val > 0
 	
 	// After full vesting (month 48), should have all tokens
-	total_team_tokens := sim.total_supply * sim.team_pct
+	total_team_tokens := sim.params.distribution.total_supply * sim.params.distribution.team_pct
 	assert team_row.cells[48].val == total_team_tokens
 }
 
@@ -63,19 +65,23 @@ fn test_export_functionality() {
 	params.output.generate_csv = true
 	params.output.generate_report = true
 	
-	mut sim := simulation_new_from_params(params)!
-	sim.run_full_simulation(params)!
+	mut sim := factory.simulation_new(params)!
+	sim.run_simulation()!
 	
 	// Ensure price sheet has data before export
 	assert sim.price_sheet.rows.len > 0
 	
-	// Test CSV export (handled by run_full_simulation if generate_csv is true)
+	// Export all data
+	os.mkdir_all(params.output.export_dir)!
+	sim.export_all(params.output.export_dir)!
+	
+	// Test CSV export
 	assert os.exists('${params.output.export_dir}/${params.name}_prices.csv')
 	assert os.exists('${params.output.export_dir}/${params.name}_tokens.csv')
 	assert os.exists('${params.output.export_dir}/${params.name}_investments.csv')
 	assert os.exists('${params.output.export_dir}/${params.name}_vesting.csv')
 	
-	// Test report generation (already handled by run_full_simulation if generate_report is true)
+	// Test report generation
 	assert os.exists('${params.output.export_dir}/${params.name}_report.md')
 }
 

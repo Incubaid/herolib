@@ -8,6 +8,18 @@ import os
 pub fn play(mut plbook PlayBook) ! {
 	console.print_header('INCA Token Simulation')
 
+	// Collect all configurations first
+	mut simulations_to_run := []SimulationParams{}
+	mut export_path := ''
+
+	// Process export configuration
+	if plbook.exists_once(filter: 'incatokens.export') {
+		mut action := plbook.get(filter: 'incatokens.export')!
+		mut p := action.params
+		export_path = p.get('path')!
+		console.print_item('Export directory configured: ${export_path}')
+	}
+
 	// Process simulation definitions
 	for action in plbook.find(filter: 'incatokens.simulate')! {
 		mut p := action.params
@@ -39,47 +51,67 @@ pub fn play(mut plbook PlayBook) ! {
 		params.vesting.treasury.cliff_months = p.get_int_default('treasury_cliff_months', 12)!
 		params.vesting.treasury.vesting_months = p.get_int_default('treasury_vesting_months', 48)!
 
-		// Configure output
-		params.output.export_dir = p.get_default('export_dir', './output')!
+		// Configure output - use export_path if provided, otherwise use param
+		if export_path != '' {
+			params.output.export_dir = export_path
+		} else {
+			params.output.export_dir = p.get_default('export_dir', './output')!
+		}
 		params.output.generate_csv = p.get_default_true('generate_csv')
 		params.output.generate_charts = p.get_default_true('generate_charts')
 		params.output.generate_report = p.get_default_true('generate_report')
 
+		// Collect investor rounds for this simulation
+		mut investor_rounds := []InvestorRoundConfig{}
+		for round_action in plbook.find(filter: 'incatokens.investor_round')! {
+			mut rp := round_action.params
+			
+			round := InvestorRoundConfig{
+				name: rp.get('name')!
+				allocation_pct: rp.get_float('allocation_pct')!
+				price: rp.get_float('price')!
+				vesting: VestingConfig{
+					cliff_months: rp.get_int('cliff_months')!
+					vesting_months: rp.get_int('vesting_months')!
+				}
+			}
+			investor_rounds << round
+			console.print_item('Configured investor round: ${round.name} at \$${round.price}')
+		}
+		params.investor_rounds = investor_rounds
+
+		// Collect scenarios for this simulation
+		mut scenarios := []ScenarioConfig{}
+		for scenario_action in plbook.find(filter: 'incatokens.scenario')! {
+			mut sp := scenario_action.params
+			
+			scenario := ScenarioConfig{
+				name: sp.get('name')!
+				demands: sp.get_list_f64('demands')!
+				amm_trades: sp.get_list_f64('amm_trades')!
+			}
+			scenarios << scenario
+			console.print_item('Configured scenario: ${scenario.name}')
+		}
+		params.scenarios = scenarios
+
+		simulations_to_run << params
+	}
+
+	// Run all simulations
+	for params in simulations_to_run {
 		console.print_item('Running simulation: ${params.name}')
 		
-		// Run the simulation
-		params.run_simulation()!
+		// Create and run simulation
+		mut sim := simulation_new(params)!
+		sim.run_simulation()!
 		
-		console.print_green('✓ Simulation completed successfully')
-	}
-
-	// Process investor round definitions
-	for action in plbook.find(filter: 'incatokens.investor_round')! {
-		mut p := action.params
+		// Create export directory if needed
+		os.mkdir_all(params.output.export_dir)!
 		
-		round := InvestorRoundConfig{
-			name: p.get('name')!
-			allocation_pct: p.get_float('allocation_pct')!
-			price: p.get_float('price')!
-			vesting: VestingConfig{
-				cliff_months: p.get_int('cliff_months')!
-				vesting_months: p.get_int('vesting_months')!
-			}
-		}
+		// Export all data in one call
+		sim.export_all(params.output.export_dir)!
 		
-		console.print_item('Configured investor round: ${round.name} at \$${round.price}')
-	}
-
-	// Process scenario definitions
-	for action in plbook.find(filter: 'incatokens.scenario')! {
-		mut p := action.params
-		
-		scenario := ScenarioConfig{
-			name: p.get('name')!
-			demands: p.get_list_f64('demands')!
-			amm_trades: p.get_list_f64('amm_trades')!
-		}
-		
-		console.print_item('Configured scenario: ${scenario.name}')
+		console.print_green('✓ Simulation "${params.name}" completed and exported to: ${params.output.export_dir}')
 	}
 }

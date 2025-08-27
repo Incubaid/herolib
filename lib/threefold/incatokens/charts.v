@@ -25,7 +25,7 @@ pub fn (sim Simulation) generate_market_cap_chart() !echarts.EChartsOption {
 	mut mc_sheet := spreadsheet.sheet_new(
 		name: '${sim.name}_market_cap'
 		nrcol: sim.price_sheet.nrcol
-		curr: sim.currency
+		curr: sim.params.simulation.currency
 	)!
 	
 	for name, scenario in sim.scenarios {
@@ -37,7 +37,7 @@ pub fn (sim Simulation) generate_market_cap_chart() !echarts.EChartsOption {
 		
 		price_row := sim.price_sheet.row_get('scenario_${name}_price')!
 		for i, cell in price_row.cells {
-			mc_row.cells[i].val = cell.val * sim.total_supply
+			mc_row.cells[i].val = cell.val * sim.params.distribution.total_supply
 		}
 	}
 	
