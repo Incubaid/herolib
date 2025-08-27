@@ -5,8 +5,9 @@ import freeflowuniverse.herolib.biz.spreadsheet
 // VestingSchedule defines cliff and vesting periods
 pub struct VestingSchedule {
 pub mut:
-	cliff_months   int
-	vesting_months int
+	cliff_months     int
+	vesting_months   int
+	initial_unlock_pct f64 // Percentage of tokens unlocked at month 0
 }
 
 // InvestorRound represents an investment round
