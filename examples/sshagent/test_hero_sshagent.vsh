@@ -8,8 +8,9 @@ import freeflowuniverse.herolib.ui.console
 
 fn main() {
 	console.print_header('🔑 Hero SSH Agent Test Suite')
+	os.execute('${os.dir(os.dir(@FILE))}/cli/compile.vsh')
 	
-	hero_bin := '/Users/mahmoud/hero/bin/hero'
+	hero_bin := '${os.home_dir()}/hero/bin/hero'
 	
 	// Check if hero binary exists
 	if !os.exists(hero_bin) {
@@ -23,7 +24,7 @@ fn main() {
 	// Test 1: Profile initialization
 	console.print_header('Test 1: Profile Initialization')
 	result1 := os.execute('${hero_bin} sshagent profile')
-	if result1.exit_code == 0 {
+	if result1.exit_code == 0 && result1.output.contains('Hero SSH Agent Profile Initialization') {
 		console.print_green('✓ Profile initialization successful')
 	} else {
 		console.print_stderr('❌ Profile initialization failed: ${result1.output}')
@@ -32,7 +33,7 @@ fn main() {
 	// Test 2: Status check
 	console.print_header('Test 2: Status Check')
 	result2 := os.execute('${hero_bin} sshagent status')
-	if result2.exit_code == 0 {
+	if result2.exit_code == 0 && result2.output.contains("- SSH Agent Status") {
 		console.print_green('✓ Status check successful')
 		println(result2.output)
 	} else {
@@ -42,7 +43,7 @@ fn main() {
 	// Test 3: List keys
 	console.print_header('Test 3: List SSH Keys')
 	result3 := os.execute('${hero_bin} sshagent list')
-	if result3.exit_code == 0 {
+	if result3.exit_code == 0 && result3.output.contains('SSH Keys Status') {
 		console.print_green('✓ List keys successful')
 		println(result3.output)
 	} else {
@@ -53,7 +54,7 @@ fn main() {
 	console.print_header('Test 4: Generate Test Key')
 	test_key_name := 'hero_test_${os.getpid()}'
 	result4 := os.execute('${hero_bin} sshagent generate -n ${test_key_name}')
-	if result4.exit_code == 0 {
+	if result4.exit_code == 0 && result4.output.contains('Generating SSH key') {
 		console.print_green('✓ Key generation successful')
 		println(result4.output)
 		
