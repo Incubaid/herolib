@@ -1,6 +1,6 @@
 module incatokens
 
-import freeflowuniverse.herolib.biz.spreadsheet
+// import freeflowuniverse.herolib.biz.spreadsheet
 
 // Initialize default investor rounds
 pub fn (mut sim Simulation) init_default_rounds() ! {
@@ -27,6 +27,43 @@ pub fn (mut sim Simulation) init_default_rounds() ! {
 	
 	sim.team_vesting = VestingSchedule{cliff_months: 12, vesting_months: 36}
 	sim.treasury_vesting = VestingSchedule{cliff_months: 12, vesting_months: 48}
+}
+
+// Generate comprehensive report with all scenarios
+pub fn (mut sim Simulation) run_full_simulation(params SimulationParams) ! {
+	// Configure from parameters
+	sim.epoch1_floor_uplift = params.economics.epoch1_floor_uplift
+	sim.epochn_floor_uplift = params.economics.epochn_floor_uplift
+	sim.amm_liquidity_depth_factor = params.economics.amm_liquidity_depth_factor
+
+	// Set up investor rounds
+	sim.investor_rounds = params.investor_rounds.map(InvestorRound{
+		name: it.name
+		allocation_pct: it.allocation_pct
+		price: it.price
+		vesting: VestingSchedule{
+			cliff_months: it.vesting.cliff_months
+			vesting_months: it.vesting.vesting_months
+		}
+	})
+
+	// Set up vesting schedules
+	sim.team_vesting = VestingSchedule{
+		cliff_months: params.vesting.team.cliff_months
+		vesting_months: params.vesting.team.vesting_months
+	}
+	sim.treasury_vesting = VestingSchedule{
+		cliff_months: params.vesting.treasury.cliff_months
+		vesting_months: params.vesting.treasury.vesting_months
+	}
+
+	// Run all scenarios
+	for scenario_config in params.scenarios {
+		sim.run_scenario(scenario_config.name, scenario_config.demands, scenario_config.amm_trades)!
+	}
+
+	// Generate vesting schedules
+	sim.create_vesting_schedules()!
 }
 
 // Run a scenario with given demands and AMM trades

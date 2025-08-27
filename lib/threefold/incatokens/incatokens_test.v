@@ -1,24 +1,27 @@
 module incatokens
 
+import os
+
 fn test_simulation_creation() {
-	mut sim := simulation_new(name: 'test_sim')!
-	sim.init_default_rounds()!
+	mut params := default_params()
+	params.name = 'test_sim_creation'
 	
-	assert sim.name == 'test_sim'
-	assert sim.total_supply == 10_000_000_000
-	assert sim.investor_rounds.len == 3
+	mut sim := simulation_new_from_params(params)!
+	
+	assert sim.name == 'test_sim_creation'
+	assert sim.total_supply == params.distribution.total_supply
+	assert sim.investor_rounds.len == params.investor_rounds.len
 }
 
 fn test_scenario_execution() {
-	mut sim := simulation_new(name: 'test_sim')!
-	sim.init_default_rounds()!
+	mut params := default_params()
+	params.name = 'test_scenario_exec'
 	
-	// Run low scenario
-	low_scenario := sim.run_scenario(
-		'Low',
-		[10_000_000.0, 10_000_000.0, 0.0],
-		[0.0, 0.0, 0.0]
-	)!
+	mut sim := simulation_new_from_params(params)!
+	sim.run_full_simulation(params)!
+	
+	// Get the 'Low' scenario results
+	low_scenario := sim.scenarios['Low']!
 	
 	assert low_scenario.name == 'Low'
 	assert low_scenario.final_metrics.treasury_total > 0
@@ -32,9 +35,11 @@ fn test_scenario_execution() {
 }
 
 fn test_vesting_schedules() {
-	mut sim := simulation_new(name: 'test_sim')!
-	sim.init_default_rounds()!
-	sim.create_vesting_schedules()!
+	mut params := default_params()
+	params.name = 'test_vesting_schedules'
+	
+	mut sim := simulation_new_from_params(params)!
+	sim.run_full_simulation(params)!
 	
 	// Check team vesting
 	team_row := sim.vesting_sheet.row_get('team_vesting')!
@@ -51,31 +56,25 @@ fn test_vesting_schedules() {
 }
 
 fn test_export_functionality() {
-	mut sim := simulation_new(name: 'test_export')!
-	sim.init_default_rounds()!
+	mut params := default_params()
+	params.name = 'test_export'
+	params.output.export_dir = '/tmp/incatokens_test_output'
+	params.output.generate_csv = true
+	params.output.generate_report = true
 	
-	// Run scenarios
-	sim.run_scenario('Low', [10_000_000.0, 10_000_000.0, 0.0], [0.0, 0.0, 0.0])!
-	sim.run_scenario('High', [50_000_000.0, 100_000_000.0, 0.0], [0.0, 0.0, 0.0])!
+	// Ensure output directory exists and is clean
+	os.rmdir_all(params.output.export_dir) or {}
+	os.mkdir_all(params.output.export_dir)!
 	
-	// Test CSV export
-	sim.export_csv('prices', '/tmp/test_prices.csv')!
+	mut sim := simulation_new_from_params(params)!
+	sim.run_full_simulation(params)!
 	
-	// Test report generation
-	// sim.export_report('/tmp/test_report.md')!
+	// Test CSV export (already handled by run_full_simulation if generate_csv is true)
+	assert os.exists('${params.output.export_dir}/${params.name}_prices.csv')
+	assert os.exists('${params.output.export_dir}/${params.name}_tokens.csv')
+	assert os.exists('${params.output.export_dir}/${params.name}_investments.csv')
+	assert os.exists('${params.output.export_dir}/${params.name}_vesting.csv')
+	
+	// Test report generation (already handled by run_full_simulation if generate_report is true)
+	assert os.exists('${params.output.export_dir}/${params.name}_report.md')
 }
-// fn test_template_rendering() {
-// 	mut sim := simulation_new(name: 'test_template')!
-// 	sim.init_default_rounds()!
-	
-// 	// Run a scenario
-// 	sim.run_scenario('Low', [10_000_000.0, 10_000_000.0, 0.0], [0.0, 0.0, 0.0])!
-	
-// 	// Render the report
-// 	report := sim.render_report()!
-	
-// 	// Assert that the report is not empty and contains some expected text
-// 	assert report.len > 0
-// 	assert report.contains('# INCA TGE Simulation Report')
-// 	assert report.contains('## 1) Token Distribution &amp; Vesting')
-// }

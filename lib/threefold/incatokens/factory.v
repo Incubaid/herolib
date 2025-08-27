@@ -7,6 +7,20 @@ __global (
 	simulations map[string]&Simulation
 )
 
+// Create simulation from parameters struct
+pub fn simulation_new_from_params(params SimulationParams) !&Simulation {
+	return simulation_new(
+		name: params.name
+		total_supply: params.distribution.total_supply
+		public_pct: params.distribution.public_pct
+		team_pct: params.distribution.team_pct
+		treasury_pct: params.distribution.treasury_pct
+		investor_pct: params.distribution.investor_pct
+		nrcol: params.simulation.nrcol
+		currency: params.simulation.currency
+	)!
+}
+
 @[params]
 pub struct SimulationNewArgs {
 pub mut:
