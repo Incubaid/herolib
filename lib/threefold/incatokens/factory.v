@@ -10,13 +10,21 @@ __global (
 @[params]
 pub struct SimulationNewArgs {
 pub mut:
+	// name of the simulation, used for identification and file naming
 	name string = 'default'
+	// total supply of INCA tokens
 	total_supply f64 = 10_000_000_000
+	// percentage of tokens allocated to public sale (TGE)
 	public_pct f64 = 0.50
+	// percentage of tokens allocated to the team
 	team_pct f64 = 0.15
+	// percentage of tokens allocated to the treasury
 	treasury_pct f64 = 0.15
+	// percentage of tokens allocated to investors
 	investor_pct f64 = 0.20
+	// number of columns (months) for the simulation spreadsheets
 	nrcol int = 60 // 60 months default
+	// currency used in the simulation (e.g., 'USD')
 	currency string = 'USD'
 }
 
