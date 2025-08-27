@@ -5,23 +5,17 @@ import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.installers.lang.herolib
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.builder
+import freeflowuniverse.herolib.virt.utils
 import os
 import json
 
-// is builderah containers
+// Use shared container status from utils
+pub type ContainerStatus = utils.ContainerStatus
 
-pub enum ContainerStatus {
-	up
-	down
-	restarting
-	paused
-	dead
-	created
-}
 pub struct IPAddress {
-	pub mut:
-		ipv4 string
-		ipv6 string
+pub mut:
+	ipv4 string
+	ipv6 string
 }
 // need to fill in what is relevant
 @[heap]
@@ -72,13 +66,17 @@ pub mut:
 // }
 
 pub fn (mut self BuildAHContainer) copy(src string, dest string) ! {
-	cmd := 'buildah copy ${self.id} ${src} ${dest}'
-	self.exec(cmd: cmd, stdout: false)!
+	mut executor := utils.buildah_exec(false)
+	executor.exec(['copy', self.id, src, dest]) or {
+		return utils.new_build_error('copy', self.containername, err.code(), err.msg(), err.msg())
+	}
 }
 
 pub fn (mut self BuildAHContainer) shell() ! {
-	cmd := 'buildah run --terminal --env TERM=xterm ${self.id} /bin/bash'
-	osal.execute_interactive(cmd)!
+	mut executor := utils.buildah_exec(false)
+	executor.exec_interactive(['run', '--terminal', '--env', 'TERM=xterm', self.id, '/bin/bash']) or {
+		return utils.new_build_error('shell', self.containername, err.code(), err.msg(), err.msg())
+	}
 }
 
 pub fn (mut self BuildAHContainer) clean() ! {
@@ -109,7 +107,10 @@ pub fn (mut self BuildAHContainer) clean() ! {
 }
 
 pub fn (mut self BuildAHContainer) delete() ! {
-	panic("implement")
+	mut executor := utils.buildah_exec(false)
+	executor.exec(['rm', self.containername]) or {
+		return utils.new_build_error('delete', self.containername, err.code(), err.msg(), err.msg())
+	}
 }
 
 pub fn (mut self BuildAHContainer) inspect() !BuilderInfo {
@@ -130,21 +131,34 @@ pub fn (mut self BuildAHContainer) mount_to_path() !string {
 }
 
 pub fn (mut self BuildAHContainer) commit(image_name string) ! {
-	cmd := 'buildah commit ${self.containername} ${image_name}'
-	self.exec(cmd: cmd)!
+	// Validate image name
+	validated_name := utils.validate_image_name(image_name) or {
+		return utils.new_validation_error('image_name', image_name, err.msg())
+	}
+
+	mut executor := utils.buildah_exec(false)
+	executor.exec(['commit', self.containername, validated_name]) or {
+		return utils.new_build_error('commit', self.containername, err.code(), err.msg(), err.msg())
+	}
 }
 
 pub fn (self BuildAHContainer) set_entrypoint(entrypoint string) ! {
-	cmd := 'buildah config --entrypoint \'${entrypoint}\' ${self.containername}'
-	self.exec(cmd: cmd)!
+	mut executor := utils.buildah_exec(false)
+	executor.exec(['config', '--entrypoint', entrypoint, self.containername]) or {
+		return utils.new_build_error('set_entrypoint', self.containername, err.code(), err.msg(), err.msg())
+	}
 }
 
 pub fn (self BuildAHContainer) set_workingdir(workdir string) ! {
-	cmd := 'buildah config --workingdir ${workdir} ${self.containername}'
-	self.exec(cmd: cmd)!
+	mut executor := utils.buildah_exec(false)
+	executor.exec(['config', '--workingdir', workdir, self.containername]) or {
+		return utils.new_build_error('set_workingdir', self.containername, err.code(), err.msg(), err.msg())
+	}
 }
 
 pub fn (self BuildAHContainer) set_cmd(command string) ! {
-	cmd := 'buildah config --cmd ${command} ${self.containername}'
-	self.exec(cmd: cmd)!
+	mut executor := utils.buildah_exec(false)
+	executor.exec(['config', '--cmd', command, self.containername]) or {
+		return utils.new_build_error('set_cmd', self.containername, err.code(), err.msg(), err.msg())
+	}
 }

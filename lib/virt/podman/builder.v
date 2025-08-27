@@ -5,6 +5,25 @@ import freeflowuniverse.herolib.osal.core as osal { exec }
 import freeflowuniverse.herolib.ui.console
 import json
 
+// BuildError represents errors that occur during build operations
+pub struct BuildError {
+	Error
+pub:
+	operation string
+	container string
+	exit_code int
+	message   string
+	stderr    string
+}
+
+pub fn (err BuildError) msg() string {
+	return 'Build operation failed: ${err.operation}\nContainer: ${err.container}\nMessage: ${err.message}\nStderr: ${err.stderr}'
+}
+
+pub fn (err BuildError) code() int {
+	return err.exit_code
+}
+
 @[heap]
 pub struct Builder {
 pub mut:
@@ -146,8 +165,27 @@ pub fn (mut self Builder) shell() ! {
 }
 
 pub fn (mut self Builder) commit(image_name string) ! {
+	// Commit the buildah container to an image
 	cmd := 'buildah commit ${self.containername} ${image_name}'
-	exec(cmd: cmd)!
+	exec(cmd: cmd, stdout: false) or {
+		return BuildError{
+			operation: 'commit'
+			container: self.containername
+			exit_code: 1
+			message:   'Failed to commit buildah container to image'
+			stderr:    err.msg()
+		}
+	}
+
+	// Automatically transfer to podman for seamless integration
+	// Transfer image from buildah to podman using buildah push
+	transfer_cmd := 'buildah push ${image_name} containers-storage:${image_name}'
+	exec(cmd: transfer_cmd, stdout: false) or {
+		console.print_debug('Warning: Failed to transfer image to podman: ${err}')
+		console.print_debug('Image is available in buildah but may need manual transfer')
+		console.print_debug('You can manually transfer with: buildah push ${image_name} containers-storage:${image_name}')
+		// Don't fail the commit if transfer fails
+	}
 }
 
 pub fn (self Builder) set_entrypoint(entrypoint string) ! {
