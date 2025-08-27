@@ -2,35 +2,9 @@ module incatokens
 
 // import freeflowuniverse.herolib.biz.spreadsheet
 
-// Initialize default investor rounds
-pub fn (mut sim Simulation) init_default_rounds() ! {
-	sim.investor_rounds = [
-		InvestorRound{
-			name: 'R1'
-			allocation_pct: 0.05
-			price: 0.005
-			vesting: VestingSchedule{cliff_months: 6, vesting_months: 24}
-		},
-		InvestorRound{
-			name: 'R2'
-			allocation_pct: 0.075
-			price: 0.009
-			vesting: VestingSchedule{cliff_months: 6, vesting_months: 24}
-		},
-		InvestorRound{
-			name: 'R3'
-			allocation_pct: 0.075
-			price: 0.0106
-			vesting: VestingSchedule{cliff_months: 6, vesting_months: 24}
-		}
-	]
-	
-	sim.team_vesting = VestingSchedule{cliff_months: 12, vesting_months: 36}
-	sim.treasury_vesting = VestingSchedule{cliff_months: 12, vesting_months: 48}
-}
 
 // Generate comprehensive report with all scenarios
-pub fn (mut sim Simulation) run_full_simulation(params SimulationParams) ! {
+pub fn (mut sim Simulation) simulate(params SimulationParams) ! {
 	// Configure from parameters
 	sim.epoch1_floor_uplift = params.economics.epoch1_floor_uplift
 	sim.epochn_floor_uplift = params.economics.epochn_floor_uplift

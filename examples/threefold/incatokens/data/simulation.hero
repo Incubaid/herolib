@@ -54,3 +54,5 @@
 	price: 0.012
 	cliff_months: 3
 	vesting_months: 18
+
+!!incatokens.export path:"/tmp/incatokens_export"

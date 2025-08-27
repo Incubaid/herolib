@@ -79,58 +79,6 @@ pub mut:
 	output          OutputConfig
 }
 
-// default_params returns a SimulationParams with sensible defaults
-pub fn default_params() SimulationParams {
-	return SimulationParams{
-		name: 'default'
-		distribution: TokenDistribution{}
-		investor_rounds: [
-			InvestorRoundConfig{
-				name: 'R1'
-				allocation_pct: 0.05
-				price: 0.005
-				vesting: VestingConfig{cliff_months: 6, vesting_months: 24}
-			},
-			InvestorRoundConfig{
-				name: 'R2'
-				allocation_pct: 0.075
-				price: 0.009
-				vesting: VestingConfig{cliff_months: 6, vesting_months: 24}
-			},
-			InvestorRoundConfig{
-				name: 'R3'
-				allocation_pct: 0.075
-				price: 0.0106
-				vesting: VestingConfig{cliff_months: 6, vesting_months: 24}
-			}
-		]
-		vesting: VestingConfigs{
-			team: VestingConfig{cliff_months: 12, vesting_months: 36}
-			treasury: VestingConfig{cliff_months: 12, vesting_months: 48}
-		}
-		economics: EconomicsConfig{}
-		simulation: SimulationConfig{}
-		scenarios: [
-			ScenarioConfig{
-				name: 'Low'
-				demands: [10_000_000.0, 10_000_000.0, 0.0]
-				amm_trades: [0.0, 0.0, 0.0]
-			},
-			ScenarioConfig{
-				name: 'Medium'
-				demands: [25_000_000.0, 50_000_000.0, 0.0]
-				amm_trades: [0.0, 0.0, 0.0]
-			},
-			ScenarioConfig{
-				name: 'High'
-				demands: [50_000_000.0, 100_000_000.0, 0.0]
-				amm_trades: [0.0, 0.0, 0.0]
-			}
-		]
-		output: OutputConfig{}
-	}
-}
-
 // run_simulation executes the simulation with the given parameters
 pub fn (params SimulationParams) run_simulation() ! {
 	mut sim := simulation_new(

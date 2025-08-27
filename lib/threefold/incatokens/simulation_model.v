@@ -58,29 +58,13 @@ pub mut:
 
 @[heap]
 pub struct Simulation {
+pub:
+	params SimulationParams //all config info comes here
 pub mut:
 	name string
-	
-	// Token distribution
-	total_supply f64
-	public_pct f64
-	team_pct f64
-	treasury_pct f64
-	investor_pct f64
-	
-	// Configuration
-	currency string
-	epoch1_floor_uplift f64 = 1.20
-	epochn_floor_uplift f64 = 1.20
-	amm_liquidity_depth_factor f64 = 2.0
-	
-	// Investor rounds
-	investor_rounds []InvestorRound
-	
-	// Vesting schedules
-	team_vesting VestingSchedule
-	treasury_vesting VestingSchedule
-	
+
+	//THE DATA WE ACTIVELY NEED TO SIMULATE IS HERE
+		
 	// Tracking sheets
 	price_sheet &spreadsheet.Sheet
 	token_sheet &spreadsheet.Sheet
