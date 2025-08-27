@@ -1,5 +1,5 @@
 module incatokens
-import  os
+import os
 
 // TokenDistribution defines how tokens are allocated across different categories
 pub struct TokenDistribution {

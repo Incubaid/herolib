@@ -1,7 +1,6 @@
 module incatokens
 
 import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.data.ourtime
 
 pub struct VestingSchedule {
 pub mut:

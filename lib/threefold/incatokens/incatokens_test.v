@@ -1,5 +1,5 @@
 module incatokens
-
+import freeflowuniverse.herolib.biz.spreadsheet
 import os
 
 fn test_simulation_creation() {
@@ -7,6 +7,7 @@ fn test_simulation_creation() {
 	params.name = 'test_sim_creation'
 	
 	mut sim := simulation_new_from_params(params)!
+	sim.run_full_simulation(params)! // Initialize investor_rounds and vesting schedules
 	
 	assert sim.name == 'test_sim_creation'
 	assert sim.total_supply == params.distribution.total_supply
@@ -62,14 +63,13 @@ fn test_export_functionality() {
 	params.output.generate_csv = true
 	params.output.generate_report = true
 	
-	// Ensure output directory exists and is clean
-	os.rmdir_all(params.output.export_dir) or {}
-	os.mkdir_all(params.output.export_dir)!
-	
 	mut sim := simulation_new_from_params(params)!
 	sim.run_full_simulation(params)!
 	
-	// Test CSV export (already handled by run_full_simulation if generate_csv is true)
+	// Ensure price sheet has data before export
+	assert sim.price_sheet.rows.len > 0
+	
+	// Test CSV export (handled by run_full_simulation if generate_csv is true)
 	assert os.exists('${params.output.export_dir}/${params.name}_prices.csv')
 	assert os.exists('${params.output.export_dir}/${params.name}_tokens.csv')
 	assert os.exists('${params.output.export_dir}/${params.name}_investments.csv')
@@ -77,4 +77,28 @@ fn test_export_functionality() {
 	
 	// Test report generation (already handled by run_full_simulation if generate_report is true)
 	assert os.exists('${params.output.export_dir}/${params.name}_report.md')
+}
+
+fn test_direct_csv_export() {
+	mut sheet := spreadsheet.sheet_new(
+	    name: 'test_sheet'
+	    nrcol: 2
+	    curr: 'USD'
+	)!
+	
+	mut row := sheet.row_new(name: 'test_row')!
+	row.cells[0].val = 100.0
+	row.cells[1].val = 200.0
+	
+	export_path := '/tmp/test_direct_export.csv'
+	os.rm(export_path) or {} // Clean up previous run
+	
+	sheet.export_csv(
+	    path: export_path
+	    separator: ','
+	    include_empty: false
+	)!
+	
+	assert os.exists(export_path)
+	os.rm(export_path) or {} // Clean up
 }

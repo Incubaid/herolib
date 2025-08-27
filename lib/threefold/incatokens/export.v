@@ -2,7 +2,6 @@ module incatokens
 
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.ui.console
-import os
 import time
 
 const report_template = '# INCA Token Economic Simulation Report
@@ -108,11 +107,13 @@ pub fn (sim Simulation) export_csv(sheet_name string, path string) ! {
 		else { return error('Unknown sheet: ${sheet_name}') }
 	}
 	
+	console.print_debug('Exporting sheet "${sheet_name}" to: ${path}')
 	sheet.export_csv(
 		path: path
 		separator: ','
 		include_empty: false
 	)!
+	console.print_debug('Finished exporting sheet "${sheet_name}".')
 }
 
 pub fn (sim Simulation) generate_distribution_section() !string {
