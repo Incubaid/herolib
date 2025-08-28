@@ -1,0 +1,44 @@
+#!/usr/bin/env hero
+
+// Tmux Cleanup Script - Tears down all tmux sessions, windows, and panes
+// Run this after tmux_setup.heroscript to clean up everything
+
+// Kill specific windows first (optional - sessions will kill all windows anyway)
+!!tmux.window_delete
+    name:"dev|editor"
+
+!!tmux.window_delete
+    name:"dev|server"
+
+!!tmux.window_delete
+    name:"dev|logs"
+
+!!tmux.window_delete
+    name:"dev|services"
+
+!!tmux.window_delete
+    name:"monitoring|htop"
+
+!!tmux.window_delete
+    name:"monitoring|network"
+
+// Delete all sessions (this will kill all windows and panes within them)
+!!tmux.session_delete 
+    name:'dev'
+
+!!tmux.session_delete 
+    name:'monitoring'
+
+// Optional: Kill any remaining panes explicitly (usually not needed after session delete)
+!!tmux.pane_kill
+    name:"dev|editor|main"
+
+!!tmux.pane_kill
+    name:"dev|server|main"
+
+!!tmux.pane_kill
+    name:"monitoring|htop|main"
+
+// Stop any remaining ttyd processes system-wide
+// This will clean up all ttyd processes regardless of which sessions exist
+!!tmux.ttyd_stop_all

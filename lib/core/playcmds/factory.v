@@ -9,6 +9,7 @@ import freeflowuniverse.herolib.virt.hetznermanager
 import freeflowuniverse.herolib.web.docusaurus
 import freeflowuniverse.herolib.clients.openai
 import freeflowuniverse.herolib.clients.giteaclient
+import freeflowuniverse.herolib.osal.tmux
 
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands
@@ -40,6 +41,9 @@ pub fn run(args_ PlayArgs) ! {
 
 	// Git actions
 	play_git(mut plbook)!
+
+	// Tmux actions
+	tmux.play(mut plbook)!
 
 	// Business model (e.g. currency, bizmodel)
 	bizmodel.play(mut plbook)!

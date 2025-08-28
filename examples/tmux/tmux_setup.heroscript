@@ -1,0 +1,105 @@
+// Create development session
+!!tmux.session_create
+    name:'dev'
+    reset:true
+
+// Create monitoring session
+!!tmux.session_create
+    name:'monitoring'
+    reset:true
+
+// Create development windows (use reset to ensure clean state)
+!!tmux.window_create
+    name:"dev|editor"
+    cmd:'vim'
+    reset:true
+
+!!tmux.window_create
+    name:"dev|server"
+    cmd:'python3 -m http.server 8000'
+    env:'PORT=8000,DEBUG=true'
+    reset:true
+
+!!tmux.window_create
+    name:"dev|logs"
+    cmd:'tail -f /var/log/system.log'
+    reset:true
+
+// Create monitoring windows
+!!tmux.window_create
+    name:"monitoring|htop"
+    cmd:'htop'
+    reset:true
+
+!!tmux.window_create
+    name:"monitoring|network"
+    cmd:'netstat -tuln'
+    reset:true
+
+// Create a multi-service window with 4 panes
+!!tmux.window_create
+    name:"dev|services"
+    cmd:'htop'
+    reset:true
+
+// Split the services window into 4 panes (1 initial + 3 splits = 4 total)
+!!tmux.pane_split
+    name:"dev|services"
+    cmd:'python3 -m http.server 3000'
+    horizontal:true
+
+!!tmux.pane_split
+    name:"dev|services"
+    cmd:'watch -n 1 ps aux'
+    horizontal:false
+
+!!tmux.pane_split
+    name:"dev|services"
+    cmd:'tail -f /var/log/system.log'
+    horizontal:true
+
+!!tmux.pane_split
+    name:"dev|services"
+    cmd:'echo Fourth pane ready for commands'
+    horizontal:false
+
+// Execute welcome commands in panes
+!!tmux.pane_execute
+    name:"dev|editor|main"
+    cmd:'echo Welcome to the editor pane'
+
+!!tmux.pane_execute
+    name:"dev|server|main"
+    cmd:'echo Starting development server'
+
+!!tmux.pane_execute
+    name:"monitoring|htop|main"
+    cmd:'echo System monitoring active'
+
+// Split panes for better workflow
+!!tmux.pane_split
+    name:"dev|editor"
+    cmd:'echo Split pane for terminal'
+    horizontal:false
+
+!!tmux.pane_split
+    name:"monitoring|htop"
+    cmd:'watch -n 1 df -h'
+    horizontal:true
+
+// Expose sessions and windows via web browser using ttyd
+!!tmux.session_ttyd
+    name:'dev'
+    port:8080
+    editable:true
+
+!!tmux.window_ttyd
+    name:"monitoring|htop"
+    port:8081
+    editable:false
+
+// Expose the 4-pane services window via web
+!!tmux.window_ttyd
+    name:"dev|services"
+    port:7681
+    editable:false

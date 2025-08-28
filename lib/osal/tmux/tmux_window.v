@@ -37,11 +37,27 @@ pub fn (mut w Window) scan() ! {
 
 	mut current_panes := map[int]bool{}
 	for line in result.split_into_lines() {
-		if line.contains('|') {
-			parts := line.split('|')
-			if parts.len >= 3 {
-				pane_id := parts[0].replace('%', '').int()
-				pane_pid := parts[1].int()
+		line_trimmed := line.trim_space()
+		if line_trimmed.len == 0 {
+			continue
+		}
+		if line_trimmed.contains('|') {
+			parts := line_trimmed.split('|')
+			if parts.len >= 3 && parts[0].len > 0 && parts[1].len > 0 {
+				// Safely parse pane ID
+				pane_id_str := parts[0].replace('%', '').trim_space()
+				if pane_id_str.len == 0 {
+					continue
+				}
+				pane_id := pane_id_str.int()
+
+				// Safely parse PID
+				pane_pid_str := parts[1].trim_space()
+				if pane_pid_str.len == 0 {
+					continue
+				}
+				pane_pid := pane_pid_str.int()
+
 				pane_active := parts[2] == '1'
 				pane_cmd := if parts.len > 3 { parts[3] } else { '' }
 
@@ -77,7 +93,14 @@ pub fn (mut w Window) scan() ! {
 	}
 
 	// Remove panes that no longer exist
-	w.panes = w.panes.filter(current_panes[it.id] == true)
+	mut valid_panes := []&Pane{}
+	for pane in w.panes {
+		// Use safe map access with 'in' operator first
+		if pane.id in current_panes && current_panes[pane.id] == true {
+			valid_panes << pane
+		}
+	}
+	w.panes = valid_panes
 }
 
 pub fn (mut w Window) stop() ! {
@@ -237,14 +260,8 @@ pub fn (mut w Window) pane_split(args PaneSplitArgs) !&Pane {
 	w.panes << &new_pane
 	w.scan()!
 
-	// Return reference to the new pane
-	for mut pane in w.panes {
-		if pane.id == pane_id {
-			return pane
-		}
-	}
-
-	return error('Could not find newly created pane with ID ${pane_id}')
+	// Return the new pane reference
+	return &new_pane
 }
 
 // Split pane horizontally (side by side)
@@ -288,4 +305,15 @@ pub fn (mut w Window) run_ttyd(args TtydArgs) ! {
 // Backward compatibility method - runs ttyd in read-only mode
 pub fn (mut w Window) run_ttyd_readonly(port int) ! {
 	w.run_ttyd(port: port, editable: false)!
+}
+
+// Stop ttyd for this window by killing the process on the specified port
+pub fn (mut w Window) stop_ttyd(port int) ! {
+	// Kill any process running on the specified port
+	cmd := 'lsof -ti:${port} | xargs kill -9'
+	osal.execute_silent(cmd) or {
+		// Ignore error if no process is found on the port
+		// This is normal when no ttyd is running on that port
+	}
+	println('ttyd stopped for window ${w.name} on port ${port} (if it was running)')
 }
