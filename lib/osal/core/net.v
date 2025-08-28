@@ -4,6 +4,7 @@ import net
 import time
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core
+
 import os
 
 pub enum PingResult {
@@ -140,4 +141,83 @@ pub fn is_ip_on_local_interface(public_ip string) !bool {
 		}
 	}
 	return false
+}
+
+
+//will give error if ssh test did not work
+pub fn ssh_check(args TcpPortTestArgs) ! {
+	errmsg, res := ssh_testrun_internal(args)!
+	if res != .ok{
+		return error(errmsg)
+	}
+}
+
+pub enum SSHResult {
+	ok
+	ping     // timeout from ping
+	tcpport // means we don't know the hostname its a dns issue
+	ssh 
+}
+
+
+pub fn ssh_test(args TcpPortTestArgs) !SSHResult {
+	_, res := ssh_testrun_internal(args)!
+	return res
+}
+
+//will give error if ssh test did not work
+pub fn ssh_wait(args TcpPortTestArgs) ! {
+
+	start_time := time.now().unix_milli()
+	mut run_time := 0.0
+	for true {
+		run_time = time.now().unix_milli()
+
+		errmsg, res := ssh_testrun_internal(args)!
+		console.print_debug(errmsg)
+
+		if run_time > start_time + args.timeout {
+			return error(errmsg)
+		}		
+
+		if res == .ok{
+			return
+		}
+	}
+
+}
+
+
+fn ssh_testrun_internal(args TcpPortTestArgs) !(string,SSHResult) {
+	cmd:='
+	ssh -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q "${args.address}" exit
+	if [ $? -eq 0 ]; then
+	echo "OK: SSH works"
+	exit 0
+	fi	
+	timeout 1 nc -z "${args.address}" 22 >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	echo "ERROR: SSH failed but port ${args.port} open"
+	exit 1
+	fi
+	ping -c1 -W2 "${args.address}" >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	echo "ERROR: SSH & port test failed, host reachable by ping"
+	exit 2
+	fi
+	echo "ERROR: Host unreachable, over ping and ssh"
+	exit 3
+	'
+	// console.print_debug('ssh test cmd: ${cmd}')
+	res:=exec(cmd:cmd,ignore_error:true,stdout:false,debug:false)!
+	// console.print_debug('ssh test result: ${res}')
+	if res.exit_code == 0 {
+		return res.output, SSHResult.ok
+	} else if res.exit_code == 1 {
+		return res.output, SSHResult.tcpport
+	} else if res.exit_code == 2 {
+		return res.output, SSHResult.ping
+	} else {
+		return res.output, SSHResult.ssh
+	}
 }

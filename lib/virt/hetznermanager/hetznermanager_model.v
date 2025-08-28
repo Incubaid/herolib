@@ -26,7 +26,6 @@ pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
 		retry: 3
 	)!
 	c2.basic_auth(h.user, h.password)
-	println(c2)
 	return c2
 }
 

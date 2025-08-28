@@ -5,14 +5,11 @@ import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui
 import v.embed_file
 
 const heropath_ = os.dir(@FILE) + '/../'
 
 pub struct BootStrapper {
-pub mut:
-	embedded_files map[string]embed_file.EmbedFileData @[skip; str: skip]
 }
 
 @[params]
@@ -24,18 +21,9 @@ pub mut:
 	debug bool
 }
 
-fn (mut bs BootStrapper) load() {
-	panic('not implemented')
-
-	// TODO: check how to install hero. maybe once we have releases, we could just download the binary
-	// bs.embedded_files['install_base.sh'] = $embed_file('../../scripts/install_base.sh')
-	// bs.embedded_files['install_hero.sh'] = $embed_file('../../scripts/install_hero.sh')
-}
-
 // to use do something like: export NODES="195.192.213.3" .
 pub fn bootstrapper() BootStrapper {
 	mut bs := BootStrapper{}
-	bs.load()
 	return bs
 }
 
@@ -49,51 +37,7 @@ pub fn (mut bs BootStrapper) run(args_ BootstrapperArgs) ! {
 		name := '${args.name}_${counter}'
 		mut n := b.node_new(ipaddr: a, name: name)!
 		n.hero_install()!
-		n.hero_install()!
-	}
-}
-
-pub fn (mut node Node) upgrade() ! {
-	mut bs := bootstrapper()
-	install_base_content_ := bs.embedded_files['install_base.sh'] or { panic('bug') }
-	install_base_content := install_base_content_.to_string()
-	cmd := '${install_base_content}\n'
-	node.exec_cmd(
-		cmd:         cmd
-		period:      48 * 3600
-		reset:       false
-		description: 'upgrade operating system packages'
-	)!
-}
-
-pub fn (mut node Node) hero_install() ! {
-	console.print_debug('install hero')
-	mut bs := bootstrapper()
-	install_hero_content_ := bs.embedded_files['install_hero.sh'] or { panic('bug') }
-	install_hero_content := install_hero_content_.to_string()
-	if node.platform == .osx {
-		// we have no choice then to do it interactive
-		myenv := node.environ_get()!
-		homedir := myenv['HOME'] or { return error("can't find HOME in env") }
-		node.exec_silent('mkdir -p ${homedir}/hero/bin')!
-		node.file_write('${homedir}/hero/bin/install.sh', install_hero_content)!
-		node.exec_silent('chmod +x ${homedir}/hero/bin/install.sh')!
-		node.exec_interactive('${homedir}/hero/bin/install.sh')!
-	} else if node.platform == .ubuntu {
-		myenv := node.environ_get()!
-		homedir := myenv['HOME'] or { return error("can't find HOME in env") }
-		node.exec_silent('mkdir -p ${homedir}/hero/bin')!
-		node.file_write('${homedir}/hero/bin/install.sh', install_hero_content)!
-		node.exec_silent('chmod +x ${homedir}/hero/bin/install.sh')!
-		node.exec_interactive('${homedir}/hero/bin/install.sh')!
-	}
-}
-
-pub fn (mut node Node) dagu_install() ! {
-	console.print_debug('install dagu')
-	if !osal.cmd_exists('dagu') {
-		_ = bootstrapper()
-		node.exec_silent('curl -L https://raw.githubusercontent.com/yohamta/dagu/main/scripts/downloader.sh | bash')!
+		// n.hero_install()!
 	}
 }
 
@@ -101,47 +45,32 @@ pub fn (mut node Node) dagu_install() ! {
 pub struct HeroInstallArgs {
 pub mut:
 	reset bool
+	compile bool
+	v_analyzer bool
+	debug bool //will go in shell
 }
 
-// pub fn (mut node Node) hero_install(args HeroInstallArgs) ! {
-// 	mut bs := bootstrapper()
-// 	install_base_content_ := bs.embedded_files['install_base.sh'] or { panic('bug') }
-// 	install_base_content := install_base_content_.to_string()
+pub fn (mut node Node) hero_install(args HeroInstallArgs) ! {
+	console.print_debug('install hero')
+	mut bs := bootstrapper()
 
-// 	if args.reset {
-// 		console.clear()
-// 		console.print_debug('')
-// 		console.print_stderr('will remove: .vmodules, hero lib code and ~/hero')
-// 		console.print_debug('')
-// 		mut myui := ui.new()!
-// 		toinstall := myui.ask_yesno(
-// 			question: 'Ok to reset?'
-// 			default: true
-// 		)!
-// 		if !toinstall {
-// 			exit(1)
-// 		}
-// 		os.rmdir_all('${os.home_dir()}/.vmodules')!
-// 		os.rmdir_all('${os.home_dir()}/hero')!
-// 		os.rmdir_all('${os.home_dir()}/code/github/freeflowuniverse/herolib')!
-// 		os.rmdir_all('${os.home_dir()}/code/github/freeflowuniverse/webcomponents')!
-// 	}
+	myenv := node.environ_get()!
+	homedir := myenv['HOME'] or { return error("can't find HOME in env") }
 
-// 	cmd := '
-// 		${install_base_content}
-
-// 		rm -f /usr/local/bin/hero
-// 		freeflow_dev_env_install
-
-// 		~/code/github/freeflowuniverse/herolib/install.sh
-
-// 		echo HERO, V, CRYSTAL ALL INSTALL OK
-// 		echo WE ARE READY TO HERO...
-
-// 		'
-// 	console.print_debug('executing cmd ${cmd}')
-// 	node.exec_cmd(cmd: cmd)!
-// }
+	mut todo := []string{}
+	if ! args.compile {
+		todo << "curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_herolib.sh > /tmp/install.sh"
+		todo << "bash /tmp/install.sh"
+	}else{
+		todo << "curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh"
+		if args.v_analyzer {
+			todo << "bash /tmp/install_v.sh --analyzer --herolib "
+		}else{
+			todo << "bash /tmp/install_v.sh --herolib "
+		}
+	}
+	node.exec_interactive(todo.join('\n'))!
+}
 
 @[params]
 pub struct HeroUpdateArgs {

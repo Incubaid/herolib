@@ -45,6 +45,8 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 		dataformat: .urlencoded
 		// dict_key:'reset'
 	)!
+	println(o)
+	console.print_debug('server ${serverinfo.server_name} reset done.')
 	// now need to wait till it goes off
 	if serveractive {
 		for {
@@ -63,10 +65,8 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 		for {
 			time.sleep(1000 * time.millisecond)
 			console.print_debug('wait for ${serverinfo.server_name}')
-			if osal.ping(address: serverinfo.server_ip)! == .ok {
-				console.print_debug('ping ok')
-				osal.tcp_port_test(address: serverinfo.server_ip, port: 22, timeout: 3000)
-				console.print_debug('ssh tcp port ok')
+			if osal.ssh_test(address: serverinfo.server_ip)! == .ok {
+				console.print_debug('ssh test ok')
 				console.print_header('server is rebooted: ${serverinfo.server_name}')
 				break
 			}

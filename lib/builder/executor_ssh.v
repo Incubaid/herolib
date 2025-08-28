@@ -21,7 +21,6 @@ pub mut:
 
 fn (mut executor ExecutorSSH) init() ! {
 	if !executor.initialized {
-		$dbg;
 		mut addr := executor.ipaddr.addr
 		if addr == '' {
 			addr = 'localhost'
@@ -53,7 +52,7 @@ pub fn (mut executor ExecutorSSH) exec(args_ ExecArgs) !string {
 	if executor.ipaddr.port > 10 {
 		port = '-p ${executor.ipaddr.port}'
 	}
-	args.cmd = 'ssh -o StrictHostKeyChecking=no ${executor.user}@${executor.ipaddr.addr} ${port} "${args.cmd}"'
+	args.cmd = 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${executor.user}@${executor.ipaddr.addr} ${port} "${args.cmd}"'
 	res := osal.exec(cmd: args.cmd, stdout: args.stdout, debug: executor.debug)!
 	return res.output
 }
@@ -64,7 +63,8 @@ pub fn (mut executor ExecutorSSH) exec_interactive(args_ ExecArgs) ! {
 	if executor.ipaddr.port > 10 {
 		port = '-p ${executor.ipaddr.port}'
 	}
-	args.cmd = 'ssh -tt -o StrictHostKeyChecking=no ${executor.user}@${executor.ipaddr.addr} ${port} "${args.cmd}"'
+	args.cmd = 'ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${executor.user}@${executor.ipaddr.addr} ${port} "${args.cmd}"'
+	console.print_debug(args.cmd)
 	osal.execute_interactive(args.cmd)!
 }
 

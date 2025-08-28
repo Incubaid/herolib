@@ -51,8 +51,13 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 	mut from_cache := false // used to know if result came from cache
 	mut req := req_
 
-	is_cacheable := h.is_cacheable(req)
-	// console.print_debug("is cacheable: ${is_cacheable}")
+	// println("Sending request: ${req}")
+
+	mut is_cacheable := h.is_cacheable(req)
+	if req.debug {
+		//in debug mode should not cache
+		is_cacheable = false
+	}
 
 	// 1 - Check cache if enabled try to get result from cache
 	if is_cacheable {
@@ -90,14 +95,14 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 				new_req.header.set(http.CommonHeader.content_type, 'multipart/form-data')
 			}
 		}
-
+		
 		if req.debug {
-			console.print_debug("----")
-			console.print_debug(" ${url} ${req.method} url:${url}\n${req.data} \n${new_req.header}")
-			console.print_debug("----")			
 			console.print_debug('http request:\n${new_req.str()}')
 		}
-		for _ in 0 .. h.retry {
+		for counter in 0 .. h.retry {
+			if req.debug {
+				console.print_debug("request attempt:${counter}")
+			}			
 			response = new_req.do() or {
 				err_message = 'Cannot send request:${req}\nerror:${err}'
 				// console.print_debug(err_message)
@@ -106,8 +111,9 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 			break
 		}
 		if req.debug {
+			console.print_debug("request done")
 			console.print_debug(response.str())
-		}
+		}			
 		if response.status_code == 0 {
 			return error(err_message)
 		}
@@ -123,8 +129,6 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 	if h.needs_invalidate(req, result.code) {
 		h.cache_invalidate(req)!
 	}
-
-	$dbg;
 
 	// 5 - Return result
 	return result
@@ -186,10 +190,9 @@ pub fn (mut h HTTPConnection) get_json(req Request) !string {
 // Get Request with json data and return response as string
 pub fn (mut h HTTPConnection) get(req_ Request) !string {
 	mut req := req_
-	req.debug
 	req.method = .get
 	result := h.send(req)!
-	if !result.is_ok() {
+	if !result.is_ok() {		
 		return error('Could not get ${req}\result:\n${result}')	
 	}
 	return result.data
