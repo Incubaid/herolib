@@ -18,24 +18,32 @@ pub mut:
 
 // if ping ok, return true
 pub fn ping(args PingArgs) !bool {
-	// platform_ := core.platform()!
+	platform_ := core.platform()!
 	mut cmd := 'ping'
 	if args.address.contains(':') {
 		cmd = 'ping6'
 	}
-	cmd += ' -c 1 ${args.address}'
+	// if platform_ == .windows {
+	// 	cmd += ' -n 1 -w 1000'
+	if platform_ == .osx {
+		cmd += ' -c 1 -t 2'
+	} else {
+		// linux
+		cmd += ' -c 1 -w 2'
+	}
+	cmd += ' ${args.address}'
 	if args.nr_ok > args.nr_ping {
 		return error('nr_ok must be <= nr_ping')
 	}
 	for _ in 0 .. math.max(1, args.retry) {
 		mut nrerrors := 0
 		for _ in 0 .. args.nr_ping {
-			console.print_debug(cmd)
+			// console.print_debug(cmd)
 			res := os.execute(cmd)
 			if res.exit_code > 0 {
 				nrerrors += 1
 			}
-			println(res)
+			// println(res)
 		}
 		successes := args.nr_ping - nrerrors
 		if successes >= args.nr_ok {
@@ -215,7 +223,12 @@ fn ssh_testrun_internal(args TcpPortTestArgs) !(string, SSHResult) {
 	echo "ERROR: SSH failed but port ${args.port} open"
 	exit 1
 	fi
-	ping -c1 -W2 "${args.address}" >/dev/null 2>&1
+	# Cross-platform ping (Linux vs macOS)
+	if [[ "$(uname)" == "Darwin" ]]; then
+		ping -c1 -t2 "${args.address}" >/dev/null 2>&1
+	else
+		ping -c1 -w2 "${args.address}" >/dev/null 2>&1
+	fi
 	if [ $? -eq 0 ]; then
 	echo "ERROR: SSH & port test failed, host reachable by ping"
 	exit 2
