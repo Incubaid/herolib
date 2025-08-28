@@ -22,7 +22,7 @@ playcmds.run(
 	!!hetznermanager.configure
 		name:"main"
 		user:"${user}"
-		whitelist:"2111181, 2392178"
+		whitelist:"2111181, 2392178, 2545053"
 		password:"${passwd}"
 	'
 )!

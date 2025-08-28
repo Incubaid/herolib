@@ -1,19 +1,17 @@
 module hetznermanager
 
-import freeflowuniverse.herolib.core.texttools
-import time
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.builder
 
 
-pub fn (mut h HetznerManager) check_whitelist(name string)! {
+pub fn (mut h HetznerManager) check_whitelist(args_ ServerRescueArgs)! {
 	
-	if whitelist.len == 0 {
+	if h.whitelist.len == 0 {
 		return
 	}
-	if !whitelist.contains(name) {
-		return error('Server ${name} is not whitelisted')
+
+	mut serverinfo := h.server_info_get(id: args_.id, name: args_.name)!
+
+	if ! h.whitelist.contains(serverinfo.server_number) {
+		return error('Server ${serverinfo}\nis not whitelisted')
 	}
 
 }

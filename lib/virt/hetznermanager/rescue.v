@@ -34,6 +34,7 @@ pub mut:
 }
 
 pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoDetailed {
+	h.check_whitelist(args_)!
 	if args_.retry > 1 {
 		for _ in 0 .. args_.retry - 1 {
 			return h.server_rescue_internal(args_) or { continue }
@@ -118,6 +119,7 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 }
 
 pub fn (mut h HetznerManager) server_rescue_node(args ServerRescueArgs) !&builder.Node {
+	
 	mut serverinfo := h.server_rescue(args)!
 
 	mut b := builder.new()!
@@ -138,6 +140,7 @@ pub mut:
 }
 
 pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.Node {
+	h.check_whitelist(name:args.name,id:args.id,sshkey_name:args.sshkey_name)!
 	mut serverinfo := h.server_rescue(
 		id:          args.id
 		name:        args.name

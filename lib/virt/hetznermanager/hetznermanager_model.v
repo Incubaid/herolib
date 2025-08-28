@@ -13,7 +13,7 @@ pub mut:
 	name        string = 'default'
 	description string
 	baseurl     string = 'https://robot-ws.your-server.de'
-	whitelist   []string // comma separated list of servers we whitelist to work on
+	whitelist   []int // comma separated list of servers we whitelist to work on
 	user        string
 	password    string
 }
@@ -31,7 +31,6 @@ pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
 
 fn obj_init(mycfg_ HetznerManager) !HetznerManager {
 	mut mycfg := mycfg_
-	mycfg.whitelist = mycfg.whitelist.map(it.trim_space())
 	return mycfg
 }
 
