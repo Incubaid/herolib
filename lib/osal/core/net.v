@@ -79,8 +79,7 @@ pub fn reboot_wait(args RebootWaitArgs) ! {
 		if ping(address: args.address)! == false {
 			break
 		}
-		println(ping(address: args.address)!)
-		$dbg;
+		// println(ping(address: args.address)!)
 		time.sleep(1)
 	}
 	for true {
@@ -90,8 +89,7 @@ pub fn reboot_wait(args RebootWaitArgs) ! {
 			return error('timeout in waiting for server up')
 		}
 		if ping(address: args.address)! == true {
-			println(ping(address: args.address)!)
-			$dbg;
+			// println(ping(address: args.address)!)
 			break
 		}
 		time.sleep(1)

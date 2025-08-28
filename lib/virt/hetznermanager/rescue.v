@@ -172,8 +172,8 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 		timeout_up:   60 * 5
 	)!
 
-	$dbg;
 	if args.hero_install {
+		n.exec_silent('apt update && apt install -y mc redis')!
 		n.hero_install(compile: args.hero_install_compile)!
 	}
 
