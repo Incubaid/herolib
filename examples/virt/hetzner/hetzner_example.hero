@@ -1,4 +1,4 @@
-#!/usr/bin/env hero
+#!/usr/bin/env hero 
 
 
 // !!hetznermanager.configure
@@ -9,17 +9,11 @@
 // 	sshkey:"kristof"
 
 
-!!hetznermanager.server_rescue
-    server_name: 'kristof21'  // The name of the server to manage (or use `id`)
-    wait: true                     // Wait for the operation to complete
-    hero_install: true             // Automatically install Herolib in the rescue system
+// !!hetznermanager.server_rescue
+//     server_name: 'kristof21'  // The name of the server to manage (or use `id`)
+//     wait: true                     // Wait for the operation to complete
+//     hero_install: true             // Automatically install Herolib in the rescue system
 
-// # Install Ubuntu 24.04 on a server
-// !!hetznermanager.ubuntu_install
-//     instance: 'main'
-//     id: 1234567                   // The ID of the server (or use `server_name`)
-//     wait: true
-//     hero_install: true            // Install Herolib on the new OS
 
 // # Reset a server
 // !!hetznermanager.server_reset
@@ -32,3 +26,12 @@
 //     instance: 'main'
 //     key_name: 'my-laptop-key'
 //     data: 'ssh-rsa AAAA...'
+
+
+// Install Ubuntu 24.04 on a server
+!!hetznermanager.ubuntu_install
+    server_name: 'kristof2'
+    wait: true
+    hero_install: true            // Install Herolib on the new OS
+
+
