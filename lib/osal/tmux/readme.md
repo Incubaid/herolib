@@ -24,7 +24,13 @@ tmux library provides functions for managing tmux sessions
 ## to attach to a tmux session
 
 > TODO:
+
+
 ## HeroScript Usage Examples
+
+### Imperative
+
+action after action builds the output
 
 ```heroscript
 !!tmux.session_create 
@@ -49,4 +55,37 @@ tmux library provides functions for managing tmux sessions
 
 !!tmux.pane_kill 
     name:"mysession|mywindow|mypane"
+```
+
+### Declarative
+
+```heroscript
+!!tmux.session_ensure
+    name:'mysession'
+
+!!tmux.window_ensure
+    name:"mysession|mywindow"
+    cat:"4pane" //we support 16pane, 12pane, 8pane, 6pane, 4pane, 2pane, 1pane
+
+!!tmux.pane_ensure
+    name:"mysession|mywindow|1" 
+    label:'ls'
+    cmd:'ls -la ${HOME}'
+
+!!tmux.pane_ensure
+    name:"mysession|mywindow|2" 
+    label:'ps'
+    cmd:'ps aux'
+
+!!tmux.pane_ensure
+    name:"mysession|mywindow|3" 
+    label:'echo'
+    env:'VAR1=value1,VAR2=value2'
+    cmd:'echo $VAR1'
+
+!!tmux.pane_ensure
+    name:"mysession|mywindow|4" 
+    label:'htop'
+    cmd:'htop'
+
 ```
