@@ -18,16 +18,16 @@ pub mut:
 	reset     bool // means reinstall
 }
 
-pub fn install(args InstallArgs) ! {
+fn install_(args InstallArgs) ! {
 	// install herolib if it was already done will return true
 	console.print_header('install herolib (reset: ${args.reset})')
 	// osal.package_refresh()!
 	if args.reset {
 		osal.done_reset()!
 	}
-	base.install(develop: true)!
+	base.develop()!
 	vlang.install(reset: args.reset)!
-	vlang.v_analyzer_install(reset: args.reset)!
+	// vlang.v_analyzer_install(reset: args.reset)!
 
 	mut gs := gittools.new()!
 	gs.config()!.light = true // means we clone depth 1
@@ -58,14 +58,6 @@ pub fn install(args InstallArgs) ! {
 	return
 }
 
-// check if herolib installed and hero, if not do so
-pub fn check() ! {
-	if osal.done_exists('install_herolib') {
-		return
-	}
-	install()!
-}
-
 // remove hero, crystal, ...
 pub fn uninstall() ! {
 	console.print_debug('uninstall hero & herolib')
@@ -81,7 +73,7 @@ pub fn uninstall() ! {
 	osal.execute_stdout(cmd) or { return error('Cannot uninstall herolib/hero.\n${err}') }
 }
 
-pub fn hero_install(args InstallArgs) ! {
+pub fn install(args InstallArgs) ! {
 	if args.reset == false && osal.done_exists('install_hero') {
 		console.print_debug('hero already installed')
 		return
@@ -92,27 +84,29 @@ pub fn hero_install(args InstallArgs) ! {
 	cmd := "
 		cd /tmp
 		export TERM=xterm
-		curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/main/install_v.sh' > /tmp/install_v.sh
-		bash /tmp/install_v.sh --analyzer --herolib
+		curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh | bash
 		"
 	osal.execute_stdout(cmd) or { return error('Cannot install hero.\n${err}') }
 	osal.done_set('install_hero', 'OK')!
 	return
 }
 
-pub fn hero_compile(args InstallArgs) ! {
+pub fn compile(args InstallArgs) ! {
 	if args.reset == false && osal.done_exists('compile_hero') {
 		console.print_debug('hero already compiled')
 		return
 	}
 	console.print_header('compile hero')
+	install_(args)!
 
-	home_dir := os.home_dir()
-	cmd_hero := texttools.template_replace($tmpl('templates/hero.sh'))
-	osal.exec(cmd: cmd_hero, stdout: false)!
-
-	osal.execute_stdout(cmd_hero) or { return error('Cannot compile hero.\n${err}') }
-	osal.done_set('compile_hero', 'OK')!
+	cmd := "
+		cd /tmp
+		export TERM=xterm
+		curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+		bash /tmp/install_v.sh --herolib 
+		"
+	osal.execute_stdout(cmd) or { return error('Cannot install hero.\n${err}') }
+	osal.done_set('install_hero', 'OK')!
 	return
 }
 

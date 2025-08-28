@@ -11,6 +11,11 @@ import freeflowuniverse.herolib.clients.openai
 import freeflowuniverse.herolib.clients.giteaclient
 import freeflowuniverse.herolib.osal.tmux
 
+import freeflowuniverse.herolib.installers.base
+import freeflowuniverse.herolib.installers.lang.vlang
+import freeflowuniverse.herolib.installers.lang.herolib
+
+
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands
 // -------------------------------------------------------------------
@@ -60,6 +65,10 @@ pub fn run(args_ PlayArgs) ! {
 	docusaurus.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	hetznermanager.play2(mut plbook)!
+
+	base.play(mut plbook)!
+	herolib.play(mut plbook)!
+	vlang.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
 

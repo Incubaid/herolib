@@ -1,10 +1,4 @@
-#!/usr/bin/env hero kristof2
+#!/usr/bin/env hero
 
 
-// Install Ubuntu 24.04 on a server
-!!hetznermanager.ubuntu_install
-    server_name: 'kristof2'
-    wait: true
-    hero_install: true            // Install Herolib on the new OS
-
-
+!!herolib.compile reset:1
