@@ -3,6 +3,7 @@ module playcmds
 import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.data.doctree
 import freeflowuniverse.herolib.biz.bizmodel
+import freeflowuniverse.herolib.threefold.incatokens
 import freeflowuniverse.herolib.web.site
 import freeflowuniverse.herolib.web.docusaurus
 import freeflowuniverse.herolib.clients.openai
@@ -48,6 +49,8 @@ pub fn run(args_ PlayArgs) ! {
 	// Website / docs
 	site.play(mut plbook)!
 	doctree.play(mut plbook)!
+
+	incatokens.play(mut plbook)!
 
 	docusaurus.play(mut plbook)!
 
