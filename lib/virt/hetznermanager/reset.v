@@ -71,8 +71,8 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 				break
 			}
 			x += 1
-			if x > 60 * 5 {
-				// 5 min
+			if x > 60 * 2 {
+				// 2 min
 				return error('Could not reboot server ${serverinfo.server_name} in 5 min')
 			}
 		}

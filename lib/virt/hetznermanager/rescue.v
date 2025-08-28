@@ -30,10 +30,19 @@ pub mut:
 	hero_install bool
 	sshkey_name  string @[required]
 	reset        bool // ask to do reset/rescue even if its already in that state
+	retry       int = 3
 }
 
-// put server in rescue mode, if sshkey_name not specified then will use the first one in the list
 pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoDetailed {
+	if args_.retry > 1{
+		for _ in 0 .. args_.retry-1 {
+			return  h.server_rescue_internal(args_) or {continue}
+		}
+	}
+	return  h.server_rescue_internal(args_)!
+}
+
+fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !ServerInfoDetailed {
 	mut args := args_
 	mut serverinfo := h.server_info_get(id: args.id, name: args.name)!
 
