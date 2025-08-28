@@ -21,7 +21,7 @@ pub fn play2(mut plbook PlayBook) ! {
 		retry := p.get_int_default('retry', 3)!
 
 		if server_name == '' && id == 0 {
-			return error("For ${action.actor}.${action.action}, either 'server_name' or 'id' must be provided.")
+			return error("For ${action.actor}.${action.name}, either 'server_name' or 'id' must be provided.")
 		}
 
 		cl.server_rescue(
@@ -49,7 +49,7 @@ pub fn play2(mut plbook PlayBook) ! {
 		raid := p.get_default_false('raid')
 
 		if server_name == '' && id == 0 {
-			return error("For ${action.actor}.${action.action}, either 'server_name' or 'id' must be provided.")
+			return error("For ${action.actor}.${action.name}, either 'server_name' or 'id' must be provided.")
 		}
 
 		cl.ubuntu_install(
@@ -74,7 +74,7 @@ pub fn play2(mut plbook PlayBook) ! {
 		msg := p.get_default('msg', '')!
 
 		if server_name == '' && id == 0 {
-			return error("For ${action.actor}.${action.action}, either 'server_name' or 'id' must be provided.")
+			return error("For ${action.actor}.${action.name}, either 'server_name' or 'id' must be provided.")
 		}
 
 		cl.server_reset(
@@ -95,7 +95,7 @@ pub fn play2(mut plbook PlayBook) ! {
 		key_name := p.get('key_name')!
 		data := p.get('data')!
 
-		cl.key_create(name: key_name, data: data)!
+		cl.key_create(key_name, data)!
 
 		action.done = true
 	}
@@ -107,7 +107,7 @@ pub fn play2(mut plbook PlayBook) ! {
 
 		key_name := p.get('key_name')!
 
-		cl.key_delete(name: key_name)!
+		cl.key_delete( key_name)!
 
 		action.done = true
 	}
