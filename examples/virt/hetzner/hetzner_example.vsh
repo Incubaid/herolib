@@ -58,5 +58,5 @@ mut cl := hetznermanager.get(name: 'main')!
 
 // n.shell("")!
 
-cl.ubuntu_install(name: 'kristof2', wait: true, hero_install: true, sshkey_name: 'kristof')!
+// cl.ubuntu_install(name: 'kristof2', wait: true, hero_install: true, sshkey_name: 'kristof')!
 cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true, sshkey_name: 'kristof')!

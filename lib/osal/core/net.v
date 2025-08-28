@@ -26,10 +26,10 @@ pub fn ping(args PingArgs) !bool {
 	// if platform_ == .windows {
 	// 	cmd += ' -n 1 -w 1000'
 	if platform_ == .osx {
-		cmd += ' -c 1 -t 2'
+		cmd += ' -c1 -t2'
 	} else {
 		// linux
-		cmd += ' -c 1 -w 2'
+		cmd += ' -c1 -w2'
 	}
 	cmd += ' ${args.address}'
 	if args.nr_ok > args.nr_ping {
@@ -38,12 +38,11 @@ pub fn ping(args PingArgs) !bool {
 	for _ in 0 .. math.max(1, args.retry) {
 		mut nrerrors := 0
 		for _ in 0 .. args.nr_ping {
-			// console.print_debug(cmd)
 			res := os.execute(cmd)
 			if res.exit_code > 0 {
 				nrerrors += 1
 			}
-			// println(res)
+			console.print_debug("${cmd} ${res.exit_code} ${nrerrors}")
 		}
 		successes := args.nr_ping - nrerrors
 		if successes >= args.nr_ok {
@@ -197,7 +196,7 @@ pub fn ssh_wait(args TcpPortTestArgs) ! {
 		run_time = time.now().unix_milli()
 
 		errmsg, res := ssh_testrun_internal(args)!
-		console.print_debug(errmsg)
+		// console.print_debug(errmsg)
 
 		if run_time > start_time + args.timeout {
 			return error(errmsg)
@@ -211,7 +210,8 @@ pub fn ssh_wait(args TcpPortTestArgs) ! {
 
 fn ssh_testrun_internal(args TcpPortTestArgs) !(string, SSHResult) {
 	cmd := '
-	ssh -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q "${args.address}" exit
+	set -ex
+	ssh -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q root@${args.address} exit
 	if [ $? -eq 0 ]; then
 	echo "OK: SSH works"
 	exit 0
@@ -233,10 +233,11 @@ fn ssh_testrun_internal(args TcpPortTestArgs) !(string, SSHResult) {
 	fi
 	echo "ERROR: Host unreachable, over ping and ssh"
 	exit 3
-	' // console.print_debug('ssh test cmd: ${cmd}')
+	' 
 
 	res := exec(cmd: cmd, ignore_error: true, stdout: false, debug: false)!
-	// console.print_debug('ssh test result: ${res}')
+	// console.print_debug('ssh test ${res.exit_code}: ===== cmd:\n${cmd}\n=====\n${res.output}')
+
 	if res.exit_code == 0 {
 		return res.output, SSHResult.ok
 	} else if res.exit_code == 1 {

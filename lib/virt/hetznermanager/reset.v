@@ -50,7 +50,7 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 	// now need to wait till it goes off
 	if serveractive {
 		for {
-			console.print_debug('wait for server ${serverinfo.server_name} to go down.')
+			console.print_debug('wait for server ${serverinfo.server_name} on ${serverinfo.server_ip} to go down.')
 			pingresult := osal.ping(address: serverinfo.server_ip)!
 			if !pingresult {
 				console.print_debug('server ${serverinfo.server_name} is now down, now waitig for reboot.')
@@ -64,7 +64,7 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 	if args.wait {
 		for {
 			time.sleep(1000 * time.millisecond)
-			console.print_debug('wait for ${serverinfo.server_name} ${args.msg}')
+			console.print_debug('wait for ${serverinfo.server_name} on ${serverinfo.server_ip} ${args.msg}')
 			if osal.ssh_test(address: serverinfo.server_ip)! == .ok {
 				console.print_debug('ssh test ok')
 				console.print_header('server is rebooted: ${serverinfo.server_name}')

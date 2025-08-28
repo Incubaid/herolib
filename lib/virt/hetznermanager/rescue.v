@@ -38,6 +38,7 @@ pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoD
 		for _ in 0 .. args_.retry - 1 {
 			return h.server_rescue_internal(args_) or { continue }
 		}
+		console.print_header('server ${args_.name} failed to rescue we retry: now ${args_.retry} attempts')
 	}
 	return h.server_rescue_internal(args_)!
 }
@@ -45,6 +46,8 @@ pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoD
 fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !ServerInfoDetailed {
 	mut args := args_
 	mut serverinfo := h.server_info_get(id: args.id, name: args.name)!
+
+	os.execute_opt('ssh-keygen -R ${serverinfo.server_ip}')!
 
 	if serverinfo.rescue && !args.reset {
 		if osal.ssh_test(address: serverinfo.server_ip, port: 22)! == .ok {
@@ -84,7 +87,7 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 			dataformat: .urlencoded
 		)!
 
-		// console.print_debug('hetzner rescue\n${rescue}')
+		console.print_debug('Request for hetzner rescue done.\n${rescue}')
 
 		h.server_reset(
 			id:   args.id
@@ -149,8 +152,9 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 	// n.file_write("/tmp/installconfig",installconfig)!
 	// n.exec_interactive("installimage -a -c /tmp/installconfig")!
 
-	mut rstr := ''
+	mut rstr := '-r no '
 	if args.raid {
+		panic("should not use RAID for now")
 		rstr = '-r yes -l 1 '
 	}
 
@@ -158,8 +162,20 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 		cmd: '
 		set -ex
 		echo "go into install mode, try to install ubuntu 24.04"
-		/root/.oldroot/nfs/install/installimage -a -n kristof2 ${rstr} -i /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz -f yes -t yes -p swap:swap:4G,/boot:ext3:1024M,/:btrfs:all
-		reboot'
+
+		if [ -d /sys/firmware/efi ]; then
+			echo "UEFI system detected → need ESP"
+			PARTS="/boot/efi:esp:256M,swap:swap:4G,/boot:ext3:1024M,/:btrfs:all"
+		else
+			echo "BIOS/legacy system detected → no ESP"
+			PARTS="swap:swap:4G,/boot:ext3:1024M,/:btrfs:all"
+		fi
+
+		# installimage invocation
+		/root/.oldroot/nfs/install/installimage -a -n "${args.name}" ${rstr} -i /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz -f yes -t yes -p "\$PARTS"
+
+		reboot
+		'
 	)!
 
 	os.execute_opt('ssh-keygen -R ${serverinfo.server_ip}')!
@@ -171,6 +187,9 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 		timeout_down: 60
 		timeout_up:   60 * 5
 	)!
+
+	//wait 20 sec to make sure ssh is there
+	osal.ssh_wait(address: serverinfo.server_ip, timeout: 20)!
 
 	if args.hero_install {
 		n.exec_silent('apt update && apt install -y mc redis')!

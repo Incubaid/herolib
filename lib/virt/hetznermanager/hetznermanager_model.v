@@ -31,6 +31,7 @@ pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
 
 fn obj_init(mycfg_ HetznerManager) !HetznerManager {
 	mut mycfg := mycfg_
+	mycfg.whitelist = mycfg.whitelist.map(it.trim_space())
 	return mycfg
 }
 
