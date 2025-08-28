@@ -22,14 +22,16 @@ playcmds.run(
 	!!hetznermanager.configure
 		name:"main"
 		user:"${user}"
-		whitelist:"2111181, 2392178, 2545053"
+		whitelist:"2111181, 2392178, 2545053, 2542166, 2550508, 2550378,2550253"
 		password:"${passwd}"
+		sshkey:"kristof"
 	'
 )!
 
 console.print_header('Hetzner Test.')
 
 mut cl := hetznermanager.get(name: 'main')!
+// println(cl)
 
 // for i in 0 .. 5 {
 // 	println('test cache, first time slow then fast')
@@ -58,5 +60,9 @@ mut cl := hetznermanager.get(name: 'main')!
 
 // n.shell("")!
 
-// cl.ubuntu_install(name: 'kristof2', wait: true, hero_install: true, sshkey_name: 'kristof')!
-cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true, sshkey_name: 'kristof')!
+// cl.ubuntu_install(name: 'kristof2', wait: true, hero_install: true)!
+// cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true)!
+// cl.ubuntu_install(id:2550378, name: 'kristof21', wait: true, hero_install: true)!
+// cl.ubuntu_install(id:2550508, name: 'kristof22', wait: true, hero_install: true)!
+cl.ubuntu_install(id:2550253, name:'kristof23', wait: true, hero_install: true)!
+

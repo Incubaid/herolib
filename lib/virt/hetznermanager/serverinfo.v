@@ -72,11 +72,13 @@ pub fn (mut h HetznerManager) server_info_get(args_ ServerGetArgs) !ServerInfoDe
 	mut res := []ServerInfo{}
 
 	for item in l {
+		// console.print_debug("Checking server: ${item.server_name} ${item.server_number} against args: '${args.name}:${args.id}'")
 		if args.id > 0 && item.server_number != args.id {
 			continue
 		}
 		server_name := texttools.name_fix(item.server_name)
-		if args.name.len > 0 && server_name != args.name {
+		//if id specified then we always use that one
+		if args.id == 0 && args.name.len > 0 && server_name != args.name {
 			continue
 		}
 		res << item

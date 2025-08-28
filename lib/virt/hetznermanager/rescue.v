@@ -28,7 +28,6 @@ pub mut:
 	name         string
 	wait         bool = true
 	hero_install bool
-	sshkey_name  string @[required]
 	reset        bool // ask to do reset/rescue even if its already in that state
 	retry        int = 3
 }
@@ -70,19 +69,12 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 	if serverinfo.rescue == false || args.reset {
 		console.print_header('server ${serverinfo.server_name} goes into rescue mode')
 
-		mut keyfps := []string{}
-		if args.sshkey_name != '' {
-			keyfps << h.key_get(args.sshkey_name)!.fingerprint
-		} else {
-			keyfps = h.keys_get()!.map(it.fingerprint)
-		}
-
 		mut conn := h.connection()!
 		rescue := conn.post_json_generic[RescueInfo](
 			prefix:     'boot/${serverinfo.server_number}/rescue'
 			params:     {
 				'os':             'linux'
-				'authorized_key': keyfps[0]
+				'authorized_key': h.sshkey
 			}
 			dict_key:   'rescue'
 			dataformat: .urlencoded
@@ -135,17 +127,15 @@ pub mut:
 	wait                 bool = true
 	hero_install         bool
 	hero_install_compile bool
-	sshkey_name          string @[required]
 	raid                 bool
 }
 
 pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.Node {
-	h.check_whitelist(name:args.name,id:args.id,sshkey_name:args.sshkey_name)!
+	h.check_whitelist(name:args.name,id:args.id)!
 	mut serverinfo := h.server_rescue(
 		id:          args.id
 		name:        args.name
 		wait:        true
-		sshkey_name: args.sshkey_name
 	)!
 
 	mut b := builder.new()!
@@ -191,8 +181,12 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 		timeout_up:   60 * 5
 	)!
 
+	console.print_debug('server ${serverinfo.server_name} is reacheable over ping, lets now try ssh.')
+
 	//wait 20 sec to make sure ssh is there
 	osal.ssh_wait(address: serverinfo.server_ip, timeout: 20)!
+
+	console.print_debug('server ${serverinfo.server_name} is reacheable over ssh, lets now install hero if asked for.')
 
 	if args.hero_install {
 		n.exec_silent('apt update && apt install -y mc redis')!
