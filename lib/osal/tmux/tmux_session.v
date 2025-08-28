@@ -332,11 +332,19 @@ pub fn (mut s Session) run_ttyd_readonly(port int) ! {
 pub fn (mut s Session) stop_ttyd(port int) ! {
 	// Kill any process running on the specified port
 	cmd := 'lsof -ti:${port} | xargs kill -9'
-	osal.execute_silent(cmd) or { return error("Can't stop ttyd on port ${port}: ${err}") }
+	osal.execute_silent(cmd) or {
+		// Ignore error if no process is found on the port
+		// This is normal when no ttyd is running on that port
+	}
+	println('ttyd stopped for session ${s.name} on port ${port} (if it was running)')
 }
 
 // Stop all ttyd processes (kills all ttyd processes system-wide)
 pub fn stop_all_ttyd() ! {
 	cmd := 'pkill ttyd'
-	osal.execute_silent(cmd) or { return error("Can't stop all ttyd processes: ${err}") }
+	osal.execute_silent(cmd) or {
+		// Ignore error if no ttyd processes are found (exit code 1)
+		// This is normal when no ttyd processes are running
+	}
+	println('All ttyd processes stopped (if any were running)')
 }
