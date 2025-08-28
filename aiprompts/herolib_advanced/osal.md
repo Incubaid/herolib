@@ -134,7 +134,7 @@ Returns the current username.
 
 ## 2. Network Utilities
 
-### `osal.ping(args: PingArgs) !PingResult`
+### `osal.ping(args: PingArgs) ! bool`
 Checks host reachability.
 *   **Parameters**:
 ### `osal.ipaddr_pub_get_check() !string`

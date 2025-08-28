@@ -8,16 +8,15 @@ import freeflowuniverse.herolib.installers.virt.podman as podman_installer
 pub struct PodmanFactory {
 pub mut:
 	// sshkeys_allowed []string // all keys here have access over ssh into the machine, when ssh enabled
-	images          []Image
-	containers      []Container
-	buildpath       string
+	images     []Image
+	containers []Container
+	buildpath  string
 	// cache           bool = true
 	// push            bool
 	// platform        []BuildPlatformType // used to build
 	// registries      []BAHRegistry    // one or more supported BAHRegistries
 	prefix string
 }
-
 
 @[params]
 pub struct NewArgs {
@@ -27,12 +26,10 @@ pub mut:
 	herocompile bool
 }
 
-
-	if args.install {
-		mut podman_installer0 := podman_installer.get()!
-		podman_installer0.install()!
-	}
-
+if args.install {
+	mut podman_installer0 := podman_installer.get()!
+	podman_installer0.install()!
+}
 
 fn (mut e PodmanFactory) init() ! {
 	if e.buildpath == '' {

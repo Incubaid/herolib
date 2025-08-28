@@ -1,3 +1,5 @@
+#!/usr/bin/env hero
+
 // Create development session
 !!tmux.session_create
     name:'dev'

@@ -1,6 +1,5 @@
 module incatokens
 
-
 // AMMPool represents a simple Automated Market Maker pool.
 // It uses the constant product formula (x * y = k) to determine prices.
 pub struct AMMPool {

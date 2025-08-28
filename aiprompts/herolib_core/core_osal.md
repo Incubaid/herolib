@@ -23,12 +23,12 @@ This document describes the core functionalities of the Operating System Abstrac
 
 ## 2. Network Utilities
 
-*   **`osal.ping(args: PingArgs) !PingResult`**: Check host reachability.
-    *   **Key Parameters**: `address` (string).
-    *   **Returns**: `PingResult` (`.ok`, `.timeout`, `.unknownhost`).
-*   **`osal.tcp_port_test(args: TcpPortTestArgs) bool`**: Test if a TCP port is open.
-    *   **Key Parameters**: `address` (string), `port` (int).
-*   **`osal.ipaddr_pub_get() !string`**: Get public IP address.
+*   **`osal.ping(args: PingArgs) !bool`**: Check host reachability.
+	    - address string = "8.8.8.8"
+	    - nr_ping u16 = 3 // amount of ping requests we will do
+	    - nr_ok u16 = 3 //how many of them need to be ok
+	    - retry   u8  //how many times fo we retry above sequence, basically we ping ourselves with -c 1
+    **`osal.ipaddr_pub_get() !string`**: Get public IP address.
 
 ## 3. File System Operations
 

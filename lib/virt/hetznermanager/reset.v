@@ -30,7 +30,7 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 	console.print_header('server ${serverinfo.server_name} goes for reset')
 
 	mut serveractive := false
-	if osal.ping(address: serverinfo.server_ip)! == .ok {
+	if osal.ping(address: serverinfo.server_ip)! {
 		serveractive = true
 		console.print_debug('server ${serverinfo.server_name} is active')
 	} else {
@@ -52,7 +52,7 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 		for {
 			console.print_debug('wait for server ${serverinfo.server_name} to go down.')
 			pingresult := osal.ping(address: serverinfo.server_ip)!
-			if pingresult != .ok {
+			if !pingresult {
 				console.print_debug('server ${serverinfo.server_name} is now down, now waitig for reboot.')
 				break
 			}

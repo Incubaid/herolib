@@ -7,8 +7,8 @@ import math
 // so all tokens are sold at the market-clearing price.
 fn test_simulate_auction_full_subscription() {
 	config := AuctionConfig{
-		demand: 125000.0
-		min_price: 0.5
+		demand:       125000.0
+		min_price:    0.5
 		token_supply: 100000.0
 	}
 	res := simulate_auction(config)!
@@ -23,8 +23,8 @@ fn test_simulate_auction_full_subscription() {
 // The auction clears at the minimum price, and only a portion of tokens are sold.
 fn test_simulate_auction_partial_fill() {
 	config := AuctionConfig{
-		demand: 40000.0
-		min_price: 0.5
+		demand:       40000.0
+		min_price:    0.5
 		token_supply: 100000.0
 	}
 	res := simulate_auction(config)!
@@ -40,8 +40,8 @@ fn test_simulate_auction_partial_fill() {
 // If there are no tokens to sell, the auction should result in zero sales and fundraising.
 fn test_simulate_auction_zero_supply() {
 	config := AuctionConfig{
-		demand: 50000.0
-		min_price: 0.5
+		demand:       50000.0
+		min_price:    0.5
 		token_supply: 0
 	}
 	res := simulate_auction(config)!
@@ -56,8 +56,8 @@ fn test_simulate_auction_zero_supply() {
 // The auction should be fully subscribed at the minimum price.
 fn test_simulate_auction_demand_equals_min_price() {
 	config := AuctionConfig{
-		demand: 50000.0
-		min_price: 0.5
+		demand:       50000.0
+		min_price:    0.5
 		token_supply: 100000.0
 	}
 	res := simulate_auction(config)!

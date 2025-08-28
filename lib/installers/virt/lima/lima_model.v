@@ -12,10 +12,10 @@ const default = true
 @[heap]
 pub struct LimaInstaller {
 pub mut:
-	name       string = 'default'
-	homedir    string
-	extra      bool //do we want to extra's
-	sshkey     string //name of the key to use
+	name    string = 'default'
+	homedir string
+	extra   bool   // do we want to extra's
+	sshkey  string // name of the key to use
 }
 
 // your checking & initialization code if needed

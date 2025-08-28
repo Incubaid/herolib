@@ -6,8 +6,8 @@ import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.installers.virt.lima as limainstaller
 import os
 
-mut i:=limainstaller.get(create:true)!
-i.install(reset:true)!
+mut i := limainstaller.get(create: true)!
+i.install(reset: true)!
 
 // mut virtmanager := lima.new()!
 

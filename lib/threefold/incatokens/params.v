@@ -1,6 +1,6 @@
 module incatokens
-import os
 
+import os
 
 // SimulationParams is the main configuration struct containing all parameters
 pub struct SimulationParams {
@@ -59,7 +59,7 @@ pub mut:
 // SimulationConfig defines technical simulation parameters
 pub struct SimulationConfig {
 pub mut:
-	nrcol    int    = 60    // Number of months to simulate
+	nrcol    int    = 60 // Number of months to simulate
 	currency string = 'USD'
 }
 
@@ -79,4 +79,3 @@ pub mut:
 	generate_charts bool   = true
 	generate_report bool   = true
 }
-

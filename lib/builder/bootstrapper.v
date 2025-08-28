@@ -44,10 +44,10 @@ pub fn (mut bs BootStrapper) run(args_ BootstrapperArgs) ! {
 @[params]
 pub struct HeroInstallArgs {
 pub mut:
-	reset bool
-	compile bool
+	reset      bool
+	compile    bool
 	v_analyzer bool
-	debug bool //will go in shell
+	debug      bool // will go in shell
 }
 
 pub fn (mut node Node) hero_install(args HeroInstallArgs) ! {
@@ -58,15 +58,15 @@ pub fn (mut node Node) hero_install(args HeroInstallArgs) ! {
 	homedir := myenv['HOME'] or { return error("can't find HOME in env") }
 
 	mut todo := []string{}
-	if ! args.compile {
-		todo << "curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh > /tmp/install.sh"
-		todo << "bash /tmp/install.sh"
-	}else{
+	if !args.compile {
+		todo << 'curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh > /tmp/install.sh'
+		todo << 'bash /tmp/install.sh'
+	} else {
 		todo << "curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh"
 		if args.v_analyzer {
-			todo << "bash /tmp/install_v.sh --analyzer --herolib "
-		}else{
-			todo << "bash /tmp/install_v.sh --herolib "
+			todo << 'bash /tmp/install_v.sh --analyzer --herolib '
+		} else {
+			todo << 'bash /tmp/install_v.sh --herolib '
 		}
 	}
 	node.exec_interactive(todo.join('\n'))!

@@ -55,7 +55,7 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 
 	mut is_cacheable := h.is_cacheable(req)
 	if req.debug {
-		//in debug mode should not cache
+		// in debug mode should not cache
 		is_cacheable = false
 	}
 
@@ -95,14 +95,14 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 				new_req.header.set(http.CommonHeader.content_type, 'multipart/form-data')
 			}
 		}
-		
+
 		if req.debug {
 			console.print_debug('http request:\n${new_req.str()}')
 		}
 		for counter in 0 .. h.retry {
 			if req.debug {
-				console.print_debug("request attempt:${counter}")
-			}			
+				console.print_debug('request attempt:${counter}')
+			}
 			response = new_req.do() or {
 				err_message = 'Cannot send request:${req}\nerror:${err}'
 				// console.print_debug(err_message)
@@ -111,9 +111,9 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 			break
 		}
 		if req.debug {
-			console.print_debug("request done")
+			console.print_debug('request done')
 			console.print_debug(response.str())
-		}			
+		}
 		if response.status_code == 0 {
 			return error(err_message)
 		}
@@ -192,8 +192,8 @@ pub fn (mut h HTTPConnection) get(req_ Request) !string {
 	mut req := req_
 	req.method = .get
 	result := h.send(req)!
-	if !result.is_ok() {		
-		return error('Could not get ${req}\result:\n${result}')	
+	if !result.is_ok() {
+		return error('Could not get ${req}\result:\n${result}')
 	}
 	return result.data
 }
@@ -204,8 +204,8 @@ pub fn (mut h HTTPConnection) delete(req_ Request) !string {
 	req.method = .delete
 	result := h.send(req)!
 	if !result.is_ok() {
-		return error('Could not delete ${req}\result:\n${result}')	
-	}	
+		return error('Could not delete ${req}\result:\n${result}')
+	}
 	return result.data
 }
 
@@ -216,6 +216,6 @@ pub fn (mut h HTTPConnection) post_multi_part(req Request, form http.PostMultipa
 	header.set(http.CommonHeader.content_type, 'multipart/form-data')
 	req_form.header = header
 	url := h.url(req)
-	//TODO: should that not be on line with above? seems to be other codepath.
+	// TODO: should that not be on line with above? seems to be other codepath.
 	return http.post_multipart_form(url, req_form)!
 }

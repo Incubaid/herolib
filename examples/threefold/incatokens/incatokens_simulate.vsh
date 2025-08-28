@@ -11,5 +11,4 @@ playcmds.run(
 	heroscript_path: heroscript_path
 )!
 
-
 println('Simulation complete!')

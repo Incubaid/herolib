@@ -50,7 +50,7 @@ pub fn (mut h HetznerManager) servers_list() ![]ServerInfo {
 		method:        .get
 		prefix:        'server'
 		list_dict_key: 'server'
-		debug: false
+		debug:         false
 	)!
 }
 

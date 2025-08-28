@@ -6,7 +6,6 @@ import freeflowuniverse.herolib.core.pathlib
 import os
 
 pub fn play(mut plbook PlayBook) ! {
-
 	if !plbook.exists(filter: 'incatokens.') {
 		return
 	}
@@ -45,15 +44,21 @@ pub fn play(mut plbook PlayBook) ! {
 		params.simulation.currency = p.get_default('currency', 'USD')!
 
 		// Configure economics
-		params.economics.epoch1_floor_uplift = p.get_float_default('epoch1_floor_uplift', 1.20)!
-		params.economics.epochn_floor_uplift = p.get_float_default('epochn_floor_uplift', 1.20)!
-		params.economics.amm_liquidity_depth_factor = p.get_float_default('amm_liquidity_depth_factor', 2.0)!
+		params.economics.epoch1_floor_uplift = p.get_float_default('epoch1_floor_uplift',
+			1.20)!
+		params.economics.epochn_floor_uplift = p.get_float_default('epochn_floor_uplift',
+			1.20)!
+		params.economics.amm_liquidity_depth_factor = p.get_float_default('amm_liquidity_depth_factor',
+			2.0)!
 
 		// Configure vesting
 		params.vesting.team.cliff_months = p.get_int_default('team_cliff_months', 12)!
-		params.vesting.team.vesting_months = p.get_int_default('team_vesting_months', 36)!
-		params.vesting.treasury.cliff_months = p.get_int_default('treasury_cliff_months', 12)!
-		params.vesting.treasury.vesting_months = p.get_int_default('treasury_vesting_months', 48)!
+		params.vesting.team.vesting_months = p.get_int_default('team_vesting_months',
+			36)!
+		params.vesting.treasury.cliff_months = p.get_int_default('treasury_cliff_months',
+			12)!
+		params.vesting.treasury.vesting_months = p.get_int_default('treasury_vesting_months',
+			48)!
 
 		// Configure output - use export_path if provided, otherwise use param
 		if export_path != '' {
@@ -69,13 +74,13 @@ pub fn play(mut plbook PlayBook) ! {
 		mut investor_rounds := []InvestorRoundConfig{}
 		for round_action in plbook.find(filter: 'incatokens.investor_round')! {
 			mut rp := round_action.params
-			
+
 			round := InvestorRoundConfig{
-				name: rp.get('name')!
+				name:           rp.get('name')!
 				allocation_pct: rp.get_float('allocation_pct')!
-				price: rp.get_float('price')!
-				vesting: VestingConfig{
-					cliff_months: rp.get_int('cliff_months')!
+				price:          rp.get_float('price')!
+				vesting:        VestingConfig{
+					cliff_months:   rp.get_int('cliff_months')!
 					vesting_months: rp.get_int('vesting_months')!
 				}
 			}
@@ -88,10 +93,10 @@ pub fn play(mut plbook PlayBook) ! {
 		mut scenarios := []ScenarioConfig{}
 		for scenario_action in plbook.find(filter: 'incatokens.scenario')! {
 			mut sp := scenario_action.params
-			
+
 			scenario := ScenarioConfig{
-				name: sp.get('name')!
-				demands: sp.get_list_f64('demands')!
+				name:       sp.get('name')!
+				demands:    sp.get_list_f64('demands')!
 				amm_trades: sp.get_list_f64('amm_trades')!
 			}
 			scenarios << scenario
@@ -105,17 +110,17 @@ pub fn play(mut plbook PlayBook) ! {
 	// Run all simulations
 	for params in simulations_to_run {
 		console.print_item('Running simulation: ${params.name}')
-		
+
 		// Create and run simulation
 		mut sim := simulation_new(params)!
 		sim.run_simulation()!
-		
+
 		// Create export directory if needed
 		os.mkdir_all(params.output.export_dir)!
-		
+
 		// Export all data in one call
 		sim.export_all(params.output.export_dir)!
-		
+
 		console.print_green('✓ Simulation "${params.name}" completed and exported to: ${params.output.export_dir}')
 	}
 }

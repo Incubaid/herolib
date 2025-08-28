@@ -66,7 +66,7 @@ fn installed() !bool {
 	if !osal.cmd_exists('limactl') {
 		return false
 	}
-	mut res:=os.execute("lima -v");
+	mut res := os.execute('lima -v')
 	r := res.output.split_into_lines().filter(it.contains('limactl version'))
 	if r.len != 1 {
 		return error("couldn't parse lima version, expected 'lima version' on 1 row.\n${res.output}")
@@ -112,42 +112,38 @@ fn install() ! {
 	}
 
 	console.print_header('download ${url}')
-	mut e:=osal.download(
+	mut e := osal.download(
 		url:         url
 		minsize_kb:  20000
 		dest:        '/tmp/lima.tar.gz'
 		expand_file: '/tmp/download/lima'
 	)!
 
-	
-
-	e.copy(dest:dest_on_os)!
+	e.copy(dest: dest_on_os)!
 
 	mut installer := get()!
 
 	if installer.extra {
-		mut e2:=osal.download(
+		mut e2 := osal.download(
 			url:         url2
 			minsize_kb:  20000
 			dest:        '/tmp/lima-additional-guestagents.tar.gz'
 			expand_file: '/tmp/download/lima-additional-guestagents'
 		)!
 
-		e2.copy(dest:dest_on_os)!
+		e2.copy(dest: dest_on_os)!
 	}
-
 }
 
 fn destroy() ! {
-
-	osal.process_kill_recursive(name:'lima')!
+	osal.process_kill_recursive(name: 'lima')!
 
 	osal.package_remove('
 	   lima
 	   limactl
 	')!
 
-	osal.rm("
+	osal.rm('
 	   lima
 	   limactl
 	   ${os.home_dir()}/bin/*.lima
@@ -156,5 +152,5 @@ fn destroy() ! {
 	   ${os.home_dir()}/share/lima
 	   ${os.home_dir()}/share/man/lima*
 
-	")!
+	')!
 }

@@ -63,8 +63,7 @@ pub fn builder_base(args GetArgs) !BuildAHContainer {
 	return builder
 }
 
-
-//TODO: all below are not good, need to use play cmd over hero remotely. see how we did it with core_installers
+// TODO: all below are not good, need to use play cmd over hero remotely. see how we did it with core_installers
 
 // // builder machine based on arch and install vlang
 // pub fn (mut e CEngine) builder_go_rust(args GetArgs) !BuildAHContainer {

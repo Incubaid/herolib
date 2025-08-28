@@ -18,20 +18,20 @@ fn test_trade() {
 	mut pool := AMMPool{}
 	pool.add_liquidity(1000.0, 500.0) // Initial price: 0.5 USDC/token
 	initial_tokens := pool.tokens
-	
+
 	// Trade 100 USDC for tokens
 	usdc_to_trade := 100.0
 	pool.trade(usdc_to_trade)!
-	
+
 	// Verify the new state of the pool
 	assert pool.usdc == 600.0
 	expected_tokens := pool.k / pool.usdc
 	assert math.abs(pool.tokens - expected_tokens) < 0.0001
-	
+
 	// Check that tokens were removed from the pool
 	tokens_received := initial_tokens - pool.tokens
 	assert tokens_received > 0
-	
+
 	// Verify the new price (it should be higher)
 	new_price := pool.get_price()
 	assert new_price > 0.5
@@ -41,15 +41,15 @@ fn test_trade() {
 fn test_price_impact() {
 	mut pool := AMMPool{}
 	pool.add_liquidity(1000.0, 1000.0) // Initial price: 1.0 USDC/token
-	
+
 	// First trade
 	pool.trade(100.0)!
 	price1 := pool.get_price()
-	
+
 	// Second trade
 	pool.trade(100.0)!
 	price2 := pool.get_price()
-	
+
 	// The price should increase after each trade
 	assert price2 > price1
 }
@@ -62,7 +62,7 @@ fn test_trade_in_empty_pool() {
 	pool.trade(100.0) or {
 		expected_error := 'AMM pool is empty and cannot facilitate trades'
 		assert err.msg() == expected_error
-		return // Exit the test function successfully after catching the error.
+		return
 	}
 	// This line should not be reached if the error is caught correctly.
 	assert false, 'Expected trade to fail, but it succeeded'

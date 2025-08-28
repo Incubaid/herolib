@@ -36,10 +36,9 @@ pub enum RunTime {
 	v
 }
 
-//should use builders underneith
+// should use builders underneith
 pub fn (mut self BuildAHContainer) exec(cmd Command) !osal.Job {
-
-	//make sure we have hero in the hostnode of self
+	// make sure we have hero in the hostnode of self
 	self.hero_copy()!
 
 	mut rt := RunTime.bash
@@ -61,7 +60,7 @@ pub fn (mut self BuildAHContainer) exec(cmd Command) !osal.Job {
 	if cmd.runtime == .heroscript || cmd.runtime == .herocmd {
 		self.hero_copy()!
 	}
-	mut j:=osal.exec(
+	mut j := osal.exec(
 		name:               cmd.name
 		cmd:                cmd_str
 		description:        cmd.description

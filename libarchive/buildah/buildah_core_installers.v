@@ -7,7 +7,6 @@ import freeflowuniverse.herolib.core.pathlib
 import os
 import json
 
-
 pub fn (mut self BuildAHContainer) install_zinit() ! {
 	// https://github.com/threefoldtech/zinit
 	self.hero_copy()!
@@ -16,12 +15,11 @@ pub fn (mut self BuildAHContainer) install_zinit() ! {
 	self.set_entrypoint('/sbin/zinit init --container')!
 }
 
-
 pub fn (mut self BuildAHContainer) install_herodb() ! {
 	self.install_zinit()!
 	// the hero database gets installed and put in zinit for automatic start
 	self.hero_play_execute('!!installer.herodb')
-	//TODO: the hero_play needs to be implemented
+	// TODO: the hero_play needs to be implemented
 }
 
 // copies the hero from host into guest
@@ -29,5 +27,5 @@ pub fn (mut self BuildAHContainer) install_mycelium() ! {
 	self.install_zinit()!
 	// the mycelium database gets installed and put in zinit for automatic start
 	self.hero_play_execute('!!installer.mycelium')
-	//TODO: the hero_play needs to be implemented
+	// TODO: the hero_play needs to be implemented
 }
