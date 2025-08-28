@@ -59,6 +59,7 @@ pub fn run(args_ PlayArgs) ! {
 
 	docusaurus.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
+	hetznermanager.play2(mut plbook)!
 
 	giteaclient.play(mut plbook)!
 

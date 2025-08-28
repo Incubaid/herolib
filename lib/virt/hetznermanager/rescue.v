@@ -73,9 +73,7 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 		mykey:=h.key_get(h.sshkey)!
 		mykeyfp:=mykey.fingerprint
 
-		println("Using SSH key fingerprint: ${mykey} ${mykeyfp}")
-
-		$dbg;
+		// println("Using SSH key fingerprint: ${mykey} ${mykeyfp}")
 
 		mut conn := h.connection()!
 		rescue := conn.post_json_generic[RescueInfo](
