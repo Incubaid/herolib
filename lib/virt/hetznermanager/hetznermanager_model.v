@@ -1,0 +1,41 @@
+module hetznermanager
+
+import freeflowuniverse.herolib.core.httpconnection
+import freeflowuniverse.herolib.data.encoderhero
+
+pub const version = '0.0.0'
+const singleton = false
+const default = true
+
+@[heap]
+pub struct HetznerManager {
+pub mut:
+	name        string = 'default'
+	description string
+	baseurl     string = 'https://robot-ws.your-server.de'
+	whitelist   []string // comma separated list of servers we whitelist to work on
+	user        string
+	password    string
+}
+
+pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
+	mut c2 := httpconnection.new(
+		name:  'hetzner_${h.name}'
+		url:   h.baseurl
+		cache: true
+		retry: 3
+	)!
+	c2.basic_auth(h.user, h.password)
+	println(c2)
+	return c2
+}
+
+fn obj_init(mycfg_ HetznerManager) !HetznerManager {
+	mut mycfg := mycfg_
+	return mycfg
+}
+
+pub fn heroscript_loads(heroscript string) !HetznerManager {
+	mut obj := encoderhero.decode[HetznerManager](heroscript)!
+	return obj
+}

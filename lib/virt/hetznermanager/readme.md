@@ -4,22 +4,28 @@ This module provides a V client for interacting with Hetzner's Robot API, allowi
 
 ## Setup
 
-1. Create an account on [Hetzner Robot](https://robot.hetzner.com/preferences/index)
+1. Create an account on [Hetzner Robot](https://robot.hetznermanager.com/preferences/index)
 2. Configure the client using heroscript:
+3. 
 ```v
-import freeflowuniverse.herolib.virt.hetzner
 
-heroscript := "
-!!hetzner.configure
-    name:'my_instance'
-    url:'https://robot-ws.your-server.de'
-    user:'your-username'
-    password:'your-password'
-    whitelist:''  // comma separated list of servers to whitelist
-"
+import freeflowuniverse.herolib.core.playcmds
 
-// Apply the configuration (only needs to be done once)
-hetzner.play(heroscript: heroscript)!
+passwd:=os.environ()['HETZNER_PASSWORD'] or { 
+	println('HETZNER_PASSWORD not set') 
+	exit(1)
+}
+
+playcmds.run(
+	heroscript: '
+	!!hetznermanager.configure
+		name:"main"
+		user:"operations@threefold.io"
+		whitelist:"2111181, 2392178"
+		password:"${passwd}"
+	'
+)!
+
 ```
 
 ## Usage
@@ -27,7 +33,7 @@ hetzner.play(heroscript: heroscript)!
 ### Initialize Client
 ```v
 // Get a configured client instance
-mut cl := hetzner.get(name: 'my_instance')!
+mut cl := hetznermanager.get(name: 'main')!
 ```
 
 ### Configuration Notes
@@ -40,7 +46,7 @@ mut cl := hetzner.get(name: 'my_instance')!
 
 ### Examples
 
-> see examples/virt/hetzner
+> see examples/virt/hetznermanager
 
 ### Available Operations
 
@@ -100,12 +106,12 @@ Here's a complete example showing common operations:
 ```v
 #!/usr/bin/env -S v run
 
-import freeflowuniverse.herolib.virt.hetzner
+import freeflowuniverse.herolib.virt.hetznermanager
 import freeflowuniverse.herolib.ui.console
 
 fn main() {
     // Get client instance
-    mut cl := hetzner.get('my_instance')!
+    mut cl := hetznermanager.get('my_instance')!
     
     // List all servers
     servers := cl.servers_list()!
@@ -141,4 +147,4 @@ fn main() {
 - Server operations that include `wait: true` will monitor the server until the operation completes
 - Reset operations with `wait: true` will timeout after 5 minutes if the server doesn't come back online
 - The module automatically manages SSH keys for rescue mode operations
-- API description is on https://robot.hetzner.com/doc/webservice/en.html#preface
+- API description is on https://robot.hetznermanager.com/doc/webservice/en.html#preface

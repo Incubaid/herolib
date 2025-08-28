@@ -71,11 +71,6 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 		}
 		url := h.url(req)
 
-		// println("----")
-		// println(url)
-		// println(req.data)
-		// println("----")
-
 		mut new_req := http.new_request(req.method, url, req.data)
 		// joining the header from the HTTPConnection with the one from Request
 		new_req.header = h.header()
@@ -97,6 +92,9 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 		}
 
 		if req.debug {
+			console.print_debug("----")
+			console.print_debug(" ${url} ${req.method} url:${url}\n${req.data} \n${new_req.header}")
+			console.print_debug("----")			
 			console.print_debug('http request:\n${new_req.str()}')
 		}
 		for _ in 0 .. h.retry {
@@ -125,6 +123,8 @@ pub fn (mut h HTTPConnection) send(req_ Request) !Result {
 	if h.needs_invalidate(req, result.code) {
 		h.cache_invalidate(req)!
 	}
+
+	$dbg;
 
 	// 5 - Return result
 	return result
@@ -189,6 +189,9 @@ pub fn (mut h HTTPConnection) get(req_ Request) !string {
 	req.debug
 	req.method = .get
 	result := h.send(req)!
+	if !result.is_ok() {
+		return error('Could not get ${req}\result:\n${result}')	
+	}
 	return result.data
 }
 
@@ -197,6 +200,9 @@ pub fn (mut h HTTPConnection) delete(req_ Request) !string {
 	mut req := req_
 	req.method = .delete
 	result := h.send(req)!
+	if !result.is_ok() {
+		return error('Could not delete ${req}\result:\n${result}')	
+	}	
 	return result.data
 }
 
@@ -207,5 +213,6 @@ pub fn (mut h HTTPConnection) post_multi_part(req Request, form http.PostMultipa
 	header.set(http.CommonHeader.content_type, 'multipart/form-data')
 	req_form.header = header
 	url := h.url(req)
+	//TODO: should that not be on line with above? seems to be other codepath.
 	return http.post_multipart_form(url, req_form)!
 }

@@ -1,4 +1,4 @@
-module hetzner
+module hetznermanager
 
 // TODO: couldn't get ssh lib to work
 

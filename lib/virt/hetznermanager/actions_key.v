@@ -1,4 +1,4 @@
-module hetzner
+module hetznermanager
 
 import freeflowuniverse.herolib.core.texttools
 

@@ -21,15 +21,7 @@ pub mut:
 
 fn (mut executor ExecutorSSH) init() ! {
 	if !executor.initialized {
-		// if executor.ipaddr.port == 0 {
-		// 	return error('port cannot be 0.\n${executor}')
-		// }
-		// TODO: need to call code from SSHAGENT do not reimplement here, not nicely done
-		os.execute('pgrep -x ssh-agent || eval `ssh-agent -s`')
-
-		if executor.sshkey != '' {
-			osal.exec(cmd: 'ssh-add ${executor.sshkey}')!
-		}
+		$dbg;
 		mut addr := executor.ipaddr.addr
 		if addr == '' {
 			addr = 'localhost'

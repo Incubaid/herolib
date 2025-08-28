@@ -5,6 +5,7 @@ import freeflowuniverse.herolib.data.doctree
 import freeflowuniverse.herolib.biz.bizmodel
 import freeflowuniverse.herolib.threefold.incatokens
 import freeflowuniverse.herolib.web.site
+import freeflowuniverse.herolib.virt.hetznermanager
 import freeflowuniverse.herolib.web.docusaurus
 import freeflowuniverse.herolib.clients.openai
 import freeflowuniverse.herolib.clients.giteaclient
@@ -53,6 +54,7 @@ pub fn run(args_ PlayArgs) ! {
 	incatokens.play(mut plbook)!
 
 	docusaurus.play(mut plbook)!
+	hetznermanager.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
 

@@ -20,6 +20,6 @@ pub mut:
 	header        ?Header
 	dict_key      string // if the return is a dict, then will take the element out of the dict with the key and process further
 	list_dict_key string // if the output is a list of dicts, then will process each element of the list to take the val with key out of that dict
-	debug         bool
+	debug         bool = true
 	dataformat    DataFormat
 }

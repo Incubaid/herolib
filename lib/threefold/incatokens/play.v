@@ -6,6 +6,10 @@ import freeflowuniverse.herolib.core.pathlib
 import os
 
 pub fn play(mut plbook PlayBook) ! {
+
+	if !plbook.exists(filter: 'incatokens.') {
+		return
+	}
 	console.print_header('INCA Token Simulation')
 
 	// Collect all configurations first
