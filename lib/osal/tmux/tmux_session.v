@@ -61,16 +61,42 @@ pub fn (mut s Session) scan() ! {
 
 	mut current_windows := map[string]bool{}
 	for line in result.split_into_lines() {
-		if line.contains('|') {
-			parts := line.split('|')
+		line_trimmed := line.trim_space()
+		if line_trimmed.len == 0 {
+			continue
+		}
+		if line_trimmed.contains('|') {
+			parts := line_trimmed.split('|')
 			if parts.len >= 3 && parts[0].len > 0 && parts[1].len > 0 {
-				window_name := texttools.name_fix(parts[0])
+				// Safely extract window name with additional validation
+				raw_window_name := parts[0].trim_space()
+				if raw_window_name.len == 0 {
+					continue
+				}
+
+				// Use safer name processing instead of texttools.name_fix
+				mut window_name := raw_window_name.to_lower().trim_space()
+				// Replace problematic characters with underscores
+				window_name = window_name.replace(' ', '_').replace('-', '_').replace('.',
+					'_')
+
+				// Remove any non-ASCII characters safely
+				mut safe_name := ''
+				for c in window_name {
+					if c.is_letter() || c.is_digit() || c == `_` {
+						safe_name += c.ascii_str()
+					}
+				}
+				window_name = safe_name
+
 				if window_name.len == 0 {
 					continue
 				}
+
 				window_id := parts[1].replace('@', '').int()
 				window_active := parts[2] == '1'
 
+				// Safe map assignment
 				current_windows[window_name] = true
 
 				// Update existing window or create new one
@@ -102,7 +128,24 @@ pub fn (mut s Session) scan() ! {
 	}
 
 	// Remove windows that no longer exist in tmux
-	s.windows = s.windows.filter(it.name.len > 0 && current_windows[it.name] == true)
+	mut valid_windows := []&Window{}
+	for window in s.windows {
+		// Safety check: ensure window.name is valid
+		if window.name.len > 0 {
+			// Avoid map access entirely - check if window still exists by comparing with current windows
+			mut window_exists := false
+			for current_name, _ in current_windows {
+				if window.name == current_name {
+					window_exists = true
+					break
+				}
+			}
+			if window_exists {
+				valid_windows << window
+			}
+		}
+	}
+	s.windows = valid_windows
 }
 
 // window_name is the name of the window in session main (will always be called session main)
@@ -217,7 +260,7 @@ pub fn (mut s Session) window_get(args_ WindowGetArgs) !&Window {
 	if args.name.len == 0 {
 		return error('Window name cannot be empty')
 	}
-	args.name = texttools.name_fix(args.name)
+	args.name = texttools.name_fix_token(args.name)
 	for w in s.windows {
 		if w.name.len > 0 && w.name == args.name {
 			if (args.id > 0 && w.id == args.id) || args.id == 0 {
@@ -231,7 +274,7 @@ pub fn (mut s Session) window_get(args_ WindowGetArgs) !&Window {
 pub fn (mut s Session) window_delete(args_ WindowGetArgs) ! {
 	// $if debug { console.print_debug(" - window delete: $args_")}
 	mut args := args_
-	args.name = texttools.name_fix(args.name)
+	args.name = texttools.name_fix_token(args.name)
 	if !(s.window_exist(args)) {
 		return
 	}
@@ -283,4 +326,17 @@ pub fn (mut s Session) run_ttyd(args TtydArgs) ! {
 // Backward compatibility method - runs ttyd in read-only mode
 pub fn (mut s Session) run_ttyd_readonly(port int) ! {
 	s.run_ttyd(port: port, editable: false)!
+}
+
+// Stop ttyd for this session by killing the process on the specified port
+pub fn (mut s Session) stop_ttyd(port int) ! {
+	// Kill any process running on the specified port
+	cmd := 'lsof -ti:${port} | xargs kill -9'
+	osal.execute_silent(cmd) or { return error("Can't stop ttyd on port ${port}: ${err}") }
+}
+
+// Stop all ttyd processes (kills all ttyd processes system-wide)
+pub fn stop_all_ttyd() ! {
+	cmd := 'pkill ttyd'
+	osal.execute_silent(cmd) or { return error("Can't stop all ttyd processes: ${err}") }
 }
