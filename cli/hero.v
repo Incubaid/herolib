@@ -38,7 +38,7 @@ fn do() ! {
 
 	if os.args.len == 2 {
 		mypath := os.args[1]
-		if mypath.to_lower().ends_with('.hero') {
+		if mypath.to_lower().ends_with('.hero')  || mypath.to_lower().ends_with('.heroscript') || mypath.to_lower().ends_with('.hs') {
 			// hero was called from a file
 			playcmds_do(mypath)!
 			return
@@ -94,7 +94,7 @@ fn do() ! {
 
 fn main() {
 	do() or {
-		$dbg;
+		// $dbg;
 		eprintln('Error: ${err}')
 		print_backtrace()
 		exit(1)

@@ -17,20 +17,22 @@ passwd := os.environ()['HETZNER_PASSWORD'] or {
 	exit(1)
 }
 
-playcmds.run(
-	heroscript: '
-	!!hetznermanager.configure
-		name:"main"
-		user:"${user}"
-		whitelist:"2111181, 2392178, 2545053, 2542166, 2550508, 2550378,2550253"
-		password:"${passwd}"
-		sshkey:"kristof"
-	'
-)!
+hs:='
+!!hetznermanager.configure
+	user:"${user}"
+	whitelist:"2111181, 2392178, 2545053, 2542166, 2550508, 2550378,2550253"
+	password:"${passwd}"
+	sshkey:"kristof"
+'
+
+println(hs)
+
+playcmds.run(heroscript: hs)!
+
 
 console.print_header('Hetzner Test.')
 
-mut cl := hetznermanager.get(name: 'main')!
+mut cl := hetznermanager.get()!
 // println(cl)
 
 // for i in 0 .. 5 {
