@@ -70,6 +70,49 @@ pub fn ping(args PingArgs) !PingResult {
 	return .ok
 }
 
+
+@[params]
+pub struct RebootWaitArgs {
+pub mut:
+	address string @[required] // 192.168.8.8
+	timeout_down i64 = 2 // total time in seconds to wait till its down
+	timeout_up i64 = 60 * 5
+}
+
+// test if a tcp port answers
+//```
+// address string //192.168.8.8
+// port int = 22
+// timeout u16 = 2000 // total time in milliseconds to keep on trying
+//```
+pub fn reboot_wait(args RebootWaitArgs) ! {
+	start_time := time.now().unix_milli()
+	mut run_time := 0.0
+	for true {
+		console.print_debug("Waiting for server to go down...")
+		run_time = time.now().unix_milli()
+		if run_time > start_time + args.timeout_down {
+			return error("timeout in waiting for server down")
+		}
+		if ping(address:args.address)! == .timeout {
+			break
+		}
+		time.sleep(1)
+	}
+	for true {
+		console.print_debug("Waiting for server to come back up...")
+		run_time = time.now().unix_milli()
+		if run_time > start_time + args.timeout_up {
+			return error("timeout in waiting for server up")
+		}
+		if ping(address:args.address)! == .ok {
+			break
+		}
+		time.sleep(1)
+	}
+}
+
+
 @[params]
 pub struct TcpPortTestArgs {
 pub mut:

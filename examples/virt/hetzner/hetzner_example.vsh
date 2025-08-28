@@ -45,17 +45,20 @@ println(serverinfo)
 
 // cl.server_reset(name:"kristof2",wait:true)!
 
-cl.server_rescue(name:"kristof2",wait:true, hero_install:true,sshkey_name:"kristof")!
+//don't forget to specify the keyname needed
+// cl.server_rescue(name:"kristof2",wait:true, hero_install:true,sshkey_name:"kristof")!
 
-mut ks:=cl.keys_get()!
-println(ks)
+// mut ks:=cl.keys_get()!
+// println(ks)
 
-console.print_header('SSH login')
-mut b := builder.new()!
-mut n := b.node_new(ipaddr: serverinfo.server_ip)!
+// console.print_header('SSH login')
+// mut b := builder.new()!
+// mut n := b.node_new(ipaddr: serverinfo.server_ip)!
 
 //this will put hero in debug mode on the system
-n.hero_install(compile:true)!
+// n.hero_install(compile:true)!
 
 // n.shell("")!
+
+cl.ubuntu_install(name:"kristof2",wait:true, hero_install:true,sshkey_name:"kristof")!
 

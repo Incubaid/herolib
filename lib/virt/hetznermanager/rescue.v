@@ -37,17 +37,26 @@ pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoD
 	mut args := args_
 	mut serverinfo := h.server_info_get(id: args.id, name: args.name)!
 
-	console.print_header('server ${serverinfo.server_name} goes into rescue mode')
-
 	if serverinfo.rescue && ! args.reset {
 		if osal.ssh_test(address: serverinfo.server_ip, port: 22)! == .ok {
+			console.print_debug('test server ${serverinfo.server_name} is in rescue mode?')
+			mut b := builder.new()!
+			mut n := b.node_new(ipaddr: serverinfo.server_ip)!
 
-			console.print_debug('server ${serverinfo.server_name} is in rescue mode')
+			res:=n.exec(cmd:"ls /root/.oldroot/nfs/install/installimage") or {
+				"ERROR"
+			}
+			if res.contains("nfs/install/installimage"){
+				console.print_debug('server ${serverinfo.server_name} is in rescue mode')
+				return serverinfo
+			}			
 		}
 		serverinfo.rescue = false
 	}
 	// only do it if its not in rescue yet
 	if serverinfo.rescue == false || args.reset {
+
+		console.print_header('server ${serverinfo.server_name} goes into rescue mode')
 
 		mut keyfps := []string{}
 		if args.sshkey_name != '' {
@@ -67,9 +76,9 @@ pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoD
 			dataformat: .urlencoded
 		)!
 
-		console.print_debug('hetzner rescue\n${rescue}')
+		// console.print_debug('hetzner rescue\n${rescue}')
 
-		h.server_reset(id: args.id, name: args.name, wait: args.wait)!
+		h.server_reset(id: args.id, name: args.name, wait: args.wait, msg:" to get up and running in rescue mode.")!
 
 		os.execute_opt("ssh-keygen -R ${serverinfo.server_ip}")!
 	}
@@ -81,6 +90,7 @@ pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoD
 	if args.wait {
 		mut b := builder.new()!
 		mut n := b.node_new(ipaddr: serverinfo.server_ip)!
+		n.exec_silent("apt update && apt install -y mc redis")!
 		if args.hero_install {
 			n.hero_install()!
 		}
@@ -94,8 +104,62 @@ pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoD
 pub fn (mut h HetznerManager) server_rescue_node(args ServerRescueArgs) !&builder.Node {
 	mut serverinfo := h.server_rescue(args)!
 
-	mut b := builder.new()!
-	mut n := b.node_new(ipaddr: serverinfo.server_ip)!
+		mut b := builder.new()!
+		mut n := b.node_new(ipaddr: serverinfo.server_ip)!
 
 	return n
 }
+
+
+pub struct ServerInstallArgs {
+pub mut:
+	id           int
+	name         string
+	wait         bool = true
+	hero_install bool
+	hero_install_compile bool
+	sshkey_name  string @[required]
+	raid         bool
+}
+
+pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.Node {
+
+	mut serverinfo := h.server_rescue(id:args.id,name:args.name,wait:true,sshkey_name:args.sshkey_name)!
+
+	mut b := builder.new()!
+	mut n := b.node_new(ipaddr: serverinfo.server_ip)!
+
+	// installconfig:=$tmpl("templates/ubuntu_install.sh")
+	// n.file_write("/tmp/installconfig",installconfig)!
+	// n.exec_interactive("installimage -a -c /tmp/installconfig")!
+
+	mut rstr:=""
+	if args.raid  {
+		rstr="-r yes -l 1 "		
+	}
+
+	n.exec_interactive('
+		set -ex
+		echo "go into install mode, try to install ubuntu 24.04"
+		/root/.oldroot/nfs/install/installimage -a -n kristof2 ${rstr} -i /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz -f yes -t yes swap:swap:4G,/boot:ext3:1024M,/:btrfs:all
+		reboot')!
+
+	os.execute_opt("ssh-keygen -R ${serverinfo.server_ip}")!
+
+	console.print_debug('server ${serverinfo.server_name} is installed in ubuntu now, should be restarting.')
+
+	osal.reboot_wait(
+		address: serverinfo.server_ip
+		timeout_down: 60
+		timeout_up: 60 * 5
+	)!
+
+	if args.hero_install {
+		n.hero_install(compile: args.hero_install_compile)!
+	}
+
+	return n
+}
+
+
+

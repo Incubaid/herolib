@@ -21,6 +21,7 @@ pub mut:
 	id   int
 	name string
 	wait bool = true
+	msg  string
 }
 
 pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
@@ -45,7 +46,6 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 		dataformat: .urlencoded
 		// dict_key:'reset'
 	)!
-	println(o)
 	console.print_debug('server ${serverinfo.server_name} reset done.')
 	// now need to wait till it goes off
 	if serveractive {
@@ -64,7 +64,7 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 	if args.wait {
 		for {
 			time.sleep(1000 * time.millisecond)
-			console.print_debug('wait for ${serverinfo.server_name}')
+			console.print_debug('wait for ${serverinfo.server_name} ${args.msg}')
 			if osal.ssh_test(address: serverinfo.server_ip)! == .ok {
 				console.print_debug('ssh test ok')
 				console.print_header('server is rebooted: ${serverinfo.server_name}')
@@ -80,19 +80,3 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 
 	return o
 }
-
-// /////////////////////////////////////BOOT
-
-// struct BootRoot {
-// 	boot Boot
-// }
-
-// struct Boot {
-// 	rescue RescueInfo
-// }
-
-// pub fn (mut h HetznerManager) server_boot(id int) !RescueInfo {
-// 	mut conn := h.connection()!
-// 	boot := conn.get_json[BootRoot](prefix: 'boot/${id}')!
-// 	return boot.boot.rescue
-// }

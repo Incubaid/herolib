@@ -7,6 +7,7 @@ import freeflowuniverse.herolib.osal.rsync
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.data.ipaddress
 import freeflowuniverse.herolib.ui.console
+import freeflowuniverse.herolib.core.texttools
 
 @[heap]
 pub struct ExecutorSSH {
@@ -52,7 +53,16 @@ pub fn (mut executor ExecutorSSH) exec(args_ ExecArgs) !string {
 	if executor.ipaddr.port > 10 {
 		port = '-p ${executor.ipaddr.port}'
 	}
+
+	if args.cmd.contains("\n"){
+		//need to upload the file first
+		args.cmd = texttools.dedent(args.cmd)
+		executor.file_write('/tmp/toexec.sh', args.cmd)!
+		args.cmd = "bash /tmp/toexec.sh"
+	}
+	
 	args.cmd = 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${executor.user}@${executor.ipaddr.addr} ${port} "${args.cmd}"'
+
 	res := osal.exec(cmd: args.cmd, stdout: args.stdout, debug: executor.debug)!
 	return res.output
 }
@@ -63,7 +73,15 @@ pub fn (mut executor ExecutorSSH) exec_interactive(args_ ExecArgs) ! {
 	if executor.ipaddr.port > 10 {
 		port = '-p ${executor.ipaddr.port}'
 	}
+
+	if args.cmd.contains("\n"){
+		args.cmd = texttools.dedent(args.cmd)
+		//need to upload the file first
+		executor.file_write('/tmp/toexec.sh', args.cmd)!
+		args.cmd = "bash /tmp/toexec.sh"
+	}
 	args.cmd = 'ssh -tt -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${executor.user}@${executor.ipaddr.addr} ${port} "${args.cmd}"'
+
 	console.print_debug(args.cmd)
 	osal.execute_interactive(args.cmd)!
 }
