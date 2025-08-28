@@ -96,3 +96,59 @@ pub fn (mut agent SSHAgent) verify_key_access(mut node builder.Node, key_name st
 
 	return result.contains('SSH key verification successful')
 }
+
+// Copy private key to remote node
+pub fn remote_copy(mut agent SSHAgent, node_addr string, key_name string) ! {
+	console.print_header('Copying SSH key "${key_name}" to ${node_addr}')
+
+	// Get the key
+	mut key := agent.get(name: key_name) or { return error('SSH key "${key_name}" not found') }
+
+	// Create builder node
+	mut b := builder.new()!
+	mut node := b.node_new(ipaddr: node_addr)!
+
+	// Get private key content
+	mut key_path := key.keypath()!
+	if !key_path.exists() {
+		return error('Private key file not found: ${key_path.path}')
+	}
+
+	private_key_content := key_path.read()!
+
+	// Get home directory on remote
+	home_dir := node.environ_get()!['HOME'] or {
+		return error('Could not determine HOME directory on remote node')
+	}
+
+	remote_ssh_dir := '${home_dir}/.ssh'
+	remote_key_path := '${remote_ssh_dir}/${key_name}'
+
+	// Ensure .ssh directory exists with correct permissions
+	node.exec_silent('mkdir -p ${remote_ssh_dir}')!
+	node.exec_silent('chmod 700 ${remote_ssh_dir}')!
+
+	// Copy private key to remote
+	node.file_write(remote_key_path, private_key_content)!
+	node.exec_silent('chmod 600 ${remote_key_path}')!
+
+	// Generate public key on remote
+	node.exec_silent('ssh-keygen -y -f ${remote_key_path} > ${remote_key_path}.pub')!
+	node.exec_silent('chmod 644 ${remote_key_path}.pub')!
+
+	console.print_green('✓ SSH key "${key_name}" copied to ${node_addr}')
+}
+
+// Add public key to authorized_keys on remote node
+pub fn remote_auth(mut agent SSHAgent, node_addr string, key_name string) ! {
+	console.print_header('Adding SSH key "${key_name}" to authorized_keys on ${node_addr}')
+
+	// Create builder node
+	mut b := builder.new()!
+	mut node := b.node_new(ipaddr: node_addr)!
+
+	// Use existing builder integration
+	agent.push_key_to_node(mut node, key_name)!
+
+	console.print_green('✓ SSH key "${key_name}" added to authorized_keys on ${node_addr}')
+}

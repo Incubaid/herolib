@@ -63,8 +63,11 @@ pub fn (mut s Session) scan() ! {
 	for line in result.split_into_lines() {
 		if line.contains('|') {
 			parts := line.split('|')
-			if parts.len >= 2 {
+			if parts.len >= 3 && parts[0].len > 0 && parts[1].len > 0 {
 				window_name := texttools.name_fix(parts[0])
+				if window_name.len == 0 {
+					continue
+				}
 				window_id := parts[1].replace('@', '').int()
 				window_active := parts[2] == '1'
 
@@ -73,7 +76,7 @@ pub fn (mut s Session) scan() ! {
 				// Update existing window or create new one
 				mut found := false
 				for mut w in s.windows {
-					if w.name == window_name {
+					if w.name.len > 0 && window_name.len > 0 && w.name == window_name {
 						w.id = window_id
 						w.active = window_active
 						w.scan()! // Scan panes for this window
@@ -99,7 +102,7 @@ pub fn (mut s Session) scan() ! {
 	}
 
 	// Remove windows that no longer exist in tmux
-	s.windows = s.windows.filter(current_windows[it.name] == true)
+	s.windows = s.windows.filter(it.name.len > 0 && current_windows[it.name] == true)
 }
 
 // window_name is the name of the window in session main (will always be called session main)
@@ -115,7 +118,7 @@ pub fn (mut s Session) scan() ! {
 // 	reset	bool
 // }
 // ```
-pub fn (mut s Session) window_new(args WindowArgs) !Window {
+pub fn (mut s Session) window_new(args WindowArgs) !&Window {
 	$if debug {
 		console.print_header(' start window: \n${args}')
 	}
@@ -127,7 +130,7 @@ pub fn (mut s Session) window_new(args WindowArgs) !Window {
 			return error('cannot create new window it already exists, window ${namel} in session:${s.name}')
 		}
 	}
-	mut w := Window{
+	mut w := &Window{
 		session: &s
 		name:    namel
 		panes:   []&Pane{}
@@ -211,9 +214,12 @@ fn (mut s Session) window_exist(args_ WindowGetArgs) bool {
 
 pub fn (mut s Session) window_get(args_ WindowGetArgs) !&Window {
 	mut args := args_
+	if args.name.len == 0 {
+		return error('Window name cannot be empty')
+	}
 	args.name = texttools.name_fix(args.name)
 	for w in s.windows {
-		if w.name == args.name {
+		if w.name.len > 0 && w.name == args.name {
 			if (args.id > 0 && w.id == args.id) || args.id == 0 {
 				return w
 			}
@@ -251,4 +257,30 @@ pub fn (mut s Session) stop() ! {
 	osal.execute_silent('tmux kill-session -t ${s.name}') or {
 		return error("Can't delete session ${s.name} - This may happen when session is not found: ${err}")
 	}
+}
+
+// Run ttyd for this session so it can be accessed in the browser
+pub fn (mut s Session) run_ttyd(args TtydArgs) ! {
+	target := '${s.name}'
+
+	// Add -W flag for write access if editable mode is enabled
+	mut ttyd_flags := '-p ${args.port}'
+	if args.editable {
+		ttyd_flags += ' -W'
+	}
+
+	cmd := 'nohup ttyd ${ttyd_flags} tmux attach -t ${target} >/dev/null 2>&1 &'
+
+	code := os.system(cmd)
+	if code != 0 {
+		return error('Failed to start ttyd on port ${args.port} for session ${s.name}')
+	}
+
+	mode_str := if args.editable { 'editable' } else { 'read-only' }
+	println('ttyd started for session ${s.name} at http://localhost:${args.port} (${mode_str} mode)')
+}
+
+// Backward compatibility method - runs ttyd in read-only mode
+pub fn (mut s Session) run_ttyd_readonly(port int) ! {
+	s.run_ttyd(port: port, editable: false)!
 }

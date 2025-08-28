@@ -27,7 +27,7 @@ pub fn new(args_ SSHAgentNewArgs) !SSHAgent {
 }
 
 pub fn loaded() bool {
-	mut agent := new() or { panic(err) }
+	mut agent := new() or { return false }
 	return agent.active
 }
 

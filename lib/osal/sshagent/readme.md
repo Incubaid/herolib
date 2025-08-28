@@ -1,43 +1,81 @@
-## ssh agent
+# SSH Agent Module
+
+SSH agent management library for V language. Provides secure key handling, agent lifecycle control, and remote integration.
+
+## Features
+
+* Manage SSH keys (generate, load, import)
+* Single agent per user with auto-cleanup
+* Start/stop/reset agent easily
+* Diagnostics and status checks
+* Push keys to remote nodes & verify access
+* Security-first (file permissions, socket handling)
+
+## Platform Support
+
+* Linux, macOS
+* Windows (not yet supported)
+
+## Quick Start
 
 ```v
 import freeflowuniverse.herolib.osal.sshagent
 
 mut agent := sshagent.new()!
-
-privkey:='
------BEGIN OPENSSH PRIVATE KEY-----
-b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-QyNTUxOQAAACDXf9Z/2AH8/8a1ppagCplQdhWyQ8wZAieUw3nNcxsDiQAAAIhb3ybRW98m
-0QAAAAtzc2gtZWQyNTUxOQAAACDXf9Z/2AH8/8a1ppagCplQdhWyQ8wZAieUw3nNcxsDiQ
-AAAEC+fcDBPqdJHlJOQJ2zXhU2FztKAIl3TmWkaGCPnyts49d/1n/YAfz/xrWmlqAKmVB2
-FbJDzBkCJ5TDec1zGwOJAAAABWJvb2tz
------END OPENSSH PRIVATE KEY-----
-'
-
-mut sshkey:=agent.add("mykey:,privkey)!
-
-
-sshkey.forget()!
-
+mut key := agent.generate('my_key', '')!
+key.load()!
+println(agent)
 ```
 
-### hero
+## Usage
 
-there is also a hero command
+### Agent
 
-```js
-//will add the key and load (at this stage no support for passphrases)
-!!sshagent.key_add name:'myname'
-    privkey:'
-        -----BEGIN OPENSSH PRIVATE KEY-----
-        b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
-        QyNTUxOQAAACDXf9Z/2AH8/8a1ppagCplQdhWyQ8wZAieUw3nNcxsDiQAAAIhb3ybRW98m
-        0QAAAAtzc2gtZWQysdsdsddsdsdsdsdsdsd8/8a1ppagCplQdhWyQ8wZAieUw3nNcxsDiQ
-        AAAEC+fcDBPqdJHlJOQJ2zXhU2FztKAIl3TmWkaGCPnyts49d/1n/YAfz/xrWmlqAKmVB2
-        FbJDzBkCJ5TDec1zGwOJAAAABWJvb2tz
-        -----END OPENSSH PRIVATE KEY-----
-        '
-
+```v
+mut agent := sshagent.new()!
+mut agent := sshagent.new(homepath: '/custom/ssh/path')!
+mut agent := sshagent.new_single()!
 ```
 
+### Keys
+
+```v
+mut key := agent.generate('my_key', '')!
+agent.add('imported_key', privkey)!
+key.load()!
+if agent.exists(name: 'my_key') { println('Key exists') }
+agent.forget('my_key')!
+```
+
+### Agent Ops
+
+```v
+println(agent.diagnostics())
+println(agent.keys_loaded()!)
+agent.reset()!
+```
+
+### Remote
+
+```v
+import freeflowuniverse.herolib.builder
+
+mut node := builder.node_new(ipaddr: 'user@remote:22')!
+agent.push_key_to_node(mut node, 'my_key')!
+```
+
+## Security
+
+* Private keys set to `0600`
+* Secure sockets & user isolation
+* Validated inputs & safe memory handling
+
+## Examples
+
+See `examples/osal/sshagent/` for demos.
+
+## Testing
+
+```bash
+v test lib/osal/sshagent/
+```

@@ -1,6 +1,5 @@
 module core
 
-import base
 import os
 
 // check path is accessible, e.g. do we need sudo and are we sudo

@@ -5,9 +5,30 @@ import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.ui.console
 import time
 
+// Check if error message indicates tmux server is not running
+fn is_tmux_server_not_running_error(error_msg string) bool {
+	// Common tmux server not running error patterns
+	tmux_not_running_patterns := [
+		'no server running',
+		'error connecting to',
+		'No such file or directory', // when socket doesn't exist
+	]
+
+	error_lower := error_msg.to_lower()
+	for pattern in tmux_not_running_patterns {
+		if error_lower.contains(pattern.to_lower()) {
+			return true
+		}
+	}
+	return false
+}
+
 fn (mut t Tmux) scan_add(line string) !&Pane {
 	// Parse the line to get session, window, and pane info
 	line_arr := line.split('|')
+	if line_arr.len < 6 {
+		return error('Invalid tmux pane line format: ${line}')
+	}
 	session_name := line_arr[0]
 	window_name := line_arr[1]
 	window_id := line_arr[2]
@@ -15,6 +36,11 @@ fn (mut t Tmux) scan_add(line string) !&Pane {
 	pane_id := line_arr[4]
 	pane_pid := line_arr[5]
 	pane_start_command := line_arr[6] or { '' }
+
+	// Skip if window name is empty
+	if window_name.len == 0 {
+		return error('Window name is empty in line: ${line}')
+	}
 
 	wid := (window_id.replace('@', '')).int()
 	pid := (pane_id.replace('%', '')).int()
@@ -71,7 +97,7 @@ pub fn (mut t Tmux) scan() ! {
 
 	cmd_list_session := "tmux list-sessions -F '#{session_name}'"
 	exec_list := osal.exec(cmd: cmd_list_session, stdout: false, name: 'tmux_list') or {
-		if err.msg().contains('no server running') {
+		if is_tmux_server_not_running_error(err.msg()) {
 			return
 		}
 		return error('could not execute list sessions.\n${err}')

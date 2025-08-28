@@ -175,3 +175,117 @@ pub fn (mut w Window) pane_active() ?&Pane {
 	}
 	return none
 }
+
+@[params]
+pub struct PaneSplitArgs {
+pub mut:
+	cmd        string            // command to run in new pane
+	horizontal bool              // true for horizontal split, false for vertical
+	env        map[string]string // environment variables
+}
+
+// Split the active pane horizontally or vertically
+pub fn (mut w Window) pane_split(args PaneSplitArgs) !&Pane {
+	mut cmd_to_run := args.cmd
+	if cmd_to_run == '' {
+		cmd_to_run = '/bin/bash'
+	}
+
+	// Build environment arguments
+	mut env_args := ''
+	for key, value in args.env {
+		env_args += ' -e ${key}="${value}"'
+	}
+
+	// Choose split direction
+	split_flag := if args.horizontal { '-h' } else { '-v' }
+
+	// Execute tmux split-window command
+	res_opt := "-P -F '#{session_name}|#{window_name}|#{window_id}|#{pane_active}|#{pane_id}|#{pane_pid}|#{pane_start_command}'"
+	cmd := 'tmux split-window ${split_flag} ${res_opt}${env_args} -t ${w.session.name}:@${w.id} \'${cmd_to_run}\''
+
+	console.print_debug('Splitting pane: ${cmd}')
+
+	res := osal.exec(cmd: cmd, stdout: false, name: 'tmux_pane_split') or {
+		return error("Can't split pane in window ${w.name}: ${err}")
+	}
+
+	// Parse the result to get new pane info
+	line_arr := res.output.split('|')
+	if line_arr.len < 7 {
+		return error('Invalid tmux split-window output: ${res.output}')
+	}
+
+	pane_id := line_arr[4].replace('%', '').int()
+	pane_pid := line_arr[5].int()
+	pane_active := line_arr[3] == '1'
+	pane_cmd := line_arr[6] or { '' }
+
+	// Create new pane object
+	mut new_pane := Pane{
+		window:             &w
+		id:                 pane_id
+		pid:                pane_pid
+		active:             pane_active
+		cmd:                pane_cmd
+		env:                args.env
+		created_at:         time.now()
+		last_output_offset: 0
+	}
+
+	// Add to window's panes and rescan to get current state
+	w.panes << &new_pane
+	w.scan()!
+
+	// Return reference to the new pane
+	for mut pane in w.panes {
+		if pane.id == pane_id {
+			return pane
+		}
+	}
+
+	return error('Could not find newly created pane with ID ${pane_id}')
+}
+
+// Split pane horizontally (side by side)
+pub fn (mut w Window) pane_split_horizontal(cmd string) !&Pane {
+	return w.pane_split(cmd: cmd, horizontal: true)
+}
+
+// Split pane vertically (top and bottom)
+pub fn (mut w Window) pane_split_vertical(cmd string) !&Pane {
+	return w.pane_split(cmd: cmd, horizontal: false)
+}
+
+@[params]
+pub struct TtydArgs {
+pub mut:
+	port     int
+	editable bool // if true, allows write access to the terminal
+}
+
+// Run ttyd for this window so it can be accessed in the browser
+pub fn (mut w Window) run_ttyd(args TtydArgs) ! {
+	target := '${w.session.name}:@${w.id}'
+
+	// Add -W flag for write access if editable mode is enabled
+	mut ttyd_flags := '-p ${args.port}'
+	if args.editable {
+		ttyd_flags += ' -W'
+	}
+
+	cmd := 'nohup ttyd ${ttyd_flags} tmux attach -t ${target} >/dev/null 2>&1 &'
+
+	code := os.system(cmd)
+	if code != 0 {
+		return error('Failed to start ttyd on port ${args.port} for window ${w.name}')
+	}
+
+	mode_str := if args.editable { 'editable' } else { 'read-only' }
+	println('ttyd started for window ${w.name} at http://localhost:${args.port} (${mode_str} mode)')
+}
+
+// Backward compatibility method - runs ttyd in read-only mode
+pub fn (mut w Window) run_ttyd_readonly(port int) ! {
+	w.run_ttyd(port: port, editable: false)!
+}

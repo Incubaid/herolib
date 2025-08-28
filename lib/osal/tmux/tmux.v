@@ -177,7 +177,7 @@ pub fn (mut t Tmux) windows_get() []&Window {
 pub fn (mut t Tmux) is_running() !bool {
 	res := os.execute('tmux info')
 	if res.exit_code != 0 {
-		if res.output.contains('no server running') {
+		if is_tmux_server_not_running_error(res.output) {
 			// console.print_debug(" TMUX NOT RUNNING")
 			return false
 		}

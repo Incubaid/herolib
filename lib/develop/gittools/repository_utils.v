@@ -1,6 +1,5 @@
 module gittools
 
-import freeflowuniverse.herolib.osal.sshagent
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.develop.vscode
@@ -106,7 +105,9 @@ fn (self GitRepo) get_repo_url_for_clone() !string {
 	// 	return url
 	// }
 
-	if sshagent.loaded() {
+	// Check if SSH agent is loaded (avoid importing sshagent to prevent circular dependency)
+	ssh_check := os.execute('ssh-add -l')
+	if ssh_check.exit_code == 0 {
 		return self.get_ssh_url()!
 	} else {
 		return self.get_http_url()!
