@@ -69,12 +69,20 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 	if serverinfo.rescue == false || args.reset {
 		console.print_header('server ${serverinfo.server_name} goes into rescue mode')
 
+
+		mykey:=h.key_get(h.sshkey)!
+		mykeyfp:=mykey.fingerprint
+
+		println("Using SSH key fingerprint: ${mykey} ${mykeyfp}")
+
+		$dbg;
+
 		mut conn := h.connection()!
 		rescue := conn.post_json_generic[RescueInfo](
 			prefix:     'boot/${serverinfo.server_number}/rescue'
 			params:     {
 				'os':             'linux'
-				'authorized_key': h.sshkey
+				'authorized_key': mykeyfp
 			}
 			dict_key:   'rescue'
 			dataformat: .urlencoded
