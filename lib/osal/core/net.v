@@ -4,11 +4,8 @@ import net
 import time
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core
-<<<<<<< HEAD
 
 import os
-=======
->>>>>>> development
 
 pub enum PingResult {
 	ok

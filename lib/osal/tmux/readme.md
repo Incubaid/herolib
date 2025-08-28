@@ -76,7 +76,7 @@ hero run -p <heroscript_file>
 
 #### Ttyd Management
 
-```heroscript
+```hs
 // Start ttyd for session access
 !!tmux.session_ttyd
     name:'mysession'
@@ -105,7 +105,7 @@ hero run -p <heroscript_file>
 
 ### Complete Example
 
-```heroscript
+```hs
 #!/usr/bin/env hero
 
 // Create development environment
