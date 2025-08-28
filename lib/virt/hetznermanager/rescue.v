@@ -43,7 +43,7 @@ pub fn (mut h HetznerManager) server_rescue(args_ ServerRescueArgs) !ServerInfoD
 			mut b := builder.new()!
 			mut n := b.node_new(ipaddr: serverinfo.server_ip)!
 
-			res:=n.exec(cmd:"ls /root/.oldroot/nfs/install/installimage") or {
+			res:=n.exec(cmd:"ls /root/.oldroot/nfs/install/installimage",stdout:false) or {
 				"ERROR"
 			}
 			if res.contains("nfs/install/installimage"){
@@ -138,10 +138,10 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 		rstr="-r yes -l 1 "		
 	}
 
-	n.exec_interactive('
+	n.exec(cmd:'
 		set -ex
 		echo "go into install mode, try to install ubuntu 24.04"
-		/root/.oldroot/nfs/install/installimage -a -n kristof2 ${rstr} -i /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz -f yes -t yes swap:swap:4G,/boot:ext3:1024M,/:btrfs:all
+		/root/.oldroot/nfs/install/installimage -a -n kristof2 ${rstr} -i /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz -f yes -t yes -p swap:swap:4G,/boot:ext3:1024M,/:btrfs:all
 		reboot')!
 
 	os.execute_opt("ssh-keygen -R ${serverinfo.server_ip}")!

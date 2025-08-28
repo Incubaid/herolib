@@ -17,7 +17,7 @@ pub enum PingResult {
 pub struct PingArgs {
 pub mut:
 	address string @[required]
-	count   u8  = 1 // the ping is successful if it got count amount of replies from the other side
+	count   u8  = 2 // the ping is successful if it got count amount of replies from the other side
 	timeout u16 = 1 // the time in which the other side should respond in seconds
 	retry   u8
 }
@@ -75,7 +75,7 @@ pub fn ping(args PingArgs) !PingResult {
 pub struct RebootWaitArgs {
 pub mut:
 	address string @[required] // 192.168.8.8
-	timeout_down i64 = 2 // total time in seconds to wait till its down
+	timeout_down i64 = 60 // total time in seconds to wait till its down
 	timeout_up i64 = 60 * 5
 }
 
@@ -86,11 +86,11 @@ pub mut:
 // timeout u16 = 2000 // total time in milliseconds to keep on trying
 //```
 pub fn reboot_wait(args RebootWaitArgs) ! {
-	start_time := time.now().unix_milli()
+	start_time := time.now().unix()
 	mut run_time := 0.0
 	for true {
 		console.print_debug("Waiting for server to go down...")
-		run_time = time.now().unix_milli()
+		run_time = time.now().unix()
 		if run_time > start_time + args.timeout_down {
 			return error("timeout in waiting for server down")
 		}
@@ -101,11 +101,11 @@ pub fn reboot_wait(args RebootWaitArgs) ! {
 	}
 	for true {
 		console.print_debug("Waiting for server to come back up...")
-		run_time = time.now().unix_milli()
+		run_time = time.now().unix()
 		if run_time > start_time + args.timeout_up {
 			return error("timeout in waiting for server up")
 		}
-		if ping(address:args.address)! == .ok {
+		if ping(address:args.address)! != .ok {
 			break
 		}
 		time.sleep(1)

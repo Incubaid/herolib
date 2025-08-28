@@ -39,9 +39,9 @@ mut cl := hetznermanager.get(name:'main')!
 
 // println(cl.servers_list()!)
 
-mut serverinfo := cl.server_info_get(name: 'kristof2')!
+// mut serverinfo := cl.server_info_get(name: 'kristof2')!
 
-println(serverinfo)
+// println(serverinfo)
 
 // cl.server_reset(name:"kristof2",wait:true)!
 
@@ -61,4 +61,5 @@ println(serverinfo)
 // n.shell("")!
 
 cl.ubuntu_install(name:"kristof2",wait:true, hero_install:true,sshkey_name:"kristof")!
+cl.ubuntu_install(name:"kristof20",wait:true, hero_install:true,sshkey_name:"kristof")!
 
