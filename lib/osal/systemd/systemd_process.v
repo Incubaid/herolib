@@ -85,6 +85,7 @@ pub fn (mut self SystemdProcess) start() ! {
 	// If we get here, service didn't start in time
 	logs := self.get_logs(50)!
 	return error('Service ${self.name} did not start within expected time. Status: ${self.status()!}. Recent logs:\n${logs}')
+
 }
 
 // get status from system
@@ -162,6 +163,8 @@ pub fn (self SystemdProcess) status() !SystemdStatus {
 	cmd := 'systemctl is-active ${name_fix(self.name)}'
 	
 	job := osal.exec(cmd: cmd, stdout: false, ignore_error: true)!
+
+	// console.print_debug("${cmd} \n***\n${job.output}\n***")
 	
 	match job.output.trim_space() {
 		'active' { return .active }

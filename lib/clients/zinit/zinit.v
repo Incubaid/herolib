@@ -1,7 +1,7 @@
 module zinit
 
 import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.schemas.jsonrpcmodel
+import freeflowuniverse.herolib.schemas.openrpc
 
 // Helper function to get or create the RPC client
 fn (mut c ZinitRPC) client_() !&jsonrpc.Client {
@@ -13,10 +13,15 @@ fn (mut c ZinitRPC) client_() !&jsonrpc.Client {
 // Admin methods
 
 // rpc_discover returns the OpenRPC specification for the API
-pub fn (mut c ZinitRPC) rpc_discover() !jsonrpcmodel.OpenRPCSpec {
+pub fn (mut c ZinitRPC) rpc_discover() !openrpc.OpenRPC {
 	mut client := c.client_()!
+	println(1)
 	request := jsonrpc.new_request_generic('rpc.discover', []string{})
-	return client.send[[]string, jsonrpcmodel.OpenRPCSpec](request)!
+	println(2)
+	mut r:= client.send[[]string, openrpc.OpenRPC](request)!
+	// dump(r)
+	$dbg;
+	return r
 }
 
 // service_list lists all services managed by Zinit
@@ -97,10 +102,7 @@ pub fn (mut c ZinitRPC) service_create(name string, config ServiceConfig) !strin
 		name:    name
 		content: config
 	}
-	println(params)
-	$dbg;
 	request := jsonrpc.new_request_generic('service_create', params)
-	$dbg;
 	return client.send[ServiceCreateParams, string](request)!
 }
 

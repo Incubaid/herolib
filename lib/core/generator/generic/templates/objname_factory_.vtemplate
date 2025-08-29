@@ -54,6 +54,7 @@ pub fn get(args ArgsGet) !&${args.classname} {
 		if r.hexists('context:${args.name}', args.name)! {
 			data := r.hget('context:${args.name}', args.name)!
 			if data.len == 0 {
+                print_backtrace()
 				return error('${args.classname} with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(${args.classname},data)!
@@ -62,12 +63,14 @@ pub fn get(args ArgsGet) !&${args.classname} {
 			if args.create {
 				new(args)!
 			}else{
+                print_backtrace()
 				return error("${args.classname} with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! //no longer from db nor create
 	}
 	return ${args.name}_global[args.name] or {
+        print_backtrace()
 		return error('could not get config for ${args.name} with name:${args.name}')
 	}
 }
@@ -220,18 +223,18 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 	// systemd  
     match cat{
         .screen {
-            console.print_debug("startupmanager: screen")
+            console.print_debug("installer: ${args.name}' startupmanager get screen")
             return startupmanager.get(.screen)!
         }
         .zinit{
-            console.print_debug("startupmanager: zinit")
+            console.print_debug("installer: ${args.name}' startupmanager get zinit")
             return startupmanager.get(.zinit)!
         }
         .systemd{
-            console.print_debug("startupmanager: systemd")
+            console.print_debug("installer: ${args.name}' startupmanager get systemd")
             return startupmanager.get(.systemd)!
         }else{
-            console.print_debug("startupmanager: auto")
+            console.print_debug("installer: ${args.name}' startupmanager get auto")
             return startupmanager.get(.auto)!
         }
     }
@@ -257,7 +260,7 @@ pub fn (mut self ${args.classname}) start() ! {
         return
     }
 
-	console.print_header('${args.name} start')
+	console.print_header('installer: ${args.name} start')
 
     if ! installed()!{
         install()!
@@ -270,7 +273,7 @@ pub fn (mut self ${args.classname}) start() ! {
     for zprocess in startupcmd()!{
         mut sm:=startupmanager_get(zprocess.startuptype)!
 
-        console.print_debug('starting ${args.name} with ??{zprocess.startuptype}...')
+        console.print_debug('installer: ${args.name} starting with ??{zprocess.startuptype}...')
 
         sm.new(zprocess)!
 

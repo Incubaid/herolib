@@ -12,7 +12,7 @@ pub mut:
 }
 
 pub fn get(cat StartupManagerType) !StartupManager {
-	console.print_debug('startupmanager get ${cat}')
+	console.print_debug('startupmanager (factory): get ${cat}')
 	mut sm := StartupManager{
 		cat: cat
 	}
@@ -70,11 +70,11 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 			)!
 		}
 		.zinit {
-			console.print_debug('zinit start ${args.name}.')
+			console.print_debug('startupmanager: zinit process create ${args.name}.')
 			// Get the Zinit RPC client instance.
 			// We assume it's properly configured (e.g., socket_path) via its factory setup.
 			mut zinit_client := zinit.get(create: true)!
-
+			
 			// Map ZProcessNewArgs to zinit.ServiceConfig
 			mut service_config := zinit.ServiceConfig{
 				exec:             args.cmd
@@ -89,8 +89,9 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 
 			// Create the service configuration file in zinit
 			zinit_client.service_create(args.name, service_config) or {
-				return error('Failed to create zinit service ${args.name}: ${err}')
-			}		
+				return error('startupmanager: failed to create zinit service ${args.name}: ${err}')
+			}	
+			
 		} else {
 			panic('to implement, startup manager only support screen & systemd for now: ${mycat}')
 		}
@@ -102,35 +103,31 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 }
 
 pub fn (mut sm StartupManager) start(name string) ! {
-	println(sm)
-	$dbg;
 	match sm.cat {
 		.screen {
 			return
 		}
 		.systemd {
-			console.print_debug('systemd process start ${name}')
+			console.print_debug('startupmanager: systemd process start ${name}')
 			mut systemdfactory := systemd.new()!
-			$dbg;
 			if systemdfactory.exists(name) {
 				// console.print_header("*************")
 				mut systemdprocess := systemdfactory.get(name)!
 				systemdprocess.start()!
-				$dbg;
 			} else {
 				return error('process in systemd with name ${name} not found')
 			}
 		}
 		.zinit {
-			console.print_debug('zinit process start ${name} using clients.zinit')
+			console.print_debug('startupmanager: zinit process start ${name}')
 			mut zinit_client := zinit.get()! // Get the already configured zinit client
 			zinit_client.service_start(name) or {
-				return error('Failed to start zinit service ${name}: ${err}')
+				return error('startupmanager: Failed to start zinit service ${name}: ${err}')
 			}
 			// Monitor loads the config, if it's new it starts it.
 			// If the service is already managed, this will bring it back up.
 			zinit_client.service_monitor(name) or {
-				return error('Failed to monitor zinit service ${name}: ${err}')
+				return error('startupmanager: Failed to monitor zinit service ${name}: ${err}')
 			}
 
 		}
@@ -243,7 +240,7 @@ pub fn (mut sm StartupManager) status(name string) !ProcessStatus {
 		.screen {
 			mut screen_factory := screen.new(reset: false)!
 			mut scr := screen_factory.get(name) or {
-				return error('process with name ${name} not found')
+				return error('startup manager: failed to get status of process ${name}\n${err} in screen.')
 			}
 			match scr.status()! {
 				.active { return .active }
@@ -255,13 +252,13 @@ pub fn (mut sm StartupManager) status(name string) !ProcessStatus {
 			mut systemdfactory := systemd.new()!
 			mut systemdprocess := systemdfactory.get(name) or { return .unknown }
 			systemd_status := systemdprocess.status() or {
-				return error('Failed to get status of process ${name}\n${err}')
+				return error('startup manager: failed to get status of process ${name}\n${err} in systemd.')
 			}
 			s := ProcessStatus.from(systemd_status.str())!
 			return s
 		}
 		.zinit {
-			console.print_debug('zinit status ${name} using clients.zinit')
+			console.print_debug('startup manager: zinit status ${name}.')
 			mut zinit_client := zinit.get()!
 			// Attempt to get the service status. Handle "Service not found" as .unknown.
 			status_info := zinit_client.service_status(name) or {
@@ -269,7 +266,7 @@ pub fn (mut sm StartupManager) status(name string) !ProcessStatus {
 				if err_val.contains('service not found') {
 					return .unknown
 				} else {
-					return error('Failed to get zinit service status: ${err}')
+					return error('startup manager: failed to get status of process ${name}\n${err} in zinit.')
 				}
 			}
 
@@ -293,7 +290,7 @@ pub fn (mut sm StartupManager) status(name string) !ProcessStatus {
 					return .inactive
 				} // 'restarted' here means it's about to be 'running' again, but in the context of a single status check it might be transient. For simplicity map it to inactive here.
 				else {
-					console.print_debug('Unknown Zinit state for ${name}: ${status_info.state}')
+					console.print_debug('startup manager: unknown zinit state for ${name}: ${status_info.state} zinit')
 					return .unknown
 				}
 			}
@@ -358,7 +355,7 @@ pub fn (mut sm StartupManager) exists(name string) !bool {
 		}
 		.zinit {
 			console.print_debug('zinit exists ${name} using clients.zinit')
-			mut zinit_client := zinit.get()!
+			mut zinit_client := zinit.get(create:true)!
 			zinit_client.service_status(name) or { return false }
 			return true
 		}
