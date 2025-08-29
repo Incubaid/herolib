@@ -77,11 +77,9 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		}
 		// Append the newly read data to the total response
 		res_total << res[..n]
-		if n < 8192 {
-			// console.print_debug('No more data to read, breaking loop after ${n} bytes')
-			// TODO: this seems weird
-			break
-		}
+
+		//here we need to check we are at end
+
 	}
 	unix.shutdown(socket.sock.handle)
 	socket.close() or {}

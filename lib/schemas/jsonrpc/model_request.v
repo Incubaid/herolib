@@ -158,5 +158,5 @@ pub fn decode_request_generic[T](data string) !RequestGeneric[T] {
 // Returns:
 //   - A JSON string representation of the RequestGeneric object
 pub fn (req RequestGeneric[T]) encode[T]() string {
-	return json2.encode_pretty(req).replace('\\/', '/')
+	return json2.encode(req)
 }
