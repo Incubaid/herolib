@@ -6,6 +6,7 @@ import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.ui.console
 import os
+import time
 
 @[heap]
 pub struct SystemdProcess {
@@ -42,15 +43,48 @@ pub fn (mut self SystemdProcess) write() ! {
 
 pub fn (mut self SystemdProcess) start() ! {
 	console.print_header('starting systemd process: ${self.name}')
-	// self.write()!
+	
 	cmd := '
 	systemctl daemon-reload
 	systemctl enable ${self.name}
 	systemctl start ${self.name}
-	' // console.print_debug(cmd)
-	_ = osal.execute_silent(cmd)!
-	self.refresh()!
-	console.print_header('started systemd process: ${self.name}')
+	'
+	
+	job := osal.exec(cmd: cmd, stdout: false)!
+	
+	// Wait for service to start with timeout
+	mut attempts := 0
+	max_attempts := 10
+	wait_interval := 500 // milliseconds
+	
+	for attempts < max_attempts {
+		time.sleep(wait_interval * time.millisecond)
+		status := self.status()!
+		
+		match status {
+			.active {
+				console.print_header('✓ systemd process started successfully: ${self.name}')
+				self.refresh()!
+				return
+			}
+			.failed {
+				logs := self.get_logs(50)!
+				return error('Service ${self.name} failed to start. Recent logs:\n${logs}')
+			}
+			.activating {
+				attempts++
+				continue
+			}
+			else {
+				attempts++
+				continue
+			}
+		}
+	}
+	
+	// If we get here, service didn't start in time
+	logs := self.get_logs(50)!
+	return error('Service ${self.name} did not start within expected time. Status: ${self.status()!}. Recent logs:\n${logs}')
 }
 
 // get status from system
@@ -73,14 +107,32 @@ pub fn (mut self SystemdProcess) delete() ! {
 }
 
 pub fn (mut self SystemdProcess) stop() ! {
+	console.print_header('stopping systemd process: ${self.name}')
+	
 	cmd := '
-	set +ex
-	systemctl daemon-reload
-	systemctl disable ${self.name}
 	systemctl stop ${self.name}
+	systemctl disable ${self.name}
+	systemctl daemon-reload
 	'
-	_ = osal.exec(cmd: cmd, stdout: false, debug: false, ignore_error: false)!
-	self.systemd.load()!
+	
+	_ = osal.exec(cmd: cmd, stdout: false, ignore_error: true)!
+	
+	// Wait for service to stop
+	mut attempts := 0
+	max_attempts := 10
+	
+	for attempts < max_attempts {
+		time.sleep(500 * time.millisecond)
+		status := self.status()!
+		
+		if status == .inactive {
+			console.print_header('✓ systemd process stopped: ${self.name}')
+			return
+		}
+		attempts++
+	}
+	
+	console.print_header('⚠ systemd process may still be running: ${self.name}')
 }
 
 pub fn (mut self SystemdProcess) restart() ! {
@@ -101,40 +153,30 @@ enum SystemdStatus {
 	deactivating
 }
 
+pub fn (self SystemdProcess) get_logs(lines int) !string {
+	return journalctl(service: self.name, limit: lines)
+}
+
+// Improve status method with better error handling
 pub fn (self SystemdProcess) status() !SystemdStatus {
-	// exit with 3 is converted to exit with 0
-	cmd := '
-	systemctl daemon-reload
-	systemctl status --no-pager --lines=0 ${name_fix(self.name)}
-	'
-	job := osal.exec(cmd: cmd, stdout: false) or {
-		if err.code() == 3 {
-			if err is osal.JobError {
-				return parse_systemd_process_status(err.job.output)
-			}
-		}
-		return error('Failed to run command to get status ${err}')
+	cmd := 'systemctl is-active ${name_fix(self.name)}'
+	
+	job := osal.exec(cmd: cmd, stdout: false, ignore_error: true)!
+	
+	match job.output.trim_space() {
+		'active' { return .active }
+		'inactive' { return .inactive }
+		'failed' { return .failed }
+		'activating' { return .activating }
+		'deactivating' { return .deactivating }
+		else { return .unknown }
 	}
-
-	return parse_systemd_process_status(job.output)
 }
 
-fn parse_systemd_process_status(output string) SystemdStatus {
-	lines := output.split_into_lines()
-	for line in lines {
-		if line.contains('Active: ') {
-			if line.contains('active (running)') {
-				return .active
-			} else if line.contains('inactive (dead)') {
-				return .inactive
-			} else if line.contains('failed') {
-				return .failed
-			} else if line.contains('activating') {
-				return .activating
-			} else if line.contains('deactivating') {
-				return .deactivating
-			}
-		}
-	}
-	return .unknown
+// Add detailed status method
+pub fn (self SystemdProcess) status_detailed() !string {
+	cmd := 'systemctl status --no-pager --lines=10 ${name_fix(self.name)}'
+	job := osal.exec(cmd: cmd, stdout: false, ignore_error: true)!
+	return job.output
 }
+
