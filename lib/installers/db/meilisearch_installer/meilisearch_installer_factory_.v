@@ -178,7 +178,7 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 	// systemd
 	match cat {
 		.screen {
-			console.print_debug('startupmanager: zinit')
+			console.print_debug('startupmanager: screen')
 			return startupmanager.get(.screen)!
 		}
 		.zinit {

@@ -8,13 +8,11 @@ To get started
 
 
 
-import freeflowuniverse.herolib.installers.something. livekit
+import freeflowuniverse.herolib.installers.infra.livekit
 
 mut installer:= livekit.get()!
 
 installer.start()!
-
-
 
 
 ```

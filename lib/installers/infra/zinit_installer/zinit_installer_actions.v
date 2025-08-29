@@ -16,7 +16,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	if core.is_linux()! {
 		res << startupmanager.ZProcessNewArgs{
 			name:        'zinit'
-			cmd:         '/usr/local/bin/zinit init ~/hero/cfg/zinit'
+			cmd:         '/usr/local/bin/zinit init ${os.home_dir()}/hero/cfg/zinit'
 			startuptype: .systemd
 			start:       true
 			restart:     true
@@ -24,11 +24,12 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	} else {
 		res << startupmanager.ZProcessNewArgs{
 			name:        'zinit'
-			cmd:         '~/hero/bin/zinit init --config ~/hero/cfg/zinit'
+			cmd:         '${os.home_dir()}/hero/bin/zinit init --config  ${os.home_dir()}/hero/cfg/zinit'
 			startuptype: .screen
 			start:       true
 		}
 	}
+	osal.dir_ensure(os.home_dir() + '/hero/cfg/zinit')!
 	return res
 }
 

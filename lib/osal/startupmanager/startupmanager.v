@@ -49,13 +49,14 @@ pub fn get(cat StartupManagerType) !StartupManager {
 // description string //not used in zinit
 //```
 pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
-	console.print_debug("startupmanager start:${args.name} cmd:'${args.cmd}' restart:${args.restart}")
+	console.print_debug("startupmanager new:${args.name} cmd:'${args.cmd}' restart:${args.restart}")
 	mut mycat := sm.cat
 	match mycat {
 		.screen {
 			mut scr := screen.new(reset: false)!
 			console.print_debug('screen startup manager ${args.name} cmd:${args.cmd}')
 			_ = scr.add(name: args.name, cmd: args.cmd, reset: args.restart)!
+			//because of how screen works the start is immediate
 		}
 		.systemd {
 			// console.print_debug('systemd start  ${args.name}')
@@ -69,7 +70,7 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 			)!
 		}
 		.zinit {
-			console.print_debug('zinit start ${args.name} using clients.zinit')
+			console.print_debug('zinit start ${args.name}.')
 			// Get the Zinit RPC client instance.
 			// We assume it's properly configured (e.g., socket_path) via its factory setup.
 			mut zinit_client := zinit.get(create: true)!
@@ -89,28 +90,19 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 			// Create the service configuration file in zinit
 			zinit_client.service_create(args.name, service_config) or {
 				return error('Failed to create zinit service ${args.name}: ${err}')
-			}
-
-			// If 'start' is true, also monitor and start the service
-			if args.start {
-				// Monitor loads the config, if it's new it starts it.
-				// If the service is already managed, this will bring it back up.
-				zinit_client.service_monitor(args.name) or {
-					return error('Failed to monitor zinit service ${args.name}: ${err}')
-				}
-				// Explicitly start the service (useful for oneshot services or if not already active)
-				zinit_client.service_start(args.name) or {
-					return error('Failed to start zinit service ${args.name}: ${err}')
-				}
-			}
-		}
-		else {
+			}		
+		} else {
 			panic('to implement, startup manager only support screen & systemd for now: ${mycat}')
 		}
 	}
+	// If 'start' is true, also monitor and start the service
+	if args.start {
+		sm.start(args.name)!
+	}		
 }
 
 pub fn (mut sm StartupManager) start(name string) ! {
+	println(sm)
 	$dbg;
 	match sm.cat {
 		.screen {
@@ -119,10 +111,12 @@ pub fn (mut sm StartupManager) start(name string) ! {
 		.systemd {
 			console.print_debug('systemd process start ${name}')
 			mut systemdfactory := systemd.new()!
+			$dbg;
 			if systemdfactory.exists(name) {
 				// console.print_header("*************")
 				mut systemdprocess := systemdfactory.get(name)!
 				systemdprocess.start()!
+				$dbg;
 			} else {
 				return error('process in systemd with name ${name} not found')
 			}
@@ -133,9 +127,15 @@ pub fn (mut sm StartupManager) start(name string) ! {
 			zinit_client.service_start(name) or {
 				return error('Failed to start zinit service ${name}: ${err}')
 			}
+			// Monitor loads the config, if it's new it starts it.
+			// If the service is already managed, this will bring it back up.
+			zinit_client.service_monitor(name) or {
+				return error('Failed to monitor zinit service ${name}: ${err}')
+			}
+
 		}
 		else {
-			panic('to implement, startup manager only support screen for now')
+			panic('to implement, startup manager only support screen, systemd and zinit for now')
 		}
 	}
 }
