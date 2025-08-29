@@ -1,20 +1,19 @@
-# livekit
+# Installer - Livekit Module
 
+This module provides heroscript actions for installing and managing Livekit.
 
+## Actions
 
-To get started
+### `livekit.install`
 
-```v
+Installs the Livekit server.
 
+**Parameters:**
 
+-   `reset` (bool): If true, force a reinstall even if Livekit is already detected. Default: `false`.
 
-import freeflowuniverse.herolib.installers.infra.livekit
+**Example:**
 
-mut installer:= livekit.get()!
-
-installer.start()!
-
-
-```
-
-livekit once installed will have generated the secret keys
+```heroscript
+!!livekit.install
+reset: true
