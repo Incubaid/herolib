@@ -52,6 +52,7 @@ println('  - API title: ${spec.info.title}')
 println('  - API version: ${spec.info.version}')
 println('  - Methods available: ${spec.methods.len}')
 
+
 // 2. List all services
 println('\n2. Listing all services...')
 services := client.service_list() or {

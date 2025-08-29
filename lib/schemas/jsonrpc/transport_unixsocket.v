@@ -79,6 +79,9 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		res_total << res[..n]
 
 		//here we need to check we are at end
+		if res.bytestr().contains('\n') {
+			break
+		}
 
 	}
 	unix.shutdown(socket.sock.handle)
