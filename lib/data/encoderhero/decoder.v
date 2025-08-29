@@ -57,7 +57,7 @@ fn decode_struct[T](_ T, data string) !T {
 				if attr.contains('skipdecode') {
 					should_skip = true
 					break
-				}				
+				}
 			}
 			if !should_skip {
 				$if field.is_struct {
@@ -99,8 +99,8 @@ pub fn decode_array[T](_ []T, data string) ![]T {
 	// for i in 0 .. val.len {
 	value := T{}
 	$if T is $struct {
-		//arr << decode_struct(value, data)!
-	}$else{
+		// arr << decode_struct(value, data)!
+	} $else {
 		arr << decode[T](data)!
 	}
 	// }

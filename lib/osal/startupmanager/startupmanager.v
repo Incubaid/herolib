@@ -56,7 +56,7 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 			mut scr := screen.new(reset: false)!
 			console.print_debug('screen startup manager ${args.name} cmd:${args.cmd}')
 			_ = scr.add(name: args.name, cmd: args.cmd, reset: args.restart)!
-			//because of how screen works the start is immediate
+			// because of how screen works the start is immediate
 		}
 		.systemd {
 			// console.print_debug('systemd start  ${args.name}')
@@ -74,7 +74,7 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 			// Get the Zinit RPC client instance.
 			// We assume it's properly configured (e.g., socket_path) via its factory setup.
 			mut zinit_client := zinit.get(create: true)!
-			
+
 			// Map ZProcessNewArgs to zinit.ServiceConfig
 			mut service_config := zinit.ServiceConfig{
 				exec:             args.cmd
@@ -90,16 +90,16 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 			// Create the service configuration file in zinit
 			zinit_client.service_create(args.name, service_config) or {
 				return error('startupmanager: failed to create zinit service ${args.name}: ${err}')
-			}	
-			
-		} else {
+			}
+		}
+		else {
 			panic('to implement, startup manager only support screen & systemd for now: ${mycat}')
 		}
 	}
 	// If 'start' is true, also monitor and start the service
 	if args.start {
 		sm.start(args.name)!
-	}		
+	}
 }
 
 pub fn (mut sm StartupManager) start(name string) ! {
@@ -129,7 +129,6 @@ pub fn (mut sm StartupManager) start(name string) ! {
 			zinit_client.service_monitor(name) or {
 				return error('startupmanager: Failed to monitor zinit service ${name}: ${err}')
 			}
-
 		}
 		else {
 			panic('to implement, startup manager only support screen, systemd and zinit for now')
@@ -355,7 +354,7 @@ pub fn (mut sm StartupManager) exists(name string) !bool {
 		}
 		.zinit {
 			console.print_debug('zinit exists ${name} using clients.zinit')
-			mut zinit_client := zinit.get(create:true)!
+			mut zinit_client := zinit.get(create: true)!
 			zinit_client.service_status(name) or { return false }
 			return true
 		}

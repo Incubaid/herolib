@@ -18,7 +18,7 @@ pub fn (mut c ZinitRPC) rpc_discover() !openrpc.OpenRPC {
 	println(1)
 	request := jsonrpc.new_request_generic('rpc.discover', []string{})
 	println(2)
-	mut r:= client.send[[]string, openrpc.OpenRPC](request)!
+	mut r := client.send[[]string, openrpc.OpenRPC](request)!
 	// dump(r)
 	$dbg;
 	return r

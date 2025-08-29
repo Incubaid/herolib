@@ -38,7 +38,6 @@ mut client := zinit.new()!
 
 println(client)
 
-
 println('✓ Created Zinit RPC client')
 
 // 1. Discover API specification

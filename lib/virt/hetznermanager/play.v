@@ -6,8 +6,6 @@ import freeflowuniverse.herolib.core.playbook { PlayBook }
 // play processes playbook actions for the hetznermanager module.
 // It allows configuring and managing Hetzner servers through heroscript.
 pub fn play2(mut plbook PlayBook) ! {
-
-
 	// Handle rescue actions
 	for mut action in plbook.find(filter: 'hetznermanager.server_rescue')! {
 		mut p := action.params
@@ -25,12 +23,12 @@ pub fn play2(mut plbook PlayBook) ! {
 		}
 
 		cl.server_rescue(
-			id: id,
-			name: server_name,
-			wait: wait,
-			hero_install: hero_install,
-			reset: reset,
-			retry: retry
+			id:           id
+			name:         server_name
+			wait:         wait
+			hero_install: hero_install
+			reset:        reset
+			retry:        retry
 		)!
 
 		action.done = true
@@ -53,12 +51,12 @@ pub fn play2(mut plbook PlayBook) ! {
 		}
 
 		cl.ubuntu_install(
-			id: id,
-			name: server_name,
-			wait: wait,
-			hero_install: hero_install,
-			hero_install_compile: hero_install_compile,
-			raid: raid
+			id:                   id
+			name:                 server_name
+			wait:                 wait
+			hero_install:         hero_install
+			hero_install_compile: hero_install_compile
+			raid:                 raid
 		)!
 
 		action.done = true
@@ -78,10 +76,10 @@ pub fn play2(mut plbook PlayBook) ! {
 		}
 
 		cl.server_reset(
-			id: id,
-			name: server_name,
-			wait: wait,
-			msg: msg
+			id:   id
+			name: server_name
+			wait: wait
+			msg:  msg
 		)!
 
 		action.done = true
@@ -107,7 +105,7 @@ pub fn play2(mut plbook PlayBook) ! {
 
 		key_name := p.get('key_name')!
 
-		cl.key_delete( key_name)!
+		cl.key_delete(key_name)!
 
 		action.done = true
 	}

@@ -14,7 +14,7 @@ mut:
 	// Returns:
 	//   - The response string or an error if the send operation fails
 	send(request string, params SendParams) !string
-	url()string
+	url() string
 }
 
 // SendParams defines configuration options for sending JSON-RPC requests.
@@ -68,8 +68,8 @@ pub fn (mut c Client) send[T, D](request RequestGeneric[T], params SendParams) !
 	// Send the encoded request through the transport layer
 	console.print_debug('Sending request: \n*****\n${request.encode()}\n*****\n')
 	response_json := c.transport.send(request.encode(), params) or {
-		if err.msg().contains("net: op timed out"){
-			console.print_debug("time out")
+		if err.msg().contains('net: op timed out') {
+			console.print_debug('time out')
 		}
 		// print_backtrace()
 		// println(err)
@@ -91,15 +91,16 @@ pub fn (mut c Client) send[T, D](request RequestGeneric[T], params SendParams) !
 
 	// Return the result or propagate any error from the response
 	return response.result() or {
-		myerror := response.error_ or { return error('Failed to get error from response:\nRequest: ${request.encode()}\nResponse: ${response_json}\n${err}') }
+		myerror := response.error_ or {
+			return error('Failed to get error from response:\nRequest: ${request.encode()}\nResponse: ${response_json}\n${err}')
+		}
 		// print_backtrace()
-		mut myreq:=request.encode()		
+		mut myreq := request.encode()
 		if c.transport is UnixSocketTransport {
-			myreq="To Test:\n**********\necho '\n${myreq}\n' | nc -U ${c.transport.url()}\n**********"
+			myreq = "To Test:\n**********\necho '\n${myreq}\n' | nc -U ${c.transport.url()}\n**********"
 		} else {
-			myreq="Path:${c.transport.url()}\nRequest:\n${myreq}"
+			myreq = 'Path:${c.transport.url()}\nRequest:\n${myreq}'
 		}
 		return error('\nRPC Request Failed.\n${myreq}\n${myerror}')
 	}
 }
-

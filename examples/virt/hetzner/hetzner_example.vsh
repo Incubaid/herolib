@@ -17,7 +17,7 @@ passwd := os.environ()['HETZNER_PASSWORD'] or {
 	exit(1)
 }
 
-hs:='
+hs := '
 !!hetznermanager.configure
 	user:"${user}"
 	whitelist:"2111181, 2392178, 2545053, 2542166, 2550508, 2550378,2550253"
@@ -28,7 +28,6 @@ hs:='
 println(hs)
 
 playcmds.run(heroscript: hs)!
-
 
 console.print_header('Hetzner Test.')
 
@@ -66,5 +65,4 @@ mut cl := hetznermanager.get()!
 // cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550378, name: 'kristof21', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550508, name: 'kristof22', wait: true, hero_install: true)!
-cl.ubuntu_install(id:2550253, name:'kristof23', wait: true, hero_install: true)!
-
+cl.ubuntu_install(id: 2550253, name: 'kristof23', wait: true, hero_install: true)!

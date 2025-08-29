@@ -69,9 +69,8 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 	if serverinfo.rescue == false || args.reset {
 		console.print_header('server ${serverinfo.server_name} goes into rescue mode')
 
-
-		mykey:=h.key_get(h.sshkey)!
-		mykeyfp:=mykey.fingerprint
+		mykey := h.key_get(h.sshkey)!
+		mykeyfp := mykey.fingerprint
 
 		// println("Using SSH key fingerprint: ${mykey} ${mykeyfp}")
 
@@ -117,7 +116,6 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 }
 
 pub fn (mut h HetznerManager) server_rescue_node(args ServerRescueArgs) !&builder.Node {
-	
 	mut serverinfo := h.server_rescue(args)!
 
 	mut b := builder.new()!
@@ -137,11 +135,11 @@ pub mut:
 }
 
 pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.Node {
-	h.check_whitelist(name:args.name,id:args.id)!
+	h.check_whitelist(name: args.name, id: args.id)!
 	mut serverinfo := h.server_rescue(
-		id:          args.id
-		name:        args.name
-		wait:        true
+		id:   args.id
+		name: args.name
+		wait: true
 	)!
 
 	mut b := builder.new()!
@@ -153,7 +151,7 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 
 	mut rstr := '-r no '
 	if args.raid {
-		panic("should not use RAID for now")
+		panic('should not use RAID for now')
 		rstr = '-r yes -l 1 '
 	}
 
@@ -189,7 +187,7 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 
 	console.print_debug('server ${serverinfo.server_name} is reacheable over ping, lets now try ssh.')
 
-	//wait 20 sec to make sure ssh is there
+	// wait 20 sec to make sure ssh is there
 	osal.ssh_wait(address: serverinfo.server_ip, timeout: 20)!
 
 	console.print_debug('server ${serverinfo.server_name} is reacheable over ssh, lets now install hero if asked for.')

@@ -43,24 +43,24 @@ pub fn (mut self SystemdProcess) write() ! {
 
 pub fn (mut self SystemdProcess) start() ! {
 	console.print_header('starting systemd process: ${self.name}')
-	
+
 	cmd := '
 	systemctl daemon-reload
 	systemctl enable ${self.name}
 	systemctl start ${self.name}
 	'
-	
+
 	job := osal.exec(cmd: cmd, stdout: false)!
-	
+
 	// Wait for service to start with timeout
 	mut attempts := 0
 	max_attempts := 10
 	wait_interval := 500 // milliseconds
-	
+
 	for attempts < max_attempts {
 		time.sleep(wait_interval * time.millisecond)
 		status := self.status()!
-		
+
 		match status {
 			.active {
 				console.print_header('✓ systemd process started successfully: ${self.name}')
@@ -81,11 +81,10 @@ pub fn (mut self SystemdProcess) start() ! {
 			}
 		}
 	}
-	
+
 	// If we get here, service didn't start in time
 	logs := self.get_logs(50)!
 	return error('Service ${self.name} did not start within expected time. Status: ${self.status()!}. Recent logs:\n${logs}')
-
 }
 
 // get status from system
@@ -109,30 +108,30 @@ pub fn (mut self SystemdProcess) delete() ! {
 
 pub fn (mut self SystemdProcess) stop() ! {
 	console.print_header('stopping systemd process: ${self.name}')
-	
+
 	cmd := '
 	systemctl stop ${self.name}
 	systemctl disable ${self.name}
 	systemctl daemon-reload
 	'
-	
+
 	_ = osal.exec(cmd: cmd, stdout: false, ignore_error: true)!
-	
+
 	// Wait for service to stop
 	mut attempts := 0
 	max_attempts := 10
-	
+
 	for attempts < max_attempts {
 		time.sleep(500 * time.millisecond)
 		status := self.status()!
-		
+
 		if status == .inactive {
 			console.print_header('✓ systemd process stopped: ${self.name}')
 			return
 		}
 		attempts++
 	}
-	
+
 	console.print_header('⚠ systemd process may still be running: ${self.name}')
 }
 
@@ -161,11 +160,11 @@ pub fn (self SystemdProcess) get_logs(lines int) !string {
 // Improve status method with better error handling
 pub fn (self SystemdProcess) status() !SystemdStatus {
 	cmd := 'systemctl is-active ${name_fix(self.name)}'
-	
+
 	job := osal.exec(cmd: cmd, stdout: false, ignore_error: true)!
 
 	// console.print_debug("${cmd} \n***\n${job.output}\n***")
-	
+
 	match job.output.trim_space() {
 		'active' { return .active }
 		'inactive' { return .inactive }
@@ -182,4 +181,3 @@ pub fn (self SystemdProcess) status_detailed() !string {
 	job := osal.exec(cmd: cmd, stdout: false, ignore_error: true)!
 	return job.output
 }
-

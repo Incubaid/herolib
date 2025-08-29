@@ -42,7 +42,7 @@ pub fn ping(args PingArgs) !bool {
 			if res.exit_code > 0 {
 				nrerrors += 1
 			}
-			console.print_debug("${cmd} ${res.exit_code} ${nrerrors}")
+			console.print_debug('${cmd} ${res.exit_code} ${nrerrors}')
 		}
 		successes := args.nr_ping - nrerrors
 		if successes >= args.nr_ok {
@@ -233,7 +233,7 @@ fn ssh_testrun_internal(args TcpPortTestArgs) !(string, SSHResult) {
 	fi
 	echo "ERROR: Host unreachable, over ping and ssh"
 	exit 3
-	' 
+	'
 
 	res := exec(cmd: cmd, ignore_error: true, stdout: false, debug: false)!
 	// console.print_debug('ssh test ${res.exit_code}: ===== cmd:\n${cmd}\n=====\n${res.output}')

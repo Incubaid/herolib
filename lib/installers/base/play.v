@@ -9,7 +9,7 @@ pub fn play(mut plbook playbook.PlayBook) ! {
 		for mut action in plbook.find(filter: 'base.install')! {
 			mut p := action.params
 			install(
-				reset: p.get_default_false('reset')
+				reset:   p.get_default_false('reset')
 				develop: p.get_default_false('develop')
 			)!
 			action.done = true
@@ -30,10 +30,10 @@ pub fn play(mut plbook playbook.PlayBook) ! {
 		for action in plbook.find(filter: 'base.redis_install')! {
 			mut p := action.params
 			redis_install(
-				port: p.get_int_default('port', 6379)!
+				port:   p.get_int_default('port', 6379)!
 				ipaddr: p.get_default('ipaddr', 'localhost')!
-				reset: p.get_default_false('reset')
-				start: p.get_default_true('start')
+				reset:  p.get_default_false('reset')
+				start:  p.get_default_true('start')
 			)!
 		}
 	}

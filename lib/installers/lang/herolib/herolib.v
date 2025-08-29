@@ -80,11 +80,11 @@ pub fn install(args InstallArgs) ! {
 	console.print_header('install hero')
 	base.install()!
 
-	cmd := "
+	cmd := '
 		cd /tmp
 		export TERM=xterm
 		curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh | bash
-		"
+		'
 	osal.execute_stdout(cmd) or { return error('Cannot install hero.\n${err}') }
 	osal.done_set('install_hero', 'OK')!
 	return

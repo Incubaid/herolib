@@ -179,7 +179,7 @@ pub fn (mut systemd Systemd) destroy(name_ string) ! {
 pub fn (mut systemd Systemd) validate_service(name string) !bool {
 	service := systemd.get(name)!
 	status := service.status()!
-	
+
 	match status {
 		.active {
 			console.print_item('✓ Service ${name} is running')
@@ -200,14 +200,14 @@ pub fn (mut systemd Systemd) validate_service(name string) !bool {
 // Add method to check all services
 pub fn (mut systemd Systemd) health_check() !map[string]bool {
 	mut results := map[string]bool{}
-	
+
 	for process in systemd.processes {
 		if process.name.ends_with('_test') || process.name.ends_with('testservice') {
 			continue // Skip test services
 		}
 		results[process.name] = systemd.validate_service(process.name) or { false }
 	}
-	
+
 	return results
 }
 

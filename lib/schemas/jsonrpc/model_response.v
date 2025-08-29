@@ -120,13 +120,12 @@ pub fn (resp Response) encode() string {
 pub fn (resp Response) validate() ! {
 	if resp.error_ != none && resp.result != none {
 		return error('Response contains both error and result.\n- Error: ${resp.error_.str()}\n- Result: ${resp.result}')
-	} 
+	}
 	if resp.error_ == none && resp.result == none {
 		return error('Response contains neither error nor result.')
 	}
-
 }
-	
+
 // is_error checks if the response contains an error.
 //
 // Returns:
@@ -237,10 +236,10 @@ pub fn decode_response_generic[D](data string) !ResponseGeneric[D] {
 	// Handle successful responses
 	resp := json.decode(ResponseGeneric[D], data)!
 	return ResponseGeneric[D]{
-		id:      raw_map['id'] or { 
-				print_backtrace()
-				return error('Invalid JSONRPC response, no ID Field found') 
-			}.int()
+		id:      raw_map['id'] or {
+			print_backtrace()
+			return error('Invalid JSONRPC response, no ID Field found')
+		}.int()
 		jsonrpc: jsonrpc_version
 		result:  resp.result
 	}

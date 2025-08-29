@@ -17,18 +17,17 @@ pub mut:
 	whitelist   []int // comma separated list of servers we whitelist to work on
 	user        string
 	password    string
-	sshkey 		string
-	nodes     	[]HetznerNode
+	sshkey      string
+	nodes       []HetznerNode
 }
 
 @[heap]
 pub struct HetznerNode {
 pub mut:
-	id string
+	id          string
 	name        string = 'default'
 	description string
 }
-
 
 pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
 	mut c2 := httpconnection.new(

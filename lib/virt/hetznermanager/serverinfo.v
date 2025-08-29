@@ -77,7 +77,7 @@ pub fn (mut h HetznerManager) server_info_get(args_ ServerGetArgs) !ServerInfoDe
 			continue
 		}
 		server_name := texttools.name_fix(item.server_name)
-		//if id specified then we always use that one
+		// if id specified then we always use that one
 		if args.id == 0 && args.name.len > 0 && server_name != args.name {
 			continue
 		}

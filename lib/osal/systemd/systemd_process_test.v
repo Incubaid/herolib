@@ -32,8 +32,8 @@ pub fn testsuite_end() ! {
 pub fn test_systemd_process_start_stop() ! {
 	mut systemdfactory := new()!
 	mut process := systemdfactory.new(
-		cmd: 'redis-server'
-		name: 'testservice'
+		cmd:   'redis-server'
+		name:  'testservice'
 		start: false
 	)!
 

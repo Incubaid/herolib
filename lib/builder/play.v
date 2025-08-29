@@ -12,10 +12,10 @@ pub fn play(mut plbook playbook.PlayBook) ! {
 	for action in actions {
 		mut p := action.params
 		mut n := b.node_new(
-			name: p.get_default('name', '')!
+			name:   p.get_default('name', '')!
 			ipaddr: p.get_default('ipaddr', '')!
-			user: p.get_default('user', 'root')!
-			debug: p.get_default_false('debug')
+			user:   p.get_default('user', 'root')!
+			debug:  p.get_default_false('debug')
 			reload: p.get_default_false('reload')
 		)!
 		console.print_header('Created node: ${n.name}')
@@ -31,16 +31,18 @@ pub fn play(mut plbook playbook.PlayBook) ! {
 		// a bit ugly but we don't have node management in a central place yet
 		// this will get the node created previously
 		// we need a better way to get the nodes, maybe from a global scope
-		mut found_node := &Node{factory: &b}
+		mut found_node := &Node{
+			factory: &b
+		}
 		mut found := false
 		nodes_to_find := plbook.find(filter: 'node.new')!
 		for node_action in nodes_to_find {
 			mut node_p := node_action.params
 			if node_p.get_default('name', '')! == node_name {
 				found_node = b.node_new(
-					name: node_p.get_default('name', '')!
+					name:   node_p.get_default('name', '')!
 					ipaddr: node_p.get_default('ipaddr', '')!
-					user: node_p.get_default('user', 'root')!
+					user:   node_p.get_default('user', 'root')!
 				)!
 				found = true
 				break

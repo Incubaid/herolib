@@ -58,16 +58,16 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		// Read up to 64000 bytes
 		mut res := []u8{len: 64000, cap: 64000}
 		n := socket.read(mut res) or {
-			//can be timeout
+			// can be timeout
 			if err.code() == 11 { // Resource temporarily unavailable (EWOULDBLOCK)
 				console.print_debug('Resource temporarily unavailable, retrying...')
 				time.sleep(100 * time.millisecond)
 				continue
 			}
-			if err.code() == 9 { 
+			if err.code() == 9 {
 				console.print_debug('Timeout...')
 				break
-			}			
+			}
 			return err
 		}
 		// console.print_debug('Read ${n} bytes from socket')
@@ -79,12 +79,12 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		res_total << res[..n]
 		if n < 8192 {
 			// console.print_debug('No more data to read, breaking loop after ${n} bytes')
-			//TODO: this seems weird
+			// TODO: this seems weird
 			break
 		}
 	}
 	unix.shutdown(socket.sock.handle)
-	socket.close() or {}	
+	socket.close() or {}
 
 	// println(res_total.bytestr().trim_space())
 

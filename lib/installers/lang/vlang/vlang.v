@@ -38,7 +38,8 @@ pub fn install(args_ InstallArgs) ! {
 
 	base.develop()!
 
-	osal.exec(cmd:'
+	osal.exec(
+		cmd: '
 		V_DIR="${os.home_dir()}/_code/v"
 
 		mkdir -p "${os.home_dir()}/_code"
@@ -58,7 +59,8 @@ pub fn install(args_ InstallArgs) ! {
 		fi
 		cd "\${V_DIR}"
 		make
-	')!
+	'
+	)!
 
 	mut extra := 'cd ${os.home_dir()}/_code/v'
 	if core.is_linux()! {
@@ -67,7 +69,7 @@ pub fn install(args_ InstallArgs) ! {
 		extra = '${extra}\ncp v ${os.home_dir()}/hero/bin/'
 	}
 	osal.exec(cmd: extra, stdout: true)!
-	
+
 	console.print_header('compile done')
 
 	osal.done_set('install_vlang', 'OK')!

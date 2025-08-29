@@ -104,7 +104,7 @@ pub fn install_multi(args_ InstallArgs) ! {
 			}
 			'hero' {
 				herolib.install(
-					reset:     args.reset
+					reset: args.reset
 				)!
 			}
 			// 'hero' {

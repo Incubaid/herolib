@@ -4,7 +4,7 @@ import freeflowuniverse.herolib.core.playbook
 import freeflowuniverse.herolib.ui.console
 
 pub fn play(mut plbook playbook.PlayBook) ! {
-	if ! plbook.exists(filter: 'herolib.') {
+	if !plbook.exists(filter: 'herolib.') {
 		return
 	}
 	if plbook.exists(filter: 'herolib.uninstall') {
@@ -14,7 +14,6 @@ pub fn play(mut plbook playbook.PlayBook) ! {
 			action.done = true
 			break
 		}
-		
 	}
 	if plbook.exists(filter: 'herolib.install') {
 		console.print_header('play herolib.install')
@@ -22,7 +21,6 @@ pub fn play(mut plbook playbook.PlayBook) ! {
 			mut p := action.params
 			install(
 				reset: p.get_default_false('reset')
-
 			)!
 			action.done = true
 			break
@@ -33,8 +31,8 @@ pub fn play(mut plbook playbook.PlayBook) ! {
 		for mut action in plbook.find(filter: 'herolib.compile')! {
 			mut p := action.params
 			compile(
-				reset: p.get_default_false('reset')
-				git_pull: p.get_default_false('git_pull')
+				reset:     p.get_default_false('reset')
+				git_pull:  p.get_default_false('git_pull')
 				git_reset: p.get_default_false('git_reset')
 			)!
 			action.done = true

@@ -2,7 +2,7 @@
 
 import freeflowuniverse.herolib.installers.infra.livekit as livekit_installer
 
-mut livekit := livekit_installer.get(create:true)!
+mut livekit := livekit_installer.get(create: true)!
 livekit.install()!
 livekit.start()!
 livekit.destroy()!
