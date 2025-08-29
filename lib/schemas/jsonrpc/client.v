@@ -84,3 +84,25 @@ pub fn (mut c Client) send[T, D](request RequestGeneric[T], params SendParams) !
 	// Return the result or propagate any error from the response
 	return response.result()!
 }
+
+pub fn (mut c Client) send_str(request Request, params SendParams) !string {
+	// Send the encoded request through the transport layer
+	console.print_debug('Sending request: ${request.encode()}')
+	response_json := c.transport.send(request.encode(), params)!
+
+	// Decode the response JSON into a strongly-typed response object
+	response := decode_response(response_json) or {
+		return error('Unable to decode response.\n- Response: ${response_json}\n- Error: ${err}')
+	}
+
+	// Validate the response according to the JSON-RPC specification
+	response.validate() or { return error('Received invalid response: ${err}') }
+
+	// Ensure the response ID matches the request ID to prevent response/request mismatch
+	if response.id != request.id {
+		return error('Received response with different id ${response}')
+	}
+
+	// Return the result or propagate any error from the response
+	return response.result()!
+}
