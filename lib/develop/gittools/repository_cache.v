@@ -27,6 +27,7 @@ fn (mut repo GitRepo) cache_get() ! {
 	if repo_json.len > 0 {
 		mut cached := json.decode(GitRepo, repo_json)!
 		cached.gs = repo.gs
+		cached.config.remote_check_period = 3600 * 24 * 7 
 		repo = cached
 	}
 }
