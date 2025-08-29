@@ -1,5 +1,6 @@
 module zinit
 
+import json
 import freeflowuniverse.herolib.schemas.jsonrpc
 import freeflowuniverse.herolib.schemas.openrpc
 
@@ -15,13 +16,9 @@ fn (mut c ZinitRPC) client_() !&jsonrpc.Client {
 // rpc_discover returns the OpenRPC specification for the API
 pub fn (mut c ZinitRPC) rpc_discover() !openrpc.OpenRPC {
 	mut client := c.client_()!
-	println(1)
-	request := jsonrpc.new_request_generic('rpc.discover', []string{})
-	println(2)
-	mut r := client.send[[]string, openrpc.OpenRPC](request)!
-	// dump(r)
-	$dbg;
-	return r
+	request := jsonrpc.new_request('rpc.discover', '')
+	openrpc_str := client.send_str(request)!
+	return json.decode(openrpc.OpenRPC, openrpc_str)
 }
 
 // service_list lists all services managed by Zinit
