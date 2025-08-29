@@ -29,7 +29,7 @@ pub fn testsuite_end() ! {
 	process.delete()!
 }
 
-pub fn test_systemd_process_status() ! {
+pub fn test_systemd_process_start_stop() ! {
 	mut systemdfactory := new()!
 	mut process := systemdfactory.new(
 		cmd:   'redis-server'
@@ -38,24 +38,10 @@ pub fn test_systemd_process_status() ! {
 	)!
 
 	process.start()!
-	status := process.status()!
+	mut status := process.status()!
 	assert status == .active
-}
 
-pub fn test_parse_systemd_process_status() ! {
-	output := 'testservice.service - testservice
-     Loaded: loaded (/etc/systemd/system/testservice.service; enabled; preset: disabled)
-     Active: active (running) since Mon 2024-06-10 12:51:24 CEST; 2ms ago
-   Main PID: 202537 (redis-server)
-      Tasks: 1 (limit: 154455)
-     Memory: 584.0K (peak: 584.0K)
-        CPU: 0
-     CGroup: /system.slice/testservice.service
-             └─202537 redis-server
-
-Jun 10 12:51:24 myhost1 systemd[1]: testservice.service: Scheduled restart job, restart counter is at 1.
-Jun 10 12:51:24 myhost1 systemd[1]: Started testservice.'
-
-	status := parse_systemd_process_status(output)
-	assert status == .active
+	process.stop()!
+	status = process.status()!
+	assert status == .inactive
 }

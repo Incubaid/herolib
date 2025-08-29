@@ -58,7 +58,7 @@ pub fn decode_request(data string) !Request {
 // Returns:
 //   - A JSON string representation of the Request
 pub fn (req Request) encode() string {
-	return json2.encode(req)
+	return json2.encode_pretty(req)
 }
 
 // validate checks if the Request object contains all required fields
@@ -158,5 +158,5 @@ pub fn decode_request_generic[T](data string) !RequestGeneric[T] {
 // Returns:
 //   - A JSON string representation of the RequestGeneric object
 pub fn (req RequestGeneric[T]) encode[T]() string {
-	return json2.encode(req)
+	return json2.encode_pretty(req).replace('\\/', '/')
 }

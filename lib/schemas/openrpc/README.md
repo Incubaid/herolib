@@ -5,9 +5,7 @@ OpenRPC V library. Model for OpenRPC, client code generation, and specification 
 ## Definitions
 
 - OpenRPC Specifications: Specifications that define standards for describing JSON-RPC API's.
-
 - [OpenRPC Document](https://spec.open-rpc.org/#openrpc-document): "A document that defines or describes an API conforming to the OpenRPC Specification."
-
 - OpenRPC Client: An API Client (using either HTTP or Websocket) that governs functions (one per RPC Method defined in OpenRPC Document) to communicate with RPC servers and perform RPCs.
 
 ## OpenRPC Document Generation

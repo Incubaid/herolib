@@ -1,13 +1,19 @@
 [Unit]
-Description=${self.name}
-After=network.target 
+Description=${self.description}
+After=network.target
+@if self.description == ''
+Description=${self.name} service
+@end
 
 [Service]
 Type=simple
 ExecStart=${self.cmd}
 WorkingDirectory=/tmp
+StandardOutput=journal
+StandardError=journal
 @if self.restart
 Restart=always
+RestartSec=5
 @else
 Restart=no
 @end

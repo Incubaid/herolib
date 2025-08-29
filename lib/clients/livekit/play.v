@@ -131,37 +131,37 @@ pub fn play(mut plbook PlayBook) ! {
 
 	// Handle access token generation
 	mut token_create_actions := plbook.find(filter: 'livekit.token_create')!
-	for mut action in token_create_actions {
-		mut p := action.params
+	// for mut action in token_create_actions {
+	// 	mut p := action.params
 
-		client_name := texttools.name_fix(p.get_default('client', 'default')!)
-		identity := p.get('identity')!
-		name := p.get_default('name', identity)!
-		room := p.get_default('room', '')!
-		ttl := p.get_int_default('ttl', 21600)!
-		can_publish := p.get_default_false('can_publish')
-		can_subscribe := p.get_default_true('can_subscribe')
-		can_publish_data := p.get_default_false('can_publish_data')
+	// 	client_name := texttools.name_fix(p.get_default('client', 'default')!)
+	// 	identity := p.get('identity')!
+	// 	name := p.get_default('name', identity)!
+	// 	room := p.get_default('room', '')!
+	// 	ttl := p.get_int_default('ttl', 21600)!
+	// 	can_publish := p.get_default_false('can_publish')
+	// 	can_subscribe := p.get_default_true('can_subscribe')
+	// 	can_publish_data := p.get_default_false('can_publish_data')
 
-		mut client := get(name: client_name)!
+	// 	mut client := get(name: client_name)!
 
-		mut token := client.new_access_token(
-			identity: identity
-			name:     name
-			ttl:      ttl
-		)!
+	// 	mut token := client.new_access_token(
+	// 		identity: identity
+	// 		name:     name
+	// 		ttl:      ttl
+	// 	)!
 
-		token.add_video_grant(VideoGrant{
-			room:             room
-			room_join:        true
-			can_publish:      can_publish
-			can_subscribe:    can_subscribe
-			can_publish_data: can_publish_data
-		})
+	// 	token.add_video_grant(VideoGrant{
+	// 		room:             room
+	// 		room_join:        true
+	// 		can_publish:      can_publish
+	// 		can_subscribe:    can_subscribe
+	// 		can_publish_data: can_publish_data
+	// 	})
 
-		jwt := token.to_jwt()!
-		console.print_header('Access token generated for "${identity}"')
-		console.print_debug('Token: ${jwt}')
-		action.done = true
-	}
+	// 	jwt := token.to_jwt()!
+	// 	console.print_header('Access token generated for "${identity}"')
+	// 	console.print_debug('Token: ${jwt}')
+	// 	action.done = true
+	// }
 }

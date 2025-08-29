@@ -1,0 +1,37 @@
+#!/usr/bin/env hero 
+
+
+// !!hetznermanager.configure
+// 	name:"main"
+// 	user:"krist"
+// 	whitelist:"2111181, 2392178, 2545053, 2542166, 2550508, 2550378,2550253"
+// 	password:"wontsethere"
+// 	sshkey:"kristof"
+
+
+// !!hetznermanager.server_rescue
+//     server_name: 'kristof21'  // The name of the server to manage (or use `id`)
+//     wait: true                     // Wait for the operation to complete
+//     hero_install: true             // Automatically install Herolib in the rescue system
+
+
+// # Reset a server
+// !!hetznermanager.server_reset
+//     instance: 'main'
+//     server_name: 'your-server-name'
+//     wait: true
+
+// # Add a new SSH key to your Hetzner account
+// !!hetznermanager.key_create
+//     instance: 'main'
+//     key_name: 'my-laptop-key'
+//     data: 'ssh-rsa AAAA...'
+
+
+// Install Ubuntu 24.04 on a server
+!!hetznermanager.ubuntu_install
+    server_name: 'kristof2'
+    wait: true
+    hero_install: true            // Install Herolib on the new OS
+
+

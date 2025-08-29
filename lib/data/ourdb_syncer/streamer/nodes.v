@@ -24,8 +24,7 @@ pub mut:
 
 // is_running checks if the node is operational by pinging its address
 fn (node &StreamerNode) is_running() bool {
-	ping_result := osal.ping(address: node.address, retry: 2) or { return false }
-	return ping_result == .ok
+	return osal.ping(address: node.address, retry: 2)!
 }
 
 // connect_to_master connects the worker node to its master

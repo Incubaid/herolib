@@ -49,8 +49,6 @@ pub fn install_(args_ InstallArgs) ! {
 	if platform in [.arch, .ubuntu] {
 		osal.package_install('qemu,libvirt,qemu-common,qemu-img,qemu-system-arm,qemu-system-x86,qemu-tools,libguestfs')!
 		osal.exec(cmd: 'systemctl start libvirtd && systemctl enable libvirtd')!
-	} else {
-		return error('can only install qemu on ubuntu & arch')
 	}
 
 	if exists()! {

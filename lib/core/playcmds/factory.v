@@ -3,10 +3,16 @@ module playcmds
 import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.data.doctree
 import freeflowuniverse.herolib.biz.bizmodel
+import freeflowuniverse.herolib.threefold.incatokens
 import freeflowuniverse.herolib.web.site
+import freeflowuniverse.herolib.virt.hetznermanager
 import freeflowuniverse.herolib.web.docusaurus
 import freeflowuniverse.herolib.clients.openai
 import freeflowuniverse.herolib.clients.giteaclient
+import freeflowuniverse.herolib.osal.tmux
+import freeflowuniverse.herolib.installers.base
+import freeflowuniverse.herolib.installers.lang.vlang
+import freeflowuniverse.herolib.installers.lang.herolib
 
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands
@@ -39,6 +45,9 @@ pub fn run(args_ PlayArgs) ! {
 	// Git actions
 	play_git(mut plbook)!
 
+	// Tmux actions
+	tmux.play(mut plbook)!
+
 	// Business model (e.g. currency, bizmodel)
 	bizmodel.play(mut plbook)!
 
@@ -49,7 +58,15 @@ pub fn run(args_ PlayArgs) ! {
 	site.play(mut plbook)!
 	doctree.play(mut plbook)!
 
+	incatokens.play(mut plbook)!
+
 	docusaurus.play(mut plbook)!
+	hetznermanager.play(mut plbook)!
+	hetznermanager.play2(mut plbook)!
+
+	base.play(mut plbook)!
+	herolib.play(mut plbook)!
+	vlang.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
 

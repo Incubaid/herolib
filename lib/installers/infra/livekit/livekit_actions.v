@@ -135,19 +135,13 @@ fn install() ! {
 
 fn destroy() ! {
 	console.print_header('removing livekit')
+	osal.process_kill_recursive(name: 'livekit') or {
+		return error('Could not kill livekit due to: ${err}')
+	}
 	res := os.execute('sudo rm -rf /usr/local/bin/livekit-server')
 	if res.exit_code != 0 {
 		return error('Failed to remove LiveKit server')
 	}
 
-	mut zinit_factory := zinit.new()!
-	if zinit_factory.exists('livekit') {
-		zinit_factory.stop('livekit') or {
-			return error('Could not stop livekit service due to: ${err}')
-		}
-		zinit_factory.delete('livekit') or {
-			return error('Could not delete livekit service due to: ${err}')
-		}
-	}
 	console.print_header('livekit removed')
 }

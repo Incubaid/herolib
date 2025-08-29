@@ -761,9 +761,7 @@ this document has info about the most core functions, more detailed info can be 
 
 ### 2. Network Utilities
 
-*   **`osal.ping(args: PingArgs) !PingResult`**: Check host reachability.
-    *   **Key Parameters**: `address` (string).
-    *   **Returns**: `PingResult` (`.ok`, `.timeout`, `.unknownhost`).
+*   **`osal.ping(args: PingArgs) !bool`**: Check host reachability.
 *   **`osal.tcp_port_test(args: TcpPortTestArgs) bool`**: Test if a TCP port is open.
     *   **Key Parameters**: `address` (string), `port` (int).
 *   **`osal.ipaddr_pub_get() !string`**: Get public IP address.
