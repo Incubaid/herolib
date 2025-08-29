@@ -78,23 +78,30 @@ pub fn cmd_git(mut cmdroot Command) {
 		description: 'Open visual studio code on found repos, will do for max 5.'
 	}
 
-	mut cmd_cd := Command{
+	mut exists_command := Command{
 		sort_flags:  true
-		name:        'cd'
+		name:        'exists'
 		execute:     cmd_git_execute
-		description: 'cd to a git repo, use e.g. eval $(git cd -u https://github.com/threefoldfoundation/www_threefold_io)'
+		description: 'Check if git repository exists. Returns exit code 0 if exists, 1 if not.'
 	}
 
-	cmd_cd.add_flag(Flag{
+	mut cmd_path := Command{
+		sort_flags:  true
+		name:        'path'
+		execute:     cmd_git_execute
+		description: 'Get the path to a git repository. Use with cd $(hero git path <url>)'
+	}
+
+	cmd_path.add_flag(Flag{
 		flag:        .string
 		required:    false
 		name:        'url'
 		abbrev:      'u'
-		description: 'url for git cd operation, so we know where to cd to'
+		description: 'url for git path operation, so we know which repo path to get'
 	})
 
 	mut allcmdsref := [&list_command, &clone_command, &push_command, &pull_command, &commit_command,
-		&reload_command, &delete_command, &sourcetree_command, &editor_command]
+		&reload_command, &delete_command, &sourcetree_command, &editor_command, &exists_command]
 
 	for mut c in allcmdsref {
 		c.add_flag(Flag{
@@ -181,7 +188,7 @@ pub fn cmd_git(mut cmdroot Command) {
 		})
 		cmd_run.add_command(c)
 	}
-	cmd_run.add_command(cmd_cd)
+	cmd_run.add_command(cmd_path)
 	cmdroot.add_command(cmd_run)
 }
 
@@ -189,7 +196,8 @@ fn cmd_git_execute(cmd Command) ! {
 	mut is_silent := cmd.flags.get_bool('silent') or { false }
 	mut reload := cmd.flags.get_bool('load') or { false }
 
-	if is_silent || cmd.name == 'cd' {
+	// path command is silent so it just outputs repo path
+	if is_silent || cmd.name == 'path' {
 		console.silent_set()
 	}
 	mut coderoot := cmd.flags.get_string('coderoot') or { '' }
@@ -235,8 +243,8 @@ fn cmd_git_execute(cmd Command) ! {
 			url:       url
 			path:      path
 		)!
-		if cmd.name == 'cd' {
-			print('cd ${mypath}\n')
+		if cmd.name == 'path' {
+			print('${mypath}\n')
 		}
 		return
 	} else {

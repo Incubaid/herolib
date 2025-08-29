@@ -39,9 +39,18 @@ pub fn (mut gitstructure GitStructure) clone(args GitCloneArgs) !&GitRepo {
 	key_ := repo.cache_key()
 	gitstructure.repos[key_] = &repo
 
-	mut repopath := repo.patho()!
-	if repopath.exists() {
-		return error("can't clone on existing path, came from url, path found is ${repopath.path}.\n")
+	if repo.exists() {
+		console.print_green("Repository already exists at ${repo.path()}")
+		// Load the existing repository status
+		repo.load_internal() or {
+			console.print_debug('Could not load existing repository status: ${err}')
+		}
+		return &repo
+	}
+	
+	// Check if path exists but is not a git repository
+	if os.exists(repo.path()) {
+		return error("Path exists but is not a git repository: ${repo.path()}")
 	}
 
 	if args.sshkey.len > 0 {
