@@ -36,7 +36,7 @@ pub fn play(mut plbook PlayBook) ! {
 		return error("can't configure zinit_installer, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'zinit_installer.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -68,6 +68,7 @@ pub fn play(mut plbook PlayBook) ! {
 				zinit_installer_obj.restart()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
@@ -83,19 +84,19 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 	// systemd
 	match cat {
 		.screen {
-			console.print_debug('startupmanager: screen')
+			console.print_debug("installer: zinit_installer' startupmanager get screen")
 			return startupmanager.get(.screen)!
 		}
 		.zinit {
-			console.print_debug('startupmanager: zinit')
+			console.print_debug("installer: zinit_installer' startupmanager get zinit")
 			return startupmanager.get(.zinit)!
 		}
 		.systemd {
-			console.print_debug('startupmanager: systemd')
+			console.print_debug("installer: zinit_installer' startupmanager get systemd")
 			return startupmanager.get(.systemd)!
 		}
 		else {
-			console.print_debug('startupmanager: auto')
+			console.print_debug("installer: zinit_installer' startupmanager get auto")
 			return startupmanager.get(.auto)!
 		}
 	}
@@ -106,7 +107,7 @@ pub fn (mut self ZinitInstaller) start() ! {
 		return
 	}
 
-	console.print_header('zinit_installer start')
+	console.print_header('installer: zinit_installer start')
 
 	if !installed()! {
 		install()!
@@ -119,7 +120,7 @@ pub fn (mut self ZinitInstaller) start() ! {
 	for zprocess in startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		console.print_debug('starting zinit_installer with ${zprocess.startuptype}...')
+		console.print_debug('installer: zinit_installer starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
 

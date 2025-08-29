@@ -35,7 +35,7 @@ pub fn play(mut plbook PlayBook) ! {
 		return error("can't configure tailwind, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'tailwind.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -48,6 +48,7 @@ pub fn play(mut plbook PlayBook) ! {
 				install()!
 			}
 		}
+		other_action.done = true
 	}
 }
 

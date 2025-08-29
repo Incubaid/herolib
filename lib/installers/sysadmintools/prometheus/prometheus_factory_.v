@@ -36,7 +36,7 @@ pub fn play(mut plbook PlayBook) ! {
 		return error("can't configure prometheus, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'prometheus.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -68,6 +68,7 @@ pub fn play(mut plbook PlayBook) ! {
 				prometheus_obj.restart()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
@@ -83,19 +84,19 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 	// systemd
 	match cat {
 		.screen {
-			console.print_debug('startupmanager: screen')
+			console.print_debug("installer: prometheus' startupmanager get screen")
 			return startupmanager.get(.screen)!
 		}
 		.zinit {
-			console.print_debug('startupmanager: zinit')
+			console.print_debug("installer: prometheus' startupmanager get zinit")
 			return startupmanager.get(.zinit)!
 		}
 		.systemd {
-			console.print_debug('startupmanager: systemd')
+			console.print_debug("installer: prometheus' startupmanager get systemd")
 			return startupmanager.get(.systemd)!
 		}
 		else {
-			console.print_debug('startupmanager: auto')
+			console.print_debug("installer: prometheus' startupmanager get auto")
 			return startupmanager.get(.auto)!
 		}
 	}
@@ -106,7 +107,7 @@ pub fn (mut self Prometheus) start() ! {
 		return
 	}
 
-	console.print_header('prometheus start')
+	console.print_header('installer: prometheus start')
 
 	if !installed()! {
 		install()!
@@ -119,7 +120,7 @@ pub fn (mut self Prometheus) start() ! {
 	for zprocess in startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		console.print_debug('starting prometheus with ${zprocess.startuptype}...')
+		console.print_debug('installer: prometheus starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
 

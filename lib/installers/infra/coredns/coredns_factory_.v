@@ -38,6 +38,7 @@ pub fn get(args ArgsGet) !&CoreDNS {
 		if r.hexists('context:coredns', args.name)! {
 			data := r.hget('context:coredns', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('CoreDNS with name: coredns does not exist, prob bug.')
 			}
 			mut obj := json.decode(CoreDNS, data)!
@@ -46,12 +47,14 @@ pub fn get(args ArgsGet) !&CoreDNS {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("CoreDNS with name 'coredns' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return coredns_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for coredns with name:coredns')
 	}
 }
@@ -124,14 +127,15 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'coredns.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
 	mut other_actions := plbook.find(filter: 'coredns.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -163,6 +167,7 @@ pub fn play(mut plbook PlayBook) ! {
 				coredns_obj.restart()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
@@ -178,19 +183,19 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 	// systemd
 	match cat {
 		.screen {
-			console.print_debug('startupmanager: screen')
+			console.print_debug("installer: coredns' startupmanager get screen")
 			return startupmanager.get(.screen)!
 		}
 		.zinit {
-			console.print_debug('startupmanager: zinit')
+			console.print_debug("installer: coredns' startupmanager get zinit")
 			return startupmanager.get(.zinit)!
 		}
 		.systemd {
-			console.print_debug('startupmanager: systemd')
+			console.print_debug("installer: coredns' startupmanager get systemd")
 			return startupmanager.get(.systemd)!
 		}
 		else {
-			console.print_debug('startupmanager: auto')
+			console.print_debug("installer: coredns' startupmanager get auto")
 			return startupmanager.get(.auto)!
 		}
 	}
@@ -206,7 +211,7 @@ pub fn (mut self CoreDNS) start() ! {
 		return
 	}
 
-	console.print_header('coredns start')
+	console.print_header('installer: coredns start')
 
 	if !installed()! {
 		install()!
@@ -219,7 +224,7 @@ pub fn (mut self CoreDNS) start() ! {
 	for zprocess in startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		console.print_debug('starting coredns with ${zprocess.startuptype}...')
+		console.print_debug('installer: coredns starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
 
