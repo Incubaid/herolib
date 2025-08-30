@@ -45,46 +45,6 @@ pub mut:
 }
     
 
-@[heap]
-pub struct Comment {
-pub mut:
-    id           u32
-    comment         string
-    parent u32 //id of parent comment if any, 0 means none
-    updated_at   i64
-    author      u32 //links to user
-}
-
-
-pub fn (self Comment) dump() ![]u8{
-    // Create a new encoder
-    mut e := encoder.new()
-    e.add_u8(1)
-    e.add_u32(self.id)
-    e.add_string(self.comment)
-    e.add_u32(self.parent)
-    e.add_i64(self.updated_at)
-    e.add_u32(self.author)
-    return e.data
-}
-
-
-pub fn comment_load(self []u8) !Comment{
-    // Create a new encoder
-    mut e := decoder.new()
-    version:=e.get_u8(1)
-    if version != 1 {
-        panic("wrong version in comment load")
-    }
-    self.id = e.get_u32()
-    self.comment = e.get_string()
-    self.parent = e.get_u32()
-    self.updated_at = e.get_i64()
-    self.author = e.get_u32()
-    return e.data
-}
-
-
 /////////////////
 
 @[params]
@@ -98,12 +58,6 @@ pub mut:
     comments []CommentArg
 }
 
-pub struct CommentArg {
-pub mut:
-    comment         string
-    parent u32 //id of parent comment if any, 0 means none
-    author      u32 //links to user
-}
 
 pub fn tags2id(tags []string) !u32 {
     mut myid:=0
@@ -121,21 +75,6 @@ pub fn tags2id(tags []string) !u32 {
     }
     return myid
 }
-
-pub fn comment2id(args CommentArg) !u32{
-    myid := redis.incr("db:comments:id")!
-    mut o:=Comment {
-        id: 
-        comment: args.comment
-        parent:args.parent
-        updated_at: ourtime.now().unix()
-        author: args.author
-    }
-    data:=o.dump()!
-    redis.hset("db:comments:data", myid, data)!
-    return myid
-}
-
 
 pub fn [T] new(args BaseArgs) Base {
 

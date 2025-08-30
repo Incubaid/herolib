@@ -1,10 +1,11 @@
 module heromodels
 
-import crypto.md5
+import freeflowuniverse.herolib.core.redisclient
 import json
 
 import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.data.encoder
+import freeflowuniverse.herolib.data.ourtime
 
 
 @[heap]
@@ -30,19 +31,20 @@ pub fn (self Comment) dump() ![]u8{
 }
 
 
-pub fn comment_load(self []u8) !Comment{
-    // Create a new encoder
-    mut e := decoder.new()
-    version:=e.get_u8(1)
+pub fn comment_load(data []u8) !Comment{
+    // Create a new decoder
+    mut e := encoder.decoder_new(data)
+    version := e.get_u8()
     if version != 1 {
         panic("wrong version in comment load")
     }
-    self.id = e.get_u32()
-    self.comment = e.get_string()
-    self.parent = e.get_u32()
-    self.updated_at = e.get_i64()
-    self.author = e.get_u32()
-    return e.data
+    mut comment := Comment{}
+    comment.id = e.get_u32()
+    comment.comment = e.get_string()
+    comment.parent = e.get_u32()
+    comment.updated_at = e.get_i64()
+    comment.author = e.get_u32()
+    return comment
 }
 
 
@@ -64,23 +66,23 @@ pub fn comment_new(args CommentArg) !Comment{
     return o
 }    
 
-pub fn comment_set(o Comment) !u32{
+pub fn comment_set(mut o Comment) !u32{
     mut redis := redisclient.core_get()!
     myid := redis.incr("db:comments:id")!
-    i.id = myid
-    data:=o.dump()!
+    o.id = myid
+    data := o.dump()!
     redis.hset("db:comments:data", myid, data)!
     return myid
 }
 
 pub fn comment_exist(id u32) !bool{
     mut redis := redisclient.core_get()!
-    return redis.hexist("db:comments",id)!
+    return redis.hexist("db:comments:data",id)!
 }
 
 pub fn comment_get(id u32) !Comment{
     mut redis := redisclient.core_get()!
-    mut data:= redis.hget("db:comments",id)!
+    mut data:= redis.hget("db:comments:data",id)!
     if data.len>0{
         return comment_load(data)!
     }else{

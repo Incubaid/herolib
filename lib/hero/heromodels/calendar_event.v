@@ -104,10 +104,10 @@ pub fn calendar_event_new(args CalendarEventArgs) CalendarEvent {
 }
 
 pub fn (mut e CalendarEvent) dump() []u8 {
-    //TODO: implement based on lib/data/encoder/readme.md
+    //TODO: implement based on lib/data/encoder/readme.md and comment.v as example
 }
 
 pub fn calendar_event_load(data []u8) CalendarEvent {
-    //TODO: implement based on lib/data/encoder/readme.md
+    //TODO: implement based on lib/data/encoder/readme.md and comment.v as example
 }
 
