@@ -47,3 +47,7 @@
     name:"cleanup_test|complex|4"
     label:"tail_logs"
     cmd:"tail -f /dev/null"
+
+// Delete the test session (should kill all processes)
+!!tmux.session_delete
+    name:"cleanup_test"
