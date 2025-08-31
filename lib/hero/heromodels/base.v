@@ -1,12 +1,9 @@
 module heromodels
 
 import crypto.md5
-import json
 
 import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.data.encoder
-
-
+import freeflowuniverse.herolib.data.ourtime
 
 // Group represents a collection of users with roles and permissions
 @[heap]
@@ -21,11 +18,9 @@ pub mut:
     tags         u32 //when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
     comments     []u32
 }
-
-
  
 @[heap]
-pub struct SecurityPolicy {å
+pub struct SecurityPolicy {
 pub mut:
     id           u32
     read      []u32 //links to users & groups
@@ -58,44 +53,63 @@ pub mut:
     comments []CommentArg
 }
 
+//make it easy to get a base object
+pub fn new_base(args BaseArgs) !Base {
+    mut redis := redisclient.core_get()!
+
+    commentids:=comment_multiset(args.comments)!
+    tags:=tags2id(args.tags)!
+
+    return Base {
+        id: args.id or { 0 }
+        name: args.name
+        description: args.description
+        created_at: ourtime.now().unix()
+        updated_at: ourtime.now().unix()
+        securitypolicy: args.securitypolicy or { 0 }
+        tags: tags
+        comments: commentids
+    }
+}
 
 pub fn tags2id(tags []string) !u32 {
-    mut myid:=0
-    if tags.len>0{
-        mytags:=tags.map(it.to_lower_ascii().trim_space()).sort().join(",")
-        mymd5:=crypto.hexhash(mytags)
-        tags:=redis.hget("db:tags", mymd5)!
-        if tags == ""{            
-            myid = u32(redis.incr("db:tags:id")!)
-            redis.hset("db:tags", mymd5, myid)!
-            redis.hset("db:tags", myid, mytags)!
+    mut redis := redisclient.core_get()!
+    return if tags.len>0{
+        mut tags_fixed := tags.map(it.to_lower_ascii().trim_space()).filter(it != "")
+        tags_fixed.sort_ignore_case() 
+        hash :=md5.hexhash(tags_fixed.join(","))
+        tags_found := redis.hget("db:tags", hash)!
+        return if tags_found == ""{            
+            id := u32(redis.incr("db:tags:id")!)
+            redis.hset("db:tags", hash, id.str())!
+            redis.hset("db:tags", id.str(), tags_fixed.join(","))!
+            id
         }else{
-            myid = tags.int()
+            tags_found.u32()
         }
+    } else {
+        0
     }
-    return myid
 }
 
-pub fn comments2id(comments []CommentArg) !u32 {
-    mut myid:=0
-    if comments.len>0{
-        mycomments:=comments.map(it.to_lower_ascii().trim_space()).sort().join(",")
-        mymd5:=crypto.hexhash(mycomments)
-        comments:=redis.hget("db:comments", mymd5)!
-        if comments == ""{            
-            myid = u32(redis.incr("db:comments:id")!)
-            redis.hset("db:comments", mymd5, myid)!
-            redis.hset("db:comments", myid, mycomments)!
-        }else{
-            myid = comments.int()
-        }
-    }
-    return myid
+pub fn comments2ids(args []CommentArg) ![]u32 {
+    return args.map(comment2id(it.comment)!)
 }
 
+pub fn comment2id(comment string) !u32 {
+    comment_fixed := comment.to_lower_ascii().trim_space()
+    mut redis := redisclient.core_get()!
+    return if comment_fixed.len > 0{
+        hash := md5.hexhash(comment_fixed)
+        comment_found := redis.hget("db:comments", hash)!
+        if comment_found == ""{            
+            id := u32(redis.incr("db:comments:id")!)
+            redis.hset("db:comments", hash, id.str())!
+            redis.hset("db:comments", id.str(), comment_fixed)!
+            id
+        }else{
+            comment_found.u32()
+        }
+    } else { 0 }
+}
 
-    // Convert CommentArg array to u32 array
-    mut comment_ids := []u32{}
-    for comment in args.comments {
-        comment_ids << comment_set(comment)!
-    }

@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -58,8 +59,8 @@ pub fn new_user(name string, email string) User {
     mut user := User{
         name: name
         email: email
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
         status: .active
     }
     user.calculate_id()

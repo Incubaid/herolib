@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -43,8 +44,8 @@ pub fn new_fs(name string, group_id string) Fs {
     mut fs := Fs{
         name: name
         group_id: group_id
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
     }
     fs.calculate_id()
     return fs

@@ -1,5 +1,7 @@
 module heromodels
 
+import time
+
 // VersionHistory tracks the evolution of objects by their blake192 IDs
 @[heap]
 pub struct VersionHistory {
@@ -28,7 +30,7 @@ pub fn new_version_history(current_id string, previous_id string, object_type st
         object_type: object_type
         change_type: change_type
         changed_by: changed_by
-        changed_at: time.now().unix_time()
+        changed_at: time.now().unix()
     }
 }
 

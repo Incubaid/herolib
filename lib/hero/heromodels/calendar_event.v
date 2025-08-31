@@ -108,11 +108,10 @@ pub fn calendar_event_new(args CalendarEventArgs) !CalendarEvent {
         updated_at: ourtime.now().unix()
         securitypolicy: args.securitypolicy or { 0 }
         tags: tags_id
-        comments: comment_ids
+        comments: comments2ids(args.comments)!
 
         // CalendarEvent specific fields
         title: args.title
-        description: args.description
         start_time: ourtime.new(args.start_time)!.unix()
         end_time: ourtime.new(args.end_time)!.unix()
         location: args.location
@@ -177,49 +176,49 @@ pub fn (mut e CalendarEvent) dump() ![]u8 {
     return enc.data
 }
 
-pub fn calendar_event_load(data []u8) !CalendarEvent {
+pub fn (ce CalendarEvent) load(data []u8) !CalendarEvent {
     // Create a new decoder
     mut dec := encoder.decoder_new(data)
     
     // Read version byte
-    version := dec.get_u8()
+    version := dec.get_u8()!
     if version != 1 {
         return error('wrong version in calendar event load')
     }
     
     // Decode Base fields
-    id := dec.get_u32()
-    name := dec.get_string()
-    description := dec.get_string()
-    created_at := dec.get_i64()
-    updated_at := dec.get_i64()
-    securitypolicy := dec.get_u32()
-    tags := dec.get_u32()
-    comments := dec.get_list_u32()
+    id := dec.get_u32()!
+    name := dec.get_string()!
+    description := dec.get_string()!
+    created_at := dec.get_i64()!
+    updated_at := dec.get_i64()!
+    securitypolicy := dec.get_u32()!
+    tags := dec.get_u32()!
+    comments := dec.get_list_u32()!
     
     // Decode CalendarEvent specific fields
-    title := dec.get_string()
-    description2 := dec.get_string()  // Second description field
-    start_time := dec.get_i64()
-    end_time := dec.get_i64()
-    location := dec.get_string()
-    attendees := dec.get_list_u32()
-    fs_items := dec.get_list_u32()
-    calendar_id := dec.get_u32()
-    status := EventStatus(dec.get_u8())
-    is_all_day := dec.get_bool()
-    is_recurring := dec.get_bool()
+    title := dec.get_string()!
+    description2 := dec.get_string()!  // Second description field
+    start_time := dec.get_i64()!
+    end_time := dec.get_i64()!
+    location := dec.get_string()!
+    attendees := dec.get_list_u32()!
+    fs_items := dec.get_list_u32()!
+    calendar_id := dec.get_u32()!
+    status := unsafe { EventStatus(dec.get_u8()!) }
+    is_all_day := dec.get_bool()!
+    is_recurring := dec.get_bool()!
     
     // Decode recurrence array
-    recurrence_len := dec.get_u16()
+    recurrence_len := dec.get_u16()!
     mut recurrence := []RecurrenceRule{}
     for _ in 0..recurrence_len {
-        frequency := RecurrenceFreq(dec.get_u8())
-        interval := dec.get_int()
-        until := dec.get_i64()
-        count := dec.get_int()
-        by_weekday := dec.get_list_int()
-        by_monthday := dec.get_list_int()
+        frequency := unsafe{RecurrenceFreq(dec.get_u8()!)}
+        interval := dec.get_int()!
+        until := dec.get_i64()!
+        count := dec.get_int()!
+        by_weekday := dec.get_list_int()!
+        by_monthday := dec.get_list_int()!
         
         recurrence << RecurrenceRule{
             frequency: frequency
@@ -231,9 +230,9 @@ pub fn calendar_event_load(data []u8) !CalendarEvent {
         }
     }
     
-    reminder_mins := dec.get_list_int()
-    color := dec.get_string()
-    timezone := dec.get_string()
+    reminder_mins := dec.get_list_int()!
+    color := dec.get_string()!
+    timezone := dec.get_string()!
     
     return CalendarEvent{
         // Base fields
@@ -248,7 +247,6 @@ pub fn calendar_event_load(data []u8) !CalendarEvent {
         
         // CalendarEvent specific fields
         title: title
-        description: description2
         start_time: start_time
         end_time: end_time
         location: location

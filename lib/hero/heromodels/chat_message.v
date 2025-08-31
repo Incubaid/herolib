@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -95,8 +96,8 @@ pub fn new_chat_message(content string, chat_group_id string, sender_id string) 
         sender_id: sender_id
         message_type: .text
         status: .sent
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
     }
     message.calculate_id()
     return message

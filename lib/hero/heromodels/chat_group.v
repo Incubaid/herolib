@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -54,9 +55,9 @@ pub fn new_chat_group(name string, group_id string, chat_type ChatType) ChatGrou
         name: name
         group_id: group_id
         chat_type: chat_type
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
-        last_activity: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
+        last_activity: time.now().unix()
     }
     chat_group.calculate_id()
     return chat_group

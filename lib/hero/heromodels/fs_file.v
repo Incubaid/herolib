@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -55,9 +56,9 @@ pub fn new_fs_file(name string, fs_id string, directories []string) FsFile {
         name: name
         fs_id: fs_id
         directories: directories
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
-        accessed_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
+        accessed_at: time.now().unix()
     }
     file.calculate_id()
     return file

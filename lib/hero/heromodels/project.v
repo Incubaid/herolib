@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -89,8 +90,8 @@ pub fn new_project(name string, description string, group_id string) Project {
         description: description
         group_id: group_id
         status: .planning
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
         swimlanes: [
             Swimlane{id: 'todo', name: 'To Do', order: 1, color: '#f1c40f'},
             Swimlane{id: 'in_progress', name: 'In Progress', order: 2, color: '#3498db'},
