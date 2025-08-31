@@ -17,6 +17,7 @@ pub fn play(mut plbook PlayBook) ! {
 		tmux_instance.start()!
 	}
 
+	// Imperative functions (action after action)
 	play_session_create(mut plbook, mut tmux_instance)!
 	play_session_delete(mut plbook, mut tmux_instance)!
 	play_window_create(mut plbook, mut tmux_instance)!
@@ -29,6 +30,11 @@ pub fn play(mut plbook PlayBook) ! {
 	play_session_ttyd_stop(mut plbook, mut tmux_instance)!
 	play_window_ttyd_stop(mut plbook, mut tmux_instance)!
 	play_ttyd_stop_all(mut plbook, mut tmux_instance)!
+
+	// Declarative functions (desired state)
+	play_session_ensure(mut plbook, mut tmux_instance)!
+	play_window_ensure(mut plbook, mut tmux_instance)!
+	play_pane_ensure(mut plbook, mut tmux_instance)!
 }
 
 struct ParsedWindowName {
@@ -333,6 +339,387 @@ fn play_ttyd_stop_all(mut plbook PlayBook, mut tmux_instance Tmux) ! {
 		}
 
 		stop_all_ttyd()!
+
+		action.done = true
+	}
+}
+
+// DECLARATIVE FUNCTIONS - Ensure desired state exists
+
+// Ensure session exists (declarative)
+fn play_session_ensure(mut plbook PlayBook, mut tmux_instance Tmux) ! {
+	mut actions := plbook.find(filter: 'tmux.session_ensure')!
+	for mut action in actions {
+		mut p := action.params
+		session_name := p.get('name')!
+
+		// Ensure session exists, create if it doesn't
+		if !tmux_instance.session_exist(session_name) {
+			tmux_instance.session_create(name: session_name)!
+		}
+
+		action.done = true
+	}
+}
+
+// Pane layout configurations for different categories
+struct PaneLayout {
+	splits []PaneSplit
+}
+
+struct PaneSplit {
+	horizontal  bool
+	target_pane int // which pane to split (0-based index)
+}
+
+// Get pane layout configuration based on category
+fn get_pane_layout(category string) PaneLayout {
+	match category {
+		'1pane' {
+			return PaneLayout{
+				splits: []
+			}
+		}
+		'2pane' {
+			return PaneLayout{
+				splits: [
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					},
+				]
+			}
+		}
+		'4pane' {
+			return PaneLayout{
+				splits: [
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split horizontally first
+					PaneSplit{
+						horizontal:  false
+						target_pane: 0
+					}, // Split left pane vertically
+					PaneSplit{
+						horizontal:  false
+						target_pane: 1
+					}, // Split right pane vertically
+				]
+			}
+		}
+		'6pane' {
+			return PaneLayout{
+				splits: [
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split horizontally
+					PaneSplit{
+						horizontal:  true
+						target_pane: 1
+					}, // Split right pane horizontally
+					PaneSplit{
+						horizontal:  false
+						target_pane: 0
+					}, // Split left pane vertically
+					PaneSplit{
+						horizontal:  false
+						target_pane: 1
+					}, // Split middle pane vertically
+					PaneSplit{
+						horizontal:  false
+						target_pane: 2
+					}, // Split right pane vertically
+				]
+			}
+		}
+		'8pane' {
+			return PaneLayout{
+				splits: [
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split horizontally
+					PaneSplit{
+						horizontal:  false
+						target_pane: 0
+					}, // Split left vertically
+					PaneSplit{
+						horizontal:  false
+						target_pane: 1
+					}, // Split right vertically
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split top-left horizontally
+					PaneSplit{
+						horizontal:  true
+						target_pane: 1
+					}, // Split bottom-left horizontally
+					PaneSplit{
+						horizontal:  true
+						target_pane: 2
+					}, // Split top-right horizontally
+					PaneSplit{
+						horizontal:  true
+						target_pane: 3
+					}, // Split bottom-right horizontally
+				]
+			}
+		}
+		'12pane' {
+			return PaneLayout{
+				splits: [
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split horizontally (2 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 1
+					}, // Split right horizontally (3 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 0
+					}, // Split left vertically (4 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 1
+					}, // Split middle vertically (5 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 2
+					}, // Split right vertically (6 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split top-left horizontally (7 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 1
+					}, // Split bottom-left horizontally (8 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 2
+					}, // Split top-middle horizontally (9 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 3
+					}, // Split bottom-middle horizontally (10 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 4
+					}, // Split top-right horizontally (11 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 5
+					}, // Split bottom-right horizontally (12 panes)
+				]
+			}
+		}
+		'16pane' {
+			return PaneLayout{
+				splits: [
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split horizontally (2 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 0
+					}, // Split left vertically (3 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 1
+					}, // Split right vertically (4 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 0
+					}, // Split top-left horizontally (5 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 1
+					}, // Split bottom-left horizontally (6 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 2
+					}, // Split top-right horizontally (7 panes)
+					PaneSplit{
+						horizontal:  true
+						target_pane: 3
+					}, // Split bottom-right horizontally (8 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 0
+					}, // Split first quarter vertically (9 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 1
+					}, // Split second quarter vertically (10 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 2
+					}, // Split third quarter vertically (11 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 3
+					}, // Split fourth quarter vertically (12 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 4
+					}, // Split fifth quarter vertically (13 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 5
+					}, // Split sixth quarter vertically (14 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 6
+					}, // Split seventh quarter vertically (15 panes)
+					PaneSplit{
+						horizontal:  false
+						target_pane: 7
+					}, // Split eighth quarter vertically (16 panes)
+				]
+			}
+		}
+		else {
+			// Default to 1pane if unknown category
+			return PaneLayout{
+				splits: []
+			}
+		}
+	}
+}
+
+// Ensure window exists with specified pane layout (declarative)
+fn play_window_ensure(mut plbook PlayBook, mut tmux_instance Tmux) ! {
+	mut actions := plbook.find(filter: 'tmux.window_ensure')!
+	for mut action in actions {
+		mut p := action.params
+		name := p.get('name')!
+		parsed := parse_window_name(name)!
+		category := p.get_default('cat', '1pane')!
+		cmd := p.get_default('cmd', '')!
+
+		// Parse environment variables if provided
+		mut env := map[string]string{}
+		if env_str := p.get_default('env', '') {
+			env_pairs := env_str.split(',')
+			for pair in env_pairs {
+				kv := pair.split('=')
+				if kv.len == 2 {
+					env[kv[0].trim_space()] = kv[1].trim_space()
+				}
+			}
+		}
+
+		// Ensure session exists
+		mut session := if tmux_instance.session_exist(parsed.session) {
+			tmux_instance.session_get(parsed.session)!
+		} else {
+			tmux_instance.session_create(name: parsed.session)!
+		}
+
+		// Check if window already exists with correct pane layout
+		mut window_exists := session.window_exist(name: parsed.window)
+		mut window := if window_exists {
+			session.window_get(name: parsed.window)!
+		} else {
+			// Create new window
+			session.window_new(
+				name: parsed.window
+				cmd:  cmd
+				env:  env
+			)!
+		}
+
+		// Ensure correct pane layout
+		layout := get_pane_layout(category)
+		current_pane_count := window.panes.len
+
+		// If we need more panes, create them according to layout
+		if layout.splits.len + 1 > current_pane_count {
+			// We need to create the layout from scratch
+			// First, ensure we have at least one pane (the window should have one by default)
+			window.scan()! // Refresh pane information
+
+			// Apply splits according to layout
+			for split in layout.splits {
+				// For simplicity, we'll split the active pane
+				// In a more sophisticated implementation, we could track specific panes
+				window.pane_split(
+					cmd:        cmd
+					horizontal: split.horizontal
+					env:        env
+				)!
+			}
+		}
+
+		action.done = true
+	}
+}
+
+// Ensure specific pane exists with command and label (declarative)
+fn play_pane_ensure(mut plbook PlayBook, mut tmux_instance Tmux) ! {
+	mut actions := plbook.find(filter: 'tmux.pane_ensure')!
+	for mut action in actions {
+		mut p := action.params
+		name := p.get('name')!
+		parsed := parse_pane_name(name)!
+		cmd := p.get_default('cmd', '')!
+		label := p.get_default('label', '')!
+
+		// Parse environment variables if provided
+		mut env := map[string]string{}
+		if env_str := p.get_default('env', '') {
+			env_pairs := env_str.split(',')
+			for pair in env_pairs {
+				kv := pair.split('=')
+				if kv.len == 2 {
+					env[kv[0].trim_space()] = kv[1].trim_space()
+				}
+			}
+		}
+
+		// Ensure session exists
+		mut session := if tmux_instance.session_exist(parsed.session) {
+			tmux_instance.session_get(parsed.session)!
+		} else {
+			tmux_instance.session_create(name: parsed.session)!
+		}
+
+		// Ensure window exists
+		mut window := if session.window_exist(name: parsed.window) {
+			session.window_get(name: parsed.window)!
+		} else {
+			session.window_new(name: parsed.window)!
+		}
+
+		// Refresh pane information
+		window.scan()!
+
+		// Check if we need to create more panes or execute command in existing pane
+		pane_number := parsed.pane.int()
+
+		// Ensure we have enough panes (create splits if needed)
+		for window.panes.len < pane_number {
+			window.pane_split(
+				cmd:        '/bin/bash'
+				horizontal: window.panes.len % 2 == 0 // Alternate between horizontal and vertical
+				env:        env
+			)!
+		}
+
+		// Execute command in the specified pane if provided
+		if cmd.len > 0 {
+			// Find the target pane (by index, since tmux pane IDs can vary)
+			if pane_number > 0 && pane_number <= window.panes.len {
+				mut target_pane := window.panes[pane_number - 1] // Convert to 0-based index
+				target_pane.send_command(cmd)!
+			}
+		}
 
 		action.done = true
 	}

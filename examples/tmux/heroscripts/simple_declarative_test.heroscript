@@ -1,0 +1,23 @@
+#!/usr/bin/env hero
+
+// Simple test of declarative tmux functionality
+
+// Ensure a test session exists
+!!tmux.session_ensure
+    name:"test"
+
+// Ensure a simple 2-pane window exists
+!!tmux.window_ensure
+    name:"test|demo"
+    cat:"2pane"
+
+// Configure the panes
+!!tmux.pane_ensure
+    name:"test|demo|1"
+    label:"first"
+    cmd:"echo First pane ready"
+
+!!tmux.pane_ensure
+    name:"test|demo|2"
+    label:"second"
+    cmd:"echo Second pane ready"
