@@ -9,7 +9,7 @@
 // Ensure a simple 2-pane window exists
 !!tmux.window_ensure
     name:"test|demo"
-    cat:"2pane"
+    cat:"4pane"
 
 // Configure the panes
 !!tmux.pane_ensure
@@ -21,3 +21,13 @@
     name:"test|demo|2"
     label:"second"
     cmd:"echo Second pane ready"
+
+!!tmux.pane_ensure
+    name:"test|demo|3"
+    label:"third"
+    cmd:"echo Third pane ready"
+
+!!tmux.pane_ensure
+    name:"test|demo|4"
+    label:"fourth"
+    cmd:"echo Fourth pane ready"

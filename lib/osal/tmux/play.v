@@ -655,6 +655,9 @@ fn play_window_ensure(mut plbook PlayBook, mut tmux_instance Tmux) ! {
 					env:        env
 				)!
 			}
+
+			// After creating all panes, resize them to equal dimensions dynamically
+			window.resize_panes_equal()!
 		}
 
 		action.done = true

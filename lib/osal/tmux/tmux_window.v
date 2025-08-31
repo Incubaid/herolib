@@ -274,6 +274,54 @@ pub fn (mut w Window) pane_split_vertical(cmd string) !&Pane {
 	return w.pane_split(cmd: cmd, horizontal: false)
 }
 
+// Resize panes to equal dimensions dynamically based on pane count
+pub fn (mut w Window) resize_panes_equal() ! {
+	w.scan()! // Refresh pane information
+
+	pane_count := w.panes.len
+	if pane_count <= 1 {
+		return
+	}
+
+	// Dynamic layout based on actual pane count
+	match pane_count {
+		1 {
+			// Single pane, no resizing needed
+			console.print_debug('Single pane, no resizing needed')
+		}
+		2 {
+			// Two panes: use even-horizontal layout (side by side)
+			cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} even-horizontal'
+			osal.execute_silent(cmd) or {
+				console.print_debug('Could not apply even-horizontal layout: ${err}')
+			}
+		}
+		3 {
+			// Three panes: use main-horizontal layout (one large top, two smaller bottom)
+			cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} main-horizontal'
+			osal.execute_silent(cmd) or {
+				console.print_debug('Could not apply main-horizontal layout: ${err}')
+			}
+		}
+		4 {
+			// Four panes: use tiled layout (2x2 grid)
+			cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} tiled'
+			osal.execute_silent(cmd) or {
+				console.print_debug('Could not apply tiled layout: ${err}')
+			}
+		}
+		else {
+			// For 5+ panes: use tiled layout which works well for any number
+			if pane_count >= 5 {
+				cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} tiled'
+				osal.execute_silent(cmd) or {
+					console.print_debug('Could not apply tiled layout for ${pane_count} panes: ${err}')
+				}
+			}
+		}
+	}
+}
+
 @[params]
 pub struct TtydArgs {
 pub mut:

@@ -201,3 +201,21 @@ pub fn (mut p Pane) resize_left(cells int) ! {
 pub fn (mut p Pane) resize_right(cells int) ! {
 	p.resize(direction: 'right', cells: cells)!
 }
+
+// Get current pane width
+pub fn (p Pane) get_width() !int {
+	cmd := 'tmux display-message -t ${p.window.session.name}:@${p.window.id}.%${p.id} -p "#{pane_width}"'
+	res := osal.exec(cmd: cmd, stdout: false, name: 'tmux_get_pane_width') or {
+		return error("Can't get pane width: ${err}")
+	}
+	return res.output.trim_space().int()
+}
+
+// Get current pane height
+pub fn (p Pane) get_height() !int {
+	cmd := 'tmux display-message -t ${p.window.session.name}:@${p.window.id}.%${p.id} -p "#{pane_height}"'
+	res := osal.exec(cmd: cmd, stdout: false, name: 'tmux_get_pane_height') or {
+		return error("Can't get pane height: ${err}")
+	}
+	return res.output.trim_space().int()
+}
