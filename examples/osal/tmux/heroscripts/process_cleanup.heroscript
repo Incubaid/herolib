@@ -1,0 +1,49 @@
+#!/usr/bin/env hero
+
+// Process Cleanup Test Script
+// This tests the comprehensive process cleanup functionality
+
+// Create a test session with processes that spawn children
+!!tmux.session_ensure
+    name:"cleanup_test"
+
+// Create windows with different types of processes
+!!tmux.window_ensure
+    name:"cleanup_test|simple"
+    cat:"2pane"
+
+!!tmux.window_ensure
+    name:"cleanup_test|complex"
+    cat:"4pane"
+
+// Test 1: Simple processes
+!!tmux.pane_ensure
+    name:"cleanup_test|simple|1"
+    label:"sleep"
+    cmd:"sleep 300"
+
+!!tmux.pane_ensure
+    name:"cleanup_test|simple|2"
+    label:"top"
+    cmd:"top"
+
+// Test 2: Complex processes with children
+!!tmux.pane_ensure
+    name:"cleanup_test|complex|1"
+    label:"bash_with_children"
+    cmd:"sleep 200"
+
+!!tmux.pane_ensure
+    name:"cleanup_test|complex|2"
+    label:"python_server"
+    cmd:"python3 -m http.server 8888"
+
+!!tmux.pane_ensure
+    name:"cleanup_test|complex|3"
+    label:"watch_processes"
+    cmd:"watch -n 1 ps"
+
+!!tmux.pane_ensure
+    name:"cleanup_test|complex|4"
+    label:"tail_logs"
+    cmd:"tail -f /dev/null"

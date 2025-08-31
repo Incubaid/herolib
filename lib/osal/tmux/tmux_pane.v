@@ -2,6 +2,7 @@ module tmux
 
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.ui.console
 import time
 
 @[heap]
@@ -151,10 +152,81 @@ pub fn (mut p Pane) send_keys(keys string) ! {
 	osal.execute_silent(cmd) or { return error('Cannot send keys to pane %${p.id}: ${err}') }
 }
 
-// Kill this specific pane
+// Kill this specific pane with comprehensive process cleanup
 pub fn (mut p Pane) kill() ! {
+	// First, kill all processes running in this pane
+	p.kill_processes()!
+
+	// Then kill the tmux pane itself
 	cmd := 'tmux kill-pane -t ${p.window.session.name}:@${p.window.id}.%${p.id}'
 	osal.execute_silent(cmd) or { return error('Cannot kill pane %${p.id}: ${err}') }
+}
+
+// Kill all processes associated with this pane (main process and all children)
+pub fn (mut p Pane) kill_processes() ! {
+	if p.pid == 0 {
+		console.print_debug('Pane %${p.id} has no associated process (pid is 0)')
+		return
+	}
+
+	console.print_debug('Killing all processes for pane %${p.id} (main PID: ${p.pid})')
+
+	// Use the recursive process killer to terminate the main process and all its children
+	osal.process_kill_recursive(pid: p.pid) or {
+		console.print_debug('Failed to kill processes for pane %${p.id}: ${err}')
+		// Continue anyway - the process might already be dead
+	}
+
+	// Also try to kill any processes that might be running in the pane's process group
+	// This handles cases where processes might have detached from the main process tree
+	p.kill_pane_process_group()!
+}
+
+// Kill processes in the pane's process group (fallback cleanup)
+fn (mut p Pane) kill_pane_process_group() ! {
+	// Get all processes and find ones that might be related to this pane
+	_ := osal.processmap_get() or {
+		console.print_debug('Could not get process map for pane cleanup')
+		return
+	}
+
+	// Look for processes that might be children of the pane's shell
+	// or processes running commands that were sent to this pane
+	mut pane_processes := []int{}
+
+	// First, collect the main process and its direct children
+	if p.pid > 0 && osal.process_exists(p.pid) {
+		children_map := osal.processinfo_children(p.pid) or {
+			console.print_debug('Could not get children for PID ${p.pid}')
+			return
+		}
+
+		for child in children_map.processes {
+			pane_processes << child.pid
+		}
+	}
+
+	// Kill any remaining processes with SIGTERM first, then SIGKILL
+	for pid in pane_processes {
+		if osal.process_exists(pid) {
+			// Try SIGTERM first (graceful shutdown)
+			osal.execute_silent('kill -TERM ${pid}') or {
+				console.print_debug('Could not send SIGTERM to PID ${pid}')
+			}
+		}
+	}
+
+	// Wait a moment for graceful shutdown
+	time.sleep(500 * time.millisecond)
+
+	// Force kill any remaining processes with SIGKILL
+	for pid in pane_processes {
+		if osal.process_exists(pid) {
+			osal.execute_silent('kill -KILL ${pid}') or {
+				console.print_debug('Could not send SIGKILL to PID ${pid}')
+			}
+		}
+	}
 }
 
 // Select/activate this pane

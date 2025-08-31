@@ -2,8 +2,6 @@ module tmux
 
 import os
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.data.ourtime
 import time
 import freeflowuniverse.herolib.ui.console
 
@@ -145,8 +143,12 @@ pub fn (mut w Window) create(cmd_ string) ! {
 	w.id = wid.replace('@', '').int()
 }
 
-// stop the window
+// stop the window with comprehensive process cleanup
 pub fn (mut w Window) kill() ! {
+	// First, kill all processes in all panes of this window
+	w.kill_all_processes()!
+
+	// Then kill the tmux window itself
 	osal.exec(
 		cmd:    'tmux kill-window -t @${w.id}'
 		stdout: false
@@ -154,6 +156,22 @@ pub fn (mut w Window) kill() ! {
 		// die:    false
 	) or { return error("Can't kill window with id:${w.id}: ${err}") }
 	w.active = false // Window is no longer active
+}
+
+// Kill all processes in all panes of this window
+pub fn (mut w Window) kill_all_processes() ! {
+	console.print_debug('Killing all processes in window ${w.name} (ID: ${w.id})')
+
+	// Refresh pane information to get current state
+	w.scan()!
+
+	// Kill processes in each pane
+	for mut pane in w.panes {
+		pane.kill_processes() or {
+			console.print_debug('Failed to kill processes in pane %${pane.id}: ${err}')
+			// Continue with other panes even if one fails
+		}
+	}
 }
 
 pub fn (window Window) str() string {

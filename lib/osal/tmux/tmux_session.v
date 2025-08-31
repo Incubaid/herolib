@@ -282,13 +282,17 @@ pub fn (mut s Session) window_delete(args_ WindowGetArgs) ! {
 	for mut w in s.windows {
 		if w.name == args.name {
 			if (args.id > 0 && w.id == args.id) || args.id == 0 {
+				// Enhanced cleanup: kill all processes before stopping the window
+				w.kill_all_processes() or {
+					console.print_debug('Failed to kill processes in window ${w.name}: ${err}')
+				}
 				w.stop()!
 				break
 			}
 		}
 		i += 1
 	}
-	s.windows.delete(i) // i is now the one in the list which needs to be removed	
+	s.windows.delete(i) // i is now the one in the list which needs to be removed
 }
 
 pub fn (mut s Session) restart() ! {
@@ -297,8 +301,28 @@ pub fn (mut s Session) restart() ! {
 }
 
 pub fn (mut s Session) stop() ! {
+	// First, kill all processes in all windows and panes of this session
+	s.kill_all_processes()!
+
+	// Then kill the tmux session itself
 	osal.execute_silent('tmux kill-session -t ${s.name}') or {
 		return error("Can't delete session ${s.name} - This may happen when session is not found: ${err}")
+	}
+}
+
+// Kill all processes in all windows and panes of this session
+pub fn (mut s Session) kill_all_processes() ! {
+	console.print_debug('Killing all processes in session ${s.name}')
+
+	// Refresh session information to get current state
+	s.scan()!
+
+	// Kill processes in each window
+	for mut window in s.windows {
+		window.kill_all_processes() or {
+			console.print_debug('Failed to kill processes in window ${window.name}: ${err}')
+			// Continue with other windows even if one fails
+		}
 	}
 }
 
