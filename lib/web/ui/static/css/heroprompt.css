@@ -1,5 +1,97 @@
 /* Enhanced HeroPrompt UI - Clean VSCode-like Design */
 
+/* CSS Custom Properties (Variables) */
+:root {
+    /* Bootstrap-compatible variables */
+    --bs-body-bg: #1e1e1e;
+    --bs-body-color: #d4d4d4;
+    --bs-border-color: #3c3c3c;
+    --bs-primary: #007acc;
+    --bs-primary-rgb: 0, 122, 204;
+    --bs-secondary: #6c757d;
+    --bs-secondary-bg: #2d2d30;
+    --bs-danger: #dc3545;
+    --bs-success: #198754;
+    --bs-warning: #ffc107;
+
+    /* Theme-specific variables */
+    --bg-primary: #1e1e1e;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2d2d30;
+    --text-primary: #d4d4d4;
+    --text-secondary: #969696;
+    --text-muted: #6a6a6a;
+    --border-primary: #3c3c3c;
+    --border-secondary: #464647;
+    --link-color: #007acc;
+    --link-hover-color: #1177bb;
+    --menu-item-hover-bg: #2a2d2e;
+    --danger-color: #f14c4c;
+    --success-color: #89d185;
+    --warning-color: #ffcc02;
+}
+
+/* Light theme support */
+@media (prefers-color-scheme: light) {
+    :root {
+        --bs-body-bg: #ffffff;
+        --bs-body-color: #212529;
+        --bs-border-color: #dee2e6;
+        --bs-secondary-bg: #f8f9fa;
+
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8f9fa;
+        --bg-tertiary: #e9ecef;
+        --text-primary: #212529;
+        --text-secondary: #6c757d;
+        --text-muted: #adb5bd;
+        --border-primary: #dee2e6;
+        --border-secondary: #ced4da;
+        --menu-item-hover-bg: #f8f9fa;
+    }
+}
+
+/* Modal Overlay and Centering - Only when shown */
+.modal.show {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(4px);
+}
+
+.modal-dialog {
+    margin: 1.75rem auto !important;
+    width: 80vw;
+    max-width: 500px;
+    min-width: 500px;
+    max-height: 90vh;
+    position: relative;
+    transition: transform 0.3s ease-out;
+}
+
+.modal.show .modal-dialog {
+    transform: none !important;
+}
+
+.modal.fade .modal-dialog {
+    transform: translate(0, -50px);
+}
+
+.modal-content {
+    background-color: var(--bs-body-bg) !important;
+    color: var(--bs-body-color) !important;
+    border: 1px solid var(--bs-border-color) !important;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
 /* Icon definitions using CSS pseudo-elements */
 .icon-collapse::before {
     content: "⌄";
@@ -2167,8 +2259,30 @@
     text-align: center;
 }
 
-/* Responsive modal */
+/* Responsive modal sizing */
+@media (max-width: 1400px) {
+    .modal-dialog {
+        width: 85vw;
+        max-width: 1000px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .modal-dialog {
+        width: 90vw;
+        max-width: 900px;
+        min-width: 500px;
+    }
+}
+
 @media (max-width: 768px) {
+    .modal-dialog {
+        width: 95vw;
+        max-width: none;
+        min-width: 320px;
+        margin: 1rem auto !important;
+    }
+
     .file-preview-modal .modal-dialog {
         max-width: 95vw;
         width: 95vw;
@@ -2207,6 +2321,14 @@
 
     .modal-subtitle {
         font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-dialog {
+        width: 98vw;
+        min-width: 300px;
+        margin: 0.5rem auto !important;
     }
 }
 
@@ -2265,6 +2387,8 @@
 .modal {
     --bs-modal-bg: var(--bs-body-bg);
     --bs-modal-color: var(--bs-body-color);
+    /* Ensure modal is hidden by default */
+    display: none;
 }
 
 .modal-dialog {
