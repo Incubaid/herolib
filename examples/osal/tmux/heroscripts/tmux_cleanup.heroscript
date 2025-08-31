@@ -1,3 +1,5 @@
+#!/usr/bin/env hero
+
 // Tmux Cleanup Script - Tears down all tmux sessions, windows, and panes
 // Run this after tmux_setup.heroscript to clean up everything
 

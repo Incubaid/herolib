@@ -1,3 +1,5 @@
+#!/usr/bin/env hero
+
 // Declarative TMUX Configuration Example
 // This demonstrates the declarative paradigm where we define the desired state
 

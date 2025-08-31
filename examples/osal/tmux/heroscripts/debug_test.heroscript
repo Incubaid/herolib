@@ -1,3 +1,5 @@
+#!/usr/bin/env hero
+
 // Debug test - no ttyd, just basic declarative functionality
 
 // Ensure a test session exists
