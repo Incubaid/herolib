@@ -55,7 +55,7 @@ pub mut:
     author      u32 //links to user
 }
 
-//get new comment, not our of db
+//get new comment, not from the DB
 pub fn comment_new(args CommentArg) !Comment{
     mut o:=Comment {
         comment: args.comment
@@ -66,8 +66,18 @@ pub fn comment_new(args CommentArg) !Comment{
     return o
 }    
 
-pub fn comment_set(mut o Comment) !u32{
+pub fn comment_multiset(args []CommentArg) ![]u32{
+    mut ids := []u32{}
+    for comment in args {
+        ids << comment_set(comment)!
+    }
+    return ids
+}
+
+
+pub fn comment_set(args CommentArg) !u32{
     mut redis := redisclient.core_get()!
+    mut o:=comment_new(args)!
     myid := redis.incr("db:comments:id")!
     o.id = myid
     data := o.dump()!

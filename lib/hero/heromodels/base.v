@@ -19,7 +19,7 @@ pub mut:
     updated_at   i64
     securitypolicy u32
     tags         u32 //when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
-    comments []u32
+    comments     []u32
 }
 
 
@@ -76,20 +76,26 @@ pub fn tags2id(tags []string) !u32 {
     return myid
 }
 
-pub fn [T] new(args BaseArgs) Base {
-
-    mut redis := redisclient.core_get()!
-
-    redis.hget("db:comments")
-
-    return T{
-        id: args.id or { 0 }
-        name: args.name
-        description: args.description
-        created_at: ourtime.now().unix()
-        updated_at: ourtime.now().unix()
-        securitypolicy: args.securitypolicy or { 0 }
-        tags: args.tags
-        comments: args.comments.map(it.to_base())
+pub fn comments2id(comments []CommentArg) !u32 {
+    mut myid:=0
+    if comments.len>0{
+        mycomments:=comments.map(it.to_lower_ascii().trim_space()).sort().join(",")
+        mymd5:=crypto.hexhash(mycomments)
+        comments:=redis.hget("db:comments", mymd5)!
+        if comments == ""{            
+            myid = u32(redis.incr("db:comments:id")!)
+            redis.hset("db:comments", mymd5, myid)!
+            redis.hset("db:comments", myid, mycomments)!
+        }else{
+            myid = comments.int()
+        }
     }
+    return myid
 }
+
+
+    // Convert CommentArg array to u32 array
+    mut comment_ids := []u32{}
+    for comment in args.comments {
+        comment_ids << comment_set(comment)!
+    }

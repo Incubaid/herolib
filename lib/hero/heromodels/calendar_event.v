@@ -12,7 +12,6 @@ pub struct CalendarEvent {
     Base
 pub mut:
     title          string
-    description    string
     start_time     i64         // Unix timestamp
     end_time       i64         // Unix timestamp
     location       string
@@ -76,10 +75,9 @@ pub enum RecurrenceFreq {
 
 @[params]
 pub struct CalendarEventArgs {
-    Base
+    BaseArgs
 pub mut:
     title          string
-    description    string
     start_time     string         // use ourtime module to go from string to epoch
     end_time       string         // use ourtime module to go from string to epoch
     location       string
@@ -98,22 +96,17 @@ pub mut:
 
 pub fn calendar_event_new(args CalendarEventArgs) !CalendarEvent {
     // Convert tags to u32 ID
-    tags_id := tags2id(args.Base.tags)!
+    tags_id := tags2id(args.tags)!
     
-    // Convert CommentArg array to u32 array
-    mut comment_ids := []u32{}
-    for comment in args.comments {
-        comment_ids << comment_set(comment)!
-    }
 
     return CalendarEvent{
         // Base fields
-        id: args.Base.id or { 0 }
-        name: args.Base.name
-        description: args.Base.description
+        id: args.id or { 0 }
+        name: args.name
+        description: args.description
         created_at: ourtime.now().unix()
         updated_at: ourtime.now().unix()
-        securitypolicy: args.Base.securitypolicy or { 0 }
+        securitypolicy: args.securitypolicy or { 0 }
         tags: tags_id
         comments: comment_ids
 
