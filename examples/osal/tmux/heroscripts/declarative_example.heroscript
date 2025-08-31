@@ -8,59 +8,59 @@
     name:'dev'
 
 // Ensure a monitoring session exists  
-!!tmux.session_ensure
-    name:'monitoring'
+// !!tmux.session_ensure
+//     name:'monitoring'
 
 // Ensure a 4-pane development window exists
-!!tmux.window_ensure
-    name:"dev|workspace"
-    cat:"4pane"
+// !!tmux.window_ensure
+//     name:"dev|workspace"
+//     cat:"8pane"
 
-// Ensure a 2-pane monitoring window exists
-!!tmux.window_ensure
-    name:"monitoring|system"
-    cat:"2pane"
+// // Ensure a 2-pane monitoring window exists
+// !!tmux.window_ensure
+//     name:"monitoring|system"
+//     cat:"2pane"
 
-// Ensure specific panes with commands
-!!tmux.pane_ensure
-    name:"dev|workspace|1"
-    label:"editor"
-    cmd:"echo Starting editor... && sleep 1 && echo Editor ready"
+// // Ensure specific panes with commands
+// !!tmux.pane_ensure
+//     name:"dev|workspace|1"
+//     label:"editor"
+//     cmd:"echo Starting editor... && sleep 1 && echo Editor ready"
 
-!!tmux.pane_ensure
-    name:"dev|workspace|2"
-    label:"server"
-    cmd:"echo Starting development server... && sleep 2 && echo Server running on port 3000"
-    env:"PORT=3000,NODE_ENV=development"
+// !!tmux.pane_ensure
+//     name:"dev|workspace|2"
+//     label:"server"
+//     cmd:"echo Starting development server... && sleep 2 && echo Server running on port 3000"
+//     env:"PORT=3000,NODE_ENV=development"
 
 !!tmux.pane_ensure
     name:"dev|workspace|3"
     label:"logs"
     cmd:"echo Monitoring logs... && tail -f /dev/null"
 
-!!tmux.pane_ensure
-    name:"dev|workspace|4"
-    label:"terminal"
-    cmd:"echo Terminal ready for commands"
+// !!tmux.pane_ensure
+//     name:"dev|workspace|4"
+//     label:"terminal"
+//     cmd:"echo Terminal ready for commands"
 
 !!tmux.pane_ensure
-    name:"monitoring|system|1"
+    name:"dev|mon|2"
     label:"htop"
     cmd:"htop"
 
-!!tmux.pane_ensure
-    name:"monitoring|system|2"
-    label:"network"
-    cmd:"echo Network monitoring... && netstat -tuln"
+// !!tmux.pane_ensure
+//     name:"monitoring|system|2"
+//     label:"network"
+//     cmd:"echo Network monitoring... && netstat -tuln"
 
-// Start web access for the development session
+// // Start web access for the development session
 !!tmux.session_ttyd
     name:'dev'
-    port:8080
+    port:8089
     editable:true
 
-// Start web access for the monitoring session
-!!tmux.session_ttyd
-    name:'monitoring'
-    port:8081
-    editable:false
+// // Start web access for the monitoring session
+// !!tmux.session_ttyd
+//     name:'monitoring'
+//     port:8081
+//     editable:false
