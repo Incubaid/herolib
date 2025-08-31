@@ -1,0 +1,304 @@
+module lima
+
+import freeflowuniverse.herolib.core.base
+import freeflowuniverse.herolib.core.playbook { PlayBook }
+import freeflowuniverse.herolib.ui.console
+import json
+import freeflowuniverse.herolib.osal.startupmanager
+import time
+
+__global (
+	lima_global  map[string]&LimaInstaller
+	lima_default string
+)
+
+/////////FACTORY
+
+@[params]
+pub struct ArgsGet {
+pub mut:
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
+}
+
+pub fn new(args ArgsGet) !&LimaInstaller {
+	mut obj := LimaInstaller{
+		name: args.name
+	}
+	set(obj)!
+	return get(name: args.name)!
+}
+
+pub fn get(args ArgsGet) !&LimaInstaller {
+	mut context := base.context()!
+	lima_default = args.name
+	if args.fromdb || args.name !in lima_global {
+		mut r := context.redis()!
+		if r.hexists('context:lima', args.name)! {
+			data := r.hget('context:lima', args.name)!
+			if data.len == 0 {
+				print_backtrace()
+				return error('LimaInstaller with name: lima does not exist, prob bug.')
+			}
+			mut obj := json.decode(LimaInstaller, data)!
+			set_in_mem(obj)!
+		} else {
+			if args.create {
+				new(args)!
+			} else {
+				print_backtrace()
+				return error("LimaInstaller with name 'lima' does not exist")
+			}
+		}
+		return get(name: args.name)! // no longer from db nor create
+	}
+	return lima_global[args.name] or {
+		print_backtrace()
+		return error('could not get config for lima with name:lima')
+	}
+}
+
+// register the config for the future
+pub fn set(o LimaInstaller) ! {
+	mut o2 := set_in_mem(o)!
+	lima_default = o2.name
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hset('context:lima', o2.name, json.encode(o2))!
+}
+
+// does the config exists?
+pub fn exists(args ArgsGet) !bool {
+	mut context := base.context()!
+	mut r := context.redis()!
+	return r.hexists('context:lima', args.name)!
+}
+
+pub fn delete(args ArgsGet) ! {
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hdel('context:lima', args.name)!
+}
+
+@[params]
+pub struct ArgsList {
+pub mut:
+	fromdb bool // will load from filesystem
+}
+
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&LimaInstaller {
+	mut res := []&LimaInstaller{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		lima_global = map[string]&LimaInstaller{}
+		lima_default = ''
+	}
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:lima')!
+
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in lima_global {
+			res << client
+		}
+	}
+	return res
+}
+
+// only sets in mem, does not set as config
+fn set_in_mem(o LimaInstaller) !LimaInstaller {
+	mut o2 := obj_init(o)!
+	lima_global[o2.name] = &o2
+	lima_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'lima.') {
+		return
+	}
+	mut install_actions := plbook.find(filter: 'lima.configure')!
+	if install_actions.len > 0 {
+		for mut install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+			install_action.done = true
+		}
+	}
+	mut other_actions := plbook.find(filter: 'lima.')!
+	for mut other_action in other_actions {
+		if other_action.name in ['destroy', 'install', 'build'] {
+			mut p := other_action.params
+			reset := p.get_default_false('reset')
+			if other_action.name == 'destroy' || reset {
+				console.print_debug('install action lima.destroy')
+				destroy()!
+			}
+			if other_action.name == 'install' {
+				console.print_debug('install action lima.install')
+				install()!
+			}
+		}
+		if other_action.name in ['start', 'stop', 'restart'] {
+			mut p := other_action.params
+			name := p.get('name')!
+			mut lima_obj := get(name: name)!
+			console.print_debug('action object:\n${lima_obj}')
+			if other_action.name == 'start' {
+				console.print_debug('install action lima.${other_action.name}')
+				lima_obj.start()!
+			}
+
+			if other_action.name == 'stop' {
+				console.print_debug('install action lima.${other_action.name}')
+				lima_obj.stop()!
+			}
+			if other_action.name == 'restart' {
+				console.print_debug('install action lima.${other_action.name}')
+				lima_obj.restart()!
+			}
+		}
+		other_action.done = true
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.StartupManager {
+	// unknown
+	// screen
+	// zinit
+	// tmux
+	// systemd
+	match cat {
+		.screen {
+			console.print_debug("installer: lima' startupmanager get screen")
+			return startupmanager.get(.screen)!
+		}
+		.zinit {
+			console.print_debug("installer: lima' startupmanager get zinit")
+			return startupmanager.get(.zinit)!
+		}
+		.systemd {
+			console.print_debug("installer: lima' startupmanager get systemd")
+			return startupmanager.get(.systemd)!
+		}
+		else {
+			console.print_debug("installer: lima' startupmanager get auto")
+			return startupmanager.get(.auto)!
+		}
+	}
+}
+
+// load from disk and make sure is properly intialized
+pub fn (mut self LimaInstaller) reload() ! {
+	self = obj_init(self)!
+}
+
+pub fn (mut self LimaInstaller) start() ! {
+	if self.running()! {
+		return
+	}
+
+	console.print_header('installer: lima start')
+
+	if !installed()! {
+		install()!
+	}
+
+	configure()!
+
+	start_pre()!
+
+	for zprocess in startupcmd()! {
+		mut sm := startupmanager_get(zprocess.startuptype)!
+
+		console.print_debug('installer: lima starting with ${zprocess.startuptype}...')
+
+		sm.new(zprocess)!
+
+		sm.start(zprocess.name)!
+	}
+
+	start_post()!
+
+	for _ in 0 .. 50 {
+		if self.running()! {
+			return
+		}
+		time.sleep(100 * time.millisecond)
+	}
+	return error('lima did not install properly.')
+}
+
+pub fn (mut self LimaInstaller) install_start(args InstallArgs) ! {
+	switch(self.name)
+	self.install(args)!
+	self.start()!
+}
+
+pub fn (mut self LimaInstaller) stop() ! {
+	switch(self.name)
+	stop_pre()!
+	for zprocess in startupcmd()! {
+		mut sm := startupmanager_get(zprocess.startuptype)!
+		sm.stop(zprocess.name)!
+	}
+	stop_post()!
+}
+
+pub fn (mut self LimaInstaller) restart() ! {
+	switch(self.name)
+	self.stop()!
+	self.start()!
+}
+
+pub fn (mut self LimaInstaller) running() !bool {
+	switch(self.name)
+
+	// walk over the generic processes, if not running return
+	for zprocess in startupcmd()! {
+		if zprocess.startuptype != .screen {
+			mut sm := startupmanager_get(zprocess.startuptype)!
+			r := sm.running(zprocess.name)!
+			if r == false {
+				return false
+			}
+		}
+	}
+	return running()!
+}
+
+@[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
+}
+
+pub fn (mut self LimaInstaller) install(args InstallArgs) ! {
+	switch(self.name)
+	if args.reset || (!installed()!) {
+		install()!
+	}
+}
+
+pub fn (mut self LimaInstaller) destroy() ! {
+	switch(self.name)
+	self.stop() or {}
+	destroy()!
+}
+
+// switch instance to be used for lima
+pub fn switch(name string) {
+}

@@ -5,7 +5,7 @@ import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.ui.console
 import os
 
-pub const version = '1.7.2'
+pub const version = '1.9.0'
 const singleton = false
 const default = true
 

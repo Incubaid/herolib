@@ -1,34 +1,19 @@
-# zinit
+# Installer - Zinit Installer Module
 
+This module provides heroscript actions for installing and managing Zinit.
 
+## Actions
 
-To get started
+### `zinit_installer.install`
 
-```v
+Installs the Zinit process manager.
 
+**Parameters:**
 
-import freeflowuniverse.herolib.installers.something. zinit
+-   `reset` (bool): If true, force a reinstall even if Zinit is already detected. Default: `false`.
 
-mut installer:= zinit.get()!
+**Example:**
 
-installer.start()!
-
-
-
-
-```
-
-## example heroscript
-
-```hero
-!!zinit.install
-    homedir: '/home/user/zinit'
-    username: 'admin'
-    password: 'secretpassword'
-    title: 'Some Title'
-    host: 'localhost'
-    port: 8888
-
-```
-
-
+```heroscript
+!!zinit_installer.install
+reset: true

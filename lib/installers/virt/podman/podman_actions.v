@@ -37,57 +37,56 @@ fn upload() ! {
 
 fn install() ! {
 	console.print_header('install podman')
-	mut url := ''
+
+	// Linux installation using package manager
 	if core.is_linux_arm()! || core.is_linux_intel()! {
+		console.print_header('installing podman on linux')
 		osal.package_install('podman,buildah,crun,mmdebstrap')!
+		console.print_header('podman is installed')
 		return
-	} else if core.is_linux_intel()! {
-		url = 'https://github.com/containers/podman/releases/download/v${version}/podman-installer-macos-arm64.pkg'
-	} else if core.is_osx_intel()! {
-		url = 'https://github.com/containers/podman/releases/download/v${version}/podman-installer-macos-amd64.pkg'
-	} else {
-		return error('unsported platform')
 	}
 
-	mut dest := osal.download(
-		url:        url
-		minsize_kb: 9000
-		expand_dir: '/tmp/podman'
-	)!
+	if core.is_osx_arm()! || core.is_osx_intel()! {
+		console.print_header('installing podman on macos')
+		osal.exec(cmd: 'brew install podman')!
+		console.print_header('podman is installed')
+		return
+	}
 
-	// dest.moveup_single_subdir()!
-
-	panic('implement')
+	return error('unsupported platform')
 }
 
 fn destroy() ! {
-	// mut systemdfactory := systemd.new()!
-	// systemdfactory.destroy("zinit")!
+	console.print_header('destroy podman')
 
-	// osal.process_kill_recursive(name:'zinit')!
-	// osal.cmd_delete('zinit')!
+	if !installed()! {
+		console.print_header('podman is not installed')
+		return
+	}
 
-	osal.package_remove('
-       podman
-       conmon
-       buildah
-       skopeo
-       runc
-    ')!
+	// Stop any running podman processes
+	osal.exec(cmd: 'pkill -f podman', ignore_error: true)!
 
-	// //will remove all paths where go/bin is found
-	// osal.profile_path_add_remove(paths2delete:"go/bin")!
+	if core.is_linux_arm()! || core.is_linux_intel()! {
+		console.print_header('destroying podman on linux')
+		osal.package_remove('
+		   podman
+		   buildah
+		   mmdebstrap
+		   crun
+		')!
+	} else if core.is_osx_arm()! || core.is_osx_intel()! {
+		console.print_header('destroying podman on macos')
+		osal.exec(cmd: 'brew uninstall podman')!
+	} else {
+		return error('unsupported platform')
+	}
 
+	// Remove temporary directories (common to all platforms)
 	osal.rm('
-       podman
-       conmon
-       buildah
-       skopeo
-       runc
-       /var/lib/containers
-       /var/lib/podman
-       /var/lib/buildah
-       /tmp/podman
-       /tmp/conmon
-    ')!
+	   /tmp/podman
+	   /tmp/conmon
+	')!
+
+	console.print_header('podman destruction completed')
 }

@@ -1,0 +1,58 @@
+!!incatokens.simulate
+	name: 'inca_mainnet_simulation'
+	total_supply: 10000000000
+	public_pct: 0.50
+	team_pct: 0.15
+	treasury_pct: 0.15
+	investor_pct: 0.20
+	nrcol: 60
+	currency: 'USD'
+	epoch1_floor_uplift: 1.20
+	epochn_floor_uplift: 1.20
+	amm_liquidity_depth_factor: 2.0
+	team_cliff_months: 12
+	team_vesting_months: 36
+	treasury_cliff_months: 12
+	treasury_vesting_months: 48
+	export_dir: './simulation_output'
+	generate_csv: true
+	generate_charts: true
+	generate_report: true
+
+!!incatokens.scenario
+	name: 'Conservative'
+	demands: [8000000, 8000000, 0]
+	amm_trades: [0, 0, 0]
+
+!!incatokens.scenario
+	name: 'Moderate'
+	demands: [25000000, 50000000, 0]
+	amm_trades: [0, 0, 0]
+
+!!incatokens.scenario
+	name: 'Optimistic'
+	demands: [50000000, 100000000, 0]
+	amm_trades: [5000000, 10000000, 0]
+
+!!incatokens.investor_round
+	name: 'Seed'
+	allocation_pct: 0.03
+	price: 0.003
+	cliff_months: 6
+	vesting_months: 24
+
+!!incatokens.investor_round
+	name: 'Series_A'
+	allocation_pct: 0.07
+	price: 0.008
+	cliff_months: 6
+	vesting_months: 24
+
+!!incatokens.investor_round
+	name: 'Series_B' 
+	allocation_pct: 0.10
+	price: 0.012
+	cliff_months: 3
+	vesting_months: 18
+
+!!incatokens.export path:"/tmp/incatokens_export"

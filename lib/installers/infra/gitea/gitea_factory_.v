@@ -38,6 +38,7 @@ pub fn get(args ArgsGet) !&GiteaServer {
 		if r.hexists('context:gitea', args.name)! {
 			data := r.hget('context:gitea', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('GiteaServer with name: gitea does not exist, prob bug.')
 			}
 			mut obj := json.decode(GiteaServer, data)!
@@ -46,12 +47,14 @@ pub fn get(args ArgsGet) !&GiteaServer {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("GiteaServer with name 'gitea' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return gitea_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for gitea with name:gitea')
 	}
 }
@@ -124,14 +127,15 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'gitea.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
 	mut other_actions := plbook.find(filter: 'gitea.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -163,6 +167,7 @@ pub fn play(mut plbook PlayBook) ! {
 				gitea_obj.restart()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
@@ -178,19 +183,19 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 	// systemd
 	match cat {
 		.screen {
-			console.print_debug('startupmanager: zinit')
+			console.print_debug("installer: gitea' startupmanager get screen")
 			return startupmanager.get(.screen)!
 		}
 		.zinit {
-			console.print_debug('startupmanager: zinit')
+			console.print_debug("installer: gitea' startupmanager get zinit")
 			return startupmanager.get(.zinit)!
 		}
 		.systemd {
-			console.print_debug('startupmanager: systemd')
+			console.print_debug("installer: gitea' startupmanager get systemd")
 			return startupmanager.get(.systemd)!
 		}
 		else {
-			console.print_debug('startupmanager: auto')
+			console.print_debug("installer: gitea' startupmanager get auto")
 			return startupmanager.get(.auto)!
 		}
 	}
@@ -206,7 +211,7 @@ pub fn (mut self GiteaServer) start() ! {
 		return
 	}
 
-	console.print_header('gitea start')
+	console.print_header('installer: gitea start')
 
 	if !installed()! {
 		install()!
@@ -219,7 +224,7 @@ pub fn (mut self GiteaServer) start() ! {
 	for zprocess in startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		console.print_debug('starting gitea with ${zprocess.startuptype}...')
+		console.print_debug('installer: gitea starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
 

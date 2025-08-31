@@ -107,7 +107,7 @@ hero run -p <heroscript_file>
 
 #### Ttyd Management
 
-```heroscript
+```hs
 // Start ttyd for session access
 !!tmux.session_ttyd
     name:'mysession'
@@ -180,7 +180,7 @@ The declarative `window_ensure` action supports predefined pane layouts:
 
 ### Complete Imperative Example
 
-```heroscript
+```hs
 #!/usr/bin/env hero
 
 // Create development environment

@@ -2,7 +2,7 @@ module zinit_installer
 
 import freeflowuniverse.herolib.data.encoderhero
 
-pub const version = '0.2.25'
+pub const version = '0.2.27'
 const singleton = true
 const default = true
 

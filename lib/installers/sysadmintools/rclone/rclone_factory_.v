@@ -37,6 +37,7 @@ pub fn get(args ArgsGet) !&RClone {
 		if r.hexists('context:rclone', args.name)! {
 			data := r.hget('context:rclone', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('RClone with name: rclone does not exist, prob bug.')
 			}
 			mut obj := json.decode(RClone, data)!
@@ -45,12 +46,14 @@ pub fn get(args ArgsGet) !&RClone {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("RClone with name 'rclone' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return rclone_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for rclone with name:rclone')
 	}
 }
@@ -123,14 +126,15 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'rclone.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
 	mut other_actions := plbook.find(filter: 'rclone.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -143,6 +147,7 @@ pub fn play(mut plbook PlayBook) ! {
 				install()!
 			}
 		}
+		other_action.done = true
 	}
 }
 

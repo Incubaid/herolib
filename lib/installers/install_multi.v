@@ -104,9 +104,7 @@ pub fn install_multi(args_ InstallArgs) ! {
 			}
 			'hero' {
 				herolib.install(
-					reset:     args.reset
-					git_pull:  args.gitpull
-					git_reset: args.gitreset
+					reset: args.reset
 				)!
 			}
 			// 'hero' {

@@ -95,7 +95,6 @@ fn cmd_bootstrap_execute(cmd Command) ! {
 		if develop {
 			// n.crystal_install(reset: reset)!
 			n.hero_install()!
-			n.dagu_install()!
 		} else {
 			panic('implement, need to download here and install')
 		}

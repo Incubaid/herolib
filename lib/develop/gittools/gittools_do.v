@@ -5,7 +5,7 @@ import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.ui.console
 import os
 
-pub const gitcmds = 'clone,commit,pull,push,delete,reload,list,edit,sourcetree,cd'
+pub const gitcmds = 'clone,commit,pull,push,delete,reload,list,edit,sourcetree,path,exists'
 
 @[params]
 pub struct ReposActionsArgs {
@@ -99,7 +99,7 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 		provider: args.provider
 	)!
 
-	if repos.len<4 || args.cmd in 'pull,push,commit,delete'.split(',') {
+	if repos.len < 4 || args.cmd in 'pull,push,commit,delete'.split(',') {
 		args.reload = true
 	}
 
@@ -115,6 +115,20 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 			provider: args.provider
 		)!
 		return ''
+	}
+
+	if args.cmd == 'exists' {
+		return gs.check_repos_exist(args)
+	}
+
+	if args.cmd == 'path' {
+		if repos.len == 0 {
+			return error('No repository found for path command')
+		}
+		if repos.len > 1 {
+			return error('Multiple repositories found for path command, please be more specific')
+		}
+		return repos[0].path()
 	}
 
 	// means we are on 1 repo

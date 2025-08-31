@@ -4,68 +4,95 @@ import net
 import time
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core
-
-pub enum PingResult {
-	ok
-	timeout     // timeout from ping
-	unknownhost // means we don't know the hostname its a dns issue
-}
+import math
+import os
 
 @[params]
 pub struct PingArgs {
 pub mut:
-	address string @[required]
-	count   u8  = 1 // the ping is successful if it got count amount of replies from the other side
-	timeout u16 = 1 // the time in which the other side should respond in seconds
-	retry   u8
+	address string = '8.8.8.8'
+	nr_ping u16    = 2 // amount of ping requests we will do
+	nr_ok   u16    = 2 // how many of them need to be ok
+	retry   u8 // how many times fo we retry above sequence, basically we ping ourselves with -c 1
 }
 
-// if reached in timout result will be True
-// address is e.g. 8.8.8.8
-// ping means we check if the destination responds
-pub fn ping(args PingArgs) !PingResult {
+// if ping ok, return true
+pub fn ping(args PingArgs) !bool {
 	platform_ := core.platform()!
 	mut cmd := 'ping'
 	if args.address.contains(':') {
 		cmd = 'ping6'
 	}
+	// if platform_ == .windows {
+	// 	cmd += ' -n 1 -w 1000'
 	if platform_ == .osx {
-		cmd += ' -c ${args.count} -i ${args.timeout} ${args.address}'
-	} else if platform_ == .ubuntu {
-		cmd += ' -c ${args.count} -w ${args.timeout} ${args.address}'
+		cmd += ' -c1 -t2'
 	} else {
-		return error('Unsupported platform for ping')
+		// linux
+		cmd += ' -c1 -w2'
 	}
-	console.print_debug(cmd)
-	_ := exec(cmd: cmd, retry: args.retry, timeout: 0, stdout: false) or {
-		// println("ping failed.error.\n${err}")
-		if err.code() == 9999 {
-			return .timeout
+	cmd += ' ${args.address}'
+	if args.nr_ok > args.nr_ping {
+		return error('nr_ok must be <= nr_ping')
+	}
+	for _ in 0 .. math.max(1, args.retry) {
+		mut nrerrors := 0
+		for _ in 0 .. args.nr_ping {
+			res := os.execute(cmd)
+			if res.exit_code > 0 {
+				nrerrors += 1
+			}
+			console.print_debug('${cmd} ${res.exit_code} ${nrerrors}')
 		}
-		if platform_ == .osx {
-			return match err.code() {
-				2 {
-					.timeout
-				}
-				68 {
-					.unknownhost
-				}
-				else {
-					// println("${err} ${err.code()}")
-					return error("can't ping on osx (${err.code()})\n${err}")
-				}
-			}
-		} else if platform_ == .ubuntu {
-			return match err.code() {
-				1 { .timeout }
-				2 { .unknownhost }
-				else { error("can't ping on ubuntu (${err.code()})\n${err}") }
-			}
-		} else {
-			panic('bug, should never get here')
+		successes := args.nr_ping - nrerrors
+		if successes >= args.nr_ok {
+			return true
 		}
 	}
-	return .ok
+	return false
+}
+
+@[params]
+pub struct RebootWaitArgs {
+pub mut:
+	address      string @[required] // 192.168.8.8
+	timeout_down i64 = 60 // total time in seconds to wait till its down
+	timeout_up   i64 = 60 * 5
+}
+
+// test if a tcp port answers
+//```
+// address string //192.168.8.8
+// port int = 22
+// timeout u16 = 2000 // total time in milliseconds to keep on trying
+//```
+pub fn reboot_wait(args RebootWaitArgs) ! {
+	start_time := time.now().unix()
+	mut run_time := 0.0
+	for true {
+		console.print_debug('Waiting for server to go down...')
+		run_time = time.now().unix()
+		if run_time > start_time + args.timeout_down {
+			return error('timeout in waiting for server down')
+		}
+		if ping(address: args.address)! == false {
+			break
+		}
+		// println(ping(address: args.address)!)
+		time.sleep(1)
+	}
+	for true {
+		console.print_debug('Waiting for server to come back up...')
+		run_time = time.now().unix()
+		if run_time > start_time + args.timeout_up {
+			return error('timeout in waiting for server up')
+		}
+		if ping(address: args.address)! == true {
+			// println(ping(address: args.address)!)
+			break
+		}
+		time.sleep(1)
+	}
 }
 
 @[params]
@@ -139,4 +166,85 @@ pub fn is_ip_on_local_interface(public_ip string) !bool {
 		}
 	}
 	return false
+}
+
+// will give error if ssh test did not work
+pub fn ssh_check(args TcpPortTestArgs) ! {
+	errmsg, res := ssh_testrun_internal(args)!
+	if res != .ok {
+		return error(errmsg)
+	}
+}
+
+pub enum SSHResult {
+	ok
+	ping    // timeout from ping
+	tcpport // means we don't know the hostname its a dns issue
+	ssh
+}
+
+pub fn ssh_test(args TcpPortTestArgs) !SSHResult {
+	_, res := ssh_testrun_internal(args)!
+	return res
+}
+
+// will give error if ssh test did not work
+pub fn ssh_wait(args TcpPortTestArgs) ! {
+	start_time := time.now().unix_milli()
+	mut run_time := 0.0
+	for true {
+		run_time = time.now().unix_milli()
+
+		errmsg, res := ssh_testrun_internal(args)!
+		// console.print_debug(errmsg)
+
+		if run_time > start_time + args.timeout {
+			return error(errmsg)
+		}
+
+		if res == .ok {
+			return
+		}
+	}
+}
+
+fn ssh_testrun_internal(args TcpPortTestArgs) !(string, SSHResult) {
+	cmd := '
+	set -ex
+	ssh -o BatchMode=yes -o ConnectTimeout=3 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -q root@${args.address} exit
+	if [ $? -eq 0 ]; then
+	echo "OK: SSH works"
+	exit 0
+	fi	
+	timeout 1 nc -z "${args.address}" 22 >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	echo "ERROR: SSH failed but port ${args.port} open"
+	exit 1
+	fi
+	# Cross-platform ping (Linux vs macOS)
+	if [[ "$(uname)" == "Darwin" ]]; then
+		ping -c1 -t2 "${args.address}" >/dev/null 2>&1
+	else
+		ping -c1 -w2 "${args.address}" >/dev/null 2>&1
+	fi
+	if [ $? -eq 0 ]; then
+	echo "ERROR: SSH & port test failed, host reachable by ping"
+	exit 2
+	fi
+	echo "ERROR: Host unreachable, over ping and ssh"
+	exit 3
+	'
+
+	res := exec(cmd: cmd, ignore_error: true, stdout: false, debug: false)!
+	// console.print_debug('ssh test ${res.exit_code}: ===== cmd:\n${cmd}\n=====\n${res.output}')
+
+	if res.exit_code == 0 {
+		return res.output, SSHResult.ok
+	} else if res.exit_code == 1 {
+		return res.output, SSHResult.tcpport
+	} else if res.exit_code == 2 {
+		return res.output, SSHResult.ping
+	} else {
+		return res.output, SSHResult.ssh
+	}
 }

@@ -14,6 +14,7 @@ mut:
 	// Returns:
 	//   - The response string or an error if the send operation fails
 	send(request string, params SendParams) !string
+	url() string
 }
 
 // SendParams defines configuration options for sending JSON-RPC requests.
@@ -65,11 +66,52 @@ pub fn new_client(transport IRPCTransportClient) &Client {
 //   - The response result of type D or an error if any step in the process fails
 pub fn (mut c Client) send[T, D](request RequestGeneric[T], params SendParams) !D {
 	// Send the encoded request through the transport layer
+	console.print_debug('Sending request: \n*****\n${request.encode()}\n*****\n')
+	response_json := c.transport.send(request.encode(), params) or {
+		if err.msg().contains('net: op timed out') {
+			console.print_debug('time out')
+		}
+		// print_backtrace()
+		// println(err)
+		// $dbg;
+		return error('Failed to send request for jsonrpc:\n${request.encode()}\n${err}')
+	}
+	// Decode the response JSON into a strongly-typed response object
+	response := decode_response_generic[D](response_json) or {
+		return error('Unable to decode response.\nRequest: ${request.encode()}\nResponse: ${response_json}\nError: ${err}')
+	}
+
+	// Validate the response according to the JSON-RPC specification
+	response.validate() or { return error('Received invalid response: ${err}') }
+
+	// Ensure the response ID matches the request ID to prevent response/request mismatch
+	if response.id != request.id {
+		return error('Received response with different id ${response}')
+	}
+
+	// Return the result or propagate any error from the response
+	return response.result() or {
+		myerror := response.error_ or {
+			return error('Failed to get error from response:\nRequest: ${request.encode()}\nResponse: ${response_json}\n${err}')
+		}
+		// print_backtrace()
+		mut myreq := request.encode()
+		if c.transport is UnixSocketTransport {
+			myreq = "To Test:\n**********\necho '\n${myreq}\n' | nc -U ${c.transport.url()}\n**********"
+		} else {
+			myreq = 'Path:${c.transport.url()}\nRequest:\n${myreq}'
+		}
+		return error('\nRPC Request Failed.\n${myreq}\n${myerror}')
+	}
+}
+
+pub fn (mut c Client) send_str(request Request, params SendParams) !string {
+	// Send the encoded request through the transport layer
 	console.print_debug('Sending request: ${request.encode()}')
 	response_json := c.transport.send(request.encode(), params)!
 
 	// Decode the response JSON into a strongly-typed response object
-	response := decode_response_generic[D](response_json) or {
+	response := decode_response(response_json) or {
 		return error('Unable to decode response.\n- Response: ${response_json}\n- Error: ${err}')
 	}
 

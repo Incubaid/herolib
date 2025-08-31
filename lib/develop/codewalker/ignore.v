@@ -23,7 +23,6 @@ develop-eggs/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/

@@ -163,3 +163,37 @@ pub fn (mut repo GitRepo) open_vscode() ! {
 	mut vs_code := vscode.new(path)
 	vs_code.open()!
 }
+
+// Check if repository exists at its expected path
+pub fn (repo GitRepo) exists() bool {
+	repo_path := repo.path()
+	if !os.exists(repo_path) {
+		return false
+	}
+	git_dir := os.join_path(repo_path, '.git')
+	return os.exists(git_dir)
+}
+
+// Check if any repositories exist based on filter criteria and return result for exists command
+pub fn (mut gs GitStructure) check_repos_exist(args ReposActionsArgs) !string {
+	repos := gs.get_repos(
+		filter:   args.filter
+		name:     args.repo
+		account:  args.account
+		provider: args.provider
+	)!
+	
+	if repos.len > 0 {
+		// Repository exists - print path and return success
+		if !args.script {
+			console.print_green('Repository exists: ${repos[0].path()}')
+		}
+		return repos[0].path()
+	} else {
+		// Repository doesn't exist - return error for exit code 1
+		if !args.script {
+			console.print_stderr('Repository not found')
+		}
+		return error('Repository not found')
+	}
+}

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
 import freeflowuniverse.herolib.clients.zinit
 import freeflowuniverse.herolib.installers.infra.zinit_installer
@@ -51,6 +51,7 @@ println('  - OpenRPC version: ${spec.openrpc}')
 println('  - API title: ${spec.info.title}')
 println('  - API version: ${spec.info.version}')
 println('  - Methods available: ${spec.methods.len}')
+
 
 // 2. List all services
 println('\n2. Listing all services...')

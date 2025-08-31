@@ -24,7 +24,7 @@ pub struct FactoryArgs {
 pub mut:
 	name  string = 'default'
 	host  string = 'localhost'
-	port  int    = 8080
+	port  int    = 9999
 	title string = 'Admin'
 	menu  []MenuItem
 	open  bool
