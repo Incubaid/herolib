@@ -4,12 +4,13 @@ import x.json2 as json
 // import freeflowuniverse.herolib.develop.gittools
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.core.texttools
-import vweb
+import veb
 import os
 
 pub struct Playground {
-	vweb.Context
-	build pathlib.Path @[vweb_global]
+	veb.Context
+	veb.StaticHandler
+	build pathlib.Path @[veb_global]
 }
 
 @[params]
@@ -50,11 +51,11 @@ pub fn new_playground(config PlaygroundConfig) !&Playground {
 		build: build_dir
 	}
 	pg.serve_examples(config.specs) or { return error('failed to serve examples:\n${err}') }
-	pg.mount_static_folder_at('${build_dir.path}/static', '/static')
+	pg.mount_static_folder_at('${build_dir.path}/static', '/static')!
 
 	mut env_file := pathlib.get_file(path: '${build_dir.path}/env.js')!
 	env_file.write(encode_env(config.specs)!)!
-	pg.serve_static('/env.js', env_file.path)
+	pg.serve_static('/env.js', env_file.path)!
 	return &pg
 }
 
@@ -86,11 +87,11 @@ fn (mut pg Playground) serve_examples(specs_ []pathlib.Path) ! {
 			return error('Failed to decode OpenRPC Spec ${spec}:\n${err}')
 		}
 		name := texttools.name_fix(o.info.title)
-		pg.serve_static('/specs/${name}.json', spec.path)
+		pg.serve_static('/specs/${name}.json', spec.path)!
 	}
 }
 
-pub fn (mut pg Playground) index() vweb.Result {
+pub fn (mut pg Playground) index() veb.Result {
 	mut index := pathlib.get_file(path: '${pg.build.path}/index.html') or { panic(err) }
 	return pg.html(index.read() or { panic(err) })
 }

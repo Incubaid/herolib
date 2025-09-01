@@ -10,7 +10,7 @@ import crypto.rand
 import os
 
 // JWT code in this page is from
-// https://github.com/vlang/v/blob/master/examples/vweb_orm_jwt/src/auth_services.v
+// https://github.com/vlang/v/blob/master/examples/veb_orm_jwt/src/auth_services.v
 // credit to https://github.com/enghitalo
 
 pub struct JsonWebToken {

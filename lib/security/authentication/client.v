@@ -4,7 +4,7 @@ import net.http
 import time
 import json
 
-// session controller that be be added to vweb projects
+// session controller that be be added to veb projects
 pub struct EmailClient {
 	url string @[required]
 }
