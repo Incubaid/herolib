@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -52,8 +53,8 @@ pub fn new_fs_symlink(name string, fs_id string, parent_id string, target_id str
         parent_id: parent_id
         target_id: target_id
         target_type: target_type
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
     }
     symlink.calculate_id()
     return symlink

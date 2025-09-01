@@ -101,7 +101,7 @@ fn (mut e Election) vote_for(candidate string) {
 
 // Report node health status
 fn (mut e Election) report_node_health(target_id string, status string) {
-    now := time.now().unix_time()
+    now := time.now().unix()
     msg := '${target_id}:${status}:${now}'
     sig_hex := e.keys.sign(msg)
     
@@ -125,7 +125,7 @@ fn (mut e Election) report_node_health(target_id string, status string) {
 
 // Collect health reports and check for consensus on unavailable nodes
 fn (mut e Election) check_node_availability() {
-    now := time.now().unix_time()
+    now := time.now().unix()
     mut unavailable_reports := map[string]map[string]i64{} // target_id -> reporter_id -> timestamp
     
     for mut c in e.clients {
@@ -193,13 +193,13 @@ fn (mut e Election) promote_buffer_node(failed_node_id string) {
     for mut c in e.clients {
         k := node_status_key(buffer_id)
         c.hset(k, 'status', 'active') or {}
-        c.hset(k, 'promoted_at', time.now().unix_time().str()) or {}
+        c.hset(k, 'promoted_at', time.now().unix().str()) or {}
         c.hset(k, 'replaced_node', failed_node_id) or {}
         
         // Mark failed node as unavailable
         failed_k := node_status_key(failed_node_id)
         c.hset(failed_k, 'status', 'unavailable') or {}
-        c.hset(failed_k, 'failed_at', time.now().unix_time().str()) or {}
+        c.hset(failed_k, 'failed_at', time.now().unix().str()) or {}
     }
     
     println('[${e.self.id}] Promoted buffer node $buffer_id to replace failed node $failed_node_id')
@@ -278,7 +278,7 @@ fn (mut e Election) health_monitor_loop() {
                     heartbeat_key := 'heartbeat:${node_id}'
                     val := c.get(heartbeat_key) or { continue }
                     last_heartbeat := val.i64()
-                    if (time.now().unix_time() - last_heartbeat) < 60 { // 60 seconds threshold
+                    if (time.now().unix() - last_heartbeat) < 60 { // 60 seconds threshold
                         is_available = true
                         break
                     }
@@ -300,7 +300,7 @@ fn (mut e Election) health_monitor_loop() {
 fn (mut e Election) heartbeat_loop() {
     for {
         // Update own heartbeat
-        now := time.now().unix_time()
+        now := time.now().unix()
         for mut c in e.clients {
             heartbeat_key := 'heartbeat:${e.self.id}'
             c.set(heartbeat_key, now.str()) or {}

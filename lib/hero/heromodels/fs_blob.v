@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 
 // FsBlob represents binary data up to 1MB
@@ -27,7 +28,7 @@ pub fn new_fs_blob(data []u8) !FsBlob {
     mut blob := FsBlob{
         data: data
         size_bytes: data.len
-        created_at: time.now().unix_time()
+        created_at: time.now().unix()
         encoding: 'none'
     }
     blob.calculate_id()

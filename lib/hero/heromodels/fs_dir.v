@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -44,8 +45,8 @@ pub fn new_fs_dir(name string, fs_id string, parent_id string, group_id string) 
         fs_id: fs_id
         parent_id: parent_id
         group_id: group_id
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
     }
     dir.calculate_id()
     return dir

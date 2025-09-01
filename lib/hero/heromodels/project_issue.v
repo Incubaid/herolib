@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -107,8 +108,8 @@ pub fn new_project_issue(title string, project_id string, reporter string, issue
         priority: .medium
         status: .open
         swimlane_id: 'todo'
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
     }
     issue.calculate_id()
     return issue
