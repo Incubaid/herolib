@@ -349,6 +349,11 @@ pub mut:
 
 // Run ttyd for this window so it can be accessed in the browser
 pub fn (mut w Window) run_ttyd(args TtydArgs) ! {
+	// Check if the port is available before starting ttyd
+	osal.port_check_available(args.port) or {
+		return error('Cannot start ttyd for window ${w.name}: ${err}')
+	}
+
 	target := '${w.session.name}:@${w.id}'
 
 	// Add -W flag for write access if editable mode is enabled

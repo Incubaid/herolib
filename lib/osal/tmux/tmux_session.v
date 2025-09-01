@@ -305,9 +305,7 @@ pub fn (mut s Session) stop() ! {
 	s.kill_all_processes()!
 
 	// Then kill the tmux session itself
-	osal.execute_silent('tmux kill-session -t ${s.name}') or {
-		return error("Can't delete session ${s.name} - This may happen when session is not found: ${err}")
-	}
+	osal.execute_silent('tmux kill-session -t ${s.name}') or { return }
 }
 
 // Kill all processes in all windows and panes of this session
@@ -328,6 +326,11 @@ pub fn (mut s Session) kill_all_processes() ! {
 
 // Run ttyd for this session so it can be accessed in the browser
 pub fn (mut s Session) run_ttyd(args TtydArgs) ! {
+	// Check if the port is available before starting ttyd
+	osal.port_check_available(args.port) or {
+		return error('Cannot start ttyd for session ${s.name}: ${err}')
+	}
+
 	target := '${s.name}'
 
 	// Add -W flag for write access if editable mode is enabled
