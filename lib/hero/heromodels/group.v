@@ -1,5 +1,6 @@
 module heromodels
 
+import time
 import crypto.blake3
 import json
 
@@ -61,8 +62,8 @@ pub fn new_group(name string, description string) Group {
     mut group := Group{
         name: name
         description: description
-        created_at: time.now().unix_time()
-        updated_at: time.now().unix_time()
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
         is_public: false
     }
     group.calculate_id()
@@ -73,8 +74,8 @@ pub fn (mut g Group) add_member(user_id string, role GroupRole) {
     g.members << GroupMember{
         user_id: user_id
         role: role
-        joined_at: time.now().unix_time()
+        joined_at: time.now().unix()
     }
-    g.updated_at = time.now().unix_time()
+    g.updated_at = time.now().unix()
     g.calculate_id()
 }
