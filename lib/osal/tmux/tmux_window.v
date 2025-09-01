@@ -223,6 +223,10 @@ pub mut:
 	cmd        string            // command to run in new pane
 	horizontal bool              // true for horizontal split, false for vertical
 	env        map[string]string // environment variables
+	// Logging parameters
+	log      bool   // enable logging for this pane
+	logreset bool   // reset/clear existing logs when enabling
+	logpath  string // custom log path, if empty uses default
 }
 
 // Split the active pane horizontally or vertically
@@ -272,11 +276,25 @@ pub fn (mut w Window) pane_split(args PaneSplitArgs) !&Pane {
 		env:                args.env
 		created_at:         time.now()
 		last_output_offset: 0
+		// Initialize logging fields
+		log_enabled: false
+		log_path:    ''
+		logger_pid:  0
 	}
 
 	// Add to window's panes and rescan to get current state
 	w.panes << &new_pane
 	w.scan()!
+
+	// Enable logging if requested
+	if args.log {
+		new_pane.logging_enable(
+			logpath:  args.logpath
+			logreset: args.logreset
+		) or {
+			console.print_debug('Warning: Failed to enable logging for pane %${new_pane.id}: ${err}')
+		}
+	}
 
 	// Return the new pane reference
 	return &new_pane

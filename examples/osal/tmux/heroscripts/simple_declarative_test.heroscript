@@ -16,18 +16,28 @@
     name:"test|demo|1"
     label:"first"
     cmd:"echo First pane ready"
+    log:true
+    logpath:"/tmp/logs"
+    logreset:true
 
 !!tmux.pane_ensure
     name:"test|demo|2"
     label:"second"
     cmd:"echo Second pane ready"
+    log:true
+    logpath:"/tmp/logs"
 
 !!tmux.pane_ensure
     name:"test|demo|3"
     label:"third"
     cmd:"echo Third pane ready"
+    log:true
+    logpath:"/tmp/logs"
 
 !!tmux.pane_ensure
     name:"test|demo|4"
     label:"fourth"
     cmd:"echo Fourth pane ready"
+    log:true
+    logpath:"/tmp/logs"
+    logreset:true
