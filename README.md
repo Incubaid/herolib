@@ -171,3 +171,6 @@ To generate documentation locally:
 cd ~/code/github/freeflowuniverse/herolib
 bash doc.sh
 ```
+
+
+<!-- Security scan triggered at 2025-09-02 01:58:41 -->

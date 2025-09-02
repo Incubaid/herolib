@@ -1,4 +1,4 @@
-module heromodels
+module openrpcserver
 
 import crypto.md5
 
@@ -91,25 +91,3 @@ pub fn tags2id(tags []string) !u32 {
         0
     }
 }
-
-pub fn comments2ids(args []CommentArg) ![]u32 {
-    return args.map(comment2id(it.comment)!)
-}
-
-pub fn comment2id(comment string) !u32 {
-    comment_fixed := comment.to_lower_ascii().trim_space()
-    mut redis := redisclient.core_get()!
-    return if comment_fixed.len > 0{
-        hash := md5.hexhash(comment_fixed)
-        comment_found := redis.hget("db:comments", hash)!
-        if comment_found == ""{            
-            id := u32(redis.incr("db:comments:id")!)
-            redis.hset("db:comments", hash, id.str())!
-            redis.hset("db:comments", id.str(), comment_fixed)!
-            id
-        }else{
-            comment_found.u32()
-        }
-    } else { 0 }
-}
-

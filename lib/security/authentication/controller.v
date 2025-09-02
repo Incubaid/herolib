@@ -1,6 +1,6 @@
 module authentication
 
-import vweb
+import veb
 import time
 import json
 import log
@@ -8,13 +8,13 @@ import freeflowuniverse.herolib.ui.console
 
 const agent = 'Email Authentication Controller'
 
-// email authentication controller that be be added to vweb projects
+// email authentication controller that be be added to veb projects
 @[heap]
 pub struct Controller {
-	vweb.Context
-	callback string @[vweb_global]
+	veb.Context
+	callback string @[veb_global]
 mut:
-	authenticator Authenticator @[vweb_global]
+	authenticator Authenticator @[veb_global]
 }
 
 @[params]
@@ -32,7 +32,7 @@ pub fn new_controller(params ControllerParams) Controller {
 
 // route responsible for verifying email, email form should be posted here
 @[POST]
-pub fn (mut app Controller) send_verification_mail() !vweb.Result {
+pub fn (mut app Controller) send_verification_mail() !veb.Result {
 	config := json.decode(SendMailConfig, app.req.data)!
 	app.authenticator.send_verification_mail(config) or { panic(err) }
 	return app.ok('')
@@ -40,7 +40,7 @@ pub fn (mut app Controller) send_verification_mail() !vweb.Result {
 
 // route responsible for verifying email, email form should be posted here
 @[POST]
-pub fn (mut app Controller) is_verified() vweb.Result {
+pub fn (mut app Controller) is_verified() veb.Result {
 	address := app.req.data
 	// checks if email verified every 2 seconds
 	for {
@@ -55,7 +55,7 @@ pub fn (mut app Controller) is_verified() vweb.Result {
 
 // route responsible for verifying email, email form should be posted here
 @[POST]
-pub fn (mut app Controller) email_authentication() vweb.Result {
+pub fn (mut app Controller) email_authentication() veb.Result {
 	config_ := json.decode(SendMailConfig, app.req.data) or {
 		app.set_status(422, 'Request payload does not follow anticipated formatting.')
 		return app.text('Request payload does not follow anticipated formatting.')
@@ -84,7 +84,7 @@ pub fn (mut app Controller) email_authentication() vweb.Result {
 
 // route responsible for verifying email, email form should be posted here
 @[POST]
-pub fn (mut app Controller) verify() vweb.Result {
+pub fn (mut app Controller) verify() veb.Result {
 	config_ := json.decode(SendMailConfig, app.req.data) or {
 		app.set_status(422, 'Request payload does not follow anticipated formatting.')
 		return app.text('Request payload does not follow anticipated formatting.')
@@ -126,7 +126,7 @@ pub:
 }
 
 @[POST]
-pub fn (mut app Controller) authenticate() !vweb.Result {
+pub fn (mut app Controller) authenticate() !veb.Result {
 	attempt := json.decode(AuthAttempt, app.req.data)!
 	app.authenticator.authenticate(attempt.address, attempt.cypher) or {
 		app.set_status(401, err.msg())
@@ -136,7 +136,7 @@ pub fn (mut app Controller) authenticate() !vweb.Result {
 }
 
 @['/authentication_link/:address/:cypher']
-pub fn (mut app Controller) authentication_link(address string, cypher string) !vweb.Result {
+pub fn (mut app Controller) authentication_link(address string, cypher string) !veb.Result {
 	app.authenticator.authenticate(address, cypher) or {
 		app.set_status(401, err.msg())
 		return app.text('Failed to authenticate')

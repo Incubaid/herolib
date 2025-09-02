@@ -1,0 +1,111 @@
+#!/usr/bin/env hero
+
+
+// TMUX Configuration: Imperative vs Declarative Examples
+// This file demonstrates both paradigms for comparison
+
+// =============================================================================
+// IMPERATIVE APPROACH - Action after action builds the output
+// =============================================================================
+
+// Create sessions step by step
+!!tmux.session_create
+    name:'imperative_demo'
+    reset:true
+
+// Create windows one by one
+!!tmux.window_create
+    name:"imperative_demo|editor"
+    cmd:'vim'
+    reset:true
+
+!!tmux.window_create
+    name:"imperative_demo|server"
+    cmd:'python3 -m http.server 8000'
+    env:'PORT=8000,DEBUG=true'
+    reset:true
+
+// Split panes manually
+!!tmux.pane_split
+    name:"imperative_demo|editor"
+    cmd:'htop'
+    horizontal:true
+
+!!tmux.pane_split
+    name:"imperative_demo|editor"
+    cmd:'tail -f /var/log/system.log'
+    horizontal:false
+
+// Execute commands in specific panes
+!!tmux.pane_execute
+    name:"imperative_demo|editor|main"
+    cmd:"echo Imperative setup complete!"
+
+// =============================================================================
+// DECLARATIVE APPROACH - Describe the desired state
+// =============================================================================
+
+// Ensure sessions exist (idempotent)
+!!tmux.session_ensure
+    name:'declarative_demo'
+
+// Ensure windows with specific layouts exist
+!!tmux.window_ensure
+    name:"declarative_demo|workspace"
+    cat:"4pane"  // Automatically creates 4-pane layout
+
+!!tmux.window_ensure
+    name:"declarative_demo|monitoring"
+    cat:"2pane"  // Automatically creates 2-pane layout
+
+// Ensure specific panes with their desired state
+!!tmux.pane_ensure
+    name:"declarative_demo|workspace|1"
+    label:"editor"
+    cmd:"echo Editor pane ready && vim"
+
+!!tmux.pane_ensure
+    name:"declarative_demo|workspace|2"
+    label:"server"
+    cmd:"echo Starting server... && python3 -m http.server 8000"
+    env:"PORT=8000,DEBUG=true"
+
+!!tmux.pane_ensure
+    name:"declarative_demo|workspace|3"
+    label:"logs"
+    cmd:"echo Monitoring logs... && tail -f /var/log/system.log"
+
+!!tmux.pane_ensure
+    name:"declarative_demo|workspace|4"
+    label:"terminal"
+    cmd:"echo Terminal ready for commands"
+
+!!tmux.pane_ensure
+    name:"declarative_demo|monitoring|1"
+    label:"system"
+    cmd:"htop"
+
+!!tmux.pane_ensure
+    name:"declarative_demo|monitoring|2"
+    label:"network"
+    cmd:"netstat -tuln"
+
+// =============================================================================
+// COMPARISON SUMMARY
+// =============================================================================
+
+// IMPERATIVE:
+// - Explicit step-by-step actions
+// - Order matters
+// - More control over exact process
+// - Can fail if intermediate steps fail
+// - Good for one-time setup scripts
+
+// DECLARATIVE:
+// - Describes desired end state
+// - Idempotent (can run multiple times safely)
+// - Automatically handles missing dependencies
+// - More resilient to partial failures
+// - Good for configuration management
+
+// Both approaches can be mixed in the same script as needed!

@@ -1,0 +1,56 @@
+# Methods
+
+{% for method in spec.methods %}
+## {{ method.name }}
+{{ method.description or "" }}
+
+**Params**
+{% if method.params|length == 0 %}
+- none
+{% else %}
+{% for p in method.params %}
+- {{ p.name }} ({{ p.schema.type or "object" }}{% if p.required %}, required{% endif %})
+{% if p.schema.properties %}
+{% for field, fdef in p.schema.properties.items() %}
+  - {{ field }}: {{ fdef.type or "object" }}{% if fdef.description %} — {{ fdef.description }}{% endif %}
+{% endfor %}
+{% endif %}
+{% if p.schema["$ref"] %}
+  - {{ p.schema["$ref"].split("/")[-1] }}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+**Result**
+- {{ method.result.name }}:
+{% if method.result.schema.oneOf %}
+  {% for variant in method.result.schema.oneOf %}
+    {% if variant["$ref"] %}
+    - {{ variant["$ref"].split("/")[-1] }}
+    {% elif variant.type == "array" %}
+    - [{{ variant.items["$ref"].split("/")[-1] }}]
+    {% else %}
+    - {{ variant.type }}
+    {% endif %}
+  {% endfor %}
+{% elif method.result.schema["$ref"] %}
+  {{ method.result.schema["$ref"].split("/")[-1] }}
+{% elif method.result.schema.type == "array" %}
+  [{{ method.result.schema.items.type or method.result.schema.items["$ref"].split("/")[-1] }}]
+{% elif method.result.schema.type %}
+  {{ method.result.schema.type }}
+{% else %}
+  object
+{% endif %}
+
+---
+{% endfor %}
+
+# Schemas
+
+{% for name, schema in spec.components.schemas.items() %}
+## {{ name }}
+```yaml
+{% for field, fdef in schema.properties.items() %}
+{{ field }}: {{ fdef.type or "object" }}{% if fdef.description %}   # {{ fdef.description }}{% endif %}
+{% endfor %}

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S  v -n -cg -w -enable-globals run
 
 import freeflowuniverse.herolib.baobab.stages.accountant
-import vweb
+import veb
 import freeflowuniverse.herolib.schemas.openrpc
 import os
 import freeflowuniverse.herolib.core.pathlib
@@ -13,4 +13,4 @@ pg := openrpc.new_playground(
 	dest: pathlib.get_dir(path: playground_path)!
 	specs: [pathlib.get_file(path:openrpc_path)!]
 )!
-vweb.run(pg, 8080)
+veb.run(pg, 8080)

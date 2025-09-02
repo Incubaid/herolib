@@ -29,7 +29,13 @@ pub mut:
 pub fn calendar_new(args CalendarArgs) !Calendar {
     mut commentids:=[]u32{}
     for comment in args.comments{
-        commentids << comment_set(comment)!
+        // Convert CommentArg to CommentArgExtended
+        extended_comment := CommentArgExtended{
+            comment: comment.comment
+            parent: 0
+            author: 0
+        }
+        commentids << comment_set(extended_comment)!
     }
     mut obj := Calendar{
         id: args.id or {0} // Will be set by DB?
