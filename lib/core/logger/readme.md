@@ -1,6 +1,6 @@
 # Logger Module
 
-A simple logging system that provides structured logging with search capabilities. 
+A simple logging system that provides structured logging with search capabilities.
 
 Logs are stored in hourly files with a consistent format that makes them both human-readable and machine-parseable.
 

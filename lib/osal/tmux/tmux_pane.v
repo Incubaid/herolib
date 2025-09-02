@@ -2,7 +2,9 @@ module tmux
 
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.ui.console
 import time
+import os
 
 @[heap]
 struct Pane {
@@ -15,6 +17,10 @@ pub mut:
 	env                map[string]string
 	created_at         time.Time
 	last_output_offset int // for tracking new logs
+	// Logging fields
+	log_enabled bool   // whether logging is enabled for this pane
+	log_path    string // path where logs are stored
+	logger_pid  int    // process id of the logger process
 }
 
 pub fn (mut p Pane) stats() !ProcessStats {
@@ -151,10 +157,88 @@ pub fn (mut p Pane) send_keys(keys string) ! {
 	osal.execute_silent(cmd) or { return error('Cannot send keys to pane %${p.id}: ${err}') }
 }
 
-// Kill this specific pane
+// Kill this specific pane with comprehensive process cleanup
 pub fn (mut p Pane) kill() ! {
+	// First, disable logging if enabled
+	if p.log_enabled {
+		p.logging_disable() or {
+			console.print_debug('Warning: Failed to disable logging for pane %${p.id}: ${err}')
+		}
+	}
+
+	// Then, kill all processes running in this pane
+	p.kill_processes()!
+
+	// Finally, kill the tmux pane itself
 	cmd := 'tmux kill-pane -t ${p.window.session.name}:@${p.window.id}.%${p.id}'
 	osal.execute_silent(cmd) or { return error('Cannot kill pane %${p.id}: ${err}') }
+}
+
+// Kill all processes associated with this pane (main process and all children)
+pub fn (mut p Pane) kill_processes() ! {
+	if p.pid == 0 {
+		console.print_debug('Pane %${p.id} has no associated process (pid is 0)')
+		return
+	}
+
+	console.print_debug('Killing all processes for pane %${p.id} (main PID: ${p.pid})')
+
+	// Use the recursive process killer to terminate the main process and all its children
+	osal.process_kill_recursive(pid: p.pid) or {
+		console.print_debug('Failed to kill processes for pane %${p.id}: ${err}')
+		// Continue anyway - the process might already be dead
+	}
+
+	// Also try to kill any processes that might be running in the pane's process group
+	// This handles cases where processes might have detached from the main process tree
+	p.kill_pane_process_group()!
+}
+
+// Kill processes in the pane's process group (fallback cleanup)
+fn (mut p Pane) kill_pane_process_group() ! {
+	// Get all processes and find ones that might be related to this pane
+	_ := osal.processmap_get() or {
+		console.print_debug('Could not get process map for pane cleanup')
+		return
+	}
+
+	// Look for processes that might be children of the pane's shell
+	// or processes running commands that were sent to this pane
+	mut pane_processes := []int{}
+
+	// First, collect the main process and its direct children
+	if p.pid > 0 && osal.process_exists(p.pid) {
+		children_map := osal.processinfo_children(p.pid) or {
+			console.print_debug('Could not get children for PID ${p.pid}')
+			return
+		}
+
+		for child in children_map.processes {
+			pane_processes << child.pid
+		}
+	}
+
+	// Kill any remaining processes with SIGTERM first, then SIGKILL
+	for pid in pane_processes {
+		if osal.process_exists(pid) {
+			// Try SIGTERM first (graceful shutdown)
+			osal.execute_silent('kill -TERM ${pid}') or {
+				console.print_debug('Could not send SIGTERM to PID ${pid}')
+			}
+		}
+	}
+
+	// Wait a moment for graceful shutdown
+	time.sleep(500 * time.millisecond)
+
+	// Force kill any remaining processes with SIGKILL
+	for pid in pane_processes {
+		if osal.process_exists(pid) {
+			osal.execute_silent('kill -KILL ${pid}') or {
+				console.print_debug('Could not send SIGKILL to PID ${pid}')
+			}
+		}
+	}
 }
 
 // Select/activate this pane
@@ -200,4 +284,185 @@ pub fn (mut p Pane) resize_left(cells int) ! {
 
 pub fn (mut p Pane) resize_right(cells int) ! {
 	p.resize(direction: 'right', cells: cells)!
+}
+
+// Get current pane width
+pub fn (p Pane) get_width() !int {
+	cmd := 'tmux display-message -t ${p.window.session.name}:@${p.window.id}.%${p.id} -p "#{pane_width}"'
+	res := osal.exec(cmd: cmd, stdout: false, name: 'tmux_get_pane_width') or {
+		return error("Can't get pane width: ${err}")
+	}
+	return res.output.trim_space().int()
+}
+
+// Get current pane height
+pub fn (p Pane) get_height() !int {
+	cmd := 'tmux display-message -t ${p.window.session.name}:@${p.window.id}.%${p.id} -p "#{pane_height}"'
+	res := osal.exec(cmd: cmd, stdout: false, name: 'tmux_get_pane_height') or {
+		return error("Can't get pane height: ${err}")
+	}
+	return res.output.trim_space().int()
+}
+
+@[params]
+pub struct PaneLoggingEnableArgs {
+pub mut:
+	logpath  string // custom log path, if empty uses default
+	logreset bool   // whether to reset/clear existing logs
+}
+
+// Enable logging for this pane
+pub fn (mut p Pane) logging_enable(args PaneLoggingEnableArgs) ! {
+	if p.log_enabled {
+		return error('Logging is already enabled for pane %${p.id}')
+	}
+
+	// Determine log path
+	mut log_path := args.logpath
+	if log_path == '' {
+		// Default path: /tmp/tmux_logs/session/window/pane_id
+		log_path = '/tmp/tmux_logs/${p.window.session.name}/${p.window.name}/pane_${p.id}'
+	}
+
+	// Create log directory if it doesn't exist
+	osal.exec(cmd: 'mkdir -p "${log_path}"', stdout: false, name: 'tmux_create_log_dir') or {
+		return error("Can't create log directory ${log_path}: ${err}")
+	}
+
+	// Reset logs if requested
+	if args.logreset {
+		osal.exec(
+			cmd:          'rm -f "${log_path}"/*.log'
+			stdout:       false
+			name:         'tmux_reset_logs'
+			ignore_error: true
+		) or {}
+	}
+
+	// Get the path to tmux_logger binary - use a more reliable path resolution
+	// Find the herolib root by looking for the lib directory
+	mut herolib_root := os.getwd()
+	for {
+		if os.exists('${herolib_root}/lib/osal/tmux/bin/tmux_logger.v') {
+			break
+		}
+		parent := os.dir(herolib_root)
+		if parent == herolib_root {
+			return error('Could not find herolib root directory')
+		}
+		herolib_root = parent
+	}
+
+	logger_binary := '${herolib_root}/lib/osal/tmux/bin/tmux_logger'
+	logger_source := '${herolib_root}/lib/osal/tmux/bin/tmux_logger.v'
+
+	// Check if binary exists, if not try to compile it
+	if !os.exists(logger_binary) {
+		console.print_debug('Compiling tmux_logger binary...')
+		console.print_debug('Source: ${logger_source}')
+		console.print_debug('Binary: ${logger_binary}')
+		compile_cmd := 'v -enable-globals -o "${logger_binary}" "${logger_source}"'
+		osal.exec(cmd: compile_cmd, stdout: false, name: 'tmux_compile_logger') or {
+			return error("Can't compile tmux_logger: ${err}")
+		}
+	}
+
+	// Use a completely different approach: direct tmux pipe-pane with a buffer-based logger
+	// This ensures ALL output is captured in real-time without missing anything
+	buffer_logger_script := "#!/bin/bash
+PANE_TARGET=\"${p.window.session.name}:@${p.window.id}.%${p.id}\"
+LOG_PATH=\"${log_path}\"
+LOGGER_BINARY=\"${logger_binary}\"
+BUFFER_FILE=\"/tmp/tmux_pane_${p.id}_buffer.txt\"
+
+# Create a named pipe for real-time logging
+PIPE_FILE=\"/tmp/tmux_pane_${p.id}_pipe\"
+mkfifo \"\$PIPE_FILE\" 2>/dev/null || true
+
+# Start the logger process that reads from the pipe
+\"\$LOGGER_BINARY\" \"\$LOG_PATH\" \"${p.id}\" < \"\$PIPE_FILE\" &
+LOGGER_PID=\$!
+
+# Function to cleanup on exit
+cleanup() {
+    kill \$LOGGER_PID 2>/dev/null || true
+    rm -f \"\$PIPE_FILE\" \"\$BUFFER_FILE\"
+    exit 0
+}
+trap cleanup EXIT INT TERM
+
+# Start tmux pipe-pane to send all output to our pipe
+tmux pipe-pane -t \"\$PANE_TARGET\" \"cat >> \"\$PIPE_FILE\"\"
+
+# Keep the script running and monitor the pane
+while true; do
+    # Check if pane still exists
+    if ! tmux list-panes -t \"\$PANE_TARGET\" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
+
+cleanup
+" // Write the buffer logger script
+
+	script_path := '/tmp/tmux_buffer_logger_${p.id}.sh'
+	os.write_file(script_path, buffer_logger_script) or {
+		return error("Can't create buffer logger script: ${err}")
+	}
+
+	// Make script executable
+	osal.exec(cmd: 'chmod +x "${script_path}"', stdout: false, name: 'make_script_executable') or {
+		return error("Can't make script executable: ${err}")
+	}
+
+	// Start the buffer logger script in background
+	start_cmd := 'nohup "${script_path}" > /dev/null 2>&1 &'
+	console.print_debug('Starting pane logging with buffer logger: ${start_cmd}')
+
+	osal.exec(cmd: start_cmd, stdout: false, name: 'tmux_start_buffer_logger') or {
+		return error("Can't start buffer logger for pane %${p.id}: ${err}")
+	}
+
+	// Update pane state
+	p.log_enabled = true
+	p.log_path = log_path
+	// Note: tmux pipe-pane doesn't return a PID, we'll track it differently if needed
+
+	console.print_debug('Logging enabled for pane %${p.id} -> ${log_path}')
+}
+
+// Disable logging for this pane
+pub fn (mut p Pane) logging_disable() ! {
+	if !p.log_enabled {
+		return error('Logging is not enabled for pane %${p.id}')
+	}
+
+	// Stop pipe-pane (in case it's running)
+	cmd := 'tmux pipe-pane -t ${p.window.session.name}:@${p.window.id}.%${p.id}'
+	osal.exec(cmd: cmd, stdout: false, name: 'tmux_stop_logging', ignore_error: true) or {}
+
+	// Kill the buffer logger script process
+	script_path := '/tmp/tmux_buffer_logger_${p.id}.sh'
+	kill_cmd := 'pkill -f "${script_path}"'
+	osal.exec(cmd: kill_cmd, stdout: false, name: 'kill_buffer_logger_script', ignore_error: true) or {}
+
+	// Clean up script and temp files
+	cleanup_cmd := 'rm -f "${script_path}" "/tmp/tmux_pane_${p.id}_buffer.txt" "/tmp/tmux_pane_${p.id}_pipe"'
+	osal.exec(cmd: cleanup_cmd, stdout: false, name: 'cleanup_logging_files', ignore_error: true) or {}
+
+	// Update pane state
+	p.log_enabled = false
+	p.log_path = ''
+	p.logger_pid = 0
+
+	console.print_debug('Logging disabled for pane %${p.id}')
+}
+
+// Get logging status for this pane
+pub fn (p Pane) logging_status() string {
+	if p.log_enabled {
+		return 'enabled (${p.log_path})'
+	}
+	return 'disabled'
 }

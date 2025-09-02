@@ -19,7 +19,7 @@ The SSH agent functionality is built into the hero binary. After compiling hero:
 ./cli/compile.vsh
 ```
 
-The hero binary will be available at `/Users/mahmoud/hero/bin/hero`
+The hero binary will be available at `~/hero/bin/hero`
 
 ## Commands
 

@@ -2,8 +2,6 @@ module tmux
 
 import os
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.data.ourtime
 import time
 import freeflowuniverse.herolib.ui.console
 
@@ -145,8 +143,12 @@ pub fn (mut w Window) create(cmd_ string) ! {
 	w.id = wid.replace('@', '').int()
 }
 
-// stop the window
+// stop the window with comprehensive process cleanup
 pub fn (mut w Window) kill() ! {
+	// First, kill all processes in all panes of this window
+	w.kill_all_processes()!
+
+	// Then kill the tmux window itself
 	osal.exec(
 		cmd:    'tmux kill-window -t @${w.id}'
 		stdout: false
@@ -154,6 +156,22 @@ pub fn (mut w Window) kill() ! {
 		// die:    false
 	) or { return error("Can't kill window with id:${w.id}: ${err}") }
 	w.active = false // Window is no longer active
+}
+
+// Kill all processes in all panes of this window
+pub fn (mut w Window) kill_all_processes() ! {
+	console.print_debug('Killing all processes in window ${w.name} (ID: ${w.id})')
+
+	// Refresh pane information to get current state
+	w.scan()!
+
+	// Kill processes in each pane
+	for mut pane in w.panes {
+		pane.kill_processes() or {
+			console.print_debug('Failed to kill processes in pane %${pane.id}: ${err}')
+			// Continue with other panes even if one fails
+		}
+	}
 }
 
 pub fn (window Window) str() string {
@@ -205,6 +223,10 @@ pub mut:
 	cmd        string            // command to run in new pane
 	horizontal bool              // true for horizontal split, false for vertical
 	env        map[string]string // environment variables
+	// Logging parameters
+	log      bool   // enable logging for this pane
+	logreset bool   // reset/clear existing logs when enabling
+	logpath  string // custom log path, if empty uses default
 }
 
 // Split the active pane horizontally or vertically
@@ -254,11 +276,25 @@ pub fn (mut w Window) pane_split(args PaneSplitArgs) !&Pane {
 		env:                args.env
 		created_at:         time.now()
 		last_output_offset: 0
+		// Initialize logging fields
+		log_enabled: false
+		log_path:    ''
+		logger_pid:  0
 	}
 
 	// Add to window's panes and rescan to get current state
 	w.panes << &new_pane
 	w.scan()!
+
+	// Enable logging if requested
+	if args.log {
+		new_pane.logging_enable(
+			logpath:  args.logpath
+			logreset: args.logreset
+		) or {
+			console.print_debug('Warning: Failed to enable logging for pane %${new_pane.id}: ${err}')
+		}
+	}
 
 	// Return the new pane reference
 	return &new_pane
@@ -274,6 +310,54 @@ pub fn (mut w Window) pane_split_vertical(cmd string) !&Pane {
 	return w.pane_split(cmd: cmd, horizontal: false)
 }
 
+// Resize panes to equal dimensions dynamically based on pane count
+pub fn (mut w Window) resize_panes_equal() ! {
+	w.scan()! // Refresh pane information
+
+	pane_count := w.panes.len
+	if pane_count <= 1 {
+		return
+	}
+
+	// Dynamic layout based on actual pane count
+	match pane_count {
+		1 {
+			// Single pane, no resizing needed
+			console.print_debug('Single pane, no resizing needed')
+		}
+		2 {
+			// Two panes: use even-horizontal layout (side by side)
+			cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} even-horizontal'
+			osal.execute_silent(cmd) or {
+				console.print_debug('Could not apply even-horizontal layout: ${err}')
+			}
+		}
+		3 {
+			// Three panes: use main-horizontal layout (one large top, two smaller bottom)
+			cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} main-horizontal'
+			osal.execute_silent(cmd) or {
+				console.print_debug('Could not apply main-horizontal layout: ${err}')
+			}
+		}
+		4 {
+			// Four panes: use tiled layout (2x2 grid)
+			cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} tiled'
+			osal.execute_silent(cmd) or {
+				console.print_debug('Could not apply tiled layout: ${err}')
+			}
+		}
+		else {
+			// For 5+ panes: use tiled layout which works well for any number
+			if pane_count >= 5 {
+				cmd := 'tmux select-layout -t ${w.session.name}:@${w.id} tiled'
+				osal.execute_silent(cmd) or {
+					console.print_debug('Could not apply tiled layout for ${pane_count} panes: ${err}')
+				}
+			}
+		}
+	}
+}
+
 @[params]
 pub struct TtydArgs {
 pub mut:
@@ -283,6 +367,11 @@ pub mut:
 
 // Run ttyd for this window so it can be accessed in the browser
 pub fn (mut w Window) run_ttyd(args TtydArgs) ! {
+	// Check if the port is available before starting ttyd
+	osal.port_check_available(args.port) or {
+		return error('Cannot start ttyd for window ${w.name}: ${err}')
+	}
+
 	target := '${w.session.name}:@${w.id}'
 
 	// Add -W flag for write access if editable mode is enabled

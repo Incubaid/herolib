@@ -1,6 +1,6 @@
 # **WebDAV Server in V**
 
-This project implements a WebDAV server using the `vweb` framework and modules from `crystallib`. The server supports essential WebDAV file operations such as reading, writing, copying, moving, and deleting files and directories. It also includes **authentication** and **request logging** for better control and debugging.
+This project implements a WebDAV server using the `veb` framework and modules from `crystallib`. The server supports essential WebDAV file operations such as reading, writing, copying, moving, and deleting files and directories. It also includes **authentication** and **request logging** for better control and debugging.
 
 ---
 
@@ -47,6 +47,7 @@ sudo mount -t davfs <server_url> <mount_point>
 ```
 
 For example:
+
 ```bash
 sudo mount -t davfs http://localhost:8080 /mnt/webdav
 ```
@@ -82,6 +83,7 @@ Authorization: Basic <base64-encoded-credentials>
 
 **Example**:  
 For the credentials `admin:admin`, the header would look like this:
+
 ```http
 Authorization: Basic YWRtaW46YWRtaW4=
 ```
@@ -103,25 +105,32 @@ You can configure the WebDAV server using the following parameters when calling 
 ## **Example Workflow**
 
 1. Start the server:
+
    ```bash
    v run webdav_server.v
    ```
 
 2. Mount the server using `davfs`:
+
    ```bash
    sudo mount -t davfs http://localhost:8080 /mnt/webdav
    ```
 
 3. Perform operations:
    - Create a new file:
+
      ```bash
      echo "Hello WebDAV!" > /mnt/webdav/hello.txt
      ```
+
    - List files:
+
      ```bash
      ls /mnt/webdav
      ```
+
    - Delete a file:
+
      ```bash
      rm /mnt/webdav/hello.txt
      ```
@@ -150,7 +159,6 @@ You can configure the WebDAV server using the following parameters when calling 
 - Integration with persistent databases for user credentials.
 - TLS/SSL support for secure connections.
 
-
 # WebDAV Property Model
 
 This file implements the WebDAV property model as defined in [RFC 4918](https://tools.ietf.org/html/rfc4918). It provides a set of property types that represent various WebDAV properties used in PROPFIND and PROPPATCH operations.
@@ -167,12 +175,13 @@ The `model_property.v` file defines:
 
 ```v
 pub interface Property {
-	xml() string
-	xml_name() string
+ xml() string
+ xml_name() string
 }
 ```
 
 All WebDAV properties must implement:
+
 - `xml()`: Returns the full XML representation of the property with its value
 - `xml_name()`: Returns just the XML tag name of the property (used in property requests)
 
@@ -200,7 +209,6 @@ The file implements the following WebDAV property types:
 
 These property types are used when responding to WebDAV PROPFIND requests to describe resources in the WebDAV server.
 
-
 # WebDAV Locker
 
 This file implements a locking mechanism for resources in a WebDAV context. It provides functionality to manage locks on resources, ensuring that they are not modified by multiple clients simultaneously.
@@ -218,7 +226,7 @@ The `locker.v` file defines:
 ```v
 struct Locker {
 mut:
-	locks map[string]Lock
+ locks map[string]Lock
 }
 ```
 
@@ -229,8 +237,8 @@ mut:
 ```v
 pub struct LockResult {
 pub:
-	token       string // The lock token
-	is_new_lock bool   // Whether this is a new lock or an existing one
+ token       string // The lock token
+ is_new_lock bool   // Whether this is a new lock or an existing one
 }
 ```
 
