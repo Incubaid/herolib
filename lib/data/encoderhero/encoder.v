@@ -4,7 +4,6 @@ import freeflowuniverse.herolib.data.paramsparser
 import time
 import v.reflection
 import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.texttools
 // import freeflowuniverse.herolib.ui.console
 
 // Encoder encodes the an `Any` type into HEROSCRIPT representation.

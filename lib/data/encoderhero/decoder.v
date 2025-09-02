@@ -1,8 +1,6 @@
 module encoderhero
 
-import time
 import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.texttools
 
 pub struct Decoder[T] {
 pub mut:
