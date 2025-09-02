@@ -164,6 +164,59 @@ hero run -p <heroscript_file>
     label:'editor'               // Optional: descriptive label
     cmd:'vim'                    // Optional: command to run
     env:'EDITOR=vim'             // Optional: environment variables
+
+// Multi-line commands are supported using proper heroscript syntax
+!!tmux.pane_ensure
+    name:"mysession|mywindow|2"
+    label:'setup'
+    cmd:'
+        echo "Starting setup..."
+        mkdir -p /tmp/workspace
+        cd /tmp/workspace
+        echo "Setup complete"
+    '
+```
+
+### Multi-line Commands
+
+The tmux module supports multi-line commands in heroscripts using proper multi-line parameter syntax. Multi-line commands are automatically converted to temporary shell scripts for execution.
+
+#### Syntax
+
+Use the multi-line parameter format with quotes:
+
+```heroscript
+!!tmux.pane_ensure
+    name:"session|window|pane"
+    cmd:'
+        command1
+        command2
+        command3
+    '
+```
+
+#### Features
+
+- **Automatic Script Generation**: Multi-line commands are converted to temporary shell scripts
+- **Sequential Execution**: All commands execute in order within the same shell context
+- **Error Handling**: Scripts include proper bash shebang and error handling
+- **Temporary Files**: Scripts are stored in `/tmp/tmux/{session}/pane_{id}_script.sh`
+
+#### Example
+
+```heroscript
+!!tmux.pane_ensure
+    name:"dev|workspace|1"
+    label:"setup"
+    cmd:'
+        echo "Setting up development environment..."
+        mkdir -p /tmp/dev_workspace
+        cd /tmp/dev_workspace
+        git clone https://github.com/example/repo.git
+        cd repo
+        npm install
+        echo "Development environment ready!"
+    '
 ```
 
 ### Pane Layout Categories

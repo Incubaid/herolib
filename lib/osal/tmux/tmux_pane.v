@@ -146,9 +146,50 @@ pub fn (mut p Pane) processinfo_main() !osal.ProcessInfo {
 }
 
 // Send a command to this pane
+// Supports both single-line and multi-line commands
 pub fn (mut p Pane) send_command(command string) ! {
-	cmd := 'tmux send-keys -t ${p.window.session.name}:@${p.window.id}.%${p.id} "${command}" Enter'
-	osal.execute_silent(cmd) or { return error('Cannot send command to pane %${p.id}: ${err}') }
+	// Check if command contains multiple lines
+	if command.contains('\n') {
+		// Multi-line command - create temporary script
+		p.send_multiline_command(command)!
+	} else {
+		// Single-line command - send directly
+		cmd := 'tmux send-keys -t ${p.window.session.name}:@${p.window.id}.%${p.id} "${command}" Enter'
+		osal.execute_silent(cmd) or { return error('Cannot send command to pane %${p.id}: ${err}') }
+	}
+}
+
+// Handle multi-line commands by creating a temporary script
+fn (mut p Pane) send_multiline_command(command string) ! {
+	// Create temporary directory for tmux scripts
+	script_dir := '/tmp/tmux/${p.window.session.name}'
+	os.mkdir_all(script_dir) or { return error('Cannot create script directory: ${err}') }
+
+	// Create unique script file for this pane
+	script_path := '${script_dir}/pane_${p.id}_script.sh'
+
+	// Prepare script content with proper shebang and commands
+	script_content := '#!/bin/bash\n' + command.trim_space()
+
+	// Write script to file
+	os.write_file(script_path, script_content) or {
+		return error('Cannot write script file ${script_path}: ${err}')
+	}
+
+	// Make script executable
+	os.chmod(script_path, 0o755) or {
+		return error('Cannot make script executable ${script_path}: ${err}')
+	}
+
+	// Execute the script in the pane
+	cmd := 'tmux send-keys -t ${p.window.session.name}:@${p.window.id}.%${p.id} "${script_path}" Enter'
+	osal.execute_silent(cmd) or { return error('Cannot execute script in pane %${p.id}: ${err}') }
+
+	// Optional: Clean up script after a delay (commented out for debugging)
+	// spawn {
+	// 	time.sleep(5 * time.second)
+	// 	os.rm(script_path) or {}
+	// }
 }
 
 // Send raw keys to this pane (without Enter)
