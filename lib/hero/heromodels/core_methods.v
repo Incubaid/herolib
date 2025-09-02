@@ -24,7 +24,7 @@ pub fn get[T](id u32) !T {
 pub fn exists[T](id u32) !bool {
     name := T{}.type_name()
     mut redis := redisclient.core_get()!
-    return redis.hexists("db:${name}",id)!
+    return redis.hexists("db:${name}",id.str())!
 }
 
 pub fn delete[T](id u32) ! {
