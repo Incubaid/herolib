@@ -1,13 +1,13 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import net.unix
-import x.json2
+import json
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.hero.heromodels.openrpc
 
 
 fn send_request(mut conn unix.StreamConn, request openrpc.JsonRpcRequest) ! {
-	request_json := json2.encode(request)
+	request_json := json.encode(request)
 	conn.write_string(request_json)!
 }
 
@@ -32,8 +32,8 @@ console.print_header('Test 1: Discover OpenRPC Specification')
 discover_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
 	method: 'discover'
-	params: json2.null
-	id: json2.Any(1)
+	params: 'null'
+	id: '1'
 }
 
 send_request(mut conn, discover_request)!
@@ -47,8 +47,8 @@ comment_json := '{"comment": "This is a test comment from OpenRPC client", "pare
 create_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
 	method: 'comment_set'
-	params: json2.raw_decode(comment_json)!
-	id: json2.Any(2)
+	params: comment_json
+	id: '2'
 }
 
 send_request(mut conn, create_request)!
@@ -60,8 +60,8 @@ console.print_header('Test 3: List All Comments')
 list_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
 	method: 'comment_list'
-	params: json2.null
-	id: json2.Any(3)
+	params: 'null'
+	id: '3'
 }
 
 send_request(mut conn, list_request)!
@@ -75,8 +75,8 @@ get_args_json := '{"author": 1}'
 get_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
 	method: 'comment_get'
-	params: json2.raw_decode(get_args_json)!
-	id: json2.Any(4)
+	params: get_args_json
+	id: '4'
 }
 
 send_request(mut conn, get_request)!

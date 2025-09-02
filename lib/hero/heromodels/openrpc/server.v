@@ -1,6 +1,7 @@
 module openrpc
 
 import json
+import x.json2 { Any }
 import net.unix
 import os
 import freeflowuniverse.herolib.ui.console
@@ -69,7 +70,7 @@ fn (mut server RPCServer) handle_connection(mut conn unix.StreamConn) {
 		
 		// Process the JSON-RPC request
 		response := server.process_request(request_data) or {
-			server.create_error_response(-32603, 'Internal error: ${err}', json2.null)
+			server.create_error_response(-32603, 'Internal error: ${err}', 'null')
 		}
 		
 		// Send response
@@ -81,19 +82,38 @@ fn (mut server RPCServer) handle_connection(mut conn unix.StreamConn) {
 }
 
 fn (mut server RPCServer) process_request(request_data string) !string {
-	// Parse JSON-RPC request
-	request := json2.decode[JsonRpcRequest](request_data)!
+	// Parse JSON-RPC request manually to handle params properly
+	request_map := json.decode(map[string]Any, request_data)!
+	
+	jsonrpc := request_map['jsonrpc']!.str()
+	method := request_map['method']!.str()
+	id := request_map['id']!.str()
+	
+	// Handle params - convert to string representation
+	params_str := if 'params' in request_map {
+		params_any := request_map['params']!
+		match params_any {
+			string {
+				params_any
+			}
+			else {
+				json.encode(params_any)
+			}
+		}
+	} else {
+		'null'
+	}
 	
 	// Route to appropriate method
-	result := match request.method {
+	result := match method {
 		'comment_get' {
-			server.comment_get(request.params)!
+			server.comment_get(params_str)!
 		}
 		'comment_set' {
-			server.comment_set(request.params)!
+			server.comment_set(params_str)!
 		}
 		'comment_delete' {
-			server.comment_delete(request.params)!
+			server.comment_delete(params_str)!
 		}
 		'comment_list' {
 			server.comment_list()!
@@ -102,32 +122,32 @@ fn (mut server RPCServer) process_request(request_data string) !string {
 			server.discover()!
 		}
 		else {
-			return server.create_error_response(-32601, 'Method not found', request.id)
+			return server.create_error_response(-32601, 'Method not found', id)
 		}
 	}
 	
-	return server.create_success_response(result, request.id)
+	return server.create_success_response(result, id)
 }
 
-fn (mut server RPCServer) create_success_response(result json2.Any, id json2.Any) string {
+fn (mut server RPCServer) create_success_response(result string, id string) string {
 	response := JsonRpcResponse{
 		jsonrpc: '2.0'
 		result: result
 		id: id
 	}
-	return json2.encode(response)
+	return json.encode(response)
 }
 
-fn (mut server RPCServer) create_error_response(code int, message string, id json2.Any) string {
+fn (mut server RPCServer) create_error_response(code int, message string, id string) string {
 	error := JsonRpcError{
 		code: code
 		message: message
-		data: json2.null
+		data: 'null'
 	}
 	response := JsonRpcResponse{
 		jsonrpc: '2.0'
 		error: error
 		id: id
 	}
-	return json2.encode(response)
+	return json.encode(response)
 }

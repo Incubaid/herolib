@@ -1,23 +1,23 @@
 module openrpc
 
-import x.json2
+import json
 
 // JSON-RPC 2.0 request structure
 pub struct JsonRpcRequest {
 pub:
 	jsonrpc string = '2.0'
 	method  string
-	params  json2.Any
-	id      json2.Any
+	params  string
+	id      string
 }
 
 // JSON-RPC 2.0 response structure
 pub struct JsonRpcResponse {
 pub:
 	jsonrpc string = '2.0'
-	result  json2.Any
+	result  string
 	error   ?JsonRpcError
-	id      json2.Any
+	id      string
 }
 
 // JSON-RPC 2.0 error structure
@@ -25,7 +25,7 @@ pub struct JsonRpcError {
 pub:
 	code    int
 	message string
-	data    json2.Any
+	data    string
 }
 
 // Comment-specific argument structures
