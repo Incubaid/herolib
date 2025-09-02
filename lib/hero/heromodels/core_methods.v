@@ -3,17 +3,22 @@ module heromodels
 import freeflowuniverse.herolib.core.redisclient
 
 pub fn set[T](obj T) ! {
+    name := T{}.type_name()
     mut redis := redisclient.core_get()!
     id := obj.id
     data := obj.dump()!
-    redis.hset("db:${name}",id,data)!
+    redis.hset("db:${name}",id.str(),data.bytestr())!
 }
 
 pub fn get[T](id u32) !T {
+    name := T{}.type_name()
     mut redis := redisclient.core_get()!
-    data := redis.hget("db:${name}",id)!
-    t := T{}
-    return t.load(data)!
+    data := redis.hget("db:${name}",id.str())!
+    if data.len > 0 {
+        return T{}.load(data.bytes())!
+    } else {
+        return error("Can't find ${name} with id: ${id}")
+    }
 }
 
 pub fn exists[T](id u32) !bool {
@@ -29,11 +34,12 @@ pub fn delete[T](id u32) ! {
 }
 
 pub fn list[T]() ![]T {
+    name := T{}.type_name()
     mut redis := redisclient.core_get()!
-    ids := redis.hkeys("db:${name}")!
+    all_data := redis.hgetall("db:${name}")!
     mut result := []T{}
-    for id in ids {
-        result << get[T](id.u32())!
+    for _, data in all_data {
+        result << T{}.load(data.bytes())!
     }
     return result
 }

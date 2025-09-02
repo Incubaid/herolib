@@ -15,6 +15,14 @@ pub mut:
     author      u32 //links to user
 }
 
+pub fn (self Comment) type_name() string {
+    return 'comments'
+}
+
+pub fn (self Comment) load(data []u8) !Comment {
+    return comment_load(data)!
+}
+
 pub fn (self Comment) dump() ![]u8{
     // Create a new encoder
     mut e := encoder.new()
