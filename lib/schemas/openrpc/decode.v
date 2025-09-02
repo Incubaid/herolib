@@ -4,6 +4,7 @@ import json
 import x.json2 { Any }
 import freeflowuniverse.herolib.schemas.jsonschema { Reference, decode_schemaref }
 
+
 pub fn decode(data string) !OpenRPC {
 	// mut object := json.decode[OpenRPC](data) or { return error('Failed to decode json\n=======\n${data}\n===========\n${err}') }
 	mut object := json.decode(OpenRPC, data) or {

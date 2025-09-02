@@ -1,25 +1,26 @@
 module heromodels
 
 import freeflowuniverse.herolib.core.redisclient
+import freeflowuniverse.herolib.data.encoder
 
 pub fn set[T](obj T) ! {
     mut redis := redisclient.core_get()!
     id := obj.id
-    data := obj.dump()!
-    redis.hset("db:${name}",id,data)!
+    data := encoder.encode(obj)!
+    redis.hset("db:${T.name}",id.str(),data.bytestr())!
 }
 
 pub fn get[T](id u32) !T {
     mut redis := redisclient.core_get()!
-    data := redis.hget("db:${name}",id)!
+    data := redis.hget("db:${T.name}",id.str())!
     t := T{}
-    return t.load(data)!
+    return encoder.decode[T](data.bytes())!
 }
 
 pub fn exists[T](id u32) !bool {
     name := T{}.type_name()
     mut redis := redisclient.core_get()!
-    return redis.hexists("db:${name}",id)!
+    return redis.hexists("db:${name}",id.str())!
 }
 
 pub fn delete[T](id u32) ! {
