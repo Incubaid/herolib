@@ -2,7 +2,7 @@ module gittools
 
 import time
 import freeflowuniverse.herolib.ui.console
-import os
+// import os
 
 @[params]
 pub struct StatusUpdateArgs {

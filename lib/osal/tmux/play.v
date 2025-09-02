@@ -673,7 +673,7 @@ fn play_pane_ensure(mut plbook PlayBook, mut tmux_instance Tmux) ! {
 		name := p.get('name')!
 		parsed := parse_pane_name(name)!
 		cmd := p.get_default('cmd', '')!
-		label := p.get_default('label', '')!
+		// label := p.get_default('label', '')!
 
 		// Parse environment variables if provided
 		mut env := map[string]string{}
@@ -721,7 +721,8 @@ fn play_pane_ensure(mut plbook PlayBook, mut tmux_instance Tmux) ! {
 			// Find the target pane (by index, since tmux pane IDs can vary)
 			if pane_number > 0 && pane_number <= window.panes.len {
 				mut target_pane := window.panes[pane_number - 1] // Convert to 0-based index
-				target_pane.send_command(cmd)!
+				// Use declarative command logic for intelligent state management
+				target_pane.send_command_declarative(cmd)!
 			}
 		}
 

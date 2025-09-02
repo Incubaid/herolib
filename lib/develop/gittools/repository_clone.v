@@ -2,7 +2,7 @@ module gittools
 
 import freeflowuniverse.herolib.ui.console
 import os
-import freeflowuniverse.herolib.core.pathlib
+// import freeflowuniverse.herolib.core.pathlib
 
 @[params]
 pub struct GitCloneArgs {
@@ -40,17 +40,17 @@ pub fn (mut gitstructure GitStructure) clone(args GitCloneArgs) !&GitRepo {
 	gitstructure.repos[key_] = &repo
 
 	if repo.exists() {
-		console.print_green("Repository already exists at ${repo.path()}")
+		console.print_green('Repository already exists at ${repo.path()}')
 		// Load the existing repository status
 		repo.load_internal() or {
 			console.print_debug('Could not load existing repository status: ${err}')
 		}
 		return &repo
 	}
-	
+
 	// Check if path exists but is not a git repository
 	if os.exists(repo.path()) {
-		return error("Path exists but is not a git repository: ${repo.path()}")
+		return error('Path exists but is not a git repository: ${repo.path()}')
 	}
 
 	if args.sshkey.len > 0 {

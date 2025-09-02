@@ -112,7 +112,7 @@ pub fn (mut p Pane) output_wait(c_ string, timeoutsec int) ! {
 	mut t := ourtime.now()
 	start := t.unix()
 	c := c_.replace('\n', '')
-	for i in 0 .. 2000 {
+	for _ in 0 .. 2000 {
 		entries := p.logs_get_new(reset: false)!
 		for entry in entries {
 			if entry.content.replace('\n', '').contains(c) {
@@ -157,6 +157,236 @@ pub fn (mut p Pane) send_command(command string) ! {
 		cmd := 'tmux send-keys -t ${p.window.session.name}:@${p.window.id}.%${p.id} "${command}" Enter'
 		osal.execute_silent(cmd) or { return error('Cannot send command to pane %${p.id}: ${err}') }
 	}
+}
+
+// Send command with declarative mode logic (intelligent state management)
+// This method implements the full declarative logic:
+// 1. Check if pane has previous command (Redis lookup)
+// 2. If previous command exists:
+//    a. Check if still running (process verification)
+//    b. Compare MD5 hashes
+//    c. If different command OR not running: proceed
+//    d. If same command AND running: skip
+// 3. If proceeding: kill existing processes, then start new command
+pub fn (mut p Pane) send_command_declarative(command string) ! {
+	console.print_debug('Declarative command for pane ${p.id}: ${command[..if command.len > 50 {
+		50
+	} else {
+		command.len
+	}]}...')
+
+	// Step 1: Check if command has changed
+	command_changed := p.has_command_changed(command)
+
+	// Step 2: Check if stored command is still running
+	stored_running := p.is_stored_command_running()
+
+	// Step 3: Decide whether to proceed
+	should_execute := command_changed || !stored_running
+
+	if !should_execute {
+		console.print_debug('Skipping command execution for pane ${p.id}: same command already running')
+		return
+	}
+
+	// Step 4: If we have a running command that needs to be replaced, kill it
+	if stored_running && command_changed {
+		console.print_debug('Killing existing command in pane ${p.id} before starting new one')
+		p.kill_running_command()!
+		// Give processes time to die
+		time.sleep(500 * time.millisecond)
+	}
+
+	// Step 5: Ensure bash is the parent process
+	p.ensure_bash_parent()!
+
+	// Step 6: Reset pane if it appears empty or needs cleanup
+	p.reset_if_needed()!
+
+	// Step 7: Execute the new command
+	p.send_command(command)!
+
+	// Step 8: Store the new command state
+	// Get the PID of the command we just started (this is approximate)
+	time.sleep(100 * time.millisecond) // Give command time to start
+	p.store_command_state(command, 'running', p.pid)!
+
+	console.print_debug('Successfully executed declarative command for pane ${p.id}')
+}
+
+// Kill the currently running command in this pane
+pub fn (mut p Pane) kill_running_command() ! {
+	stored_state := p.get_command_state() or { return }
+
+	if stored_state.pid > 0 && osal.process_exists(stored_state.pid) {
+		// Kill the process and its children
+		osal.process_kill_recursive(pid: stored_state.pid)!
+		console.print_debug('Killed running command (PID: ${stored_state.pid}) in pane ${p.id}')
+	}
+
+	// Also try to kill any processes that might be running in the pane
+	p.kill_pane_process_group()!
+
+	// Update the command state to reflect that it's no longer running
+	p.update_command_status('killed')!
+}
+
+// Reset pane if it appears empty or needs cleanup
+pub fn (mut p Pane) reset_if_needed() ! {
+	if p.is_pane_empty()! {
+		console.print_debug('Pane ${p.id} appears empty, sending reset')
+		p.send_reset()!
+		return
+	}
+
+	if !p.is_at_clean_prompt()! {
+		console.print_debug('Pane ${p.id} not at clean prompt, sending reset')
+		p.send_reset()!
+	}
+}
+
+// Check if pane is completely empty
+pub fn (mut p Pane) is_pane_empty() !bool {
+	logs := p.logs_all() or { return true }
+	lines := logs.split_into_lines()
+
+	// Filter out empty lines
+	mut non_empty_lines := []string{}
+	for line in lines {
+		if line.trim_space().len > 0 {
+			non_empty_lines << line
+		}
+	}
+
+	return non_empty_lines.len == 0
+}
+
+// Check if pane is at a clean shell prompt
+pub fn (mut p Pane) is_at_clean_prompt() !bool {
+	logs := p.logs_all() or { return false }
+	lines := logs.split_into_lines()
+
+	if lines.len == 0 {
+		return false
+	}
+
+	// Check last few lines for shell prompt indicators
+	check_lines := if lines.len > 5 { lines[lines.len - 5..] } else { lines }
+
+	for line in check_lines.reverse() {
+		line_clean := line.trim_space()
+		if line_clean.len == 0 {
+			continue
+		}
+
+		// Look for common shell prompt patterns
+		if line_clean.ends_with('$ ') || line_clean.ends_with('# ') || line_clean.ends_with('> ')
+			|| line_clean.ends_with('$') || line_clean.ends_with('#') || line_clean.ends_with('>') {
+			console.print_debug('Found clean prompt in pane ${p.id}: "${line_clean}"')
+			return true
+		}
+
+		// If we find a non-prompt line, we're not at a clean prompt
+		break
+	}
+
+	return false
+}
+
+// Send reset command to pane
+pub fn (mut p Pane) send_reset() ! {
+	cmd := 'tmux send-keys -t ${p.window.session.name}:@${p.window.id}.%${p.id} "reset" Enter'
+	osal.execute_silent(cmd) or { return error('Cannot send reset to pane %${p.id}: ${err}') }
+	console.print_debug('Sent reset command to pane ${p.id}')
+
+	// Give reset time to complete
+	time.sleep(200 * time.millisecond)
+}
+
+// Verify that bash is the first process in this pane
+pub fn (mut p Pane) verify_bash_parent() !bool {
+	if p.pid <= 0 {
+		return false
+	}
+
+	// Get process information for the pane's main process
+	proc_info := osal.processinfo_get(p.pid) or { return false }
+
+	// Check if the process command contains bash
+	if proc_info.cmd.contains('bash') || proc_info.cmd.contains('/bin/bash')
+		|| proc_info.cmd.contains('/usr/bin/bash') {
+		console.print_debug('Pane ${p.id} has bash as parent process (PID: ${p.pid})')
+		return true
+	}
+
+	console.print_debug('Pane ${p.id} does NOT have bash as parent process. Current: ${proc_info.cmd}')
+	return false
+}
+
+// Ensure bash is the first process in the pane
+pub fn (mut p Pane) ensure_bash_parent() ! {
+	if p.verify_bash_parent()! {
+		return
+	}
+
+	console.print_debug('Ensuring bash is parent process for pane ${p.id}')
+
+	// Kill any existing processes in the pane
+	p.kill_pane_process_group()!
+
+	// Send a new bash command to establish bash as the parent
+	cmd := 'tmux send-keys -t ${p.window.session.name}:@${p.window.id}.%${p.id} "exec bash" Enter'
+	osal.execute_silent(cmd) or { return error('Cannot start bash in pane %${p.id}: ${err}') }
+
+	// Give bash time to start
+	time.sleep(500 * time.millisecond)
+
+	// Update pane information
+	p.window.scan()!
+
+	// Verify bash is now running
+	if !p.verify_bash_parent()! {
+		return error('Failed to establish bash as parent process in pane ${p.id}')
+	}
+
+	console.print_debug('Successfully established bash as parent process for pane ${p.id}')
+}
+
+// Get all child processes of this pane's main process
+pub fn (mut p Pane) get_child_processes() ![]osal.ProcessInfo {
+	if p.pid <= 0 {
+		return []osal.ProcessInfo{}
+	}
+
+	children_map := osal.processinfo_children(p.pid)!
+	return children_map.processes
+}
+
+// Check if commands are running as children of bash
+pub fn (mut p Pane) verify_command_hierarchy() !bool {
+	// First verify bash is the parent
+	if !p.verify_bash_parent()! {
+		return false
+	}
+
+	// Get child processes
+	children := p.get_child_processes()!
+
+	if children.len == 0 {
+		// No child processes, which is fine
+		return true
+	}
+
+	// Check if child processes have bash as their parent
+	for child in children {
+		if child.ppid != p.pid {
+			console.print_debug('Child process ${child.pid} (${child.cmd}) does not have pane process as parent')
+			return false
+		}
+	}
+
+	console.print_debug('Command hierarchy verified for pane ${p.id}: ${children.len} child processes')
+	return true
 }
 
 // Handle multi-line commands by creating a temporary script
