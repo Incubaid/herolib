@@ -2,12 +2,19 @@ module openrpcserver
 
 import freeflowuniverse.herolib.core.redisclient
 
-pub fn set[T](obj T) ! {
+pub fn set[T](mut obj T) !u32 {
     name := T{}.type_name()
     mut redis := redisclient.core_get()!
-    id := obj.id
+    
+    // Generate ID if not set
+    if obj.id == 0 {
+        myid := redis.incr("db:${name}:id")!
+        obj.id = u32(myid)
+    }
+    
     data := obj.dump()!
-    redis.hset("db:${name}",id.str(),data.bytestr())!
+    redis.hset("db:${name}",obj.id.str(),data.bytestr())!
+    return obj.id
 }
 
 pub fn get[T](id u32) !T {

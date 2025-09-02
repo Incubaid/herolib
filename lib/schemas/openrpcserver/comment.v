@@ -1,6 +1,5 @@
-module heromodels
+module openrpcserver
 
-import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 
@@ -55,21 +54,47 @@ pub fn comment_load(data []u8) !Comment{
 
 pub struct CommentArg {
 pub mut:
-    comment         string
-    parent u32 //id of parent comment if any, 0 means none
-    author      u32 //links to user
+    comment string
+    parent u32
+    author u32
 }
+
+pub fn comment_multiset(args []CommentArg) ![]u32 {
+    return comments2ids(args)!
+}
+
+pub fn comments2ids(args []CommentArg) ![]u32 {
+    return args.map(comment2id(it.comment)!)
+}
+
+pub fn comment2id(comment string) !u32 {
+    comment_fixed := comment.to_lower_ascii().trim_space()
+    mut redis := redisclient.core_get()!
+    return if comment_fixed.len > 0{
+        hash := md5.hexhash(comment_fixed)
+        comment_found := redis.hget("db:comments", hash)!
+        if comment_found == ""{            
+            id := u32(redis.incr("db:comments:id")!)
+            redis.hset("db:comments", hash, id.str())!
+            redis.hset("db:comments", id.str(), comment_fixed)!
+            id
+        }else{
+            comment_found.u32()
+        }
+    } else { 0 }
+}
+
 
 //get new comment, not from the DB
 pub fn comment_new(args CommentArg) !Comment{
-    mut o:=Comment {
+    mut o := Comment {
         comment: args.comment
-        parent:args.parent
+        parent: args.parent
         updated_at: ourtime.now().unix()
         author: args.author
     }
     return o
-}    
+}
 
 pub fn comment_multiset(args []CommentArg) ![]u32{
     mut ids := []u32{}
@@ -79,29 +104,16 @@ pub fn comment_multiset(args []CommentArg) ![]u32{
     return ids
 }
 
-
 pub fn comment_set(args CommentArg) !u32{
-    mut redis := redisclient.core_get()!
-    mut o:=comment_new(args)!
-    myid := redis.incr("db:comments:id")!
-    o.id = u32(myid)
-    data := o.dump()!
-    redis.hset("db:comments:data", myid.str(), data.bytestr())!
-    return o.id
+    mut o := comment_new(args)!
+    // Use openrpcserver set function which now returns the ID
+    return openrpcserver.set[Comment](mut o)!
 }
 
 pub fn comment_exist(id u32) !bool{
-    mut redis := redisclient.core_get()!
-    return redis.hexists("db:comments:data", id.str())!
+    return openrpcserver.exists[Comment](id)!
 }
 
 pub fn comment_get(id u32) !Comment{
-    mut redis := redisclient.core_get()!
-    mut data:= redis.hget("db:comments:data", id.str())!
-    if data.len>0{
-        return comment_load(data.bytes())!
-    }else{
-        return error("Can't find comment with id: ${id}")
-    }
-    
+    return openrpcserver.get[Comment](id)!
 }

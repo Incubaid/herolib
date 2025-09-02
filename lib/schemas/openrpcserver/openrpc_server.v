@@ -130,6 +130,18 @@ fn (mut server RPCServer) process_request(request_data string) !string {
 	return server.create_success_response(result, id_str)
 }
 
+// Default process method - should be overridden by implementations
+pub fn (mut server RPCServer) process(method string, params_str string) !string {
+	return match method {
+		'rpc.discover' {
+			server.discover()!
+		}
+		else {
+			server.create_error_response(-32601, 'Method not found', method)
+		}
+	}
+}
+
 fn (mut server RPCServer) create_success_response(result string, id string) string {
 	response := JsonRpcResponse{
 		jsonrpc: '2.0'
@@ -153,8 +165,8 @@ fn (mut server RPCServer) create_error_response(code int, message string, id str
 	return json.encode(response)
 }
 
-// discover returns the OpenRPC specification for the HeroModels service
-fn (mut server RPCServer) discover() !string {
-	spec_json := $tmpl("openrpc.json")
-	return spec_json
+// discover returns the OpenRPC specification for the service
+pub fn (mut server RPCServer) discover() !string {
+	// Return a basic OpenRPC spec - should be overridden by implementations
+	return '{"openrpc": "1.2.6", "info": {"title": "OpenRPC Server", "version": "1.0.0"}, "methods": []}'
 }

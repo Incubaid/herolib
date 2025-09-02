@@ -19,7 +19,7 @@ pub mut:
 }
 
 // comment_get retrieves comments based on the provided arguments
-fn comment_get(params string) !string {
+pub fn comment_get(params string) !string {
 	// Handle empty params
 	if params == 'null' || params == '{}' {
 		return error('No valid search criteria provided. Please specify id, author, or parent.')
@@ -47,14 +47,14 @@ fn comment_get(params string) !string {
 }
 
 // comment_set creates or updates a comment
-fn comment_set(params string) !string {
-	comment_arg := json.decode(heromodels.CommentArg, params)!
+pub fn comment_set(params string) !string {
+	comment_arg := json.decode(heromodels.CommentArgExtended, params)!
 	id := heromodels.comment_set(comment_arg)!
 	return json.encode({'id': id})
 }
 
 // comment_delete removes a comment by ID
-fn comment_delete(params string) !string {
+pub fn comment_delete(params string) !string {
 	args := json.decode(CommentDeleteArgs, params)!
 	
 	// Check if comment exists
@@ -70,7 +70,7 @@ fn comment_delete(params string) !string {
 }
 
 // comment_list returns all comment IDs
-fn comment_list() !string {
+pub fn comment_list() !string {
 	comments := heromodels.list[heromodels.Comment]()!
 	mut ids := []u32{}
 	
