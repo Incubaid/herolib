@@ -50,12 +50,12 @@
                 "schema": {
                     "oneOf": [
                         {
-                            "\\$ref": "#/components/schemas/Comment"
+                            "$$ref": "#/components/schemas/Comment"
                         },
                         {
                             "type": "array",
                             "items": {
-                                "\\$ref": "#/components/schemas/Comment"
+                                "$$ref": "#/components/schemas/Comment"
                             }
                         }
                     ]
@@ -71,7 +71,7 @@
                     "description": "Comment data to create",
                     "required": true,
                     "schema": {
-                        "\\$ref": "#/components/schemas/CommentArg"
+                        "$$ref": "#/components/schemas/CommentArg"
                     }
                 }
             ],
@@ -102,10 +102,10 @@
                         "properties": {
                             "id": {
                                 "type": "integer",
-                                "description": "ID of comment to delete",
-                                "required": true
+                                "description": "ID of comment to delete"
                             }
-                        }
+                        },
+                        "required": ["id"]
                     }
                 }
             ],

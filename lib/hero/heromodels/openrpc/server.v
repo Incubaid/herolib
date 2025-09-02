@@ -1,12 +1,12 @@
 module openrpc
 
-import x.json2
+import json
 import net.unix
 import os
 import freeflowuniverse.herolib.ui.console
 
 pub struct RPCServer {
-mut:
+pub mut:
 	listener &unix.StreamListener
 	socket_path string
 }
