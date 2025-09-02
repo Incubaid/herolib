@@ -725,6 +725,26 @@ fn play_pane_ensure(mut plbook PlayBook, mut tmux_instance Tmux) ! {
 			}
 		}
 
+		// Handle logging parameters - enable logging if requested
+		log_enabled := p.get_default_false('log')
+		if log_enabled {
+			logpath := p.get_default('logpath', '')!
+			logreset := p.get_default_false('logreset')
+
+			// Find the target pane for logging
+			if pane_number > 0 && pane_number <= window.panes.len {
+				mut target_pane := window.panes[pane_number - 1] // Convert to 0-based index
+
+				// Enable logging with automation (binary compilation, directory creation, etc.)
+				target_pane.logging_enable(
+					logpath:  logpath
+					logreset: logreset
+				) or {
+					console.print_debug('Warning: Failed to enable logging for pane ${name}: ${err}')
+				}
+			}
+		}
+
 		action.done = true
 	}
 }

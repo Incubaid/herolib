@@ -367,62 +367,23 @@ pub fn (mut p Pane) logging_enable(args PaneLoggingEnableArgs) ! {
 		}
 	}
 
-	// Use a completely different approach: direct tmux pipe-pane with a buffer-based logger
-	// This ensures ALL output is captured in real-time without missing anything
-	buffer_logger_script := "#!/bin/bash
-PANE_TARGET=\"${p.window.session.name}:@${p.window.id}.%${p.id}\"
-LOG_PATH=\"${log_path}\"
-LOGGER_BINARY=\"${logger_binary}\"
-BUFFER_FILE=\"/tmp/tmux_pane_${p.id}_buffer.txt\"
+	// Use the simple and reliable tmux pipe-pane approach with tmux_logger binary
+	// This is the proven approach that works perfectly
 
-# Create a named pipe for real-time logging
-PIPE_FILE=\"/tmp/tmux_pane_${p.id}_pipe\"
-mkfifo \"\$PIPE_FILE\" 2>/dev/null || true
+	// Determine the pane identifier for logging
+	pane_log_id := 'pane${p.id}'
 
-# Start the logger process that reads from the pipe
-\"\$LOGGER_BINARY\" \"\$LOG_PATH\" \"${p.id}\" < \"\$PIPE_FILE\" &
-LOGGER_PID=\$!
+	// Set up tmux pipe-pane to send all output directly to tmux_logger
+	pipe_cmd := 'tmux pipe-pane -t ${p.window.session.name}:@${p.window.id}.%${p.id} -o "${logger_binary} ${log_path} ${pane_log_id}"'
 
-# Function to cleanup on exit
-cleanup() {
-    kill \$LOGGER_PID 2>/dev/null || true
-    rm -f \"\$PIPE_FILE\" \"\$BUFFER_FILE\"
-    exit 0
-}
-trap cleanup EXIT INT TERM
+	console.print_debug('Starting real-time logging: ${pipe_cmd}')
 
-# Start tmux pipe-pane to send all output to our pipe
-tmux pipe-pane -t \"\$PANE_TARGET\" \"cat >> \"\$PIPE_FILE\"\"
-
-# Keep the script running and monitor the pane
-while true; do
-    # Check if pane still exists
-    if ! tmux list-panes -t \"\$PANE_TARGET\" >/dev/null 2>&1; then
-        break
-    fi
-    sleep 1
-done
-
-cleanup
-" // Write the buffer logger script
-
-	script_path := '/tmp/tmux_buffer_logger_${p.id}.sh'
-	os.write_file(script_path, buffer_logger_script) or {
-		return error("Can't create buffer logger script: ${err}")
+	osal.exec(cmd: pipe_cmd, stdout: false, name: 'tmux_start_pipe_logging') or {
+		return error("Can't start pipe logging for pane %${p.id}: ${err}")
 	}
 
-	// Make script executable
-	osal.exec(cmd: 'chmod +x "${script_path}"', stdout: false, name: 'make_script_executable') or {
-		return error("Can't make script executable: ${err}")
-	}
-
-	// Start the buffer logger script in background
-	start_cmd := 'nohup "${script_path}" > /dev/null 2>&1 &'
-	console.print_debug('Starting pane logging with buffer logger: ${start_cmd}')
-
-	osal.exec(cmd: start_cmd, stdout: false, name: 'tmux_start_buffer_logger') or {
-		return error("Can't start buffer logger for pane %${p.id}: ${err}")
-	}
+	// Wait a moment for the process to start
+	time.sleep(500 * time.millisecond)
 
 	// Update pane state
 	p.log_enabled = true
@@ -442,14 +403,12 @@ pub fn (mut p Pane) logging_disable() ! {
 	cmd := 'tmux pipe-pane -t ${p.window.session.name}:@${p.window.id}.%${p.id}'
 	osal.exec(cmd: cmd, stdout: false, name: 'tmux_stop_logging', ignore_error: true) or {}
 
-	// Kill the buffer logger script process
-	script_path := '/tmp/tmux_buffer_logger_${p.id}.sh'
-	kill_cmd := 'pkill -f "${script_path}"'
-	osal.exec(cmd: kill_cmd, stdout: false, name: 'kill_buffer_logger_script', ignore_error: true) or {}
+	// Kill the tmux_logger process for this pane
+	pane_log_id := 'pane${p.id}'
+	kill_cmd := 'pkill -f "tmux_logger.*${pane_log_id}"'
+	osal.exec(cmd: kill_cmd, stdout: false, name: 'kill_tmux_logger', ignore_error: true) or {}
 
-	// Clean up script and temp files
-	cleanup_cmd := 'rm -f "${script_path}" "/tmp/tmux_pane_${p.id}_buffer.txt" "/tmp/tmux_pane_${p.id}_pipe"'
-	osal.exec(cmd: cleanup_cmd, stdout: false, name: 'cleanup_logging_files', ignore_error: true) or {}
+	// No temp files to clean up with the simple pipe approach
 
 	// Update pane state
 	p.log_enabled = false
