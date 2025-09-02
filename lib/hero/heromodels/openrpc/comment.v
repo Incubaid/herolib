@@ -4,8 +4,23 @@ import json
 import freeflowuniverse.herolib.hero.heromodels
 import freeflowuniverse.herolib.core.redisclient
 
+// Comment-specific argument structures
+@[params]
+pub struct CommentGetArgs {
+pub mut:
+	id     ?u32
+	author ?u32
+	parent ?u32
+}
+
+@[params]
+pub struct CommentDeleteArgs {
+pub mut:
+	id u32
+}
+
 // comment_get retrieves comments based on the provided arguments
-fn (mut server RPCServer) comment_get(params string) !string {
+fn comment_get(params string) !string {
 	// Handle empty params
 	if params == 'null' || params == '{}' {
 		return error('No valid search criteria provided. Please specify id, author, or parent.')
@@ -21,26 +36,26 @@ fn (mut server RPCServer) comment_get(params string) !string {
 	
 	// If author is provided, find comments by author
 	if author := args.author {
-		return server.get_comments_by_author(author)!
+		return get_comments_by_author(author)!
 	}
 	
 	// If parent is provided, find child comments
 	if parent := args.parent {
-		return server.get_comments_by_parent(parent)!
+		return get_comments_by_parent(parent)!
 	}
 	
 	return error('No valid search criteria provided. Please specify id, author, or parent.')
 }
 
 // comment_set creates or updates a comment
-fn (mut server RPCServer) comment_set(params string) !string {
+fn comment_set(params string) !string {
 	comment_arg := json.decode(heromodels.CommentArg, params)!
 	id := heromodels.comment_set(comment_arg)!
 	return json.encode({'id': id})
 }
 
 // comment_delete removes a comment by ID
-fn (mut server RPCServer) comment_delete(params string) !string {
+fn comment_delete(params string) !string {
 	args := json.decode(CommentDeleteArgs, params)!
 	
 	// Check if comment exists
@@ -57,7 +72,7 @@ fn (mut server RPCServer) comment_delete(params string) !string {
 }
 
 // comment_list returns all comment IDs
-fn (mut server RPCServer) comment_list() !string {
+fn comment_list() !string {
 	mut redis := redisclient.core_get()!
 	keys := redis.hkeys('db:comments:data')!
 	mut ids := []u32{}
@@ -70,7 +85,7 @@ fn (mut server RPCServer) comment_list() !string {
 }
 
 // Helper function to get comments by author
-fn (mut server RPCServer) get_comments_by_author(author u32) !string {
+fn get_comments_by_author(author u32) !string {
 	mut redis := redisclient.core_get()!
 	all_data := redis.hgetall('db:comments:data')!
 	mut matching_comments := []heromodels.Comment{}
@@ -86,7 +101,7 @@ fn (mut server RPCServer) get_comments_by_author(author u32) !string {
 }
 
 // Helper function to get comments by parent
-fn (mut server RPCServer) get_comments_by_parent(parent u32) !string {
+fn get_comments_by_parent(parent u32) !string {
 	mut redis := redisclient.core_get()!
 	all_data := redis.hgetall('db:comments:data')!
 	mut matching_comments := []heromodels.Comment{}

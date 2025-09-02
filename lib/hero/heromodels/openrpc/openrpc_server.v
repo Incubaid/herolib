@@ -1,10 +1,38 @@
 module openrpc
 
 import json
-import x.json2 { Any }
+import x.json2
 import net.unix
 import os
 import freeflowuniverse.herolib.ui.console
+
+//THIS IS DEFAULT NEEDED FOR EACH OPENRPC SERVER WE MAKE
+
+pub struct JsonRpcRequest {
+pub:
+	jsonrpc string = '2.0'
+	method  string
+	params  string
+	id      string
+}
+
+// JSON-RPC 2.0 response structure
+pub struct JsonRpcResponse {
+pub:
+	jsonrpc string = '2.0'
+	result  string
+	error   ?JsonRpcError
+	id      string
+}
+
+// JSON-RPC 2.0 error structure
+pub struct JsonRpcError {
+pub:
+	code    int
+	message string
+	data    string
+}
+
 
 pub struct RPCServer {
 pub mut:
@@ -16,6 +44,14 @@ pub mut:
 pub struct RPCServerArgs {
 pub mut:
 	socket_path string = '/tmp/heromodels'
+}
+
+// Temporary struct for parsing incoming JSON-RPC requests using json2
+struct JsonRpcRequestRaw {
+	jsonrpc string
+	method  string
+	params  json2.Any
+	id      json2.Any
 }
 
 pub fn new_rpc_server(args RPCServerArgs) !&RPCServer {
@@ -82,51 +118,16 @@ fn (mut server RPCServer) handle_connection(mut conn unix.StreamConn) {
 }
 
 fn (mut server RPCServer) process_request(request_data string) !string {
-	// Parse JSON-RPC request manually to handle params properly
-	request_map := json.decode(map[string]Any, request_data)!
-	
-	jsonrpc := request_map['jsonrpc']!.str()
-	method := request_map['method']!.str()
-	id := request_map['id']!.str()
-	
-	// Handle params - convert to string representation
-	params_str := if 'params' in request_map {
-		params_any := request_map['params']!
-		match params_any {
-			string {
-				params_any
-			}
-			else {
-				json.encode(params_any)
-			}
-		}
-	} else {
-		'null'
-	}
-	
+	// Parse JSON-RPC request using json2 to handle Any types
+	request := json2.decode[JsonRpcRequestRaw](request_data)!
+	// Convert params to string representation
+	params_str := request.params.json_str()
+	// Convert id to string
+	id_str := request.id.json_str()
+	r := request.method.trim_space().to_lower()
 	// Route to appropriate method
-	result := match method {
-		'comment_get' {
-			server.comment_get(params_str)!
-		}
-		'comment_set' {
-			server.comment_set(params_str)!
-		}
-		'comment_delete' {
-			server.comment_delete(params_str)!
-		}
-		'comment_list' {
-			server.comment_list()!
-		}
-		'discover' {
-			server.discover()!
-		}
-		else {
-			return server.create_error_response(-32601, 'Method not found', id)
-		}
-	}
-	
-	return server.create_success_response(result, id)
+	result := server.process(r, params_str)!
+	return server.create_success_response(result, id_str)
 }
 
 fn (mut server RPCServer) create_success_response(result string, id string) string {
@@ -150,4 +151,10 @@ fn (mut server RPCServer) create_error_response(code int, message string, id str
 		id: id
 	}
 	return json.encode(response)
+}
+
+// discover returns the OpenRPC specification for the HeroModels service
+fn (mut server RPCServer) discover() !string {
+	spec_json := $tmpl("openrpc.json")
+	return spec_json
 }
