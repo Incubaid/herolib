@@ -49,29 +49,58 @@ fn main() {
 		exit(1)
 	}
 
-	// Read from stdin line by line and log immediately with real-time flushing
-	mut reader := io.new_buffered_reader(reader: os.stdin())
+	// Read from stdin using a more direct approach that works with tmux pipe-pane
+	// The issue is that tmux pipe-pane sends data differently than regular pipes
+
+	mut buffer := []u8{len: 1024}
+	mut line_buffer := ''
+
 	for {
-		line := reader.read_line() or { break }
-		if line.len == 0 {
+		// Read raw bytes from stdin - this is more compatible with tmux pipe-pane
+		data, bytes_read := os.fd_read(0, buffer.len)
+
+		if bytes_read == 0 {
+			// No data available - for tmux pipe-pane this is normal, continue waiting
 			continue
 		}
 
-		// Detect output type and set appropriate category
-		category, logtype := categorize_output(line)
+		// Convert bytes to string and add to line buffer
+		line_buffer += data
 
-		// Log immediately - the logger handles its own file operations
+		// Process complete lines
+		for line_buffer.contains('\n') {
+			idx := line_buffer.index('\n') or { break }
+			line := line_buffer[..idx].trim_space()
+			line_buffer = line_buffer[idx + 1..]
+
+			if line.len == 0 {
+				continue
+			}
+
+			// Detect output type and set appropriate category
+			category, logtype := categorize_output(line)
+
+			// Log immediately - the logger handles its own file operations
+			l.log(
+				cat:     category
+				log:     line
+				logtype: logtype
+			) or {
+				eprintln('Failed to log line: ${err}')
+				continue
+			}
+		}
+	}
+
+	// Process any remaining data in the buffer
+	if line_buffer.trim_space().len > 0 {
+		line := line_buffer.trim_space()
+		category, logtype := categorize_output(line)
 		l.log(
 			cat:     category
 			log:     line
 			logtype: logtype
-		) or {
-			eprintln('Failed to log line: ${err}')
-			continue
-		}
-
-		// Force flush by ensuring the logger writes immediately
-		// The logger.log() method already handles immediate writing and flushing
+		) or { eprintln('Failed to log final line: ${err}') }
 	}
 }
 
