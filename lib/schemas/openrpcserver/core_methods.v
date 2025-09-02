@@ -1,4 +1,4 @@
-module heromodels
+module openrpcserver
 
 import freeflowuniverse.herolib.core.redisclient
 

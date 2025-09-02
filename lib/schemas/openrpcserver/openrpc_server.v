@@ -1,4 +1,4 @@
-module openrpc
+module openrpcserver
 
 import json
 import x.json2
