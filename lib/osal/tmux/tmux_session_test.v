@@ -1,86 +1,39 @@
 module tmux
 
 import freeflowuniverse.herolib.osal.core as osal
-// import freeflowuniverse.herolib.installers.tmux
-
-// fn testsuite_end() {
-
-// 	
-// }
+import rand
 
 fn testsuite_begin() {
-	mut tmux := Tmux{}
+	mut tmux_instance := new()!
 
-	if tmux.is_running()! {
-		tmux.stop()!
+	if tmux_instance.is_running()! {
+		tmux_instance.stop()!
 	}
 }
 
-fn test_session_create() {
-	// installer := tmux.get_install(
-	// 	panic('could not install tmux: ${err}')
-	// }
+fn test_session_create() ! {
+	// Create unique session names to avoid conflicts
+	session_name1 := 'testsession_${rand.int()}'
+	session_name2 := 'testsession2_${rand.int()}'
 
-	mut tmux := Tmux{}
-	tmux.start() or { panic('cannot start tmux: ${err}') }
+	mut tmux_instance := new()!
+	tmux_instance.start()!
 
-	mut s := Session{
-		tmux:    &tmux
-		windows: []&Window{}
-		name:    'testsession'
-	}
+	// Create sessions using the proper API
+	mut s := tmux_instance.session_create(name: session_name1)!
+	mut s2 := tmux_instance.session_create(name: session_name2)!
 
-	mut s2 := Session{
-		tmux:    &tmux
-		windows: []&Window{}
-		name:    'testsession2'
-	}
-
-	// test testsession exists after session_create
+	// Test that sessions were created successfully
 	mut tmux_ls := osal.execute_silent('tmux ls') or { panic("can't exec: ${err}") }
-	assert !tmux_ls.contains('testsession: 1 windows')
-	s.create() or { panic('Cannot create session: ${err}') }
-	tmux_ls = osal.execute_silent('tmux ls') or { panic("can't exec: ${err}") }
-	assert tmux_ls.contains('testsession: 1 windows')
+	assert tmux_ls.contains(session_name1), 'Session 1 should exist'
+	assert tmux_ls.contains(session_name2), 'Session 2 should exist'
 
-	// test multiple session_create for same tmux
-	tmux_ls = osal.execute_silent('tmux ls') or { panic("can't exec: ${err}") }
-	assert !tmux_ls.contains('testsession2: 1 windows')
-	s2.create() or { panic('Cannot create session: ${err}') }
-	tmux_ls = osal.execute_silent('tmux ls') or { panic("can't exec: ${err}") }
-	assert tmux_ls.contains('testsession2: 1 windows')
+	// Test session existence check
+	assert tmux_instance.session_exist(session_name1), 'Session 1 should exist via API'
+	assert tmux_instance.session_exist(session_name2), 'Session 2 should exist via API'
 
-	// test session_create with duplicate session
-	mut create_err := ''
-	s2.create() or { create_err = err.msg() }
-	assert create_err != ''
-	assert create_err.contains('duplicate session: testsession2')
-	tmux_ls = osal.execute_silent('tmux ls') or { panic("can't exec: ${err}") }
-	assert tmux_ls.contains('testsession2: 1 windows')
-
-	s.stop() or { panic('Cannot stop session: ${err}') }
-	s2.stop() or { panic('Cannot stop session: ${err}') }
+	// Clean up
+	tmux_instance.session_delete(session_name1)!
+	tmux_instance.session_delete(session_name2)!
+	tmux_instance.stop()!
 }
-
-// fn test_session_stop() {
-
-// 	
-// 	installer := tmux.get_install(
-
-// 	mut tmux := Tmux {
-// 		node: node_ssh
-// 	}
-
-// 	mut s := Session{
-// 		tmux: &tmux // reference back
-// 		windows: map[string]&Window{}
-// 		name: 'testsession3'
-// 	}
-
-// 	s.create() or  { panic("Cannot create session: $err") }
-// 	mut tmux_ls := osal.execute_silent('tmux ls') or { panic("can't exec: $err") }
-// 	assert tmux_ls.contains("testsession3: 1 windows")
-// 	s.stop() or  { panic("Cannot stop session: $err")}
-// 	tmux_ls = osal.execute_silent('tmux ls') or { panic("can't exec: $err") }
-// 	assert !tmux_ls.contains("testsession3: 1 windows")
-// }

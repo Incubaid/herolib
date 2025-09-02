@@ -244,7 +244,7 @@ pub fn (mut self Streamer) add_worker(params StreamerNodeParams) !StreamerNode {
 
 	mut worker_node := self.new_node(params)!
 
-	if !worker_node.is_running() {
+	if !(worker_node.is_running() or { false }) {
 		return error('Worker node is not running')
 	}
 

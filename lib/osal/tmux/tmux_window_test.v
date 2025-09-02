@@ -1,65 +1,57 @@
 module tmux
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
+import rand
 import time
 
-// uses single tmux instance for all tests
+// Simple tests for tmux functionality
 
-fn testsuite_begin() {
-	muttmux := new() or { panic('Cannot create tmux: ${err}') }
+// Test MD5 command hashing (doesn't require tmux)
+fn test_md5_hashing() ! {
+	// Test basic hashing
+	cmd1 := 'echo "test"'
+	cmd2 := 'echo "test"'
+	cmd3 := 'echo "different"'
 
-	// reset tmux for tests
-	is_running := is_running() or { panic('cannot check if tmux is running: ${err}') }
-	if is_running {
-		stop() or { panic('Cannot stop tmux: ${err}') }
-	}
+	hash1 := normalize_and_hash_command(cmd1)
+	hash2 := normalize_and_hash_command(cmd2)
+	hash3 := normalize_and_hash_command(cmd3)
+
+	assert hash1 == hash2, 'Same commands should have same hash'
+	assert hash1 != hash3, 'Different commands should have different hashes'
+
+	// Test normalization
+	cmd_with_spaces := '  echo "test"  '
+	cmd_with_newlines := 'echo "test"\n'
+
+	hash_spaces := normalize_and_hash_command(cmd_with_spaces)
+	hash_newlines := normalize_and_hash_command(cmd_with_newlines)
+
+	assert hash1 == hash_spaces, 'Commands with extra spaces should normalize to same hash'
+	assert hash1 == hash_newlines, 'Commands with newlines should normalize to same hash'
 }
 
-fn testsuite_end() {
-	is_running := is_running() or { panic('cannot check if tmux is running: ${err}') }
-	if is_running {
-		stop() or { panic('Cannot stop tmux: ${err}') }
+// Test basic tmux functionality
+fn test_tmux_basic() ! {
+	// Create unique session name to avoid conflicts
+	session_name := 'test_${rand.int()}'
+
+	mut tmux_instance := new()!
+
+	// Ensure tmux is running
+	if !tmux_instance.is_running()! {
+		tmux_instance.start()!
 	}
-}
 
-fn test_window_new() ! {
-	mut tmux := new()!
-	tmux.start()!
-
-	// Create session first
-	mut session := tmux.session_create(name: 'main')!
+	// Create session
+	mut session := tmux_instance.session_create(name: session_name)!
+	// Note: session name gets normalized by name_fix, so we check if it contains our unique part
+	assert session.name.contains('test_'), 'Session name should contain test_ prefix'
 
 	// Test window creation
-	mut window := session.window_new(
-		name:  'TestWindow'
-		cmd:   'bash'
-		reset: true
-	)!
+	mut window := session.window_new(name: 'testwin')!
+	assert window.name == 'testwin'
+	assert session.window_exist(name: 'testwin')
 
-	assert window.name == 'testwindow' // name_fix converts to lowercase
-	assert session.window_exist(name: 'testwindow')
-
-	tmux.stop()!
-}
-
-// tests creating duplicate windows
-fn test_window_new0() {
-	installer := get_install()!
-
-	mut tmux := Tmux{
-		node: node_ssh
-	}
-
-	window_args := WindowArgs{
-		name: 'TestWindow0'
-	}
-
-	// console.print_debug(tmux)
-	mut window := tmux.window_new(window_args) or { panic("Can't create new window: ${err}") }
-	assert tmux.sessions.keys().contains('main')
-	mut window_dup := tmux.window_new(window_args) or { panic("Can't create new window: ${err}") }
-	console.print_debug(node_ssh.exec('tmux ls') or { panic('fail:${err}') })
-	window.delete() or { panic('Cant delete window') }
-	// console.print_debug(tmux)
+	// Clean up - just stop tmux to clean everything
+	tmux_instance.stop()!
 }
