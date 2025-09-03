@@ -3,9 +3,7 @@ module builder
 import os
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
-import v.embed_file
 
 const heropath_ = os.dir(@FILE) + '/../'
 
@@ -52,10 +50,10 @@ pub mut:
 
 pub fn (mut node Node) hero_install(args HeroInstallArgs) ! {
 	console.print_debug('install hero')
-	mut bs := bootstrapper()
+	bootstrapper()
 
 	myenv := node.environ_get()!
-	homedir := myenv['HOME'] or { return error("can't find HOME in env") }
+	_ := myenv['HOME'] or { return error("can't find HOME in env") }
 
 	mut todo := []string{}
 	if !args.compile {

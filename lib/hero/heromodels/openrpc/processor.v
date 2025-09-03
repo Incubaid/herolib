@@ -18,7 +18,7 @@ pub fn new_heromodels_server(args HeroModelsServerArgs) !&HeroModelsServer {
 	base_server := openrpcserver.new_rpc_server(
 		socket_path: args.socket_path
 	)!
-	
+
 	return &HeroModelsServer{
 		RPCServer: *base_server
 	}
@@ -47,6 +47,6 @@ pub fn (mut server HeroModelsServer) process(method string, params_str string) !
 			return server.create_error_response(-32601, 'Method not found', method)
 		}
 	}
-	
+
 	return result
 }

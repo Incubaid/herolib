@@ -32,11 +32,11 @@ pub mut:
 // new creates a new ContractRevision
 pub fn ContractRevision.new(version u32, content string, created_by string) ContractRevision {
 	return ContractRevision{
-		version: version
-		content: content
+		version:    version
+		content:    content
 		created_at: u64(time.now().unix_time())
 		created_by: created_by
-		comments: none
+		comments:   none
 	}
 }
 
@@ -49,27 +49,27 @@ pub fn (mut cr ContractRevision) comments(comments string) ContractRevision {
 // ContractSigner represents a party involved in signing a contract
 pub struct ContractSigner {
 pub mut:
-	id                           string       // Unique ID for the signer (UUID string)
-	name                         string       // Signer's name
-	email                        string       // Signer's email
-	status                       SignerStatus // Current status
-	signed_at                    ?u64         // When they signed (optional)
-	comments                     ?string      // Optional comments from signer
-	last_reminder_mail_sent_at   ?u64         // Last reminder timestamp
-	signature_data               ?string      // Base64 encoded signature image data
+	id                         string       // Unique ID for the signer (UUID string)
+	name                       string       // Signer's name
+	email                      string       // Signer's email
+	status                     SignerStatus // Current status
+	signed_at                  ?u64         // When they signed (optional)
+	comments                   ?string      // Optional comments from signer
+	last_reminder_mail_sent_at ?u64         // Last reminder timestamp
+	signature_data             ?string      // Base64 encoded signature image data
 }
 
 // new creates a new ContractSigner
 pub fn ContractSigner.new(id string, name string, email string) ContractSigner {
 	return ContractSigner{
-		id: id
-		name: name
-		email: email
-		status: .pending
-		signed_at: none
-		comments: none
+		id:                         id
+		name:                       name
+		email:                      email
+		status:                     .pending
+		signed_at:                  none
+		comments:                   none
 		last_reminder_mail_sent_at: none
-		signature_data: none
+		signature_data:             none
 	}
 }
 
@@ -139,48 +139,48 @@ pub fn (mut cs ContractSigner) sign(signature_data ?string, comments ?string) {
 @[heap]
 pub struct Contract {
 pub mut:
-	id                    u32                 // Unique contract ID
-	contract_id           string              // Unique UUID for the contract
-	title                 string              // Contract title
-	description           string              // Contract description
-	contract_type         string              // Type of contract
-	status                ContractStatus      // Current status
-	created_by            string              // Who created the contract
-	terms_and_conditions  string              // Terms and conditions text
-	start_date            ?u64                // Optional start date
-	end_date              ?u64                // Optional end date
-	renewal_period_days   ?i32                // Optional renewal period in days
-	next_renewal_date     ?u64                // Optional next renewal date
-	signers               []ContractSigner    // List of signers
-	revisions             []ContractRevision  // Contract revisions
-	current_version       u32                 // Current version number
-	last_signed_date      ?u64                // Last signing date
-	created_at            u64                 // Creation timestamp
-	updated_at            u64                 // Last update timestamp
+	id                   u32                // Unique contract ID
+	contract_id          string             // Unique UUID for the contract
+	title                string             // Contract title
+	description          string             // Contract description
+	contract_type        string             // Type of contract
+	status               ContractStatus     // Current status
+	created_by           string             // Who created the contract
+	terms_and_conditions string             // Terms and conditions text
+	start_date           ?u64               // Optional start date
+	end_date             ?u64               // Optional end date
+	renewal_period_days  ?i32               // Optional renewal period in days
+	next_renewal_date    ?u64               // Optional next renewal date
+	signers              []ContractSigner   // List of signers
+	revisions            []ContractRevision // Contract revisions
+	current_version      u32                // Current version number
+	last_signed_date     ?u64               // Last signing date
+	created_at           u64                // Creation timestamp
+	updated_at           u64                // Last update timestamp
 }
 
 // new creates a new Contract
 pub fn Contract.new(contract_id string) Contract {
 	now := u64(time.now().unix_time())
 	return Contract{
-		id: 0
-		contract_id: contract_id
-		title: ''
-		description: ''
-		contract_type: ''
-		status: .draft
-		created_by: ''
+		id:                   0
+		contract_id:          contract_id
+		title:                ''
+		description:          ''
+		contract_type:        ''
+		status:               .draft
+		created_by:           ''
 		terms_and_conditions: ''
-		start_date: none
-		end_date: none
-		renewal_period_days: none
-		next_renewal_date: none
-		signers: []
-		revisions: []
-		current_version: 0
-		last_signed_date: none
-		created_at: now
-		updated_at: now
+		start_date:           none
+		end_date:             none
+		renewal_period_days:  none
+		next_renewal_date:    none
+		signers:              []
+		revisions:            []
+		current_version:      0
+		last_signed_date:     none
+		created_at:           now
+		updated_at:           now
 	}
 }
 
@@ -331,7 +331,7 @@ pub fn (c Contract) all_signed() bool {
 	if c.signers.len == 0 {
 		return false
 	}
-	
+
 	for signer in c.signers {
 		if signer.status != .signed {
 			return false

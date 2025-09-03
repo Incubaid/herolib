@@ -150,21 +150,20 @@ pub fn plbook_code_get(cmd Command) !string {
 
 // same as session_run_get but will also run the plbook
 pub fn plbook_run(cmd Command) !(&playbook.PlayBook, string) {
-	heroscript := cmd.flags.get_string('heroscript') or { '' } 
+	heroscript := cmd.flags.get_string('heroscript') or { '' }
 	mut path := ''
 
 	mut plbook := if heroscript.len > 0 {
 		playbook.new(text: heroscript)!
 	} else {
-		path 
-		= plbook_code_get(cmd)!
+		path = plbook_code_get(cmd)!
 		if path.len == 0 {
 			return error(cmd.help_message())
 		}
 		// add all actions inside to the plbook
-		playbook.new(path: path)!		
+		playbook.new(path: path)!
 	}
-	
+
 	dagu := cmd.flags.get_bool('dagu') or { false }
 
 	playcmds.run(plbook: plbook)!

@@ -5,7 +5,6 @@ import json
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.hero.heromodels.openrpc
 
-
 fn send_request(mut conn unix.StreamConn, request openrpc.JsonRpcRequest) ! {
 	request_json := json.encode(request)
 	conn.write_string(request_json)!
@@ -31,9 +30,9 @@ console.print_item('Connected to server')
 console.print_header('Test 1: Discover OpenRPC Specification')
 discover_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
-	method: 'discover'
-	params: 'null'
-	id: '1'
+	method:  'discover'
+	params:  'null'
+	id:      '1'
 }
 
 send_request(mut conn, discover_request)!
@@ -46,9 +45,9 @@ comment_json := '{"comment": "This is a test comment from OpenRPC client", "pare
 
 create_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
-	method: 'comment_set'
-	params: comment_json
-	id: '2'
+	method:  'comment_set'
+	params:  comment_json
+	id:      '2'
 }
 
 send_request(mut conn, create_request)!
@@ -59,9 +58,9 @@ console.print_item('Comment created: ${create_response}')
 console.print_header('Test 3: List All Comments')
 list_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
-	method: 'comment_list'
-	params: 'null'
-	id: '3'
+	method:  'comment_list'
+	params:  'null'
+	id:      '3'
 }
 
 send_request(mut conn, list_request)!
@@ -74,9 +73,9 @@ get_args_json := '{"author": 1}'
 
 get_request := openrpc.JsonRpcRequest{
 	jsonrpc: '2.0'
-	method: 'comment_get'
-	params: get_args_json
-	id: '4'
+	method:  'comment_get'
+	params:  get_args_json
+	id:      '4'
 }
 
 send_request(mut conn, get_request)!
@@ -84,5 +83,3 @@ get_response := read_response(mut conn)!
 console.print_item('Comments by author: ${get_response}')
 
 console.print_header('All tests completed successfully!')
-
-

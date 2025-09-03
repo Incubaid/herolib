@@ -4,31 +4,31 @@ module library
 @[heap]
 pub struct Collection {
 pub mut:
-	id          u32      // Unique collection ID
-	title       string   // Title of the collection
-	description ?string  // Optional description of the collection
-	images      []u32    // List of image item IDs belonging to this collection
-	pdfs        []u32    // List of PDF item IDs belonging to this collection
-	markdowns   []u32    // List of Markdown item IDs belonging to this collection
-	books       []u32    // List of Book item IDs belonging to this collection
-	slides      []u32    // List of Slides item IDs belonging to this collection
-	created_at  u64      // Creation timestamp
-	updated_at  u64      // Last update timestamp
+	id          u32     // Unique collection ID
+	title       string  // Title of the collection
+	description ?string // Optional description of the collection
+	images      []u32   // List of image item IDs belonging to this collection
+	pdfs        []u32   // List of PDF item IDs belonging to this collection
+	markdowns   []u32   // List of Markdown item IDs belonging to this collection
+	books       []u32   // List of Book item IDs belonging to this collection
+	slides      []u32   // List of Slides item IDs belonging to this collection
+	created_at  u64     // Creation timestamp
+	updated_at  u64     // Last update timestamp
 }
 
 // new creates a new Collection with default values
 pub fn Collection.new() Collection {
 	return Collection{
-		id: 0
-		title: ''
+		id:          0
+		title:       ''
 		description: none
-		images: []
-		pdfs: []
-		markdowns: []
-		books: []
-		slides: []
-		created_at: 0
-		updated_at: 0
+		images:      []
+		pdfs:        []
+		markdowns:   []
+		books:       []
+		slides:      []
+		created_at:  0
+		updated_at:  0
 	}
 }
 

@@ -182,7 +182,7 @@ pub fn (mut gs GitStructure) check_repos_exist(args ReposActionsArgs) !string {
 		account:  args.account
 		provider: args.provider
 	)!
-	
+
 	if repos.len > 0 {
 		// Repository exists - print path and return success
 		if !args.script {

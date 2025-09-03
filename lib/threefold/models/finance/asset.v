@@ -26,15 +26,15 @@ pub mut:
 // new creates a new Asset with default values
 pub fn Asset.new() Asset {
 	return Asset{
-		id: 0
-		name: ''
+		id:          0
+		name:        ''
 		description: ''
-		amount: 0.0
-		address: ''
-		asset_type: .native
-		decimals: 18
-		created_at: 0
-		updated_at: 0
+		amount:      0.0
+		address:     ''
+		asset_type:  .native
+		decimals:    18
+		created_at:  0
+		updated_at:  0
 	}
 }
 
@@ -81,7 +81,31 @@ pub fn (a Asset) formatted_amount() string {
 		factor *= 10
 	}
 	formatted_amount := (a.amount * factor).round() / factor
-	return '${formatted_amount:.${a.decimals}f}'
+	// Format with the specified number of decimal places
+	if a.decimals == 0 {
+		return '${formatted_amount:.0f}'
+	} else if a.decimals == 1 {
+		return '${formatted_amount:.1f}'
+	} else if a.decimals == 2 {
+		return '${formatted_amount:.2f}'
+	} else if a.decimals == 3 {
+		return '${formatted_amount:.3f}'
+	} else if a.decimals == 4 {
+		return '${formatted_amount:.4f}'
+	} else {
+		// For more than 4 decimals, use string manipulation
+		str_amount := formatted_amount.str()
+		if str_amount.contains('.') {
+			parts := str_amount.split('.')
+			if parts.len == 2 {
+				decimal_part := parts[1]
+				if decimal_part.len > a.decimals {
+					return '${parts[0]}.${decimal_part[..a.decimals]}'
+				}
+			}
+		}
+		return str_amount
+	}
 }
 
 // transfer_to transfers amount to another asset

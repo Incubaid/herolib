@@ -175,7 +175,7 @@ fn test_get_u64_default() {
 	assert params.get_u64_default('key3', 17)! == 17
 }
 
-fn test_get_u32()! {
+fn test_get_u32() ! {
 	text := '
 		key1: val1
 		key2: 19

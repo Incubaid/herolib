@@ -3,45 +3,45 @@ module identity
 // IdenfyWebhookEvent represents an iDenfy webhook event structure
 pub struct IdenfyWebhookEvent {
 pub mut:
-	client_id       string                    // Client ID
-	scan_ref        string                    // Scan reference
-	status          string                    // Verification status
-	platform        string                    // Platform used
-	started_at      string                    // When verification started
-	finished_at     ?string                   // When verification finished (optional)
-	client_ip       ?string                   // Client IP address (optional)
-	client_location ?string                   // Client location (optional)
-	data            ?IdenfyVerificationData   // Verification data (optional)
+	client_id       string                  // Client ID
+	scan_ref        string                  // Scan reference
+	status          string                  // Verification status
+	platform        string                  // Platform used
+	started_at      string                  // When verification started
+	finished_at     ?string                 // When verification finished (optional)
+	client_ip       ?string                 // Client IP address (optional)
+	client_location ?string                 // Client location (optional)
+	data            ?IdenfyVerificationData // Verification data (optional)
 }
 
 // IdenfyVerificationData represents the verification data from iDenfy
 pub struct IdenfyVerificationData {
 pub mut:
-	doc_first_name         ?string // First name from document
-	doc_last_name          ?string // Last name from document
-	doc_number             ?string // Document number
-	doc_personal_code      ?string // Personal code from document
-	doc_expiry             ?string // Document expiry date
-	doc_dob                ?string // Date of birth from document
-	doc_type               ?string // Document type
-	doc_sex                ?string // Sex from document
-	doc_nationality        ?string // Nationality from document
-	doc_issuing_country    ?string // Document issuing country
-	manually_data_changed  ?bool   // Whether data was manually changed
+	doc_first_name        ?string // First name from document
+	doc_last_name         ?string // Last name from document
+	doc_number            ?string // Document number
+	doc_personal_code     ?string // Personal code from document
+	doc_expiry            ?string // Document expiry date
+	doc_dob               ?string // Date of birth from document
+	doc_type              ?string // Document type
+	doc_sex               ?string // Sex from document
+	doc_nationality       ?string // Nationality from document
+	doc_issuing_country   ?string // Document issuing country
+	manually_data_changed ?bool   // Whether data was manually changed
 }
 
 // new creates a new IdenfyWebhookEvent
 pub fn IdenfyWebhookEvent.new() IdenfyWebhookEvent {
 	return IdenfyWebhookEvent{
-		client_id: ''
-		scan_ref: ''
-		status: ''
-		platform: ''
-		started_at: ''
-		finished_at: none
-		client_ip: none
+		client_id:       ''
+		scan_ref:        ''
+		status:          ''
+		platform:        ''
+		started_at:      ''
+		finished_at:     none
+		client_ip:       none
 		client_location: none
-		data: none
+		data:            none
 	}
 }
 
@@ -102,16 +102,16 @@ pub fn (mut event IdenfyWebhookEvent) data(data ?IdenfyVerificationData) IdenfyW
 // new creates a new IdenfyVerificationData
 pub fn IdenfyVerificationData.new() IdenfyVerificationData {
 	return IdenfyVerificationData{
-		doc_first_name: none
-		doc_last_name: none
-		doc_number: none
-		doc_personal_code: none
-		doc_expiry: none
-		doc_dob: none
-		doc_type: none
-		doc_sex: none
-		doc_nationality: none
-		doc_issuing_country: none
+		doc_first_name:        none
+		doc_last_name:         none
+		doc_number:            none
+		doc_personal_code:     none
+		doc_expiry:            none
+		doc_dob:               none
+		doc_type:              none
+		doc_sex:               none
+		doc_nationality:       none
+		doc_issuing_country:   none
 		manually_data_changed: none
 	}
 }
