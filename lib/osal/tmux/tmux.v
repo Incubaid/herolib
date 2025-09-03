@@ -84,6 +84,7 @@ pub fn (mut t Tmux) session_create(args SessionCreateArgs) !&Session {
 
 @[params]
 pub struct TmuxNewArgs {
+pub:
 	sessionid string
 }
 
