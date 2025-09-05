@@ -2,6 +2,7 @@ module tmux
 
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.core.texttools
+import freeflowuniverse.herolib.core.redisclient
 // import freeflowuniverse.herolib.session
 import os
 import time
@@ -12,6 +13,7 @@ pub struct Tmux {
 pub mut:
 	sessions  []&Session
 	sessionid string // unique link to job
+	redis     &redisclient.Redis @[skip] // Redis client for command state tracking
 }
 
 // get session (session has windows) .
@@ -87,8 +89,12 @@ pub struct TmuxNewArgs {
 
 // return tmux instance
 pub fn new(args TmuxNewArgs) !Tmux {
+	// Initialize Redis client for command state tracking
+	mut redis := redisclient.core_get()!
+
 	mut t := Tmux{
 		sessionid: args.sessionid
+		redis:     redis
 	}
 	// t.load()!
 	t.scan()!

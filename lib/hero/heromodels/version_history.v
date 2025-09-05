@@ -6,32 +6,32 @@ import time
 @[heap]
 pub struct VersionHistory {
 pub mut:
-    current_id   string // blake192 hash of current version
-    previous_id  string // blake192 hash of previous version
-    next_id      string // blake192 hash of next version (if exists)
-    object_type  string // Type of object (User, Group, etc.)
-    change_type  ChangeType
-    changed_by   string // User ID who made the change
-    changed_at   i64    // Unix timestamp
-    change_notes string // Optional description of changes
+	current_id   string // blake192 hash of current version
+	previous_id  string // blake192 hash of previous version
+	next_id      string // blake192 hash of next version (if exists)
+	object_type  string // Type of object (User, Group, etc.)
+	change_type  ChangeType
+	changed_by   string // User ID who made the change
+	changed_at   i64    // Unix timestamp
+	change_notes string // Optional description of changes
 }
 
 pub enum ChangeType {
-    create
-    update
-    delete
-    restore
+	create
+	update
+	delete
+	restore
 }
 
 pub fn new_version_history(current_id string, previous_id string, object_type string, change_type ChangeType, changed_by string) VersionHistory {
-    return VersionHistory{
-        current_id: current_id
-        previous_id: previous_id
-        object_type: object_type
-        change_type: change_type
-        changed_by: changed_by
-        changed_at: time.now().unix()
-    }
+	return VersionHistory{
+		current_id:  current_id
+		previous_id: previous_id
+		object_type: object_type
+		change_type: change_type
+		changed_by:  changed_by
+		changed_at:  time.now().unix()
+	}
 }
 
 // Database indexes needed:

@@ -15,10 +15,10 @@ pub fn new() ServerManager {
 }
 
 fn (s ServerManager) execute(command string) bool {
-	// console.print_debug(command)
+	console.print_debug(command)
 
 	r := os.execute(command)
-	// console.print_debug(r)
+	console.print_debug(r)
 
 	return true
 }

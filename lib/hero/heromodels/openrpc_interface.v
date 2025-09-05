@@ -23,7 +23,7 @@ pub fn new_heromodels_server(args HeroModelsServerArgs) !&HeroModelsServer {
 	base_server := openrpcserver.new_rpc_server(
 		socket_path: args.socket_path
 	)!
-	
+
 	return &HeroModelsServer{
 		RPCServer: *base_server
 	}

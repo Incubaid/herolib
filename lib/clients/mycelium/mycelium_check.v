@@ -1,13 +1,8 @@
 module mycelium
 
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.installers.lang.rust
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui
 import os
-import time
 import json
 
 pub fn check() bool {

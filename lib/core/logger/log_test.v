@@ -11,7 +11,9 @@ fn testsuite_begin() {
 }
 
 fn test_logger() {
-	mut logger := new('/tmp/testlogs')!
+	mut logger := new(LoggerFactoryArgs{
+		path: '/tmp/testlogs'
+	})!
 
 	// Test stdout logging
 	logger.log(LogItemArgs{

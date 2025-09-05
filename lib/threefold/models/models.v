@@ -9,11 +9,12 @@ module models
 // - Payment models (Stripe webhooks)
 // - Location models (addresses)
 
-// Re-export all model modules for easy access
-pub use core
-pub use finance
-pub use flow
-pub use business
-pub use identity
-pub use payment
-pub use location
+// Import all model modules for easy access
+
+import freeflowuniverse.herolib.threefold.models.core
+import freeflowuniverse.herolib.threefold.models.finance
+import freeflowuniverse.herolib.threefold.models.flow
+import freeflowuniverse.herolib.threefold.models.business
+import freeflowuniverse.herolib.threefold.models.identity
+import freeflowuniverse.herolib.threefold.models.payment
+import freeflowuniverse.herolib.threefold.models.location

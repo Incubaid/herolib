@@ -65,7 +65,7 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 			// means current dir
 			args.path = os.getwd()
 			mut curdiro := pathlib.get_dir(path: args.path, create: false)!
-			mut parentpath := curdiro.parent_find('.git') or { pathlib.Path{} }
+			// mut parentpath := curdiro.parent_find('.git') or { pathlib.Path{} }
 			args.path = curdiro.path
 		}
 		if !os.exists(args.path) {

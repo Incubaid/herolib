@@ -41,8 +41,8 @@ pub fn (mut docsite DocSite) generate_docs() ! {
 	}
 
 	if gen.errors.len > 0 {
-		println("Page List: is header collection and page name per collection.\nAvailable pages:\n${gen.client.list_markdown()!}")
-		return error('Errors occurred during site generation:\n${gen.errors.join('\n\n')}\n')		
+		println('Page List: is header collection and page name per collection.\nAvailable pages:\n${gen.client.list_markdown()!}')
+		return error('Errors occurred during site generation:\n${gen.errors.join('\n\n')}\n')
 	}
 }
 

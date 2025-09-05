@@ -10,22 +10,22 @@ pub enum SaleStatus {
 // SaleItem represents an individual item within a Sale
 pub struct SaleItem {
 pub mut:
-	product_id             u32     // Product ID
-	name                   string  // Denormalized product name at time of sale
-	quantity               i32     // Quantity purchased
-	unit_price             f64     // Price per unit at time of sale
-	subtotal               f64     // Subtotal for this item
-	service_active_until   ?i64    // Optional: For services, date until this specific purchased instance is active
+	product_id           u32    // Product ID
+	name                 string // Denormalized product name at time of sale
+	quantity             i32    // Quantity purchased
+	unit_price           f64    // Price per unit at time of sale
+	subtotal             f64    // Subtotal for this item
+	service_active_until ?i64   // Optional: For services, date until this specific purchased instance is active
 }
 
 // new creates a new SaleItem with default values
 pub fn SaleItem.new() SaleItem {
 	return SaleItem{
-		product_id: 0
-		name: ''
-		quantity: 0
-		unit_price: 0.0
-		subtotal: 0.0
+		product_id:           0
+		name:                 ''
+		quantity:             0
+		unit_price:           0.0
+		subtotal:             0.0
 		service_active_until: none
 	}
 }
@@ -91,17 +91,17 @@ pub mut:
 // new creates a new Sale with default values
 pub fn Sale.new() Sale {
 	return Sale{
-		id: 0
-		company_id: 0
-		buyer_id: 0
+		id:             0
+		company_id:     0
+		buyer_id:       0
 		transaction_id: 0
-		total_amount: 0.0
-		status: .pending
-		sale_date: 0
-		items: []
-		notes: ''
-		created_at: 0
-		updated_at: 0
+		total_amount:   0.0
+		status:         .pending
+		sale_date:      0
+		items:          []
+		notes:          ''
+		created_at:     0
+		updated_at:     0
 	}
 }
 

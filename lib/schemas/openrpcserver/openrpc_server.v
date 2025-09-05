@@ -6,7 +6,7 @@ import net.unix
 import os
 import freeflowuniverse.herolib.ui.console
 
-//THIS IS DEFAULT NEEDED FOR EACH OPENRPC SERVER WE MAKE
+// THIS IS DEFAULT NEEDED FOR EACH OPENRPC SERVER WE MAKE
 
 pub struct JsonRpcRequest {
 pub:
@@ -33,10 +33,9 @@ pub:
 	data    string
 }
 
-
 pub struct RPCServer {
 pub mut:
-	listener &unix.StreamListener
+	listener    &unix.StreamListener
 	socket_path string
 }
 
@@ -59,18 +58,18 @@ pub fn new_rpc_server(args RPCServerArgs) !&RPCServer {
 	if os.exists(args.socket_path) {
 		os.rm(args.socket_path)!
 	}
-	
+
 	listener := unix.listen_stream(args.socket_path, unix.ListenOptions{})!
-	
+
 	return &RPCServer{
-		listener: listener
+		listener:    listener
 		socket_path: args.socket_path
 	}
 }
 
 pub fn (mut server RPCServer) start() ! {
 	console.print_header('Starting HeroModels OpenRPC Server on ${server.socket_path}')
-	
+
 	for {
 		mut conn := server.listener.accept()!
 		spawn server.handle_connection(mut conn)
@@ -88,7 +87,7 @@ fn (mut server RPCServer) handle_connection(mut conn unix.StreamConn) {
 	defer {
 		conn.close() or { console.print_stderr('Error closing connection: ${err}') }
 	}
-	
+
 	for {
 		// Read JSON-RPC request
 		mut buffer := []u8{len: 4096}
@@ -96,19 +95,19 @@ fn (mut server RPCServer) handle_connection(mut conn unix.StreamConn) {
 			console.print_debug('Connection closed or error reading: ${err}')
 			break
 		}
-		
+
 		if bytes_read == 0 {
 			break
 		}
-		
+
 		request_data := buffer[..bytes_read].bytestr()
 		console.print_debug('Received request: ${request_data}')
-		
+
 		// Process the JSON-RPC request
 		response := server.process_request(request_data) or {
 			server.create_error_response(-32603, 'Internal error: ${err}', 'null')
 		}
-		
+
 		// Send response
 		conn.write_string(response) or {
 			console.print_stderr('Error writing response: ${err}')
@@ -145,22 +144,22 @@ pub fn (mut server RPCServer) process(method string, params_str string) !string 
 fn (mut server RPCServer) create_success_response(result string, id string) string {
 	response := JsonRpcResponse{
 		jsonrpc: '2.0'
-		result: result
-		id: id
+		result:  result
+		id:      id
 	}
 	return json.encode(response)
 }
 
 fn (mut server RPCServer) create_error_response(code int, message string, id string) string {
 	error := JsonRpcError{
-		code: code
+		code:    code
 		message: message
-		data: 'null'
+		data:    'null'
 	}
 	response := JsonRpcResponse{
 		jsonrpc: '2.0'
-		error: error
-		id: id
+		error:   error
+		id:      id
 	}
 	return json.encode(response)
 }

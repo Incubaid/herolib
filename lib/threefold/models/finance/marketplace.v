@@ -40,10 +40,10 @@ pub mut:
 pub fn Bid.new() Bid {
 	return Bid{
 		listing_id: ''
-		bidder_id: 0
-		amount: 0.0
-		currency: ''
-		status: .active
+		bidder_id:  0
+		amount:     0.0
+		currency:   ''
+		status:     .active
 		created_at: u64(time.now().unix_time())
 	}
 }
@@ -82,50 +82,50 @@ pub fn (mut b Bid) status(status BidStatus) Bid {
 @[heap]
 pub struct Listing {
 pub mut:
-	id          u32           // Unique listing ID
-	title       string        // Title of the listing
-	description string        // Description of the listing
-	asset_id    string        // ID of the asset being listed
-	asset_type  AssetType     // Type of the asset
-	seller_id   string        // ID of the user selling the asset
-	price       f64           // Initial price for fixed price, or starting price for auction
-	currency    string        // Currency of the listing
-	listing_type ListingType  // Type of listing (fixed_price, auction, exchange)
-	status      ListingStatus // Status of the listing
-	expires_at  ?u64          // Optional expiration date
-	sold_at     ?u64          // Optional date when the item was sold
-	buyer_id    ?string       // Optional buyer ID
-	sale_price  ?f64          // Optional final sale price
-	bids        []Bid         // List of bids for auction type listings
-	tags        []string      // Tags for the listing
-	image_url   ?string       // Optional image URL
-	created_at  u64           // Creation timestamp
-	updated_at  u64           // Last update timestamp
+	id           u32           // Unique listing ID
+	title        string        // Title of the listing
+	description  string        // Description of the listing
+	asset_id     string        // ID of the asset being listed
+	asset_type   AssetType     // Type of the asset
+	seller_id    string        // ID of the user selling the asset
+	price        f64           // Initial price for fixed price, or starting price for auction
+	currency     string        // Currency of the listing
+	listing_type ListingType   // Type of listing (fixed_price, auction, exchange)
+	status       ListingStatus // Status of the listing
+	expires_at   ?u64          // Optional expiration date
+	sold_at      ?u64          // Optional date when the item was sold
+	buyer_id     ?string       // Optional buyer ID
+	sale_price   ?f64          // Optional final sale price
+	bids         []Bid         // List of bids for auction type listings
+	tags         []string      // Tags for the listing
+	image_url    ?string       // Optional image URL
+	created_at   u64           // Creation timestamp
+	updated_at   u64           // Last update timestamp
 }
 
 // new creates a new Listing with default values
 pub fn Listing.new() Listing {
 	now := u64(time.now().unix_time())
 	return Listing{
-		id: 0
-		title: ''
-		description: ''
-		asset_id: ''
-		asset_type: .native
-		seller_id: ''
-		price: 0.0
-		currency: ''
+		id:           0
+		title:        ''
+		description:  ''
+		asset_id:     ''
+		asset_type:   .native
+		seller_id:    ''
+		price:        0.0
+		currency:     ''
 		listing_type: .fixed_price
-		status: .active
-		expires_at: none
-		sold_at: none
-		buyer_id: none
-		sale_price: none
-		bids: []
-		tags: []
-		image_url: none
-		created_at: now
-		updated_at: now
+		status:       .active
+		expires_at:   none
+		sold_at:      none
+		buyer_id:     none
+		sale_price:   none
+		bids:         []
+		tags:         []
+		image_url:    none
+		created_at:   now
+		updated_at:   now
 	}
 }
 

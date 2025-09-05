@@ -18,15 +18,15 @@ pub mut:
 // new creates a new signature requirement
 pub fn SignatureRequirement.new(flow_step_id u32, public_key string, message string) SignatureRequirement {
 	return SignatureRequirement{
-		id: 0
+		id:           0
 		flow_step_id: flow_step_id
-		public_key: public_key
-		message: message
-		signed_by: none
-		signature: none
-		status: 'Pending'
-		created_at: 0
-		updated_at: 0
+		public_key:   public_key
+		message:      message
+		signed_by:    none
+		signature:    none
+		status:       'Pending'
+		created_at:   0
+		updated_at:   0
 	}
 }
 

@@ -78,11 +78,10 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		// Append the newly read data to the total response
 		res_total << res[..n]
 
-		//here we need to check we are at end
+		// here we need to check we are at end
 		if res.bytestr().contains('\n') {
 			break
 		}
-
 	}
 	unix.shutdown(socket.sock.handle)
 	socket.close() or {}

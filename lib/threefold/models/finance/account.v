@@ -4,31 +4,31 @@ module finance
 @[heap]
 pub struct Account {
 pub mut:
-	id          u32      // Unique account ID
-	name        string   // Internal name of the account for the user
-	user_id     u32      // User ID of the owner of the account
-	description string   // Optional description of the account
-	ledger      string   // Describes the ledger/blockchain where the account is located
-	address     string   // Address of the account on the blockchain
-	pubkey      string   // Public key
-	assets      []u32    // List of asset IDs in this account
-	created_at  u64      // Creation timestamp
-	updated_at  u64      // Last update timestamp
+	id          u32    // Unique account ID
+	name        string // Internal name of the account for the user
+	user_id     u32    // User ID of the owner of the account
+	description string // Optional description of the account
+	ledger      string // Describes the ledger/blockchain where the account is located
+	address     string // Address of the account on the blockchain
+	pubkey      string // Public key
+	assets      []u32  // List of asset IDs in this account
+	created_at  u64    // Creation timestamp
+	updated_at  u64    // Last update timestamp
 }
 
 // new creates a new Account with default values
 pub fn Account.new() Account {
 	return Account{
-		id: 0
-		name: ''
-		user_id: 0
+		id:          0
+		name:        ''
+		user_id:     0
 		description: ''
-		ledger: ''
-		address: ''
-		pubkey: ''
-		assets: []
-		created_at: 0
-		updated_at: 0
+		ledger:      ''
+		address:     ''
+		pubkey:      ''
+		assets:      []
+		created_at:  0
+		updated_at:  0
 	}
 }
 

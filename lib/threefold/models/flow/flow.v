@@ -4,13 +4,13 @@ module flow
 @[heap]
 pub struct Flow {
 pub mut:
-	id        u32        // Unique flow ID
-	flow_uuid string     // A unique UUID for the flow, for external reference
-	name      string     // Name of the flow
-	status    string     // Current status of the flow (e.g., "Pending", "InProgress", "Completed", "Failed")
-	steps     []FlowStep // Steps involved in this flow
-	created_at u64       // Creation timestamp
-	updated_at u64       // Last update timestamp
+	id         u32        // Unique flow ID
+	flow_uuid  string     // A unique UUID for the flow, for external reference
+	name       string     // Name of the flow
+	status     string     // Current status of the flow (e.g., "Pending", "InProgress", "Completed", "Failed")
+	steps      []FlowStep // Steps involved in this flow
+	created_at u64        // Creation timestamp
+	updated_at u64        // Last update timestamp
 }
 
 // new creates a new Flow
@@ -18,11 +18,11 @@ pub mut:
 // The ID is managed by the database
 pub fn Flow.new(flow_uuid string) Flow {
 	return Flow{
-		id: 0
-		flow_uuid: flow_uuid
-		name: ''
-		status: 'Pending'
-		steps: []
+		id:         0
+		flow_uuid:  flow_uuid
+		name:       ''
+		status:     'Pending'
+		steps:      []
 		created_at: 0
 		updated_at: 0
 	}
@@ -71,7 +71,7 @@ pub fn (f Flow) is_completed() bool {
 	if f.steps.len == 0 {
 		return false
 	}
-	
+
 	for step in f.steps {
 		if step.status != 'Completed' {
 			return false
@@ -84,7 +84,7 @@ pub fn (f Flow) is_completed() bool {
 pub fn (f Flow) get_next_step() ?FlowStep {
 	mut sorted_steps := f.steps.clone()
 	sorted_steps.sort(a.step_order < b.step_order)
-	
+
 	for step in sorted_steps {
 		if step.status == 'Pending' {
 			return step

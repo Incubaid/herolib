@@ -3,7 +3,7 @@ module core
 import net
 import time
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core
+import freeflowuniverse.herolib.core as herolib_core
 import math
 import os
 
@@ -18,7 +18,7 @@ pub mut:
 
 // if ping ok, return true
 pub fn ping(args PingArgs) !bool {
-	platform_ := core.platform()!
+	platform_ := herolib_core.platform()!
 	mut cmd := 'ping'
 	if args.address.contains(':') {
 		cmd = 'ping6'
@@ -238,13 +238,14 @@ fn ssh_testrun_internal(args TcpPortTestArgs) !(string, SSHResult) {
 	res := exec(cmd: cmd, ignore_error: true, stdout: false, debug: false)!
 	// console.print_debug('ssh test ${res.exit_code}: ===== cmd:\n${cmd}\n=====\n${res.output}')
 
+	res_output := res.output
 	if res.exit_code == 0 {
-		return res.output, SSHResult.ok
+		return res_output, SSHResult.ok
 	} else if res.exit_code == 1 {
-		return res.output, SSHResult.tcpport
+		return res_output, SSHResult.ssh
 	} else if res.exit_code == 2 {
-		return res.output, SSHResult.ping
+		return res_output, SSHResult.ping
 	} else {
-		return res.output, SSHResult.ssh
+		return res_output, SSHResult.ssh
 	}
 }

@@ -17,14 +17,14 @@ pub mut:
 // new creates a new Image with default values
 pub fn Image.new() Image {
 	return Image{
-		id: 0
-		title: ''
+		id:          0
+		title:       ''
 		description: none
-		url: ''
-		width: 0
-		height: 0
-		created_at: 0
-		updated_at: 0
+		url:         ''
+		width:       0
+		height:      0
+		created_at:  0
+		updated_at:  0
 	}
 }
 
@@ -97,13 +97,13 @@ pub mut:
 // new creates a new Pdf with default values
 pub fn Pdf.new() Pdf {
 	return Pdf{
-		id: 0
-		title: ''
+		id:          0
+		title:       ''
 		description: none
-		url: ''
-		page_count: 0
-		created_at: 0
-		updated_at: 0
+		url:         ''
+		page_count:  0
+		created_at:  0
+		updated_at:  0
 	}
 }
 
@@ -151,12 +151,12 @@ pub mut:
 // new creates a new Markdown document with default values
 pub fn Markdown.new() Markdown {
 	return Markdown{
-		id: 0
-		title: ''
+		id:          0
+		title:       ''
 		description: none
-		content: ''
-		created_at: 0
-		updated_at: 0
+		content:     ''
+		created_at:  0
+		updated_at:  0
 	}
 }
 
@@ -200,8 +200,8 @@ pub mut:
 // new creates a new TocEntry with default values
 pub fn TocEntry.new() TocEntry {
 	return TocEntry{
-		title: ''
-		page: 0
+		title:       ''
+		page:        0
 		subsections: []
 	}
 }
@@ -245,13 +245,13 @@ pub mut:
 // new creates a new Book with default values
 pub fn Book.new() Book {
 	return Book{
-		id: 0
-		title: ''
-		description: none
+		id:                0
+		title:             ''
+		description:       none
 		table_of_contents: []
-		pages: []
-		created_at: 0
-		updated_at: 0
+		pages:             []
+		created_at:        0
+		updated_at:        0
 	}
 }
 
@@ -325,8 +325,8 @@ pub mut:
 // new creates a new Slide
 pub fn Slide.new() Slide {
 	return Slide{
-		image_url: ''
-		title: none
+		image_url:   ''
+		title:       none
 		description: none
 	}
 }
@@ -374,12 +374,12 @@ pub mut:
 // new creates a new Slideshow with default values
 pub fn Slideshow.new() Slideshow {
 	return Slideshow{
-		id: 0
-		title: ''
+		id:          0
+		title:       ''
 		description: none
-		slides: []
-		created_at: 0
-		updated_at: 0
+		slides:      []
+		created_at:  0
+		updated_at:  0
 	}
 }
 
