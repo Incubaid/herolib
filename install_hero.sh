@@ -4,7 +4,7 @@ set -e
 
 os_name="$(uname -s)"
 arch_name="$(uname -m)"
-version='1.0.30'
+version='1.0.29'
 
 
 # Base URL for GitHub releases
@@ -121,7 +121,9 @@ echo "Download URL for your platform: $url"
 # Download the file
 curl -o /tmp/downloaded_file -L "$url"
 
-# Check if file size is greater than 10 MB
+set -e
+
+# Check if file size is greater than 2 MB
 file_size=$(du -m  /tmp/downloaded_file | cut -f1)
 if [ "$file_size" -ge 2 ]; then
     # Create the target directory if it doesn't exist
@@ -139,6 +141,6 @@ if [ "$file_size" -ge 2 ]; then
     export PATH=$PATH:$hero_bin_path
     hero -version
 else
-    echo "Downloaded file is less than 10 MB. Process aborted."
+    echo "Downloaded file is less than 2 MB. Process aborted."
     exit 1
 fi
