@@ -4,6 +4,7 @@ import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.core.texttools
+import freeflowuniverse.herolib.installers.virt.herorunner as herorunner_installer
 import os
 
 // Updated enum to be more flexible
@@ -72,6 +73,12 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 
 	// Create container config
 	self.create_container_config(args.name, rootfs_path)!
+
+	// Install crun if not installed
+	if !osal.cmd_exists('crun') {
+		mut herorunner := herorunner_installer.new()!
+		herorunner.install()!
+	}
 
 	// Create container using crun
 	osal.exec(

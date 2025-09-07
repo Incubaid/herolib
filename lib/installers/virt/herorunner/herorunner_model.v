@@ -18,9 +18,6 @@ pub mut:
 // your checking & initialization code if needed
 fn obj_init(mycfg_ HeroRunner) !HeroRunner {
 	mut mycfg := mycfg_
-	if mycfg.password == '' && mycfg.secret == '' {
-		return error('password or secret needs to be filled in for ${mycfg.name}')
-	}
 	return mycfg
 }
 

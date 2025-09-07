@@ -23,9 +23,7 @@ fn upload() ! {
 
 fn install() ! {
 	console.print_header('install herorunner')
-	osal.package_install('
-		xz-utils
-	   crun')!
+	osal.package_install('crun')!
 
 	// osal.exec(
 	// 	cmd:    '
