@@ -11,13 +11,13 @@
 		},
 		{
 			"path": "examples"
-		},		
+		},
 		{
 			"path": "cli"
 		},
 		{
 			"path": "manual"
-		}		
+		}
 	],
 	"settings": {
 		"extensions.ignoreRecommendations": false
@@ -40,7 +40,8 @@
 			"simonsiefke.svg-preview",
 			"gruntfuggly.todo-tree",
 			"vosca.vscode-v-analyzer",
-			"tomoki1207.pdf"
+			"tomoki1207.pdf",
+			"kilocode.kilo-code"
 		]
 	}
 }
