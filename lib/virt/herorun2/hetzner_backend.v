@@ -1,4 +1,4 @@
-module herorun
+module herorun2
 
 import os
 import freeflowuniverse.herolib.ui.console

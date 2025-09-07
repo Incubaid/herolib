@@ -1,4 +1,4 @@
-module herorun
+module herorun2
 
 // Base image types for containers
 pub enum BaseImage {

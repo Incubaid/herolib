@@ -1,8 +1,7 @@
-module herorun
+module herorun2
 
 import freeflowuniverse.herolib.osal.tmux
 import freeflowuniverse.herolib.osal.sshagent
-import freeflowuniverse.herolib.virt.hetznermanager
 import freeflowuniverse.herolib.osal.core as osal
 import time
 import os
@@ -18,7 +17,6 @@ pub mut:
 	session_name string
 	window_name  string
 	agent        sshagent.SSHAgent
-	hetzner      &hetznermanager.HetznerManager
 }
 
 @[params]
@@ -218,7 +216,7 @@ fn (mut e Executor) create_container() ! {
 		}
 	}
 
-	setup_cmd=texttools.dedent(setup_cmd)
+	setup_cmd = texttools.dedent(setup_cmd)
 
 	remote_cmd := 'ssh ${e.node.settings.user}@${e.node.settings.node_ip} "${setup_cmd}"'
 	osal.exec(cmd: remote_cmd, stdout: false, name: 'container_create')!
