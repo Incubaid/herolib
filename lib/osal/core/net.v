@@ -127,6 +127,64 @@ pub fn tcp_port_test(args TcpPortTestArgs) bool {
 	return false
 }
 
+// return in milliseconds
+pub fn http_ping(args TcpPortTestArgs) !int {
+	start_time := time.now().unix_milli()
+
+	// Try to establish TCP connection
+	console.print_debug('Pinging HTTP server at ${args.address}:${args.port}...')
+	mut sock := net.dial_tcp('${args.address}:${args.port}') or {
+		return error('failed to establish TCP connection to ${args.address}:${args.port}')
+	}
+	console.print_debug('TCP connection established to ${args.address}:${args.port}')
+
+	// Send a simple HTTP GET request
+	http_request := 'GET / HTTP/1.1\r\nHost: ${args.address}\r\nConnection: close\r\n\r\n'
+	sock.write_string(http_request) or {
+		sock.close()!
+		return error('failed to send HTTP request to ${args.address}:${args.port}')
+	}
+	console.print_debug('HTTP request sent to ${args.address}:${args.port}')
+
+	// Read response (at least some bytes to confirm it's an HTTP server)
+	mut buf := []u8{len: 1024}
+	_ = sock.read(mut buf) or {
+		sock.close()!
+		return error('failed to read HTTP response from ${args.address}:${args.port}')
+	}
+	console.print_debug('HTTP response received from ${args.address}:${args.port}')
+
+	sock.close()!
+	console.print_debug('TCP connection closed for ${args.address}:${args.port}')
+	// Calculate and return the round-trip time
+	end_time := time.now().unix_milli()
+	return int(end_time - start_time)
+}
+
+// Wait until a web server responds properly to HTTP requests
+// Returns true when the server is responding, false on timeout
+pub fn http_wait(args TcpPortTestArgs) bool {
+	start_time := time.now().unix_milli()
+	mut run_time := 0.0
+	for true {
+		run_time = time.now().unix_milli()
+		if run_time > start_time + args.timeout {
+			return false
+		}
+
+		// Try to ping the HTTP server
+		_ = http_ping(args) or {
+			// If http_ping fails, it means the server is not responding properly yet
+			time.sleep(100 * time.millisecond)
+			continue
+		}
+
+		// If http_ping succeeds, the server is responding properly
+		return true
+	}
+	return false
+}
+
 // Returns the public IP address as known on the public side
 // Uses resolver4.opendns.com to fetch the IP address
 pub fn ipaddr_pub_get() !string {

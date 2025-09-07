@@ -59,15 +59,22 @@ fn test_ping(mirror string, mut wg sync.WaitGroup, ch chan PerfResult) ! {
 		return
 	}
 	host := u.host
-	start := time.now()
-	mut c := net.dial_tcp('${host}:80')!
-	c.set_blocking(false)!
-	c.set_write_timeout(time.Duration(5000 * time.millisecond))
-	c.close() or {}
-	ch <- PerfResult{
-		url:     mirror
-		ping_ms: int(time.since(start).milliseconds())
-		speed:   0.0
+	mut error := ''
+	result := osal.http_ping(address: host, port: 80, timeout: 5000) or {
+		error = err.msg()
+		0
+	}
+	if result > 0 {
+		ch <- PerfResult{
+			url:     mirror
+			ping_ms: result
+			speed:   0.0
+		}
+	} else {
+		ch <- PerfResult{
+			url:   mirror
+			error: error
+		}
 	}
 }
 
@@ -134,11 +141,13 @@ pub fn fix_mirrors() ! {
 
 	ch := chan PerfResult{cap: 1000}
 
-	mirrors := fetch_mirrors() or {
-		print_backtrace()
-		eprintln(err)
-		return
-	}
+	mut mirrors := ['http://ftp.mirror.tw/pub/ubuntu/ubuntu/']
+
+	// mirrors := fetch_mirrors() or {
+	// 	print_backtrace()
+	// 	eprintln(err)
+	// 	return
+	// }
 	mut c := 0
 
 	mut result := []PerfResult{}
