@@ -12,12 +12,21 @@ import freeflowuniverse.herolib.core.texttools
 @[heap]
 pub struct ExecutorCrun {
 pub mut:
-	container_id string //to map to virt/herorun/container
-	retry       int  = 1 // nr of times something will be retried before failing, need to check also what error is, only things which should be retried need to be done
-	debug       bool = true
+	container_id string // container ID for crun
+	retry        int  = 1
+	debug        bool = true
 }
 
 fn (mut executor ExecutorCrun) init() ! {
+	// Verify container exists and is running
+	result := osal.exec(cmd: 'crun state ${executor.container_id}', stdout: false) or {
+		return error('Container ${executor.container_id} not found or not accessible')
+	}
+	
+	// Parse state to ensure container is running
+	if !result.contains('"status":"running"') {
+		return error('Container ${executor.container_id} is not running')
+	}
 }
 
 pub fn (mut executor ExecutorCrun) debug_on() {
@@ -31,142 +40,167 @@ pub fn (mut executor ExecutorCrun) debug_off() {
 pub fn (mut executor ExecutorCrun) exec(args_ ExecArgs) !string {
 	mut args := args_
 	if executor.debug {
-		console.print_debug('execute ${executor.ipaddr.addr}: ${args.cmd}')
+		console.print_debug('execute in container ${executor.container_id}: ${args.cmd}')
 	}
-	//TODO: implement
-	res := osal.exec(cmd: args.cmd, stdout: args.stdout, debug: executor.debug)!
+	
+	mut cmd := 'crun exec ${executor.container_id} ${args.cmd}'
+	if args.cmd.contains('\n') {
+		// For multiline commands, write to temp file first
+		temp_script := '/tmp/crun_script_${rand.uuid_v4()}.sh'
+		script_content := texttools.dedent(args.cmd)
+		os.write_file(temp_script, script_content)!
+		
+		// Copy script into container and execute
+		executor.file_write('/tmp/exec_script.sh', script_content)!
+		cmd = 'crun exec ${executor.container_id} bash /tmp/exec_script.sh'
+	}
+	
+	res := osal.exec(cmd: cmd, stdout: args.stdout, debug: executor.debug)!
 	return res.output
 }
 
 pub fn (mut executor ExecutorCrun) exec_interactive(args_ ExecArgs) ! {
 	mut args := args_
-	mut port := ''
+	
 	if args.cmd.contains('\n') {
 		args.cmd = texttools.dedent(args.cmd)
-		// need to upload the file first
-		executor.file_write('/tmp/toexec.sh', args.cmd)!
-		args.cmd = 'bash /tmp/toexec.sh'
+		executor.file_write('/tmp/interactive_script.sh', args.cmd)!
+		args.cmd = 'bash /tmp/interactive_script.sh'
 	}
-	//TODO: implement
-
-	console.print_debug(args.cmd)
-	osal.execute_interactive(args.cmd)!
+	
+	cmd := 'crun exec -t ${executor.container_id} ${args.cmd}'
+	console.print_debug(cmd)
+	osal.execute_interactive(cmd)!
 }
 
 pub fn (mut executor ExecutorCrun) file_write(path string, text string) ! {
 	if executor.debug {
-		console.print_debug('${executor.ipaddr.addr} file write: ${path}')
+		console.print_debug('Container ${executor.container_id} file write: ${path}')
 	}
-	//TODO implement use pathlib and write functionality
+	
+	// Write to temp file first, then copy into container
+	temp_file := '/tmp/crun_file_${rand.uuid_v4()}'
+	os.write_file(temp_file, text)!
+	defer { os.rm(temp_file) or {} }
+	
+	// Use crun exec to copy file content
+	cmd := 'cat ${temp_file} | crun exec -i ${executor.container_id} tee ${path} > /dev/null'
+	osal.exec(cmd: cmd, stdout: false)!
 }
 
 pub fn (mut executor ExecutorCrun) file_read(path string) !string {
 	if executor.debug {
-		console.print_debug('${executor.ipaddr.addr} file read: ${path}')
+		console.print_debug('Container ${executor.container_id} file read: ${path}')
 	}
-	//TODO implement use pathlib and read functionality
+	
+	return executor.exec(cmd: 'cat ${path}', stdout: false)
 }
 
 pub fn (mut executor ExecutorCrun) file_exists(path string) bool {
 	if executor.debug {
-		console.print_debug('${executor.ipaddr.addr} file exists: ${path}')
+		console.print_debug('Container ${executor.container_id} file exists: ${path}')
 	}
+	
 	output := executor.exec(cmd: 'test -f ${path} && echo found || echo not found', stdout: false) or {
 		return false
 	}
-	if output == 'found' {
-		return true
-	}
-	//TODO: can prob be done better, because we can go in the path of the container and check there
-	return false
+	return output.trim_space() == 'found'
 }
 
-// carefull removes everything
 pub fn (mut executor ExecutorCrun) delete(path string) ! {
 	if executor.debug {
-		console.print_debug('${executor.ipaddr.addr} file delete: ${path}')
+		console.print_debug('Container ${executor.container_id} delete: ${path}')
 	}
-	executor.exec(cmd: 'rm -rf ${path}', stdout: false) or { panic(err) }
-	//TODO: can prob be done better, because we can go in the path of the container and delete there
+	executor.exec(cmd: 'rm -rf ${path}', stdout: false)!
 }
 
-// upload from local FS to executor FS
-pub fn (mut executor ExecutorCrun) download(args SyncArgs) ! {
-	//TODO implement
-	rsync.rsync(rsargs)!
-}
-
-// download from executor FS to local FS
 pub fn (mut executor ExecutorCrun) upload(args SyncArgs) ! {
-
-	//TODO implement
-	mut rsargs := rsync.RsyncArgs{
-		source:         args.source
-		dest:           args.dest
-		delete:         args.delete
-		ipaddr_dst:     addr
-		ignore:         args.ignore
-		ignore_default: args.ignore_default
-		stdout:         args.stdout
-		fast_rsync:     args.fast_rsync
+	// For container uploads, we need to copy files from host to container
+	// Use crun exec with tar for efficient transfer
+	
+	mut src_path := pathlib.get(args.source)
+	if !src_path.exists() {
+		return error('Source path ${args.source} does not exist')
 	}
-	rsync.rsync(rsargs)!
+	
+	if src_path.is_dir() {
+		// For directories, use tar to transfer
+		temp_tar := '/tmp/crun_upload_${rand.uuid_v4()}.tar'
+		osal.exec(cmd: 'tar -cf ${temp_tar} -C ${src_path.path_dir()} ${src_path.name()}', stdout: false)!
+		defer { os.rm(temp_tar) or {} }
+		
+		// Extract in container
+		cmd := 'cat ${temp_tar} | crun exec -i ${executor.container_id} tar -xf - -C ${args.dest}'
+		osal.exec(cmd: cmd, stdout: args.stdout)!
+	} else {
+		// For single files
+		executor.file_write(args.dest, src_path.read()!)!
+	}
 }
 
-// get environment variables from the executor
-pub fn (mut executor ExecutorCrun) environ_get() !map[string]string {
-	env := executor.exec(cmd: 'env', stdout: false) or { return error('can not get environment') }
-	// if executor.debug {
-	// 	console.print_header(' ${executor.ipaddr.addr} env get')
-	// }
+pub fn (mut executor ExecutorCrun) download(args SyncArgs) ! {
+	// Download from container to host
+	if executor.dir_exists(args.source) {
+		// For directories
+		temp_tar := '/tmp/crun_download_${rand.uuid_v4()}.tar'
+		cmd := 'crun exec ${executor.container_id} tar -cf - -C ${args.source} . > ${temp_tar}'
+		osal.exec(cmd: cmd, stdout: false)!
+		defer { os.rm(temp_tar) or {} }
+		
+		// Extract on host
+		osal.exec(cmd: 'mkdir -p ${args.dest} && tar -xf ${temp_tar} -C ${args.dest}', stdout: args.stdout)!
+	} else {
+		// For single files
+		content := executor.file_read(args.source)!
+		os.write_file(args.dest, content)!
+	}
+}
 
+pub fn (mut executor ExecutorCrun) environ_get() !map[string]string {
+	env := executor.exec(cmd: 'env', stdout: false) or { 
+		return error('Cannot get environment from container ${executor.container_id}') 
+	}
+	
 	mut res := map[string]string{}
-	if env.contains('\n') {
-		for line in env.split('\n') {
-			if line.contains('=') {
-				splitted := line.split('=')
-				key := splitted[0].trim(' ')
-				val := splitted[1].trim(' ')
-				res[key] = val
-			}
+	for line in env.split('\n') {
+		if line.contains('=') {
+			parts := line.split_once('=') or { continue }
+			key := parts[0].trim(' ')
+			val := parts[1].trim(' ')
+			res[key] = val
 		}
 	}
 	return res
 }
 
-/*
-Executor info or meta data
-accessing type Executor won't allow to access the
-fields of the struct, so this is workaround
-*/
 pub fn (mut executor ExecutorCrun) info() map[string]string {
-	//TODO implement more info
 	return {
-		'category':  'crun'
+		'category': 'crun'
+		'container_id': executor.container_id
+		'runtime': 'crun'
 	}
 }
 
-// ssh shell on the node default ssh port, or any custom port that may be
-// forwarding ssh traffic to certain container
-
 pub fn (mut executor ExecutorCrun) shell(cmd string) ! {
-	//TODO: implement 
 	if cmd.len > 0 {
-		panic('TODO IMPLEMENT SHELL EXEC OVER SSH')
+		osal.execute_interactive('crun exec -t ${executor.container_id} ${cmd}')!
+	} else {
+		osal.execute_interactive('crun exec -t ${executor.container_id} /bin/sh')!
 	}
-	os.execvp('ssh', ['-o StrictHostKeyChecking=no', '${executor.user}@${executor.ipaddr.addr}',
-		'-p ${executor.ipaddr.port}'])!
 }
 
 pub fn (mut executor ExecutorCrun) list(path string) ![]string {
 	if !executor.dir_exists(path) {
-		panic('Dir Not found')
+		return error('Directory ${path} does not exist in container')
 	}
-	mut res := []string{}
-	//TODO: implement
+	
 	output := executor.exec(cmd: 'ls ${path}', stdout: false)!
+	mut res := []string{}
 	for line in output.split('\n') {
-		res << line
+		line_trimmed := line.trim_space()
+		if line_trimmed != '' {
+			res << line_trimmed
+		}
 	}
 	return res
 }
@@ -175,9 +209,5 @@ pub fn (mut executor ExecutorCrun) dir_exists(path string) bool {
 	output := executor.exec(cmd: 'test -d ${path} && echo found || echo not found', stdout: false) or {
 		return false
 	}
-	//TODO: implement
-	if output.trim_space() == 'found' {
-		return true
-	}
-	return false
+	return output.trim_space() == 'found'
 }

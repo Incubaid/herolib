@@ -2,97 +2,133 @@ module herorun
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.tmux
+import freeflowuniverse.herolib.osal.core as osal
 import time
 import freeflowuniverse.herolib.builder
+import freeflowuniverse.herolib.core.pathlib
+import os
 
-// Container struct and related functionality
 pub struct ContainerFactory {
 pub mut:
-	tmux_session string //this is the name for tmux session if we will use it
+	tmux_session string // tmux session name if used
+	containers   map[string]&Container
+	images map[string]&Image
 }
 
 @[params]
 pub struct FactoryInitArgs {
 pub:
 	reset bool
-}	
+}
 
 pub fn new(args FactoryInitArgs) !ContainerFactory {
-	mut f:= ContainerFactory{}
+	mut f := ContainerFactory{}
 	f.init(args)!
 	return f
 }
-fn (self ContainerFactory) init(args ContainerFactoryInitArgs) ! {
-    // Alpine (as before)
-    alpine_ver := '3.20.3'
-    alpine_file := 'alpine-minirootfs-${alpine_ver}-x86_64.tar.gz'
-    alpine_url := 'https://dl-cdn.alpinelinux.org/alpine/v${alpine_ver[..4]}/releases/x86_64/${alpine_file}'
-    alpine_dest := '/containers/images/alpine/${alpine_file}'
-    alpine_rootfs := '/containers/images/alpine/rootfs'
-    osal.download(
-        url: alpine_url
-        dest: alpine_dest
-        reset: args.reset
-        minsize_kb: 1024
-        expand_dir: alpine_rootfs
-    )!
-    console.print_green('Alpine ${alpine_ver} rootfs prepared at ${alpine_rootfs}')
 
-    // Ubuntu versions with proper codename paths
-    ubuntu_info := [
-        {ver: '24.04', codename: 'noble'},
-        {ver: '25.04', codename: 'plucky'}
-    ]
+fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
+	// Ensure base directories exist
+	osal.exec(cmd: 'mkdir -p /containers/images /containers/configs /containers/runtime', stdout: false)!
+	
+	// Setup for all supported images
+	images := [ContainerImage.alpine_3_20, .ubuntu_24_04, .ubuntu_25_04]
 
-    for info in ubuntu_info {
-        file := 'ubuntu-${info.ver}-minimal-cloudimg-amd64-root.tar.xz'
-        url := 'https://cloud-images.ubuntu.com/minimal/releases/${info.codename}/release/${file}'
-        // Use us.cloud-images domain for 25.04 daily if needed
-        if info.ver == '25.04' {
-            url = 'https://us.cloud-images.ubuntu.com/daily/server/server/minimal/releases/${info.codename}/release/${file}'
-        }
-        dest := '/containers/images/ubuntu/${info.ver}/${file}'
-        rootfs := '/containers/images/ubuntu/${info.ver}/rootfs'
+	for image in images {
+		match image {
+			.alpine_3_20 {
+				alpine_ver := '3.20.3'
+				alpine_file := 'alpine-minirootfs-${alpine_ver}-x86_64.tar.gz'
+				alpine_url := 'https://dl-cdn.alpinelinux.org/alpine/v${alpine_ver[..4]}/releases/x86_64/${alpine_file}'
+				alpine_dest := '/containers/images/alpine/${alpine_file}'
+				alpine_rootfs := '/containers/images/alpine/rootfs'
+				
+				if args.reset || !os.exists(alpine_rootfs) {
+					osal.download(
+						url: alpine_url
+						dest: alpine_dest
+						minsize_kb: 1024
+					)!
+					
+					// Extract alpine rootfs
+					osal.exec(cmd: 'mkdir -p ${alpine_rootfs}', stdout: false)!
+					osal.exec(cmd: 'tar -xzf ${alpine_dest} -C ${alpine_rootfs}', stdout: false)!
+				}
+				console.print_green('Alpine ${alpine_ver} rootfs prepared at ${alpine_rootfs}')
+			}
+			.ubuntu_24_04 {
+				ver := '24.04'
+				codename := 'noble'
+				file := 'ubuntu-${ver}-minimal-cloudimg-amd64-root.tar.xz'
+				url := 'https://cloud-images.ubuntu.com/minimal/releases/${codename}/release/${file}'
+				dest := '/containers/images/ubuntu/${ver}/${file}'
+				rootfs := '/containers/images/ubuntu/${ver}/rootfs'
 
-        osal.download(
-            url: url
-            dest: dest
-            reset: args.reset
-            minsize_kb: 10240
-            expand_dir: rootfs
-        )!
+				if args.reset || !os.exists(rootfs) {
+					osal.download(
+						url: url
+						dest: dest
+						minsize_kb: 10240
+					)!
+					
+					// Extract ubuntu rootfs
+					osal.exec(cmd: 'mkdir -p ${rootfs}', stdout: false)!
+					osal.exec(cmd: 'tar -xf ${dest} -C ${rootfs}', stdout: false)!
+				}
+				console.print_green('Ubuntu ${ver} (${codename}) rootfs prepared at ${rootfs}')
+			}
+			.ubuntu_25_04 {
+				ver := '25.04'
+				codename := 'plucky'
+				file := 'ubuntu-${ver}-minimal-cloudimg-amd64-root.tar.xz'
+				url := 'https://cloud-images.ubuntu.com/daily/minimal/releases/${codename}/release/${file}'
+				dest := '/containers/images/ubuntu/${ver}/${file}'
+				rootfs := '/containers/images/ubuntu/${ver}/rootfs'
 
-        console.print_green('Ubuntu ${info.ver} (${info.codename}) rootfs prepared at ${rootfs}')
-    }
+				if args.reset || !os.exists(rootfs) {
+					osal.download(
+						url: url
+						dest: dest
+						minsize_kb: 10240
+					)!
+					
+					// Extract ubuntu rootfs
+					osal.exec(cmd: 'mkdir -p ${rootfs}', stdout: false)!
+					osal.exec(cmd: 'tar -xf ${dest} -C ${rootfs}', stdout: false)!
+				}
+				console.print_green('Ubuntu ${ver} (${codename}) rootfs prepared at ${rootfs}')
+			}
+		}
+	}
 }
 
-@[params]
-pub struct ContainerNewArgs {
-pub:
-	name string
-	reset bool
-}	
+
+pub fn (mut self ContainerFactory) get(args ContainerNewArgs) !&Container {
+	if args.name !in self.containers {
+		return error('Container ${args.name} does not exist')
+	}
+	return self.containers[args.name]
+}
 
 pub fn (self ContainerFactory) list() ![]Container {
 	mut containers := []Container{}
-	// Get list of containers using runc
-	result := osal.exec(cmd: 'runc list', stdout: true, name: 'list_containers') or { '' }
+	result := osal.exec(cmd: 'crun list --format json', stdout: false) or { '[]' }
+	
+	// Parse crun list output and populate containers
+	// The output format from crun list is typically tab-separated
 	lines := result.split_into_lines()
-	if lines.len <= 1 {
-		return containers // No containers found
-	}
-	for line in lines[1..] {
-		parts := line.split(' ')
+	for line in lines {
+		if line.trim_space() == '' || line.starts_with('ID') {
+			continue
+		}
+		parts := line.split('\t')
 		if parts.len > 0 {
 			containers << Container{
 				name: parts[0]
+				factory: &self
 			}
 		}
 	}
 	return containers
 }
 
-pub fn (self ContainerFactory) get(args ContainerNewArgs	) ! {
-	//TODO: implement get, give error if not exist
-
-}
