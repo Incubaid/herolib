@@ -186,11 +186,11 @@ fn (mut e Executor) create_container() ! {
 				cd /containers/${e.container_id} &&
 				# Create a simple Dockerfile for Alpine with Python
 				cat > Dockerfile << EOF
-FROM alpine:3.20
-RUN apk add --no-cache python3 py3-pip
-WORKDIR /
-CMD ["/bin/sh"]
-EOF
+				FROM alpine:3.20
+				RUN apk add --no-cache python3 py3-pip
+				WORKDIR /
+				CMD ["/bin/sh"]
+				EOF
 				# Build and export the container filesystem
 				docker build -t ${e.container_id}-base . &&
 				docker create --name ${e.container_id}-temp ${e.container_id}-base &&
@@ -217,6 +217,8 @@ EOF
 			'
 		}
 	}
+
+	setup_cmd=texttools.dedent(setup_cmd)
 
 	remote_cmd := 'ssh ${e.node.settings.user}@${e.node.settings.node_ip} "${setup_cmd}"'
 	osal.exec(cmd: remote_cmd, stdout: false, name: 'container_create')!
