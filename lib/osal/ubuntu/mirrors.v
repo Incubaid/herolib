@@ -7,6 +7,15 @@ import os
 import time
 import net.urllib
 import net
+import sync
+
+pub struct PerfResult {
+pub mut:
+	url     string
+	ping_ms int
+	speed   f64
+	error   string
+}
 
 // Fetch Ubuntu mirror list
 fn fetch_mirrors() ![]string {
@@ -39,73 +48,124 @@ fn test_download_speed(mirror string) f64 {
 }
 
 // Ping test (rough ICMP substitute using TCP connect on port 80), returns in ms
-fn test_ping(mirror string) int {
-	u := urllib.parse(mirror) or { return -1 }
+fn test_ping(mirror string, mut wg sync.WaitGroup, ch chan PerfResult) ! {
+	defer { wg.done() }
+	u := urllib.parse(mirror) or {
+		ch <- PerfResult{
+			url:     mirror
+			ping_ms: -1
+			speed:   0.0
+		}
+		return
+	}
 	host := u.host
 	start := time.now()
-	mut c := net.dial_tcp('${host}:80') or { return -1 }
+	mut c := net.dial_tcp('${host}:80')!
+	c.set_blocking(false)!
+	c.set_write_timeout(time.Duration(5000 * time.millisecond))
 	c.close() or {}
-	return int(time.since(start).milliseconds())
+	ch <- PerfResult{
+		url:     mirror
+		ping_ms: int(time.since(start).milliseconds())
+		speed:   0.0
+	}
 }
 
-struct MirrorResult {
-	url     string
-	ping_ms int
-	speed   f64
-}
+// pub fn fix_mirrors() ! {
+// 	println('Fetching Ubuntu mirrors...')
+// 	mirrors := fetch_mirrors() or {
+// 		print_backtrace()
+// 		eprintln(err)
+// 		return
+// 	}
+// 	// mut results := []PerfResult{}
+
+// 	// mut c := 0
+
+// 	// for m in mirrors {
+// 	// 	c++
+// 	// 	ping := test_ping(m)
+// 	// 	println('Ping: ${ping} ms - ${mirrors.len} - ${c} ${m}')
+// 	// 	$dbg;
+// 	// }
+
+// 	// for m in mirrors {
+// 	// 	println('Speed: ${test_download_speed(m)} KB/s - ${m}')
+// 	// 	$dbg;
+// 	// 	speed := test_download_speed(m)
+// 	// 	if speed > 0 {
+// 	// 		ping := 0
+// 	// 		results << PerfResult{
+// 	// 			url:     m
+// 	// 			ping_ms: ping
+// 	// 			speed:   speed
+// 	// 		}
+// 	// 		println('✅ ${m} | ping: ${ping} ms | speed: ${speed:.2f} KB/s')
+// 	// 	} else {
+// 	// 		println('❌ ${m} skipped (unreachable or slow)')
+// 	// 	}
+// 	// 	$dbg;
+// 	// }
+
+// 	// println('\n🏆 Best mirrors:')
+// 	// results.sort_with_compare(fn (a &PerfResult, b &PerfResult) int {
+// 	// 	// Rank primarily by speed, secondarily by ping
+// 	// 	if a.speed > b.speed {
+// 	// 		return -1
+// 	// 	} else if a.speed < b.speed {
+// 	// 		return 1
+// 	// 	} else {
+// 	// 		return a.ping_ms - b.ping_ms
+// 	// 	}
+// 	// })
+
+// 	// for r in results[..results.len.min(10)] {
+// 	// 	println('${r.url} | ${r.ping_ms} ms | ${r.speed:.2f} KB/s')
+// 	// }
+
+// 	// println(results)
+// 	// $dbg;
+// }
 
 pub fn fix_mirrors() ! {
-	println('Fetching Ubuntu mirrors...')
+	// Create wait group for servers
+	mut wg := sync.new_waitgroup()
+	wg.add(500)
+
+	ch := chan PerfResult{cap: 1000}
+
 	mirrors := fetch_mirrors() or {
 		print_backtrace()
 		eprintln(err)
 		return
 	}
-	mut results := []MirrorResult{}
-
 	mut c := 0
+
+	mut result := []PerfResult{}
 
 	for m in mirrors {
 		c++
-		ping := test_ping(m)
-		println('Ping: ${ping} ms - ${mirrors.len} - ${c} ${m}')
-		$dbg;
+		println('Start background ping - ${mirrors.len} - ${c} ${m} - Queue len: ${ch.len} / ${ch.cap}')
+
+		l := ch.len // number of elements in queue
+		for l > ch.cap - 2 { // if queue is full, wait
+			println('Queue full, wait till some are done')
+			time.sleep(1 * time.second)
+		}
+		spawn test_ping(m, mut wg, ch)
 	}
 
-	for m in mirrors {
-		println('Speed: ${test_download_speed(m)} KB/s - ${m}')
-		$dbg;
-		speed := test_download_speed(m)
-		if speed > 0 {
-			ping := 0
-			results << MirrorResult{
-				url:     m
-				ping_ms: ping
-				speed:   speed
-			}
-			println('✅ ${m} | ping: ${ping} ms | speed: ${speed:.2f} KB/s')
-		} else {
-			println('❌ ${m} skipped (unreachable or slow)')
+	for {
+		value := <-ch or { // receive/pop values from the channel
+			println('Channel closed')
+			break
 		}
-		$dbg;
+		println('Received: ${value}')
 	}
 
-	println('\n🏆 Best mirrors:')
-	results.sort_with_compare(fn (a &MirrorResult, b &MirrorResult) int {
-		// Rank primarily by speed, secondarily by ping
-		if a.speed > b.speed {
-			return -1
-		} else if a.speed < b.speed {
-			return 1
-		} else {
-			return a.ping_ms - b.ping_ms
-		}
-	})
+	println('All pings done 1')
 
-	// for r in results[..results.len.min(10)] {
-	// 	println('${r.url} | ${r.ping_ms} ms | ${r.speed:.2f} KB/s')
-	// }
+	wg.wait()
 
-	println(results)
-	$dbg;
+	println('All pings done')
 }
