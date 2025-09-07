@@ -2,29 +2,21 @@ module console
 
 import freeflowuniverse.herolib.core.texttools
 
-pub struct ConsoleFactory {
-pub mut:
+__global (
 	consoles map[string]&UIConsole
 	silent   bool
+)
+
+pub fn silent_set() {
+	silent = true
 }
 
-pub fn new_console_factory() &ConsoleFactory {
-	return &ConsoleFactory{
-		consoles: map[string]&UIConsole{}
-		silent: false
-	}
+pub fn silent_unset() {
+	silent = false
 }
 
-pub fn (mut cf ConsoleFactory) silent_set() {
-	cf.silent = true
-}
-
-pub fn (mut cf ConsoleFactory) silent_unset() {
-	cf.silent = false
-}
-
-pub fn (cf ConsoleFactory) silent_get() bool {
-	return cf.silent
+pub fn silent_get() bool {
+	return silent
 }
 
 pub struct UIConsole {
@@ -56,14 +48,17 @@ pub fn (mut c UIConsole) status() string {
 	return out.trim_space()
 }
 
-pub fn (mut cf ConsoleFactory) new_console() &UIConsole {
-	mut c := UIConsole{}
-	cf.consoles['main'] = &c
-	return &c
+pub fn new() UIConsole {
+	return UIConsole{}
 }
 
-pub fn (cf ConsoleFactory) get_console() &UIConsole {
-	return cf.consoles['main'] or { panic('bug') }
+fn init() {
+	mut c := UIConsole{}
+	consoles['main'] = &c
+}
+
+fn get() &UIConsole {
+	return consoles['main'] or { panic('bug') }
 }
 
 pub fn trim(c_ string) string {
@@ -72,12 +67,12 @@ pub fn trim(c_ string) string {
 }
 
 // line feed
-pub fn (mut cf ConsoleFactory) lf() {
-	mut c := cf.get_console()
+pub fn lf() {
+	mut c := get()
 	if c.prev_lf {
 		return
 	}
-	if !cf.silent_get() {
+	if !silent_get() {
 		print('\n')
 	}
 	c.prev_lf = true
