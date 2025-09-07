@@ -15,7 +15,7 @@ pub mut:
 	debug        bool = true
 }
 
-fn (mut executor ExecutorCrun) init() ! {
+pub fn (mut executor ExecutorCrun) init() ! {
 	// Verify container exists and is running
 	result := osal.exec(cmd: 'crun state ${executor.container_id}', stdout: false) or {
 		return error('Container ${executor.container_id} not found or not accessible')

@@ -2,7 +2,7 @@ module builder
 
 import freeflowuniverse.herolib.data.ipaddress
 
-type Executor = ExecutorLocal | ExecutorSSH
+type Executor = ExecutorLocal | ExecutorSSH | ExecutorCrun
 
 pub struct ExecutorNewArguments {
 pub mut:

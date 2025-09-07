@@ -161,17 +161,33 @@ pub fn (mut self Container) tmux_pane(args TmuxPaneArgs) !&tmux.Pane {
 }
 
 pub fn (mut self Container) node() !&builder.Node {
-	if node := self.node {
-		return node
+	// If node already initialized, return it
+	if self.node != none {
+		return self.node
 	}
 
-	// // Create a new ExecutorCrun for this container
-	// mut executor := builder.ExecutorCrun{
-	// 	container_id: self.name
-	// }
-
+	// Create builder factory (so node has proper lifecycle)
 	mut b := builder.new()!
+
+	// Create a new executor for this container
+	mut exec := builder.ExecutorCrun{
+		container_id: self.name
+		debug:        false
+	}
+
+	// Initialize executor (checks container is running)
+	exec.init() or {
+		return error('Failed to init ExecutorCrun for container ${self.name}: ${err}')
+	}
+
+	// Create a node with this executor
 	mut node := b.node_new(name: 'container_${self.name}')!
+	node.executor = exec
+	node.platform = .alpine // TODO: detect from ContainerImageType
+	node.cputype = .intel // TODO: detect dynamically if needed
+	node.done = map[string]string{}
+	node.environment = map[string]string{}
+	node.hostname = self.name
 
 	self.node = node
 	return node
