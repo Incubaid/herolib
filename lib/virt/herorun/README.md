@@ -30,36 +30,35 @@ lib/virt/herorun/
 ```v
 import freeflowuniverse.herolib.virt.herorun
 
-fn main() {
-    // Create user with SSH key
-    mut user := herorun.new_user(keyname: 'id_ed25519')!
-    
-    // Create Hetzner backend
-    mut backend := herorun.new_hetzner_backend(
-        node_ip: '65.21.132.119'
-        user:    'root'
-    )!
+// Create user with SSH key
+mut user := herorun.new_user(keyname: 'id_ed25519')!
 
-    // Connect to node (installs required packages automatically)
-    backend.connect(keyname: user.keyname)!
-    
-    // Send a test command to the node
-    backend.send_command(cmd: 'ls')!
+// Create Hetzner backend
+mut backend := herorun.new_hetzner_backend(
+    node_ip: '65.21.132.119'
+    user:    'root'
+)!
 
-    // Get or create container (uses tmux behind the scenes)
-    mut container := backend.get_or_create_container(name: 'test_container')!
-    
-    // Attach to container tmux session
-    container.attach()!
+// Connect to node (installs required packages automatically)
+backend.connect(keyname: user.keyname)!
 
-    // Send command to container
-    container.send_command(cmd: 'ls')!
-    
-    // Get container logs
-    logs := container.get_logs()!
-    println('Container logs:')
-    println(logs)
-}
+// Send a test command to the node
+backend.send_command(cmd: 'ls')!
+
+// Get or create container (uses tmux behind the scenes)
+mut container := backend.get_or_create_container(name: 'test_container')!
+
+// Attach to container tmux session
+container.attach()!
+
+// Send command to container
+container.send_command(cmd: 'ls')!
+
+// Get container logs
+logs := container.get_logs()!
+println('Container logs:')
+println(logs)
+
 ```
 
 ### Running the Example
