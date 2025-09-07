@@ -196,7 +196,7 @@ function os_update {
             apt autoremove  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --force-yes
         fi 
         #apt install apt-transport-https ca-certificates curl software-properties-common  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --force-yes
-        package_install "apt-transport-https ca-certificates curl wget software-properties-common tmux make tcc gcc"
+        package_install "apt-transport-https ca-certificates curl wget software-properties-common tmux make gcc"
         package_install "rclone rsync mc redis-server screen net-tools git dnsutils htop ca-certificates screen lsb-release binutils pkg-config libssl-dev iproute2"
 
     elif [[ "${OSNAME}" == "darwin"* ]]; then
@@ -544,12 +544,6 @@ v-analyzer() {
 if [ "$REMOVE" = true ]; then
     remove_all
     exit 0
-fi
-
-# Handle reset if requested
-if [ "$RESET" = true ]; then
-    remove_all
-    echo "Reset complete"
 fi
 
 # Create code directory if it doesn't exist
