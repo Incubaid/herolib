@@ -86,6 +86,10 @@
                                         </span>
                                     </div>
                                     <div class="selection-actions">
+                                        <button id="addDirBtn" class="btn btn-sm btn-primary" title="Add Directory">
+                                            <i class="icon-plus"></i>
+                                            Add Dir
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -310,12 +314,10 @@ Example:
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="wcName" class="form-label">Workspace Name (optional)</label>
-                        <input type="text" class="form-control" id="wcName" placeholder="Enter workspace name">
-                    </div>
-                    <div class="mb-3">
-                        <label for="wcPath" class="form-label">Base Path (required)</label>
-                        <input type="text" class="form-control" id="wcPath" placeholder="Enter base directory path">
+                        <label for="wcName" class="form-label">Workspace Name (required)</label>
+                        <input type="text" class="form-control" id="wcName" placeholder="Enter workspace name" required>
+                        <div class="form-text">Choose a unique name for your workspace. You can add directories to it
+                            after creation.</div>
                     </div>
                     <div id="wcError" class="text-danger small"></div>
                 </div>
@@ -339,10 +341,6 @@ Example:
                     <div class="mb-3">
                         <label for="wdName" class="form-label">Workspace Name</label>
                         <input type="text" class="form-control" id="wdName">
-                    </div>
-                    <div class="mb-3">
-                        <label for="wdPath" class="form-label">Base Path</label>
-                        <input type="text" class="form-control" id="wdPath">
                     </div>
                     <div id="wdError" class="text-danger small"></div>
                 </div>
@@ -387,6 +385,32 @@ Example:
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Directory Modal -->
+    <div class="modal fade" id="addDirModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Directory to Workspace</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="addDirPath" class="form-label">Directory Path</label>
+                        <input type="text" class="form-control" id="addDirPath"
+                            placeholder="Enter directory path (e.g., /path/to/directory)">
+                        <div class="form-text">Enter the full path to the directory you want to add to the workspace.
+                        </div>
+                    </div>
+                    <div id="addDirError" class="text-danger small"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="addDirConfirm">Add Directory</button>
                 </div>
             </div>
         </div>

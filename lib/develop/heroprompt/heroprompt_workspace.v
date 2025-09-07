@@ -33,8 +33,8 @@ pub fn (mut wsp Workspace) add_dir(args AddDirParams) !HeropromptChild {
 	name := os.base(abs_path)
 
 	for child in wsp.children {
-		if child.name == name {
-			return error('another directory with the same name already exists: ${name}')
+		if child.path.cat == .dir && child.path.path == abs_path {
+			return error('the directory is already added to the workspace')
 		}
 	}
 
@@ -171,12 +171,11 @@ pub mut:
 
 pub fn (wsp &Workspace) update_workspace(args UpdateParams) !&Workspace {
 	mut updated := Workspace{
-		name:      if args.name.len > 0 { args.name } else { wsp.name }
-		base_path: if args.base_path.len > 0 { args.base_path } else { wsp.base_path }
-		children:  wsp.children
-		created:   wsp.created
-		updated:   time.now()
-		is_saved:  true
+		name:     if args.name.len > 0 { args.name } else { wsp.name }
+		children: wsp.children
+		created:  wsp.created
+		updated:  time.now()
+		is_saved: true
 	}
 	// if name changed, delete old key first
 	if updated.name != wsp.name {
@@ -221,10 +220,10 @@ pub:
 	typ  string @[json: 'type']
 }
 
-pub fn (wsp &Workspace) list_dir(rel_path string) ![]ListItem {
+pub fn (wsp &Workspace) list_dir(base_path string, rel_path string) ![]ListItem {
 	// Create an ignore matcher with default patterns
 	ignore_matcher := codewalker.gitignore_matcher_new()
-	items := codewalker.list_directory_filtered(wsp.base_path, rel_path, &ignore_matcher)!
+	items := codewalker.list_directory_filtered(base_path, rel_path, &ignore_matcher)!
 	mut out := []ListItem{}
 	for item in items {
 		out << ListItem{
@@ -233,10 +232,6 @@ pub fn (wsp &Workspace) list_dir(rel_path string) ![]ListItem {
 		}
 	}
 	return out
-}
-
-pub fn (wsp &Workspace) list() ![]ListItem {
-	return wsp.list_dir('')
 }
 
 // Get the currently selected children (copy)
@@ -319,17 +314,29 @@ fn (wsp Workspace) build_file_map() string {
 		// derive a parent path for display
 		mut parent_path := ''
 		if roots.len > 0 {
-			base_path := roots[0].path.path
-			parent_path = if base_path.contains('/') {
-				base_path.split('/')[..base_path.split('/').len - 1].join('/')
+			if roots.len == 1 {
+				// Single root - show parent directory
+				base_path := roots[0].path.path
+				parent_path = if base_path.contains('/') {
+					base_path.split('/')[..base_path.split('/').len - 1].join('/')
+				} else {
+					base_path
+				}
 			} else {
-				base_path
+				// Multiple roots - show all root paths, comma-separated
+				mut root_paths := []string{}
+				for r in roots {
+					root_paths << r.path.path
+				}
+				parent_path = root_paths.join(', ')
+				// Truncate if too long for UI display
+				if parent_path.len > 100 {
+					parent_path = parent_path[..97] + '...'
+				}
 			}
 		} else {
-			// no roots; show workspace base if set, else the parent of first file
-			parent_path = if wsp.base_path.len > 0 {
-				wsp.base_path
-			} else if files_only.len > 0 {
+			// no roots; show the parent of first file if available
+			parent_path = if files_only.len > 0 {
 				os.dir(files_only[0].path.path)
 			} else {
 				''
@@ -380,27 +387,27 @@ fn (wsp Workspace) build_file_map() string {
 			file_map += ' | Extensions: ${extensions_summary}'
 		}
 		file_map += '\n\n'
-		// Render selected structure
-		if roots.len > 0 {
-			mut root_paths := []string{}
-			for r in roots {
-				root_paths << r.path.path
+		// Build a comprehensive tree that includes all files from selected directories
+		mut all_file_paths := []string{}
+
+		// For each selected directory, get all files within it
+		for r in roots {
+			mut cw := codewalker.new(codewalker.CodeWalkerArgs{}) or { continue }
+			fm := cw.filemap_get(path: r.path.path) or { continue }
+			for rel_path, _ in fm.content {
+				abs_file_path := os.join_path(r.path.path, rel_path)
+				all_file_paths << abs_file_path
 			}
-			file_map += codewalker.build_file_tree_fs(root_paths, '')
 		}
-		// If there are only standalone selected files (no selected dirs),
-		// build a minimal tree via codewalker relative to the workspace base.
-		if files_only.len > 0 && roots.len == 0 {
-			mut paths := []string{}
-			for fo in files_only {
-				paths << fo.path.path
-			}
-			file_map += codewalker.build_selected_tree(paths, wsp.base_path)
-		} else if files_only.len > 0 && roots.len > 0 {
-			// Keep listing absolute paths for standalone files when directories are also selected.
-			for fo in files_only {
-				file_map += fo.path.path + ' *\n'
-			}
+
+		// Add all standalone file paths
+		for fo in files_only {
+			all_file_paths << fo.path.path
+		}
+
+		if all_file_paths.len > 0 {
+			// Build a tree that shows all files in their proper directory structure
+			file_map += codewalker.build_file_tree_fs(all_file_paths, '')
 		}
 	}
 	return file_map

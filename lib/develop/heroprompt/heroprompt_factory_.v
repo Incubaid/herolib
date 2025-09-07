@@ -23,8 +23,7 @@ pub mut:
 
 pub fn new(args ArgsGet) !&Workspace {
 	mut obj := Workspace{
-		name:      args.name
-		base_path: args.path
+		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!

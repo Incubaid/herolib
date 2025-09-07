@@ -12,12 +12,11 @@ const default = true
 @[heap]
 pub struct Workspace {
 pub mut:
-	name      string = 'default' // Workspace name
-	base_path string            // Base path of the workspace
-	children  []HeropromptChild // List of directories and files in this workspace
-	created   time.Time         // Time of creation
-	updated   time.Time         // Time of last update
-	is_saved  bool
+	name     string = 'default' // Workspace name
+	children []HeropromptChild // List of directories and files in this workspace
+	created  time.Time         // Time of creation
+	updated  time.Time         // Time of last update
+	is_saved bool
 }
 
 // your checking & initialization code if needed
@@ -41,10 +40,9 @@ pub fn heroscript_loads(heroscript string) !Workspace {
 	mut p := action.params
 
 	return Workspace{
-		name:      p.get_default('name', 'default')!
-		base_path: p.get_default('base_path', '')!
-		created:   time.now()
-		updated:   time.now()
-		children:  []HeropromptChild{}
+		name:     p.get_default('name', 'default')!
+		created:  time.now()
+		updated:  time.now()
+		children: []HeropromptChild{}
 	}
 }
