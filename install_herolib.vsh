@@ -5,11 +5,11 @@ import flag
 
 fn addtoscript(tofind string, toadd string) ! {
 	home_dir := os.home_dir()
-	mut rc_file := '${home_dir}/.zshrc'
+	mut rc_file := '${home_dir}/.zprofile'
 	if !os.exists(rc_file) {
 		rc_file = '${home_dir}/.bashrc'
 		if !os.exists(rc_file) {
-			return error('No .zshrc or .bashrc found in home directory')
+			return error('No .zprofile or .bashrc found in home directory')
 		}
 	}
 
@@ -65,15 +65,18 @@ println('Herolib installation completed successfully!')
 // Add vtest alias
 addtoscript('alias vtest=', "alias vtest='v -stats -enable-globals -show-c-output -n -w -cg -gc none  -cc tcc test' ") or {
 	eprintln('Failed to add vtest alias: ${err}')
+	exit(1)
 }
 
 // Add vrun alias
 addtoscript('alias vrun=', "alias vrun='v -stats -enable-globals -show-c-output -n -w -cg -gc none  -cc tcc run' ") or {
 	eprintln('Failed to add vrun alias: ${err}')
+	exit(1)
 }
 
 addtoscript('HOME/hero/bin', 'export PATH="\$PATH:\$HOME/hero/bin"') or {
 	eprintln('Failed to add path to hero, ${err}')
+	exit(1)
 }
 
 //  ulimit -n 32000
