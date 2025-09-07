@@ -35,6 +35,7 @@ jobs:
       - run: echo "🔎 The name of your branch is ${{ github.ref_name }} and your repository is ${{ github.repository }}."
 
       - uses: maxim-lobanov/setup-xcode@v1
+        if: runner.os == 'macOS'
         with:
           xcode-version: latest-stable      
 
