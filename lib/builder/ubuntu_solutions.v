@@ -1,2 +1,2 @@
-pub fn ubuntu_sources_fix() {
+pub fn (mut node Node) ubuntu_sources_fix() {
 }
