@@ -1,4 +1,4 @@
-module runc
+module crun
 
 struct LinuxNamespace {
 	typ  string

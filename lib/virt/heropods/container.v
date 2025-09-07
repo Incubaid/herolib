@@ -1,4 +1,4 @@
-module herorun
+module heropods
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.tmux

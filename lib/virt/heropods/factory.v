@@ -1,4 +1,4 @@
-module herorun
+module heropods
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.tmux
@@ -12,13 +12,14 @@ pub struct ContainerFactory {
 pub mut:
 	tmux_session string // tmux session name if used
 	containers   map[string]&Container
-	images map[string]&Image
+	images       map[string]&ContainerImage // Added images map
 }
 
 @[params]
 pub struct FactoryInitArgs {
 pub:
 	reset bool
+	use_podman bool = true // Use podman for image management
 }
 
 pub fn new(args FactoryInitArgs) !ContainerFactory {
@@ -31,6 +32,56 @@ fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 	// Ensure base directories exist
 	osal.exec(cmd: 'mkdir -p /containers/images /containers/configs /containers/runtime', stdout: false)!
 	
+	if args.use_podman {
+		// Check if podman is installed
+		if !osal.cmd_exists('podman') {
+			console.print_stderr('Warning: podman not found. Installing podman is recommended for better image management.')
+			console.print_debug('You can install podman with: apt install podman (Ubuntu) or brew install podman (macOS)')
+		} else {
+			console.print_debug('Using podman for image management')
+		}
+	}
+	
+	// Load existing images into cache
+	self.load_existing_images()!
+	
+	// Setup default images if they don't exist
+	if !args.use_podman {
+		self.setup_default_images_legacy(args.reset)!
+	}
+}
+
+// Load existing images from filesystem into cache
+fn (mut self ContainerFactory) load_existing_images() ! {
+	images_base_dir := '/containers/images'
+	if !os.is_dir(images_base_dir) {
+		return
+	}
+	
+	dirs := os.ls(images_base_dir) or { return }
+	for dir in dirs {
+		full_path := '${images_base_dir}/${dir}'
+		if os.is_dir(full_path) {
+			rootfs_path := '${full_path}/rootfs'
+			if os.is_dir(rootfs_path) {
+				mut image := &ContainerImage{
+					image_name: dir
+					rootfs_path: rootfs_path
+					factory: &self
+				}
+				image.update_metadata() or {
+					console.print_stderr('Failed to load image metadata for ${dir}')
+					continue
+				}
+				self.images[dir] = image
+				console.print_debug('Loaded existing image: ${dir}')
+			}
+		}
+	}
+}
+
+// Legacy method for downloading images directly (fallback if no podman)
+fn (mut self ContainerFactory) setup_default_images_legacy(reset bool) ! {
 	// Setup for all supported images
 	images := [ContainerImage.alpine_3_20, .ubuntu_24_04, .ubuntu_25_04]
 
@@ -43,7 +94,7 @@ fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 				alpine_dest := '/containers/images/alpine/${alpine_file}'
 				alpine_rootfs := '/containers/images/alpine/rootfs'
 				
-				if args.reset || !os.exists(alpine_rootfs) {
+				if reset || !os.exists(alpine_rootfs) {
 					osal.download(
 						url: alpine_url
 						dest: alpine_dest
@@ -64,7 +115,7 @@ fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 				dest := '/containers/images/ubuntu/${ver}/${file}'
 				rootfs := '/containers/images/ubuntu/${ver}/rootfs'
 
-				if args.reset || !os.exists(rootfs) {
+				if reset || !os.exists(rootfs) {
 					osal.download(
 						url: url
 						dest: dest
@@ -85,7 +136,7 @@ fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 				dest := '/containers/images/ubuntu/${ver}/${file}'
 				rootfs := '/containers/images/ubuntu/${ver}/rootfs'
 
-				if args.reset || !os.exists(rootfs) {
+				if reset || !os.exists(rootfs) {
 					osal.download(
 						url: url
 						dest: dest
@@ -102,12 +153,19 @@ fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 	}
 }
 
-
 pub fn (mut self ContainerFactory) get(args ContainerNewArgs) !&Container {
 	if args.name !in self.containers {
 		return error('Container ${args.name} does not exist')
 	}
 	return self.containers[args.name]
+}
+
+// Get image by name
+pub fn (mut self ContainerFactory) image_get(name string) !&ContainerImage {
+	if name !in self.images {
+		return error('Image ${name} does not exist')
+	}
+	return self.images[name]
 }
 
 pub fn (self ContainerFactory) list() ![]Container {
@@ -131,4 +189,3 @@ pub fn (self ContainerFactory) list() ![]Container {
 	}
 	return containers
 }
-
