@@ -1,5 +1,7 @@
 module ubuntu
 
+import freeflowuniverse.herolib.osal.core as osal
+import freeflowuniverse.herolib.core.texttools
 import net.http
 import os
 import time
@@ -8,18 +10,19 @@ import net
 
 // Fetch Ubuntu mirror list
 fn fetch_mirrors() ![]string {
-	url := 'https://mirrors.ubuntu.com/mirrors.txt'
-	resp := http.get(url)!
-	if resp.status_code != 200 {
-		return error('Failed to fetch mirror list: ${resp.status_code}')
+	cmd := 'curl -s https://launchpad.net/ubuntu/+archivemirrors | grep -oP \'http[s]?://[^"]+\' | sort -u'
+	job := osal.exec(cmd: cmd)!
+	if job.exit_code != 0 {
+		return error('Failed to fetch mirror list: ${job.output}')
 	}
-	r := resp.body.split_into_lines().filter(it.trim_space() != '')
-	return r
+	mut mirrors := texttools.remove_empty_lines(job.output).split_into_lines()
+	mirrors = mirrors.filter(it.contains('answers.launchpad.net') == false) // remove launchpad answers
+	return mirrors
 }
 
 // Test download speed (download a small file)
 fn test_download_speed(mirror string) f64 {
-	test_file := '${mirror}ls-lR.gz' // small file usually available
+	test_file := '${mirror}/dists/plucky/Release' // small file usually available +-258KB
 	start := time.now()
 	resp := http.get(test_file) or { return -1.0 }
 	if resp.status_code != 200 {
@@ -35,7 +38,7 @@ fn test_download_speed(mirror string) f64 {
 	return size_kb / elapsed // KB/sec
 }
 
-// Ping test (rough ICMP substitute using TCP connect on port 80)
+// Ping test (rough ICMP substitute using TCP connect on port 80), returns in ms
 fn test_ping(mirror string) int {
 	u := urllib.parse(mirror) or { return -1 }
 	host := u.host
@@ -60,10 +63,21 @@ pub fn fix_mirrors() ! {
 	}
 	mut results := []MirrorResult{}
 
+	mut c := 0
+
 	for m in mirrors {
+		c++
 		ping := test_ping(m)
+		println('Ping: ${ping} ms - ${mirrors.len} - ${c} ${m}')
+		$dbg;
+	}
+
+	for m in mirrors {
+		println('Speed: ${test_download_speed(m)} KB/s - ${m}')
+		$dbg;
 		speed := test_download_speed(m)
-		if ping >= 0 && speed > 0 {
+		if speed > 0 {
+			ping := 0
 			results << MirrorResult{
 				url:     m
 				ping_ms: ping
@@ -73,6 +87,7 @@ pub fn fix_mirrors() ! {
 		} else {
 			println('❌ ${m} skipped (unreachable or slow)')
 		}
+		$dbg;
 	}
 
 	println('\n🏆 Best mirrors:')
