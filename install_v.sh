@@ -225,7 +225,9 @@ function myplatform {
 myplatform
 
 function os_update {
-    ubuntu_sources_fix
+    if [[ "${OSNAME}" == "ubuntu" ]]; then
+        ubuntu_sources_fix
+    fi
     echo ' - os update'
     if [[ "${OSNAME}" == "ubuntu" ]]; then
         if is_github_actions; then
