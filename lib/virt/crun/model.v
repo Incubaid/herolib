@@ -1,158 +1,170 @@
 module crun
 
-struct LinuxNamespace {
-	typ  string
-	path string
+// OCI Runtime Spec structures that can be directly encoded to JSON
+pub struct Spec {
+pub mut:
+	oci_version string
+	platform    Platform
+	process     Process
+	root        Root
+	hostname    string
+	mounts      []Mount
+	linux       Linux
+	hooks       Hooks
 }
 
-struct LinuxIDMapping {
-	container_id u32
-	host_id      u32
-	size         u32
+pub struct Platform {
+pub mut:
+	os   string = 'linux'
+	arch string = 'amd64'
 }
 
-struct LinuxResource {
-	blkio_weight                     u16
-	blkio_weight_device              []string
-	blkio_throttle_read_bps_device   []string
-	blkio_throttle_write_bps_device  []string
-	blkio_throttle_read_iops_device  []string
-	blkio_throttle_write_iops_device []string
-	cpu_period                       u64
-	cpu_quota                        i64
-	cpu_shares                       u64
-	cpuset_cpus                      string
-	cpuset_mems                      string
-	devices                          []string
-	memory_limit                     u64
-	memory_reservation               u64
-	memory_swap_limit                u64
-	memory_kernel_limit              u64
-	memory_swappiness                i64
-	pids_limit                       i64
+pub struct Process {
+pub mut:
+	terminal             bool = true
+	user                 User
+	args                 []string
+	env                  []string
+	cwd                  string = '/'
+	capabilities         Capabilities
+	rlimits              []Rlimit
+	no_new_privileges    bool
 }
 
-struct LinuxDevice {
-	typ         string
-	major       int
-	minor       int
-	permissions string
-	file_mode   u32
-	uid         u32
-	gid         u32
-}
-
-struct Hooks {
-	prestart  []string
-	poststart []string
-	poststop  []string
-}
-
-// see https://github.com/opencontainers/runtime-spec/blob/main/config.md#process
-struct Process {
-	terminal     bool
-	user         User
-	args         []string
-	env          []string // do as dict
-	cwd          string
-	capabilities Capabilities
-	rlimits      []Rlimit
-}
-
-// Enum for Rlimit types
-enum RlimitType {
-	rlimit_cpu
-	rlimit_fsize
-	rlimit_data
-	rlimit_stack
-	rlimit_core
-	rlimit_rss
-	rlimit_nproc
-	rlimit_nofile
-	rlimit_memlock
-	rlimit_as
-	rlimit_lock
-	rlimit_sigpending
-	rlimit_msgqueue
-	rlimit_nice
-	rlimit_rtprio
-	rlimit_rttime
-}
-
-// Struct for Rlimit using enumerator
-struct Rlimit {
-	typ  RlimitType
-	hard u64
-	soft u64
-}
-
-struct User {
+pub struct User {
+pub mut:
 	uid             u32
 	gid             u32
 	additional_gids []u32
 }
 
-struct Root {
+pub struct Capabilities {
+pub mut:
+	bounding    []string
+	effective   []string
+	inheritable []string
+	permitted   []string
+	ambient     []string
+}
+
+pub struct Rlimit {
+pub mut:
+	typ  string
+	hard u64
+	soft u64
+}
+
+pub struct Root {
+pub mut:
 	path     string
 	readonly bool
 }
 
-struct Linux {
-	namespaces []LinuxNamespace
-	resources  LinuxResource
-	devices    []LinuxDevice
+pub struct Mount {
+pub mut:
+	destination string
+	typ         string
+	source      string
+	options     []string
 }
 
-struct Spec {
-	version  string
-	platform Platform
-	process  Process
-	root     Root
-	hostname string
-	mounts   []Mount
-	linux    Linux
-	hooks    Hooks
+pub struct Linux {
+pub mut:
+	namespaces      []LinuxNamespace
+	resources       LinuxResources
+	devices         []LinuxDevice
+	masked_paths    []string
+	readonly_paths  []string
+	uid_mappings    []LinuxIDMapping
+	gid_mappings    []LinuxIDMapping
 }
 
-// Enum for supported operating systems
-enum OSType {
-	linux
-	windows
-	darwin
-	solaris
-	// Add other OS types as needed
+pub struct LinuxNamespace {
+pub mut:
+	typ  string
+	path string
 }
 
-// Enum for supported architectures
-enum ArchType {
-	amd64
-	arm64
-	arm
-	ppc64
-	s390x
-	// Add other architectures as needed
+pub struct LinuxResources {
+pub mut:
+	memory Memory
+	cpu    CPU
+	pids   Pids
+	blkio  BlockIO
 }
 
-// Struct for Platform using enums
-struct Platform {
-	os   OSType
-	arch ArchType
+pub struct Memory {
+pub mut:
+	limit       u64
+	reservation u64
+	swap        u64
+	kernel      u64
+	swappiness  i64
 }
 
-// Enum for mount types
-enum MountType {
+pub struct CPU {
+pub mut:
+	shares u64
+	quota  i64
+	period u64
+	cpus   string
+	mems   string
+}
+
+pub struct Pids {
+pub mut:
+	limit i64
+}
+
+pub struct BlockIO {
+pub mut:
+	weight u16
+}
+
+pub struct LinuxDevice {
+pub mut:
+	path        string
+	typ         string
+	major       i64
+	minor       i64
+	file_mode   u32
+	uid         u32
+	gid         u32
+}
+
+pub struct LinuxIDMapping {
+pub mut:
+	container_id u32
+	host_id      u32
+	size         u32
+}
+
+pub struct Hooks {
+pub mut:
+	prestart  []Hook
+	poststart []Hook
+	poststop  []Hook
+}
+
+pub struct Hook {
+pub mut:
+	path string
+	args []string
+	env  []string
+}
+
+// Enums for type safety but convert to strings
+pub enum MountType {
 	bind
 	tmpfs
-	nfs
-	overlay
-	devpts
 	proc
 	sysfs
-	// Add other mount types as needed
+	devpts
+	nfs
+	overlay
 }
 
-// Enum for mount options
-enum MountOption {
+pub enum MountOption {
 	rw
 	ro
 	noexec
@@ -160,18 +172,12 @@ enum MountOption {
 	nodev
 	rbind
 	relatime
-	// Add other options as needed
+	strictatime
+	mode
+	size
 }
 
-// Struct for Mount using enums
-struct Mount {
-	destination string
-	typ         MountType
-	source      string
-	options     []MountOption
-}
-
-enum Capability {
+pub enum Capability {
 	cap_chown
 	cap_dac_override
 	cap_dac_read_search
@@ -212,10 +218,21 @@ enum Capability {
 	cap_audit_read
 }
 
-struct Capabilities {
-	bounding    []Capability
-	effective   []Capability
-	inheritable []Capability
-	permitted   []Capability
-	ambient     []Capability
+pub enum RlimitType {
+	rlimit_cpu
+	rlimit_fsize
+	rlimit_data
+	rlimit_stack
+	rlimit_core
+	rlimit_rss
+	rlimit_nproc
+	rlimit_nofile
+	rlimit_memlock
+	rlimit_as
+	rlimit_lock
+	rlimit_sigpending
+	rlimit_msgqueue
+	rlimit_nice
+	rlimit_rtprio
+	rlimit_rttime
 }
