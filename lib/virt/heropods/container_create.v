@@ -36,22 +36,22 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 	match args.image {
 		.alpine_3_20 {
 			image_name = 'alpine'
-			rootfs_path = '/containers/images/alpine/rootfs'
+			rootfs_path = '${self.base_dir}/images/alpine/rootfs'
 		}
 		.ubuntu_24_04 {
 			image_name = 'ubuntu_24_04'
-			rootfs_path = '/containers/images/ubuntu/24.04/rootfs'
+			rootfs_path = '${self.base_dir}/images/ubuntu/24.04/rootfs'
 		}
 		.ubuntu_25_04 {
 			image_name = 'ubuntu_25_04'
-			rootfs_path = '/containers/images/ubuntu/25.04/rootfs'
+			rootfs_path = '${self.base_dir}/images/ubuntu/25.04/rootfs'
 		}
 		.custom {
 			if args.custom_image_name == '' {
 				return error('custom_image_name is required when using custom image type')
 			}
 			image_name = args.custom_image_name
-			rootfs_path = '/containers/images/${image_name}/rootfs'
+			rootfs_path = '${self.base_dir}/images/${image_name}/rootfs'
 
 			// Check if image exists, if not and docker_url provided, create it
 			if !os.is_dir(rootfs_path) && args.docker_url != '' {
@@ -75,7 +75,7 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 
 	// Create container using crun
 	osal.exec(
-		cmd:    'crun create --bundle /containers/configs/${args.name} ${args.name}'
+		cmd:    'crun create --bundle ${self.base_dir}/configs/${args.name} ${args.name}'
 		stdout: true
 	)!
 
@@ -89,7 +89,7 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 }
 
 fn (self ContainerFactory) create_container_config(container_name string, rootfs_path string) ! {
-	config_dir := '/containers/configs/${container_name}'
+	config_dir := '${self.base_dir}/configs/${container_name}'
 	osal.exec(cmd: 'mkdir -p ${config_dir}', stdout: false)!
 
 	// Generate OCI config.json using template

@@ -11,6 +11,7 @@ pub mut:
 	tmux_session string
 	containers   map[string]&Container
 	images       map[string]&ContainerImage
+	base_dir     string
 }
 
 @[params]
@@ -28,8 +29,10 @@ pub fn new(args FactoryInitArgs) !ContainerFactory {
 
 fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 	// Ensure base directories exist
+	self.base_dir = os.getenv_opt('CONTAINERS_DIR') or { os.home_dir() + '/.containers' }
+
 	osal.exec(
-		cmd:    'mkdir -p /containers/images /containers/configs /containers/runtime'
+		cmd:    'mkdir -p ${self.base_dir}/images ${self.base_dir}/configs ${self.base_dir}/runtime'
 		stdout: false
 	)!
 
@@ -70,7 +73,7 @@ fn (mut self ContainerFactory) setup_default_images(reset bool) ! {
 
 // Load existing images from filesystem into cache
 fn (mut self ContainerFactory) load_existing_images() ! {
-	images_base_dir := '/containers/images'
+	images_base_dir := '${self.base_dir}/containers/images'
 	if !os.is_dir(images_base_dir) {
 		return
 	}
