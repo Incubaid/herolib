@@ -22,7 +22,7 @@ pub fn (mut executor ExecutorCrun) init() ! {
 	}
 
 	// Parse state to ensure container is running
-	if !result.output.contains('"status":"running"') {
+	if !result.output.contains('"status": "running"') {
 		return error('Container ${executor.container_id} is not running')
 	}
 }

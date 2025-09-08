@@ -3,9 +3,9 @@ module heropods
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.installers.virt.herorunner as herorunner_installer
 import os
+import x.json2
 
 // Updated enum to be more flexible
 pub enum ContainerImageType {
@@ -54,14 +54,10 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 			image_name = args.custom_image_name
 			rootfs_path = '${self.base_dir}/images/${image_name}/rootfs'
 
-			// Check if image exists, if not and docker_url provided, create it
+			// If image not yet extracted, pull and unpack it
 			if !os.is_dir(rootfs_path) && args.docker_url != '' {
-				console.print_debug('Creating new image ${image_name} from ${args.docker_url}')
-				_ = self.image_new(
-					image_name: image_name
-					docker_url: args.docker_url
-					reset:      args.reset
-				)!
+				console.print_debug('Pulling image ${args.docker_url} with podman...')
+				self.podman_pull_and_export(args.docker_url, image_name, rootfs_path)!
 			}
 		}
 	}
@@ -71,21 +67,17 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 		return error('Image rootfs not found: ${rootfs_path}. Please ensure the image is available.')
 	}
 
-	// Create container config
+	// Create container config (with terminal disabled) but don't create the container yet
 	self.create_container_config(args.name, rootfs_path)!
 
-	// Install crun if not installed
+	// Ensure crun is installed on host
 	if !osal.cmd_exists('crun') {
 		mut herorunner := herorunner_installer.new()!
 		herorunner.install()!
 	}
 
-	// Create container using crun
-	osal.exec(
-		cmd:    'crun create --bundle ${self.base_dir}/configs/${args.name} ${args.name}'
-		stdout: true
-	)!
-
+	// Create container struct but don't create the actual container in crun yet
+	// The actual container creation will happen in container.start()
 	mut container := &Container{
 		name:    args.name
 		factory: &self
@@ -95,14 +87,63 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 	return container
 }
 
+// Create OCI config.json from template
 fn (self ContainerFactory) create_container_config(container_name string, rootfs_path string) ! {
 	config_dir := '${self.base_dir}/configs/${container_name}'
 	osal.exec(cmd: 'mkdir -p ${config_dir}', stdout: false)!
 
-	// Generate OCI config.json using template
-	config_content := $tmpl('config_template.json')
-	config_path := '${config_dir}/config.json'
+	// Load template
+	mut config_content := $tmpl('config_template.json')
 
+	// Parse JSON with json2
+	mut root := json2.raw_decode(config_content)!
+	mut config := root.as_map()
+
+	// Get or create process map
+	mut process := if 'process' in config {
+		config['process'].as_map()
+	} else {
+		map[string]json2.Any{}
+	}
+
+	// Force disable terminal
+	process['terminal'] = json2.Any(false)
+	config['process'] = json2.Any(process)
+
+	// Write back to config.json
+	config_path := '${config_dir}/config.json'
 	mut p := pathlib.get_file(path: config_path, create: true)!
-	p.write(config_content)!
+	p.write(json2.encode_pretty(json2.Any(config)))!
+}
+
+// Use podman to pull image and extract rootfs
+fn (self ContainerFactory) podman_pull_and_export(docker_url string, image_name string, rootfs_path string) ! {
+	// Pull image
+	osal.exec(
+		cmd:    'podman pull ${docker_url}'
+		stdout: true
+	)!
+
+	// Create temp container
+	temp_name := 'tmp_${image_name}_${os.getpid()}'
+	osal.exec(
+		cmd:    'podman create --name ${temp_name} ${docker_url}'
+		stdout: true
+	)!
+
+	// Export container filesystem
+	osal.exec(
+		cmd:    'mkdir -p ${rootfs_path}'
+		stdout: false
+	)!
+	osal.exec(
+		cmd:    'podman export ${temp_name} | tar -C ${rootfs_path} -xf -'
+		stdout: true
+	)!
+
+	// Cleanup temp container
+	osal.exec(
+		cmd:    'podman rm ${temp_name}'
+		stdout: false
+	)!
 }

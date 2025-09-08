@@ -7,7 +7,9 @@
       "gid": 0
     },
     "args": [
-      "/bin/sh"
+      "/bin/sh",
+      "-c",
+      "while true; do sleep 30; done"
     ],
     "env": [
       "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",

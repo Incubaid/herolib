@@ -15,13 +15,48 @@ pub mut:
 	factory   &ContainerFactory
 }
 
+// Struct to parse JSON output of `crun state`
+struct CrunState {
+	id      string
+	status  string
+	pid     int
+	bundle  string
+	created string
+}
+
 pub fn (mut self Container) start() ! {
+	// Check if container exists in crun
+	container_exists := self.container_exists_in_crun()!
+
+	if !container_exists {
+		// Container doesn't exist, create it first
+		console.print_debug('Container ${self.name} does not exist, creating it...')
+		osal.exec(
+			cmd:    'crun create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
+			stdout: true
+		)!
+		console.print_debug('Container ${self.name} created')
+	}
+
 	status := self.status()!
 	if status == .running {
 		console.print_debug('Container ${self.name} is already running')
 		return
 	}
 
+	// If container exists but is stopped, we need to delete and recreate it
+	// because crun doesn't allow restarting a stopped container
+	if container_exists && status != .running {
+		console.print_debug('Container ${self.name} exists but is stopped, recreating...')
+		osal.exec(cmd: 'crun delete ${self.name}', stdout: false) or {}
+		osal.exec(
+			cmd:    'crun create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
+			stdout: true
+		)!
+		console.print_debug('Container ${self.name} recreated')
+	}
+
+	// start the container (crun start doesn't have --detach flag)
 	osal.exec(cmd: 'crun start ${self.name}', stdout: true)!
 	console.print_green('Container ${self.name} started')
 }
@@ -44,8 +79,20 @@ pub fn (mut self Container) stop() ! {
 }
 
 pub fn (mut self Container) delete() ! {
+	// Check if container exists before trying to delete
+	if !self.container_exists_in_crun()! {
+		console.print_debug('Container ${self.name} does not exist, nothing to delete')
+		return
+	}
+
 	self.stop()!
 	osal.exec(cmd: 'crun delete ${self.name}', stdout: false) or {}
+
+	// Remove from factory's container cache
+	if self.name in self.factory.containers {
+		self.factory.containers.delete(self.name)
+	}
+
 	console.print_green('Container ${self.name} deleted')
 }
 
@@ -65,16 +112,23 @@ pub fn (self Container) status() !ContainerStatus {
 	result := osal.exec(cmd: 'crun state ${self.name}', stdout: false) or { return .unknown }
 
 	// Parse JSON output from crun state
-	state := json.decode(map[string]json.Any, result.output) or { return .unknown }
+	state := json.decode(CrunState, result.output) or { return .unknown }
 
-	status_str := state['status'].str()
-
-	return match status_str {
+	return match state.status {
 		'running' { .running }
 		'stopped' { .stopped }
 		'paused' { .paused }
 		else { .unknown }
 	}
+}
+
+// Check if container exists in crun (regardless of its state)
+fn (self Container) container_exists_in_crun() !bool {
+	// Try to get container state - if it fails, container doesn't exist
+	result := osal.exec(cmd: 'crun state ${self.name}', stdout: false) or { return false }
+
+	// If we get here, the container exists (even if stopped/paused)
+	return result.exit_code == 0
 }
 
 pub enum ContainerStatus {
@@ -92,8 +146,6 @@ pub fn (self Container) cpu_usage() !f64 {
 		stdout: false
 	) or { return 0.0 }
 
-	// Parse cpu.stat file and calculate usage percentage
-	// This is a simplified implementation
 	for line in result.output.split_into_lines() {
 		if line.starts_with('usage_usec') {
 			usage := line.split(' ')[1].f64()
@@ -166,25 +218,22 @@ pub fn (mut self Container) node() !&builder.Node {
 		return self.node
 	}
 
-	// Create builder factory (so node has proper lifecycle)
 	mut b := builder.new()!
 
-	// Create a new executor for this container
 	mut exec := builder.ExecutorCrun{
 		container_id: self.name
 		debug:        false
 	}
 
-	// Initialize executor (checks container is running)
 	exec.init() or {
 		return error('Failed to init ExecutorCrun for container ${self.name}: ${err}')
 	}
 
-	// Create a node with this executor
-	mut node := b.node_new(name: 'container_${self.name}')!
+	// Create node using the factory method, then override the executor
+	mut node := b.node_new(name: 'container_${self.name}', ipaddr: 'localhost')!
 	node.executor = exec
-	node.platform = .alpine // TODO: detect from ContainerImageType
-	node.cputype = .intel // TODO: detect dynamically if needed
+	node.platform = .alpine
+	node.cputype = .intel
 	node.done = map[string]string{}
 	node.environment = map[string]string{}
 	node.hostname = self.name
