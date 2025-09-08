@@ -2,8 +2,8 @@ module heroprompt
 
 import freeflowuniverse.herolib.core.base
 import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
 import json
+import time
 
 __global (
 	heroprompt_global  map[string]&Workspace
@@ -23,8 +23,13 @@ pub mut:
 
 pub fn new(args ArgsGet) !&Workspace {
 	mut obj := Workspace{
-		name: args.name
+		name:     args.name
+		children: []
+		created:  time.now()
+		updated:  time.now()
+		is_saved: true
 	}
+
 	set(obj)!
 	return get(name: args.name)!
 }

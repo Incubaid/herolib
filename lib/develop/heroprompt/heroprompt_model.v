@@ -3,7 +3,7 @@ module heroprompt
 import time
 import freeflowuniverse.herolib.core.playbook
 
-pub const version = '0.0.0'
+pub const version = '1.0.0'
 const singleton = false
 const default = true
 
