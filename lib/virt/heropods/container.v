@@ -105,6 +105,7 @@ pub fn (mut self Container) exec(cmd_ osal.Command) !string {
 
 	// Use the builder node to execute inside container
 	mut node := self.node()!
+	console.print_debug('Executing command in container ${self.name}: ${cmd_.cmd}')
 	return node.exec(cmd: cmd_.cmd, stdout: cmd_.stdout)
 }
 
