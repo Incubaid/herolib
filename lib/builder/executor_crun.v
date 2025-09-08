@@ -3,9 +3,7 @@ module builder
 import os
 import rand
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.osal.rsync
 import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.data.ipaddress
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.texttools
 
@@ -17,14 +15,14 @@ pub mut:
 	debug        bool = true
 }
 
-fn (mut executor ExecutorCrun) init() ! {
+pub fn (mut executor ExecutorCrun) init() ! {
 	// Verify container exists and is running
 	result := osal.exec(cmd: 'crun state ${executor.container_id}', stdout: false) or {
 		return error('Container ${executor.container_id} not found or not accessible')
 	}
 
 	// Parse state to ensure container is running
-	if !result.output.contains('"status":"running"') {
+	if !result.output.contains('"status": "running"') {
 		return error('Container ${executor.container_id} is not running')
 	}
 }

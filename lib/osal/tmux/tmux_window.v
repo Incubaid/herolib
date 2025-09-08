@@ -406,3 +406,22 @@ pub fn (mut w Window) stop_ttyd(port int) ! {
 	}
 	println('ttyd stopped for window ${w.name} on port ${port} (if it was running)')
 }
+
+// Get a pane by its ID
+pub fn (mut w Window) pane_get(id int) !&Pane {
+	w.scan()! // refresh info from tmux
+	for pane in w.panes {
+		if pane.id == id {
+			return pane
+		}
+	}
+	return error('Pane with id ${id} not found in window ${w.name}. Available panes: ${w.panes}')
+}
+
+// Create a new pane (just a split with default shell)
+pub fn (mut w Window) pane_new() !&Pane {
+	return w.pane_split(
+		cmd:        '/bin/bash'
+		horizontal: true
+	)
+}

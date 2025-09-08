@@ -10,7 +10,7 @@ import json
 @[heap]
 pub struct ContainerImage {
 pub mut:
-	image_name  string @[required] // image is located in /containers/images/<image_name>/rootfs
+	image_name  string @[required] // image is located in ${self.factory.base_dir}/images/<image_name>/rootfs
 	docker_url  string // optional docker image URL
 	rootfs_path string // path to the extracted rootfs
 	size_mb     f64    // size in MB
@@ -21,7 +21,7 @@ pub mut:
 @[params]
 pub struct ContainerImageArgs {
 pub mut:
-	image_name string @[required] // image is located in /containers/images/<image_name>/rootfs
+	image_name string @[required] // image is located in ${self.factory.base_dir}/images/<image_name>/rootfs
 	docker_url string // docker image URL like "alpine:3.20" or "ubuntu:24.04"
 	reset      bool
 }
@@ -43,7 +43,7 @@ pub mut:
 // Create new image or get existing
 pub fn (mut self ContainerFactory) image_new(args ContainerImageArgs) !&ContainerImage {
 	mut image_name := texttools.name_fix(args.image_name)
-	rootfs_path := '/containers/images/${image_name}/rootfs'
+	rootfs_path := '${self.base_dir}/images/${image_name}/rootfs'
 
 	// Check if image already exists
 	if image_name in self.images && !args.reset {
@@ -84,7 +84,7 @@ fn (mut self ContainerImage) download_from_docker(docker_url string, reset bool)
 	console.print_header('Downloading image: ${docker_url}')
 
 	// Clean image name for local storage
-	image_dir := '/containers/images/${self.image_name}'
+	image_dir := '${self.factory.base_dir}/images/${self.image_name}'
 
 	// Remove existing if reset is true
 	if reset && os.is_dir(image_dir) {
@@ -133,15 +133,15 @@ fn (mut self ContainerImage) update_metadata() ! {
 	self.size_mb = size_str.f64()
 
 	// Get creation time
-	stat_result := osal.exec(cmd: 'stat -c "%Y" ${self.rootfs_path}', stdout: false)!
-	self.created_at = stat_result.output.trim_space() // TODO: should this be ourtime?
+	info := os.stat(self.rootfs_path) or { return error('stat failed: ${err}') }
+	self.created_at = info.ctime.str() // or mtime.str(), depending on what you want
 }
 
 // List all available images
 pub fn (mut self ContainerFactory) images_list() ![]&ContainerImage {
 	mut images := []&ContainerImage{}
 
-	images_base_dir := '/containers/images'
+	images_base_dir := '${self.base_dir}/images'
 	if !os.is_dir(images_base_dir) {
 		return images
 	}
@@ -206,7 +206,7 @@ pub fn (mut self ContainerFactory) image_import(args ImageImportArgs) !&Containe
 
 	console.print_header('Importing image from ${args.source_path}')
 
-	image_dir := '/containers/images/${image_name_clean}'
+	image_dir := '${self.base_dir}/images/${image_name_clean}'
 	rootfs_path := '${image_dir}/rootfs'
 
 	// Check if image already exists
