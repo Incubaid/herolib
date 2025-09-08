@@ -43,7 +43,7 @@ pub fn (mut c HTTPController) index(mut ctx Context) veb.Result {
 	}
 
 	// Process the JSONRPC request with the OpenRPC handler
-	response := c.handler.handle(request) or {
+	response := c.handle(request) or {
 		return ctx.server_error('Handler error: ${err.msg()}')
 	}
 

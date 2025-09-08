@@ -2,26 +2,20 @@ module openrpc
 
 import freeflowuniverse.herolib.schemas.jsonrpc
 
+// The openrpc handler is a wrapper around a jsonrpc handler
 pub struct Handler {
+	jsonrpc.Handler
 pub:
 	specification OpenRPC @[required] // The OpenRPC specification
-pub mut:
-	handler IHandler
 }
 
-pub interface IHandler {
-mut:
-	handle(jsonrpc.Request) !jsonrpc.Response // Custom handler for other methods
-}
-
-@[params]
-pub struct HandleParams {
-	timeout int = 60 // Timeout in seconds
-	retry   int // Number of retries
-}
+// pub interface IHandler {
+// mut:
+// 	handle(jsonrpc.Request) !jsonrpc.Response // Custom handler for other methods
+// }
 
 // Handle a JSON-RPC request and return a response
-pub fn (mut h Handler) handle(req jsonrpc.Request, params HandleParams) !jsonrpc.Response {
+pub fn (mut h Handler) handle(req jsonrpc.Request) !jsonrpc.Response {
 	// Validate the incoming request
 	req.validate() or { return jsonrpc.new_error_response(req.id, jsonrpc.invalid_request) }
 
@@ -33,15 +27,12 @@ pub fn (mut h Handler) handle(req jsonrpc.Request, params HandleParams) !jsonrpc
 	}
 
 	// Validate the method exists in the specification
-	if req.method !in h.specification.methods.map(it.name) {
-		return jsonrpc.new_error_response(req.id, jsonrpc.method_not_found)
-	}
-
-	// Enforce timeout and retries (dummy implementation)
-	if params.timeout < 0 || params.retry < 0 {
-		return jsonrpc.new_error_response(req.id, jsonrpc.invalid_params)
-	}
+	// TODO: implement once auto add registered methods to spec
+	// if req.method !in h.specification.methods.map(it.name) {
+	// 	println("Method not found: " + req.method)
+	// 	return jsonrpc.new_error_response(req.id, jsonrpc.method_not_found)
+	// }
 
 	// Forward the request to the custom handler
-	return h.handler.handle(req)
+	return h.Handler.handle(req) or { panic(err) }
 }
