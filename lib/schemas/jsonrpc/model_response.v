@@ -65,7 +65,7 @@ pub fn new_error_response(id int, error RPCError) Response {
 // Returns:
 //   - A Response object or an error if parsing fails or the response is invalid
 pub fn decode_response(data string) !Response {
-	raw := json2.raw_decode(data)!
+	raw := json2.raw_decode(data) or { return error('Failed to decode JSONRPC response ${data}\n${err}') }
 	raw_map := raw.as_map()
 
 	// Validate that the response contains either result or error, but not both or neither
@@ -105,7 +105,7 @@ pub fn decode_response(data string) !Response {
 pub fn (resp Response) encode() string {
 	// Payload is already json string
 	if resp.error_ != none {
-		return '{"jsonrpc":"2.0","id":${resp.id},"error":${resp.error_.str()}}'
+		return '{"jsonrpc":"2.0","id":${resp.id},"error":${json2.encode(resp.error_)}}'
 	} else if resp.result != none {
 		return '{"jsonrpc":"2.0","id":${resp.id},"result":${resp.result}}'
 	}

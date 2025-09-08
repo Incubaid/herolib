@@ -70,25 +70,38 @@ fn (mut server UNIXServer) handle_connection(mut conn unix.StreamConn) {
 		
 		request_data := buffer[..bytes_read].bytestr()
 		console.print_debug('Received request: ${request_data}')
-		
+
 		// Process the JSON-RPC request
-		response := server.process_request(request_data) or {
-			server.create_error_response(-32603, 'Internal error: ${err}', 'null')
-		}
-		
-		// Send response
-		conn.write_string(response) or {
-			console.print_stderr('Error writing response: ${err}')
-			break
+		if response := server.process_request(request_data) {
+			// Send response only if we have a valid response
+			conn.write_string(response) or {
+				console.print_stderr('Error writing response: ${err}')
+				break
+			}
+		} else {
+			// Log the error but don't break the connection
+			// According to JSON-RPC 2.0 spec, if we can't decode the request ID,
+			// we should not send any response but keep the connection alive
+			console.print_debug('Invalid request received, no response sent: ${err}')
 		}
 	}
 }
 
-fn (mut server UNIXServer) process_request(request_data string) !string {
+fn (mut server UNIXServer) process_request(request_data string) ?string {
 	// Parse JSON-RPC request using json2 to handle Any types
-	response := if request := jsonrpc.decode_request(request_data) or {
-		server.handler.handle(request)!
-	} else {
-		jsonrpc.new_error(jsonrpc.invalid_request)
+	request := jsonrpc.decode_request(request_data) or {
+		// try decoding id to give error response
+		if id := jsonrpc.decode_request_id(request_data) {
+			// We can extract ID, so return proper JSON-RPC error response
+			return jsonrpc.new_error(id, jsonrpc.invalid_request).encode()
+		} else {
+			// Cannot extract ID from invalid JSON - return none (no response)
+			// This follows JSON-RPC 2.0 spec: no response when ID cannot be determined
+			return none
+		}
+	}
+	response := server.handler.handle(request) or {
+		return jsonrpc.new_error(request.id, jsonrpc.internal_error).encode()
 	}
 	return response.encode()
+}
