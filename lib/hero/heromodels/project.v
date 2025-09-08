@@ -84,11 +84,18 @@ struct ProjectContent {
     tags        []string
 }
 
-pub fn new_project(name string, description string, group_id string) Project {
+pub struct NewProject {
+pub mut:
+    name        string
+    description string
+    group_id    string
+}
+
+pub fn new_project(params NewProject) !Project {
     mut project := Project{
-        name: name
-        description: description
-        group_id: group_id
+        name: params.name
+        description: params.description
+        group_id: params.group_id
         status: .planning
         created_at: time.now().unix()
         updated_at: time.now().unix()

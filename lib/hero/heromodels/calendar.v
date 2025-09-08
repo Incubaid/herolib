@@ -28,15 +28,6 @@ pub mut:
 
 pub fn calendar_new(args CalendarArgs) !Calendar {
     mut commentids:=[]u32{}
-    for comment in args.comments{
-        // Convert CommentArg to CommentArgExtended
-        extended_comment := CommentArgExtended{
-            comment: comment.comment
-            parent: 0
-            author: 0
-        }
-        commentids << comment_set(extended_comment)!
-    }
     mut obj := Calendar{
         id: args.id or {0} // Will be set by DB?
         name: args.name
@@ -45,7 +36,7 @@ pub fn calendar_new(args CalendarArgs) !Calendar {
         updated_at: ourtime.now().unix()
         securitypolicy: args.securitypolicy or {0}
         tags: tags2id(args.tags)!
-        comments: commentids
+        comments: comments2ids(args.comments)!
         group_id: args.group_id
         events: args.events
         color: args.color
