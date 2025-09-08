@@ -8,7 +8,6 @@ import time
 pub struct Calendar {
 	Base
 pub mut:
-	group_id  u32    // Associated group for permissions
 	events    []u32  // IDs of calendar events (changed to u32 to match CalendarEvent)
 	color     string // Hex color code
 	timezone  string
@@ -19,7 +18,6 @@ pub mut:
 pub struct CalendarArgs {
 	BaseArgs
 pub mut:
-	group_id  u32
 	events    []u32
 	color     string
 	timezone  string
