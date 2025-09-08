@@ -141,28 +141,26 @@ fn test_user_mgmt() ! {
 	*/
 }
 
-fn main() {
-	console.print_header('🔑 SSH Agent Example - HeroLib')
+console.print_header('🔑 SSH Agent Example - HeroLib')
 
-	demo_sshagent_basic() or {
-		console.print_stderr('❌ Basic demo failed: ${err}')
-		return
-	}
-
-	demo_sshagent_key_management() or {
-		console.print_stderr('❌ Key management demo failed: ${err}')
-		return
-	}
-
-	demo_sshagent_with_existing_keys() or {
-		console.print_stderr('❌ Existing keys demo failed: ${err}')
-		return
-	}
-
-	test_user_mgmt() or {
-		console.print_stderr('❌ User management test failed: ${err}')
-		return
-	}
-
-	console.print_header('🎉 All SSH Agent demos completed successfully!')
+demo_sshagent_basic() or {
+	console.print_stderr('❌ Basic demo failed: ${err}')
+	return
 }
+
+demo_sshagent_key_management() or {
+	console.print_stderr('❌ Key management demo failed: ${err}')
+	return
+}
+
+demo_sshagent_with_existing_keys() or {
+	console.print_stderr('❌ Existing keys demo failed: ${err}')
+	return
+}
+
+test_user_mgmt() or {
+	console.print_stderr('❌ User management test failed: ${err}')
+	return
+}
+
+console.print_header('🎉 All SSH Agent demos completed successfully!')

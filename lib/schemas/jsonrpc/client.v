@@ -94,6 +94,7 @@ pub fn (mut c Client) send[T, D](request RequestGeneric[T], params SendParams) !
 		myerror := response.error_ or {
 			return error('Failed to get error from response:\nRequest: ${request.encode()}\nResponse: ${response_json}\n${err}')
 		}
+
 		// print_backtrace()
 		mut myreq := request.encode()
 		if c.transport is UnixSocketTransport {

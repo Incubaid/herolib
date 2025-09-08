@@ -15,12 +15,12 @@ pub mut:
 // new creates a new flow step
 pub fn FlowStep.new(step_order u32) FlowStep {
 	return FlowStep{
-		id: 0
+		id:          0
 		description: none
-		step_order: step_order
-		status: 'Pending'
-		created_at: 0
-		updated_at: 0
+		step_order:  step_order
+		status:      'Pending'
+		created_at:  0
+		updated_at:  0
 	}
 }
 

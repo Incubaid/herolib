@@ -4,12 +4,13 @@ import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.data.encoder
 
 pub fn set[T](mut obj_ T) !u32 {
-    // mut obj_ := T{...obj}
     mut redis := redisclient.core_get()!
-    id := u32(redis.llen(db_name[T]())!)
+    id := u32(redis.llen(db_name[T]()) or {0})
     obj_.id = id
-    // data := encoder.encode(obj_)!
-    redis.hset(db_name[T](),id.str(),'data.bytestr()')!
+    data := encoder.encode(obj_) or {
+        return err
+    }
+    redis.hset(db_name[T](),id.str(),data.bytestr())!
     return id
 }
 
@@ -40,7 +41,7 @@ pub fn list[T]() ![]T {
     return result
 }
 
-//make it easy to get a base object
+// make it easy to get a base object
 pub fn new_from_base[T](args BaseArgs) !Base {
     return T { Base: new_base(args)! }
 }

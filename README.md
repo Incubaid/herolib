@@ -39,7 +39,7 @@ bash /tmp/install_v.sh --analyzer --herolib
 
 #do not forget to do the following this makes sure vtest and vrun exists
 cd ~/code/github/freeflowuniverse/herolib
-bash install_herolib.vsh
+v install_herolib.vsh
 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
 

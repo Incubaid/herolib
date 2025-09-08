@@ -41,21 +41,21 @@ pub mut:
 // new creates a new Company with default values
 pub fn Company.new() Company {
 	return Company{
-		id: 0
-		name: ''
+		id:                  0
+		name:                ''
 		registration_number: ''
-		incorporation_date: 0
-		fiscal_year_end: ''
-		email: ''
-		phone: ''
-		website: ''
-		address: ''
-		business_type: .single
-		industry: ''
-		description: ''
-		status: .pending_payment
-		created_at: 0
-		updated_at: 0
+		incorporation_date:  0
+		fiscal_year_end:     ''
+		email:               ''
+		phone:               ''
+		website:             ''
+		address:             ''
+		business_type:       .single
+		industry:            ''
+		description:         ''
+		status:              .pending_payment
+		created_at:          0
+		updated_at:          0
 	}
 }
 

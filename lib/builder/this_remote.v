@@ -18,6 +18,7 @@ pub mut:
 pub fn this_remote_exec(args_ ThisRemoteArgs) !bool {
 	mut args := args_
 	if args.script.trim_space().starts_with('/tmp/remote_') {
+		// TODO: don't understand this
 		return false // means we need to execute
 	}
 	addr := texttools.to_array(args.nodes)

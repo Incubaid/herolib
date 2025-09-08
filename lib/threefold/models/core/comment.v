@@ -16,12 +16,12 @@ pub mut:
 // new creates a new Comment with default values
 pub fn Comment.new() Comment {
 	return Comment{
-		id: 0
-		user_id: 0
-		content: ''
+		id:                0
+		user_id:           0
+		content:           ''
 		parent_comment_id: none
-		created_at: 0
-		updated_at: 0
+		created_at:        0
+		updated_at:        0
 	}
 }
 

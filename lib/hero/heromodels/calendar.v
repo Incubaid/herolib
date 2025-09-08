@@ -6,24 +6,24 @@ import time
 // Calendar represents a collection of events
 @[heap]
 pub struct Calendar {
-    Base
+	Base
 pub mut:
-    group_id    u32   // Associated group for permissions
-    events      []u32 // IDs of calendar events (changed to u32 to match CalendarEvent)
-    color       string   // Hex color code
-    timezone    string
-    is_public   bool
+	group_id  u32    // Associated group for permissions
+	events    []u32  // IDs of calendar events (changed to u32 to match CalendarEvent)
+	color     string // Hex color code
+	timezone  string
+	is_public bool
 }
 
 @[params]
 pub struct CalendarArgs {
-    BaseArgs
+	BaseArgs
 pub mut:
-    group_id    u32
-    events      []u32
-    color       string
-    timezone    string
-    is_public   bool
+	group_id  u32
+	events    []u32
+	color     string
+	timezone  string
+	is_public bool
 }
 
 pub fn calendar_new(args CalendarArgs) !Calendar {
@@ -47,18 +47,18 @@ pub fn calendar_new(args CalendarArgs) !Calendar {
 }
 
 pub fn (mut c Calendar) add_event(event_id u32) { // Changed event_id to u32
-    if event_id !in c.events {
-        c.events << event_id
-        c.updated_at = ourtime.now().unix() // Use Base's updated_at
-    }
+	if event_id !in c.events {
+		c.events << event_id
+		c.updated_at = ourtime.now().unix() // Use Base's updated_at
+	}
 }
 
 pub fn (mut c Calendar) dump() []u8 {
-    //TODO: implement based on lib/data/encoder/readme.md
-    return []u8{}
+	// TODO: implement based on lib/data/encoder/readme.md
+	return []u8{}
 }
 
 pub fn calendar_load(data []u8) Calendar {
-    //TODO: implement based on lib/data/encoder/readme.md
-    return Calendar{}
+	// TODO: implement based on lib/data/encoder/readme.md
+	return Calendar{}
 }

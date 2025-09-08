@@ -34,19 +34,19 @@ pub mut:
 pub fn Payment.new(payment_intent_id string, company_id u32, payment_plan string, setup_fee f64, monthly_fee f64, total_amount f64) Payment {
 	now := time.now().unix_time()
 	return Payment{
-		id: 0
-		payment_intent_id: payment_intent_id
-		company_id: company_id
-		payment_plan: payment_plan
-		setup_fee: setup_fee
-		monthly_fee: monthly_fee
-		total_amount: total_amount
-		currency: 'usd'
-		status: .pending
+		id:                 0
+		payment_intent_id:  payment_intent_id
+		company_id:         company_id
+		payment_plan:       payment_plan
+		setup_fee:          setup_fee
+		monthly_fee:        monthly_fee
+		total_amount:       total_amount
+		currency:           'usd'
+		status:             .pending
 		stripe_customer_id: none
-		created_at: now
-		completed_at: none
-		updated_at: u64(now)
+		created_at:         now
+		completed_at:       none
+		updated_at:         u64(now)
 	}
 }
 

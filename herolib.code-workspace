@@ -1,23 +1,8 @@
 {
 	"folders": [
 		{
-			"path": "lib"
+			"path": "."
 		},
-		{
-			"path": "aiprompts"
-		},
-		{
-			"path": "research"
-		},
-		{
-			"path": "examples"
-		},		
-		{
-			"path": "cli"
-		},
-		{
-			"path": "manual"
-		}		
 	],
 	"settings": {
 		"extensions.ignoreRecommendations": false

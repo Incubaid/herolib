@@ -6,15 +6,13 @@ import freeflowuniverse.herolib.schemas.jsonschema { Reference, decode_schemaref
 
 pub fn decode_json_any(data string) !Any {
 	// mut o:=decode(data)!
-	return json2.decode[json2.Any](data)!
+	return json2.decode[Any](data)!
 }
 
 pub fn decode_json_string(data string) !string {
 	mut o := decode(data)!
 	return json.encode(o)	
 }
-
-
 
 pub fn decode(data string) !OpenRPC {
 	// mut object := json.decode[OpenRPC](data) or { return error('Failed to decode json\n=======\n${data}\n===========\n${err}') }

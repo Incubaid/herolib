@@ -1,0 +1,74 @@
+#!/usr/bin/env hero
+
+// Demonstration of multi-line command support in tmux heroscripts
+// This example shows how to use multi-line commands in pane configurations
+
+// Create a development session
+!!tmux.session_create
+    name:"dev_multiline"
+    reset:true
+
+// Create a 4-pane development workspace
+!!tmux.window_ensure
+    name:"dev_multiline|workspace"
+    cat:"4pane"
+
+// Pane 1: Development environment setup
+!!tmux.pane_ensure
+    name:"dev_multiline|workspace|1"
+    label:"dev_setup"
+    cmd:'
+        echo "=== Development Environment Setup ==="
+        echo "Current directory: $(pwd)"
+        echo "Git status:"
+        git status --porcelain || echo "Not a git repository"
+        echo "Available disk space:"
+        df -h .
+        echo "Development setup complete"
+    '
+
+// Pane 2: System monitoring
+!!tmux.pane_ensure
+    name:"dev_multiline|workspace|2"
+    label:"monitoring"
+    cmd:'
+        echo "=== System Monitoring ==="
+        echo "System uptime:"
+        uptime
+        echo "Memory usage:"
+        free -h 2>/dev/null || vm_stat | head -5
+        echo "CPU info:"
+        sysctl -n machdep.cpu.brand_string 2>/dev/null || cat /proc/cpuinfo | grep "model name" | head -1
+        echo "Monitoring setup complete"
+    '
+
+// Pane 3: Network diagnostics
+!!tmux.pane_ensure
+    name:"dev_multiline|workspace|3"
+    label:"network"
+    cmd:'
+        echo "=== Network Diagnostics ==="
+        echo "Network interfaces:"
+        ifconfig | grep -E "^[a-z]|inet " | head -10
+        echo "DNS configuration:"
+        cat /etc/resolv.conf 2>/dev/null || scutil --dns | head -10
+        echo "Network diagnostics complete"
+    '
+
+// Pane 4: File operations and cleanup
+!!tmux.pane_ensure
+    name:"dev_multiline|workspace|4"
+    label:"file_ops"
+    cmd:'
+        echo "=== File Operations ==="
+        echo "Creating temporary workspace..."
+        mkdir -p /tmp/dev_workspace
+        cd /tmp/dev_workspace
+        echo "Current location: $(pwd)"
+        echo "Creating sample files..."
+        echo "Sample content" > sample.txt
+        echo "Another file" > another.txt
+        echo "Files created:"
+        ls -la
+        echo "File operations complete"
+    '

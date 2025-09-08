@@ -1,9 +1,13 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import freeflowuniverse.herolib.mcp.aitools.escalayer
+import freeflowuniverse.herolib.core.redisclient
 import os
 
 fn main() {
+	// Example of using redisclient module instead of old redis.Connection
+	redis_example() or { println('Redis example failed: ${err}') }
+
 	// Get the current directory where this script is located
 	current_dir := os.dir(@FILE)
 
@@ -593,4 +597,65 @@ fn extract_functions_from_code(code string) []string {
 	}
 
 	return functions
+}
+
+// Example function showing how to use redisclient module instead of old redis.Connection
+fn redis_example() ! {
+	// OLD WAY (don't use this):
+	// mut conns := []redis.Connection{}
+	// for s in servers {
+	//     mut c := redis.connect(redis.Options{ server: s }) or {
+	//         panic('could not connect to redis $s: $err')
+	//     }
+	//     conns << c
+	// }
+
+	// NEW WAY using redisclient module:
+	servers := ['127.0.0.1:6379', '127.0.0.1:6380', '127.0.0.1:6381', '127.0.0.1:6382']
+	mut redis_clients := []&redisclient.Redis{}
+
+	for server in servers {
+		// Parse server address
+		redis_url := redisclient.get_redis_url(server) or {
+			println('Failed to parse Redis URL ${server}: ${err}')
+			continue
+		}
+
+		// Create Redis client using redisclient module
+		mut redis_client := redisclient.core_get(redis_url) or {
+			println('Failed to connect to Redis ${server}: ${err}')
+			continue
+		}
+
+		// Test the connection
+		redis_client.ping() or {
+			println('Failed to ping Redis ${server}: ${err}')
+			continue
+		}
+
+		redis_clients << redis_client
+		println('Successfully connected to Redis server: ${server}')
+	}
+
+	// Example usage of Redis operations
+	if redis_clients.len > 0 {
+		mut redis := redis_clients[0]
+
+		// Set a test key
+		redis.set('test_key', 'test_value') or {
+			println('Failed to set test key: ${err}')
+			return
+		}
+
+		// Get the test key
+		value := redis.get('test_key') or {
+			println('Failed to get test key: ${err}')
+			return
+		}
+
+		println('Redis test successful - key: test_key, value: ${value}')
+
+		// Clean up
+		redis.del('test_key') or { println('Failed to delete test key: ${err}') }
+	}
 }

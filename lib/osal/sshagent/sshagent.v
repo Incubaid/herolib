@@ -58,7 +58,7 @@ pub fn (mut agent SSHAgent) is_agent_responsive() bool {
 	return res.exit_code == 0 || res.exit_code == 1 // 1 means no keys, but agent is running
 }
 
-// cleanup orphaned ssh-agent processes
+// cleanup orphaned ssh-agent processes, means all agents for the logged in user
 pub fn (mut agent SSHAgent) cleanup_orphaned_agents() ! {
 	user := os.getenv('USER')
 
@@ -77,6 +77,7 @@ pub fn (mut agent SSHAgent) cleanup_orphaned_agents() ! {
 			}
 		}
 	}
+	$dbg;
 }
 
 // check if specific agent PID is valid and responsive

@@ -17,8 +17,8 @@ pub mut:
 // StripeEventData represents the data portion of a Stripe event
 pub struct StripeEventData {
 pub mut:
-	object               string  // The main object data (JSON as string for flexibility)
-	previous_attributes  ?string // Previous attributes if this is an update (JSON as string)
+	object              string  // The main object data (JSON as string for flexibility)
+	previous_attributes ?string // Previous attributes if this is an update (JSON as string)
 }
 
 // StripeEventRequest represents request information for a Stripe event
@@ -31,15 +31,15 @@ pub mut:
 // new creates a new StripeWebhookEvent
 pub fn StripeWebhookEvent.new() StripeWebhookEvent {
 	return StripeWebhookEvent{
-		id: ''
-		object: 'event'
-		api_version: none
-		created: 0
-		data: StripeEventData.new()
-		livemode: false
+		id:               ''
+		object:           'event'
+		api_version:      none
+		created:          0
+		data:             StripeEventData.new()
+		livemode:         false
 		pending_webhooks: 0
-		request: none
-		event_type: ''
+		request:          none
+		event_type:       ''
 	}
 }
 
@@ -100,7 +100,7 @@ pub fn (mut event StripeWebhookEvent) event_type(event_type string) StripeWebhoo
 // new creates a new StripeEventData
 pub fn StripeEventData.new() StripeEventData {
 	return StripeEventData{
-		object: ''
+		object:              ''
 		previous_attributes: none
 	}
 }
@@ -120,7 +120,7 @@ pub fn (mut data StripeEventData) previous_attributes(previous_attributes ?strin
 // new creates a new StripeEventRequest
 pub fn StripeEventRequest.new() StripeEventRequest {
 	return StripeEventRequest{
-		id: none
+		id:              none
 		idempotency_key: none
 	}
 }

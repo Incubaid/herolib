@@ -1,13 +1,5 @@
 module linux
 
-// import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.texttools
-// import freeflowuniverse.herolib.screen
-import os
-import time
-// import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.core as osal
-
 @[heap]
 pub struct LinuxFactory {
 pub mut:

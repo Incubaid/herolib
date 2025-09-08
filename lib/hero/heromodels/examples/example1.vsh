@@ -1,6 +1,5 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-
 // Create a user
 mut user := new_user('John Doe', 'john@example.com')
 
@@ -18,7 +17,8 @@ mut issue := new_project_issue('Fix login bug', project.id, user.id, .bug)
 mut calendar := new_calendar('Team Calendar', group.id)
 
 // Create an event
-mut event := new_calendar_event('Sprint Planning', 1672531200, 1672534800, calendar.id, user.id)
+mut event := new_calendar_event('Sprint Planning', 1672531200, 1672534800, calendar.id,
+	user.id)
 calendar.add_event(event.id)
 
 // Create a filesystem

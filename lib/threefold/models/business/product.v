@@ -23,9 +23,9 @@ pub mut:
 // new creates a new ProductComponent with default values
 pub fn ProductComponent.new() ProductComponent {
 	return ProductComponent{
-		name: ''
+		name:        ''
 		description: ''
-		quantity: 1
+		quantity:    1
 	}
 }
 
@@ -51,37 +51,37 @@ pub fn (mut pc ProductComponent) quantity(quantity u32) ProductComponent {
 @[heap]
 pub struct Product {
 pub mut:
-	id            u32                 // Unique product ID
-	name          string              // Product name
-	description   string              // Product description
-	price         f64                 // Product price
-	type_         ProductType         // Product type (product or service)
-	category      string              // Product category
-	status        ProductStatus       // Product status
-	max_amount    u16                 // Maximum amount available
-	purchase_till i64                 // Purchase deadline timestamp
-	active_till   i64                 // Active until timestamp
-	components    []ProductComponent  // Product components
-	created_at    u64                 // Creation timestamp
-	updated_at    u64                 // Last update timestamp
+	id            u32                // Unique product ID
+	name          string             // Product name
+	description   string             // Product description
+	price         f64                // Product price
+	type_         ProductType        // Product type (product or service)
+	category      string             // Product category
+	status        ProductStatus      // Product status
+	max_amount    u16                // Maximum amount available
+	purchase_till i64                // Purchase deadline timestamp
+	active_till   i64                // Active until timestamp
+	components    []ProductComponent // Product components
+	created_at    u64                // Creation timestamp
+	updated_at    u64                // Last update timestamp
 }
 
 // new creates a new Product with default values
 pub fn Product.new() Product {
 	return Product{
-		id: 0
-		name: ''
-		description: ''
-		price: 0.0
-		type_: .product
-		category: ''
-		status: .available
-		max_amount: 0
+		id:            0
+		name:          ''
+		description:   ''
+		price:         0.0
+		type_:         .product
+		category:      ''
+		status:        .available
+		max_amount:    0
 		purchase_till: 0
-		active_till: 0
-		components: []
-		created_at: 0
-		updated_at: 0
+		active_till:   0
+		components:    []
+		created_at:    0
+		updated_at:    0
 	}
 }
 
