@@ -7,7 +7,7 @@ import time
 import os
 
 @[heap]
-struct Pane {
+pub struct Pane {
 pub mut:
 	window             &Window @[str: skip]
 	id                 int    // pane id (e.g., %1, %2)
@@ -695,4 +695,23 @@ pub fn (p Pane) logging_status() string {
 		return 'enabled (${p.log_path})'
 	}
 	return 'disabled'
+}
+
+pub fn (mut p Pane) clear() ! {
+	// Kill current process in the pane
+	osal.exec(
+		cmd:    'tmux send-keys -t %${p.id} C-c'
+		stdout: false
+		name:   'tmux_pane_interrupt'
+	) or {}
+
+	// Reset pane by running a new bash
+	osal.exec(
+		cmd:    "tmux send-keys -t %${p.id} '/bin/bash' Enter"
+		stdout: false
+		name:   'tmux_pane_reset_shell'
+	)!
+
+	// Update pane info
+	p.window.scan()!
 }

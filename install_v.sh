@@ -99,6 +99,12 @@ check_release() {
 }
 
 ubuntu_sources_fix() {
+    # Check if we're on Ubuntu
+    if [[ "${OSNAME}" != "ubuntu" ]]; then
+        echo "ℹ️ Not running on Ubuntu. Skipping mirror fix."
+        return 1
+    fi
+    
     if check_release; then
         local CODENAME
         CODENAME=$(lsb_release -sc)

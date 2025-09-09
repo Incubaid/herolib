@@ -48,7 +48,6 @@ compile_summary.log
 .summary_lock
 .aider*
 *.dylib
-server
 HTTP_REST_MCP_DEMO.md
 MCP_HTTP_REST_IMPLEMENTATION_PLAN.md
 .roo

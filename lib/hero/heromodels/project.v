@@ -84,36 +84,27 @@ struct ProjectContent {
 	tags        []string
 }
 
-pub fn new_project(name string, description string, group_id string) Project {
-	mut project := Project{
-		name:        name
-		description: description
-		group_id:    group_id
-		status:      .planning
-		created_at:  time.now().unix()
-		updated_at:  time.now().unix()
-		swimlanes:   [
-			Swimlane{
-				id:    'todo'
-				name:  'To Do'
-				order: 1
-				color: '#f1c40f'
-			},
-			Swimlane{
-				id:    'in_progress'
-				name:  'In Progress'
-				order: 2
-				color: '#3498db'
-			},
-			Swimlane{
-				id:      'done'
-				name:    'Done'
-				order:   3
-				color:   '#2ecc71'
-				is_done: true
-			},
-		]
-	}
-	project.calculate_id()
-	return project
+pub struct NewProject {
+pub mut:
+    name        string
+    description string
+    group_id    string
+}
+
+pub fn new_project(params NewProject) !Project {
+    mut project := Project{
+        name: params.name
+        description: params.description
+        group_id: params.group_id
+        status: .planning
+        created_at: time.now().unix()
+        updated_at: time.now().unix()
+        swimlanes: [
+            Swimlane{id: 'todo', name: 'To Do', order: 1, color: '#f1c40f'},
+            Swimlane{id: 'in_progress', name: 'In Progress', order: 2, color: '#3498db'},
+            Swimlane{id: 'done', name: 'Done', order: 3, color: '#2ecc71', is_done: true}
+        ]
+    }
+    project.calculate_id()
+    return project
 }

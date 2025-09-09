@@ -11,7 +11,7 @@ pub fn decode_json_any(data string) !Any {
 
 pub fn decode_json_string(data string) !string {
 	mut o := decode(data)!
-	return json.encode(o)
+	return json.encode(o)	
 }
 
 pub fn decode(data string) !OpenRPC {
