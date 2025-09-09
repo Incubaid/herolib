@@ -10,7 +10,8 @@ import freeflowuniverse.herolib.develop.codewalker
 @[params]
 pub struct AddDirParams {
 pub mut:
-	path string @[required]
+	path         string @[required]
+	include_tree bool = true // true for base directories, false for selected directories
 }
 
 @[params]
@@ -45,7 +46,7 @@ pub fn (mut wsp Workspace) add_dir(args AddDirParams) !HeropromptChild {
 			exist: .yes
 		}
 		name:         name
-		include_tree: true
+		include_tree: args.include_tree
 	}
 	wsp.children << ch
 	wsp.save()!
@@ -266,6 +267,54 @@ fn (wsp Workspace) build_file_content() !string {
 	return content
 }
 
+// build_file_content_for_paths generates formatted content for specific selected paths
+fn (wsp Workspace) build_file_content_for_paths(selected_paths []string) !string {
+	mut content := ''
+
+	for path in selected_paths {
+		if !os.exists(path) {
+			continue // Skip non-existent paths
+		}
+
+		if content.len > 0 {
+			content += '\n\n'
+		}
+
+		if os.is_file(path) {
+			// Add file content
+			content += '${path}\n'
+			file_content := os.read_file(path) or {
+				content += '(Error reading file: ${err.msg()})\n'
+				continue
+			}
+			ext := get_file_extension(os.base(path))
+			if file_content.len == 0 {
+				content += '(Empty file)\n'
+			} else {
+				content += '```' + ext + '\n' + file_content + '\n```'
+			}
+		} else if os.is_dir(path) {
+			// Add directory content using codewalker
+			mut cw := codewalker.new(codewalker.CodeWalkerArgs{})!
+			mut fm := cw.filemap_get(path: path)!
+			for filepath, filecontent in fm.content {
+				if content.len > 0 {
+					content += '\n\n'
+				}
+				content += '${path}/${filepath}\n'
+				ext := get_file_extension(filepath)
+				if filecontent.len == 0 {
+					content += '(Empty file)\n'
+				} else {
+					content += '```' + ext + '\n' + filecontent + '\n```'
+				}
+			}
+		}
+	}
+
+	return content
+}
+
 pub struct HeropromptTmpPrompt {
 pub mut:
 	user_instructions string
@@ -277,14 +326,112 @@ fn (wsp Workspace) build_user_instructions(text string) string {
 	return text
 }
 
-// build_file_map creates a complete file map with base path and metadata
-fn (wsp Workspace) build_file_map() string {
-	mut file_map := ''
+// build_file_map creates a unified tree showing the minimal path structure for all workspace items
+pub fn (wsp Workspace) build_file_map() string {
+	// Collect all paths from workspace children
+	mut all_paths := []string{}
 	for ch in wsp.children {
-		file_map += codewalker.build_file_tree_fs([ch.path.path], '')
-		file_map += '\n'
+		all_paths << ch.path.path
 	}
-	return file_map
+
+	if all_paths.len == 0 {
+		return ''
+	}
+
+	// Expand directories to include all their contents
+	expanded_paths := expand_directory_paths(all_paths)
+
+	// Find common root path to make the tree relative
+	common_root := find_common_root_path(expanded_paths)
+
+	// Build unified tree using the selected tree function
+	return codewalker.build_selected_tree(expanded_paths, common_root)
+}
+
+// find_common_root_path finds the common root directory for a list of paths
+fn find_common_root_path(paths []string) string {
+	if paths.len == 0 {
+		return ''
+	}
+	if paths.len == 1 {
+		// For single path, use its parent directory as root
+		return os.dir(paths[0])
+	}
+
+	// Split all paths into components
+	mut path_components := [][]string{}
+	for path in paths {
+		// Normalize path and split into components
+		normalized := os.real_path(path)
+		components := normalized.split(os.path_separator).filter(it.len > 0)
+		path_components << components
+	}
+
+	// Find common prefix
+	mut common_components := []string{}
+	if path_components.len > 0 {
+		// Find minimum length manually
+		mut min_len := path_components[0].len
+		for components in path_components {
+			if components.len < min_len {
+				min_len = components.len
+			}
+		}
+
+		for i in 0 .. min_len {
+			component := path_components[0][i]
+			mut all_match := true
+			for j in 1 .. path_components.len {
+				if path_components[j][i] != component {
+					all_match = false
+					break
+				}
+			}
+			if all_match {
+				common_components << component
+			} else {
+				break
+			}
+		}
+	}
+
+	// Build common root path
+	if common_components.len == 0 {
+		return os.path_separator
+	}
+
+	return os.path_separator + common_components.join(os.path_separator)
+}
+
+// expand_directory_paths expands directory paths to include all files and subdirectories
+fn expand_directory_paths(paths []string) []string {
+	mut expanded := []string{}
+
+	for path in paths {
+		if !os.exists(path) {
+			continue
+		}
+
+		if os.is_file(path) {
+			// Add files directly
+			expanded << path
+		} else if os.is_dir(path) {
+			// Expand directories using codewalker to get all files
+			mut cw := codewalker.new(codewalker.CodeWalkerArgs{}) or { continue }
+			mut fm := cw.filemap_get(path: path) or { continue }
+
+			// Add the directory itself
+			expanded << path
+
+			// Add all files in the directory
+			for filepath, _ in fm.content {
+				full_path := os.join_path(path, filepath)
+				expanded << full_path
+			}
+		}
+	}
+
+	return expanded
 }
 
 pub struct WorkspacePrompt {
@@ -296,6 +443,42 @@ pub fn (wsp Workspace) prompt(args WorkspacePrompt) string {
 	user_instructions := wsp.build_user_instructions(args.text)
 	file_map := wsp.build_file_map()
 	file_contents := wsp.build_file_content() or { '(Error building file contents)' }
+	prompt := HeropromptTmpPrompt{
+		user_instructions: user_instructions
+		file_map:          file_map
+		file_contents:     file_contents
+	}
+	reprompt := $tmpl('./templates/prompt.template')
+	return reprompt
+}
+
+@[params]
+pub struct WorkspacePromptWithSelection {
+pub mut:
+	text           string
+	selected_paths []string
+}
+
+// Generate prompt with specific selected paths instead of using workspace children
+pub fn (wsp Workspace) prompt_with_selection(args WorkspacePromptWithSelection) !string {
+	user_instructions := wsp.build_user_instructions(args.text)
+
+	// Build file map for selected paths (unified tree)
+	file_map := if args.selected_paths.len > 0 {
+		// Expand directories to include all their contents
+		expanded_paths := expand_directory_paths(args.selected_paths)
+		common_root := find_common_root_path(expanded_paths)
+		codewalker.build_selected_tree(expanded_paths, common_root)
+	} else {
+		// Fallback to workspace file map if no selections
+		wsp.build_file_map()
+	}
+
+	// Build file content only for selected paths
+	file_contents := wsp.build_file_content_for_paths(args.selected_paths) or {
+		return error('failed to build file content: ${err.msg()}')
+	}
+
 	prompt := HeropromptTmpPrompt{
 		user_instructions: user_instructions
 		file_map:          file_map

@@ -177,6 +177,13 @@ pub fn list_files_recursive(root string) []string {
 
 // build_file_tree_fs builds a file system tree for given root directories
 pub fn build_file_tree_fs(roots []string, prefix string) string {
+	// Create ignore matcher with default patterns
+	ignore_matcher := gitignore_matcher_new()
+	return build_file_tree_fs_with_ignore(roots, prefix, &ignore_matcher)
+}
+
+// build_file_tree_fs_with_ignore builds a file system tree with ignore pattern filtering
+pub fn build_file_tree_fs_with_ignore(roots []string, prefix string, ignore_matcher &IgnoreMatcher) string {
 	mut out := ''
 	for i, root in roots {
 		if !os.is_dir(root) {
@@ -185,29 +192,58 @@ pub fn build_file_tree_fs(roots []string, prefix string) string {
 		connector := if i == roots.len - 1 { '└── ' } else { '├── ' }
 		out += '${prefix}${connector}${os.base(root)}\n'
 		child_prefix := if i == roots.len - 1 { prefix + '    ' } else { prefix + '│   ' }
-		out += build_file_tree_fs_recursive(root, child_prefix)
+		out += build_file_tree_fs_recursive_with_ignore(root, child_prefix, '', ignore_matcher)
 	}
 	return out
 }
 
 // build_file_tree_fs_recursive builds the contents of a directory without adding the directory name itself
 fn build_file_tree_fs_recursive(root string, prefix string) string {
+	// Create ignore matcher with default patterns for backward compatibility
+	ignore_matcher := gitignore_matcher_new()
+	return build_file_tree_fs_recursive_with_ignore(root, prefix, '', &ignore_matcher)
+}
+
+// build_file_tree_fs_recursive_with_ignore builds the contents of a directory with ignore pattern filtering
+fn build_file_tree_fs_recursive_with_ignore(root string, prefix string, base_rel_path string, ignore_matcher &IgnoreMatcher) string {
 	mut out := ''
 	// list children under root
 	entries := os.ls(root) or { []string{} }
 	// sort: dirs first then files
 	mut dirs := []string{}
 	mut files := []string{}
+
 	for e in entries {
 		fp := os.join_path(root, e)
+
+		// Calculate relative path for ignore checking
+		rel_path := if base_rel_path.len > 0 {
+			if base_rel_path.ends_with('/') { base_rel_path + e } else { base_rel_path + '/' + e }
+		} else {
+			e
+		}
+
+		// Check if this entry should be ignored
+		mut should_ignore := ignore_matcher.is_ignored(rel_path)
+		if os.is_dir(fp) && !should_ignore {
+			// Also check directory pattern with trailing slash
+			should_ignore = ignore_matcher.is_ignored(rel_path + '/')
+		}
+
+		if should_ignore {
+			continue
+		}
+
 		if os.is_dir(fp) {
 			dirs << fp
 		} else if os.is_file(fp) {
 			files << fp
 		}
 	}
+
 	dirs.sort()
 	files.sort()
+
 	// files
 	for j, f in files {
 		file_connector := if j == files.len - 1 && dirs.len == 0 {
@@ -217,6 +253,7 @@ fn build_file_tree_fs_recursive(root string, prefix string) string {
 		}
 		out += '${prefix}${file_connector}${os.base(f)} *\n'
 	}
+
 	// subdirectories
 	for j, d in dirs {
 		sub_connector := if j == dirs.len - 1 { '└── ' } else { '├── ' }
@@ -226,7 +263,20 @@ fn build_file_tree_fs_recursive(root string, prefix string) string {
 		} else {
 			prefix + '│   '
 		}
-		out += build_file_tree_fs_recursive(d, sub_prefix)
+
+		// Calculate new relative path for subdirectory
+		dir_name := os.base(d)
+		new_rel_path := if base_rel_path.len > 0 {
+			if base_rel_path.ends_with('/') {
+				base_rel_path + dir_name
+			} else {
+				base_rel_path + '/' + dir_name
+			}
+		} else {
+			dir_name
+		}
+
+		out += build_file_tree_fs_recursive_with_ignore(d, sub_prefix, new_rel_path, ignore_matcher)
 	}
 	return out
 }

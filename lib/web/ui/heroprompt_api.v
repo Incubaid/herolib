@@ -4,14 +4,39 @@ import veb
 import os
 import json
 import freeflowuniverse.herolib.develop.heroprompt as hp
+import freeflowuniverse.herolib.develop.codewalker
 
-// Types
+// ============================================================================
+// Types and Structures
+// ============================================================================
+
 struct DirResp {
 	path  string
 	items []hp.ListItem
 }
 
-// Utility functions
+struct SearchResult {
+	name      string
+	path      string
+	full_path string
+	type_     string @[json: 'type']
+}
+
+struct SearchResponse {
+	query   string
+	results []SearchResult
+	count   string
+}
+
+struct RecursiveListResponse {
+	path     string
+	children []map[string]string
+}
+
+// ============================================================================
+// Utility Functions
+// ============================================================================
+
 fn expand_home_path(path string) string {
 	if path.starts_with('~') {
 		home := os.home_dir()
@@ -28,20 +53,42 @@ fn json_success() string {
 	return '{"ok":true}'
 }
 
-// Recursive search function
-fn search_directory(dir_path string, base_path string, query_lower string, mut results []map[string]string) {
-	entries := os.ls(dir_path) or { return }
+fn set_json_content_type(mut ctx Context) {
+	ctx.set_content_type('application/json')
+}
+
+fn get_workspace_or_error(name string, mut ctx Context) ?&hp.Workspace {
+	wsp := hp.get(name: name, create: false) or {
+		set_json_content_type(mut ctx)
+		ctx.text(json_error('workspace not found'))
+		return none
+	}
+	return wsp
+}
+
+// ============================================================================
+// Search Functionality
+// ============================================================================
+
+fn search_files_recursive(base_path string, query string) []SearchResult {
+	mut results := []SearchResult{}
+	query_lower := query.to_lower()
+
+	// Create ignore matcher for consistent filtering
+	ignore_matcher := codewalker.gitignore_matcher_new()
+
+	search_directory_with_ignore(base_path, base_path, query_lower, &ignore_matcher, mut
+		results)
+	return results
+}
+
+fn search_directory_with_ignore(base_path string, current_path string, query_lower string, ignore_matcher &codewalker.IgnoreMatcher, mut results []SearchResult) {
+	entries := os.ls(current_path) or { return }
 
 	for entry in entries {
-		full_path := os.join_path(dir_path, entry)
+		full_path := os.join_path(current_path, entry)
 
-		// Skip hidden files and common ignore patterns
-		if entry.starts_with('.') || entry == 'node_modules' || entry == 'target'
-			|| entry == 'build' {
-			continue
-		}
-
-		// Get relative path from workspace base
+		// Calculate relative path for ignore checking
 		mut rel_path := full_path
 		if full_path.starts_with(base_path) {
 			rel_path = full_path[base_path.len..]
@@ -50,261 +97,377 @@ fn search_directory(dir_path string, base_path string, query_lower string, mut r
 			}
 		}
 
+		// Check if this entry should be ignored
+		if ignore_matcher.is_ignored(rel_path) {
+			continue
+		}
+
 		// Check if filename or path matches search query
 		if entry.to_lower().contains(query_lower) || rel_path.to_lower().contains(query_lower) {
-			results << {
-				'name':      entry
-				'path':      rel_path
-				'full_path': full_path
-				'type':      if os.is_dir(full_path) { 'directory' } else { 'file' }
+			results << SearchResult{
+				name:      entry
+				path:      rel_path
+				full_path: full_path
+				type_:     if os.is_dir(full_path) { 'directory' } else { 'file' }
 			}
 		}
 
 		// Recursively search subdirectories
 		if os.is_dir(full_path) {
-			search_directory(full_path, base_path, query_lower, mut results)
+			search_directory_with_ignore(base_path, full_path, query_lower, ignore_matcher, mut
+				results)
 		}
 	}
 }
 
-// APIs
+// ============================================================================
+// Workspace Management API Endpoints
+// ============================================================================
+
+// List all workspaces
 @['/api/heroprompt/workspaces'; get]
-pub fn (app &App) api_heroprompt_list(mut ctx Context) veb.Result {
+pub fn (app &App) api_heroprompt_list_workspaces(mut ctx Context) veb.Result {
 	mut names := []string{}
 	ws := hp.list_workspaces_fromdb() or { []&hp.Workspace{} }
 	for w in ws {
 		names << w.name
 	}
-	ctx.set_content_type('application/json')
+	set_json_content_type(mut ctx)
 	return ctx.text(json.encode(names))
 }
 
+// Create a new workspace
 @['/api/heroprompt/workspaces'; post]
-pub fn (app &App) api_heroprompt_create(mut ctx Context) veb.Result {
+pub fn (app &App) api_heroprompt_create_workspace(mut ctx Context) veb.Result {
 	name_input := ctx.form['name'] or { '' }
 
-	// Name is now required
+	// Validate workspace name
 	mut name := name_input.trim(' \t\n\r')
 	if name.len == 0 {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('workspace name is required'))
 	}
 
-	wsp := hp.get(name: name, create: true) or { return ctx.text(json_error('create failed')) }
-	ctx.set_content_type('application/json')
+	// Create workspace
+	wsp := hp.get(name: name, create: true) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('create failed'))
+	}
+
+	set_json_content_type(mut ctx)
 	return ctx.text(json.encode({
 		'name': wsp.name
 	}))
 }
 
+// Get workspace details
 @['/api/heroprompt/workspaces/:name'; get]
-pub fn (app &App) api_heroprompt_get(mut ctx Context, name string) veb.Result {
-	wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
-	}
-	ctx.set_content_type('application/json')
+pub fn (app &App) api_heroprompt_get_workspace(mut ctx Context, name string) veb.Result {
+	wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
+
+	set_json_content_type(mut ctx)
 	return ctx.text(json.encode({
 		'name':           wsp.name
 		'selected_files': wsp.selected_children().len.str()
 	}))
 }
 
+// Update workspace
 @['/api/heroprompt/workspaces/:name'; put]
-pub fn (app &App) api_heroprompt_update(mut ctx Context, name string) veb.Result {
-	wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
-	}
+pub fn (app &App) api_heroprompt_update_workspace(mut ctx Context, name string) veb.Result {
+	wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
 
 	new_name := ctx.form['name'] or { name }
 
-	// Update the workspace using the update_workspace method
-	updated_wsp := wsp.update_workspace(
-		name: new_name
-	) or { return ctx.text(json_error('failed to update workspace')) }
+	// Update the workspace
+	updated_wsp := wsp.update_workspace(name: new_name) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('failed to update workspace'))
+	}
 
-	ctx.set_content_type('application/json')
+	set_json_content_type(mut ctx)
 	return ctx.text(json.encode({
 		'name': updated_wsp.name
 	}))
 }
 
-// Delete endpoint using POST (VEB framework compatibility)
+// Delete workspace (using POST for VEB framework compatibility)
 @['/api/heroprompt/workspaces/:name/delete'; post]
-pub fn (app &App) api_heroprompt_delete(mut ctx Context, name string) veb.Result {
-	wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
-	}
+pub fn (app &App) api_heroprompt_delete_workspace(mut ctx Context, name string) veb.Result {
+	wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
 
 	// Delete the workspace
-	wsp.delete_workspace() or { return ctx.text(json_error('failed to delete workspace')) }
+	wsp.delete_workspace() or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('failed to delete workspace'))
+	}
 
-	ctx.set_content_type('application/json')
+	set_json_content_type(mut ctx)
 	return ctx.text(json_success())
 }
 
+// ============================================================================
+// File and Directory Operations API Endpoints
+// ============================================================================
+
+// List directory contents
 @['/api/heroprompt/directory'; get]
-pub fn (app &App) api_heroprompt_directory(mut ctx Context) veb.Result {
+pub fn (app &App) api_heroprompt_list_directory(mut ctx Context) veb.Result {
 	wsname := ctx.query['name'] or { 'default' }
 	path_q := ctx.query['path'] or { '' }
 	base_path := ctx.query['base'] or { '' }
 
 	if base_path.len == 0 {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('base path is required'))
 	}
 
-	mut wsp := hp.get(name: wsname, create: false) or {
-		return ctx.text(json_error('workspace not found'))
-	}
+	wsp := get_workspace_or_error(wsname, mut ctx) or { return ctx.text('') }
+
 	items := wsp.list_dir(base_path, path_q) or {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('cannot list directory'))
 	}
-	ctx.set_content_type('application/json')
+
+	set_json_content_type(mut ctx)
 	return ctx.text(json.encode(DirResp{
 		path:  if path_q.len > 0 { path_q } else { base_path }
 		items: items
 	}))
 }
 
+// Get file content
 @['/api/heroprompt/file'; get]
-pub fn (app &App) api_heroprompt_file(mut ctx Context) veb.Result {
+pub fn (app &App) api_heroprompt_get_file(mut ctx Context) veb.Result {
 	wsname := ctx.query['name'] or { 'default' }
 	path_q := ctx.query['path'] or { '' }
+
 	if path_q.len == 0 {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('path required'))
 	}
 
-	// Use the path directly (should be absolute)
-	file_path := path_q
-	if !os.is_file(file_path) {
+	// Validate file exists and is readable
+	if !os.is_file(path_q) {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('not a file'))
 	}
-	content := os.read_file(file_path) or { return ctx.text(json_error('failed to read')) }
-	ctx.set_content_type('application/json')
+
+	content := os.read_file(path_q) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('failed to read file'))
+	}
+
+	set_json_content_type(mut ctx)
 	return ctx.text(json.encode({
-		'language': detect_lang(file_path)
+		'language': detect_lang(path_q)
 		'content':  content
 	}))
 }
 
+// Add file to workspace
 @['/api/heroprompt/workspaces/:name/files'; post]
 pub fn (app &App) api_heroprompt_add_file(mut ctx Context, name string) veb.Result {
 	path := ctx.form['path'] or { '' }
 	if path.len == 0 {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('path required'))
 	}
-	mut wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
+
+	mut wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
+
+	wsp.add_file(path: path) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error(err.msg()))
 	}
-	wsp.add_file(path: path) or { return ctx.text(json_error(err.msg())) }
+
+	set_json_content_type(mut ctx)
 	return ctx.text(json_success())
 }
 
+// Add directory to workspace
 @['/api/heroprompt/workspaces/:name/dirs'; post]
-pub fn (app &App) api_heroprompt_add_dir(mut ctx Context, name string) veb.Result {
+pub fn (app &App) api_heroprompt_add_directory(mut ctx Context, name string) veb.Result {
 	path := ctx.form['path'] or { '' }
 	if path.len == 0 {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('path required'))
 	}
-	mut wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
+
+	mut wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
+
+	wsp.add_dir(path: path) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error(err.msg()))
 	}
-	wsp.add_dir(path: path) or { return ctx.text(json_error(err.msg())) }
+
+	set_json_content_type(mut ctx)
 	return ctx.text(json_success())
 }
 
+// ============================================================================
+// Prompt Generation and Search API Endpoints
+// ============================================================================
+
+// Generate prompt from workspace selection
 @['/api/heroprompt/workspaces/:name/prompt'; post]
 pub fn (app &App) api_heroprompt_generate_prompt(mut ctx Context, name string) veb.Result {
 	text := ctx.form['text'] or { '' }
-	mut wsp := hp.get(name: name, create: false) or {
-		ctx.set_content_type('application/json')
-		return ctx.text(json_error('workspace not found'))
+	selected_paths_json := ctx.form['selected_paths'] or { '[]' }
+
+	wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
+
+	// Parse selected paths
+	selected_paths := json.decode([]string, selected_paths_json) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('invalid selected paths format'))
 	}
-	prompt := wsp.prompt(text: text)
+
+	// Generate prompt with selected paths
+	prompt := wsp.prompt_with_selection(text: text, selected_paths: selected_paths) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('failed to generate prompt: ${err.msg()}'))
+	}
+
 	ctx.set_content_type('text/plain')
 	return ctx.text(prompt)
 }
 
-@['/api/heroprompt/workspaces/:name/selection'; post]
-pub fn (app &App) api_heroprompt_sync_selection(mut ctx Context, name string) veb.Result {
-	paths_json := ctx.form['paths'] or { '[]' }
-	mut wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
-	}
-
-	// Clear current selection
-	wsp.children.clear()
-
-	// Parse paths and add them to workspace
-	paths := json.decode([]string, paths_json) or {
-		return ctx.text(json_error('invalid paths format'))
-	}
-
-	for path in paths {
-		if os.is_file(path) {
-			wsp.add_file(path: path) or {
-				continue // Skip files that can't be added
-			}
-		} else if os.is_dir(path) {
-			wsp.add_dir(path: path) or {
-				continue // Skip directories that can't be added
-			}
-		}
-	}
-
-	return ctx.text(json_success())
-}
-
+// Search files in workspace
 @['/api/heroprompt/workspaces/:name/search'; get]
-pub fn (app &App) api_heroprompt_search(mut ctx Context, name string) veb.Result {
+pub fn (app &App) api_heroprompt_search_files(mut ctx Context, name string) veb.Result {
 	query := ctx.query['q'] or { '' }
 	base_path := ctx.query['base'] or { '' }
 
+	// Validate input parameters
 	if query.len == 0 {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('search query required'))
 	}
 
 	if base_path.len == 0 {
+		set_json_content_type(mut ctx)
 		return ctx.text(json_error('base path required for search'))
 	}
 
-	wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
+	wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
+
+	// Perform search using improved search function
+	results := search_files_recursive(base_path, query)
+
+	// Build response
+	response := SearchResponse{
+		query:   query
+		results: results
+		count:   results.len.str()
 	}
 
-	// Simple recursive file search implementation
-	mut results := []map[string]string{}
-	query_lower := query.to_lower()
-
-	// Recursive function to search files
-	search_directory(base_path, base_path, query_lower, mut results)
-
-	ctx.set_content_type('application/json')
-
-	// Manually build JSON response to avoid encoding issues
-	mut json_results := '['
-	for i, result in results {
-		if i > 0 {
-			json_results += ','
-		}
-		json_results += '{'
-		json_results += '"name":"${result['name']}",'
-		json_results += '"path":"${result['path']}",'
-		json_results += '"full_path":"${result['full_path']}",'
-		json_results += '"type":"${result['type']}"'
-		json_results += '}'
-	}
-	json_results += ']'
-
-	response := '{"query":"${query}","results":${json_results},"count":"${results.len}"}'
-	return ctx.text(response)
+	set_json_content_type(mut ctx)
+	return ctx.text(json.encode(response))
 }
 
+// Get workspace selected children
 @['/api/heroprompt/workspaces/:name/children'; get]
-pub fn (app &App) api_heroprompt_get_children(mut ctx Context, name string) veb.Result {
-	wsp := hp.get(name: name, create: false) or {
-		return ctx.text(json_error('workspace not found'))
-	}
+pub fn (app &App) api_heroprompt_get_workspace_children(mut ctx Context, name string) veb.Result {
+	wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
 
 	children := wsp.selected_children()
-	ctx.set_content_type('application/json')
+	set_json_content_type(mut ctx)
 	return ctx.text(json.encode(children))
+}
+
+// Get all recursive children of a directory (for directory selection)
+@['/api/heroprompt/workspaces/:name/list'; get]
+pub fn (app &App) api_heroprompt_list_directory_recursive(mut ctx Context, name string) veb.Result {
+	path_q := ctx.query['path'] or { '' }
+	if path_q.len == 0 {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('path parameter is required'))
+	}
+
+	wsp := get_workspace_or_error(name, mut ctx) or { return ctx.text('') }
+
+	// Get all recursive children of the directory
+	children := get_recursive_directory_children(path_q) or {
+		set_json_content_type(mut ctx)
+		return ctx.text(json_error('failed to list directory: ${err.msg()}'))
+	}
+
+	// Build response
+	response := RecursiveListResponse{
+		path:     path_q
+		children: children
+	}
+
+	set_json_content_type(mut ctx)
+	return ctx.text(json.encode(response))
+}
+
+// ============================================================================
+// Directory Traversal Helper Functions
+// ============================================================================
+
+// Get all recursive children of a directory with proper gitignore filtering
+fn get_recursive_directory_children(dir_path string) ![]map[string]string {
+	// Validate directory exists
+	if !os.exists(dir_path) {
+		return error('directory does not exist: ${dir_path}')
+	}
+	if !os.is_dir(dir_path) {
+		return error('path is not a directory: ${dir_path}')
+	}
+
+	// Create ignore matcher with default patterns for consistent filtering
+	ignore_matcher := codewalker.gitignore_matcher_new()
+
+	mut results := []map[string]string{}
+	collect_directory_children_recursive(dir_path, dir_path, &ignore_matcher, mut results) or {
+		return error('failed to collect directory children: ${err.msg()}')
+	}
+	return results
+}
+
+// Recursively collect all children with proper gitignore filtering
+fn collect_directory_children_recursive(base_dir string, current_dir string, ignore_matcher &codewalker.IgnoreMatcher, mut results []map[string]string) ! {
+	entries := os.ls(current_dir) or { return error('cannot list directory: ${current_dir}') }
+
+	for entry in entries {
+		full_path := os.join_path(current_dir, entry)
+
+		// Calculate relative path from base directory for ignore checking
+		rel_path := calculate_relative_path(full_path, base_dir)
+
+		// Check if this entry should be ignored using proper gitignore logic
+		if ignore_matcher.is_ignored(rel_path) {
+			continue
+		}
+
+		// Add this entry to results using full absolute path to match tree format
+		results << {
+			'name': entry
+			'path': full_path
+			'type': if os.is_dir(full_path) { 'directory' } else { 'file' }
+		}
+
+		// If it's a directory, recursively collect its children
+		if os.is_dir(full_path) {
+			collect_directory_children_recursive(base_dir, full_path, ignore_matcher, mut
+				results) or {
+				// Continue on error to avoid stopping the entire operation
+				continue
+			}
+		}
+	}
+}
+
+// Calculate relative path from base directory
+fn calculate_relative_path(full_path string, base_dir string) string {
+	mut rel_path := full_path
+	if full_path.starts_with(base_dir) {
+		rel_path = full_path[base_dir.len..]
+		if rel_path.starts_with('/') {
+			rel_path = rel_path[1..]
+		}
+	}
+	return rel_path
 }
