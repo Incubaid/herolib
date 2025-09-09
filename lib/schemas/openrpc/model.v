@@ -9,20 +9,20 @@ import freeflowuniverse.herolib.schemas.jsonschema { Reference, SchemaRef }
 pub struct OpenRPC {
 pub mut:
 	openrpc       string = '1.0.0' // This string MUST be the semantic version number of the OpenRPC Specification version that the OpenRPC document uses.
-	info          Info       // Provides metadata about the API.
-	servers       []Server   // An array of Server Objects, which provide connectivity information to a target server.
-	methods       []Method   // The available methods for the API.
-	components    Components // An element to hold various schemas for the specification.
-	external_docs []ExternalDocs @[json: externalDocs] // Additional external documentation.
+	info          Info       @[omitempty] // Provides metadata about the API.
+	servers       []Server   @[omitempty]// An array of Server Objects, which provide connectivity information to a target server.
+	methods       []Method   @[omitempty]// The available methods for the API.
+	components    Components @[omitempty] // An element to hold various schemas for the specification.
+	external_docs []ExternalDocs @[json: externalDocs; omitempty] // Additional external documentation.
 }
 
 // The object provides metadata about the API.
 // The metadata MAY be used by the clients if needed, and MAY be presented in editing or documentation generation tools for convenience.
 pub struct Info {
 pub:
-	title            string // The title of the application.
-	description      string // A verbose description of the application.
-	terms_of_service string  @[json: termsOfService] // A URL to the Terms of Service for the API. MUST be in the format of a URL.
+	title            string  @[omitempty] // The title of the application.
+	description      string  @[omitempty] // A verbose description of the application.
+	terms_of_service string  @[json: termsOfService; omitempty] // A URL to the Terms of Service for the API. MUST be in the format of a URL.
 	contact          Contact @[omitempty]            // The contact information for the exposed API.
 	license          License @[omitempty]            // The license information for the exposed API.
 	version          string  @[omitempty]            // The version of the OpenRPC document (which is distinct from the OpenRPC Specification version or the API implementation version).
@@ -167,12 +167,12 @@ pub:
 // All the fixed fields declared above are objects that MUST use keys that match the regular expression: ^[a-zA-Z0-9\.\-_]+$
 pub struct Components {
 pub mut:
-	content_descriptors     map[string]ContentDescriptorRef @[json: contentDescriptors] // An object to hold reusable Content Descriptor Objects.
-	schemas                 map[string]SchemaRef // An object to hold reusable Schema Objects.
-	examples                map[string]Example   // An object to hold reusable Example Objects.
-	links                   map[string]Link      // An object to hold reusable Link Objects.
-	error                   map[string]Error     // An object to hold reusable Error Objects.
-	example_pairing_objects map[string]ExamplePairing @[json: examplePairingObjects] // An object to hold reusable Example Pairing Objects.
+	content_descriptors     map[string]ContentDescriptorRef @[json: contentDescriptors; omitempty] // An object to hold reusable Content Descriptor Objects.
+	schemas                 map[string]SchemaRef @[omitempty] // An object to hold reusable Schema Objects.
+	examples                map[string]Example   @[omitempty] // An object to hold reusable Example Objects.
+	links                   map[string]Link      @[omitempty] // An object to hold reusable Link Objects.
+	error                   map[string]Error     @[omitempty] // An object to hold reusable Error Objects.
+	example_pairing_objects map[string]ExamplePairing @[json: examplePairingObjects; omitempty] // An object to hold reusable Example Pairing Objects.
 	tags                    map[string]Tag // An object to hold reusable Tag Objects.
 }
 

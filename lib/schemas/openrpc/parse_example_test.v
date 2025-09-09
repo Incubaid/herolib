@@ -32,7 +32,7 @@ fn test_parse_example_pairing() ! {
 	params := example.params
 	assert params.len == 1
 	param0 := (params[0] as Example)
-	assert param0.value == "'input_string'"
+	assert param0.value.str() == "'input_string'"
 }
 
 const test_struct = Struct{
@@ -40,9 +40,7 @@ const test_struct = Struct{
 	fields: [
 		StructField{
 			name:  'TestField'
-			typ:   Type{
-				symbol: 'int'
-			}
+			typ: code.type_i32
 			attrs: [Attribute{
 				name: 'example'
 				arg:  '21'
