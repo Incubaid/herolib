@@ -185,41 +185,48 @@ pub fn build_file_tree_fs(roots []string, prefix string) string {
 		connector := if i == roots.len - 1 { '└── ' } else { '├── ' }
 		out += '${prefix}${connector}${os.base(root)}\n'
 		child_prefix := if i == roots.len - 1 { prefix + '    ' } else { prefix + '│   ' }
-		// list children under root
-		entries := os.ls(root) or { []string{} }
-		// sort: dirs first then files
-		mut dirs := []string{}
-		mut files := []string{}
-		for e in entries {
-			fp := os.join_path(root, e)
-			if os.is_dir(fp) {
-				dirs << fp
-			} else if os.is_file(fp) {
-				files << fp
-			}
+		out += build_file_tree_fs_recursive(root, child_prefix)
+	}
+	return out
+}
+
+// build_file_tree_fs_recursive builds the contents of a directory without adding the directory name itself
+fn build_file_tree_fs_recursive(root string, prefix string) string {
+	mut out := ''
+	// list children under root
+	entries := os.ls(root) or { []string{} }
+	// sort: dirs first then files
+	mut dirs := []string{}
+	mut files := []string{}
+	for e in entries {
+		fp := os.join_path(root, e)
+		if os.is_dir(fp) {
+			dirs << fp
+		} else if os.is_file(fp) {
+			files << fp
 		}
-		dirs.sort()
-		files.sort()
-		// files
-		for j, f in files {
-			file_connector := if j == files.len - 1 && dirs.len == 0 {
-				'└── '
-			} else {
-				'├── '
-			}
-			out += '${child_prefix}${file_connector}${os.base(f)} *\n'
+	}
+	dirs.sort()
+	files.sort()
+	// files
+	for j, f in files {
+		file_connector := if j == files.len - 1 && dirs.len == 0 {
+			'└── '
+		} else {
+			'├── '
 		}
-		// subdirectories
-		for j, d in dirs {
-			sub_connector := if j == dirs.len - 1 { '└── ' } else { '├── ' }
-			out += '${child_prefix}${sub_connector}${os.base(d)}\n'
-			sub_prefix := if j == dirs.len - 1 {
-				child_prefix + '    '
-			} else {
-				child_prefix + '│   '
-			}
-			out += build_file_tree_fs([d], sub_prefix)
+		out += '${prefix}${file_connector}${os.base(f)} *\n'
+	}
+	// subdirectories
+	for j, d in dirs {
+		sub_connector := if j == dirs.len - 1 { '└── ' } else { '├── ' }
+		out += '${prefix}${sub_connector}${os.base(d)}\n'
+		sub_prefix := if j == dirs.len - 1 {
+			prefix + '    '
+		} else {
+			prefix + '│   '
 		}
+		out += build_file_tree_fs_recursive(d, sub_prefix)
 	}
 	return out
 }

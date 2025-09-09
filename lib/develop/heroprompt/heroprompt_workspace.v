@@ -263,26 +263,6 @@ fn (wsp Workspace) build_file_content() !string {
 			}
 		}
 	}
-	// files under selected directories, using CodeWalker for filtered traversal
-	for ch in wsp.children {
-		if ch.path.cat == .dir && ch.include_tree {
-			mut cw := codewalker.new(codewalker.CodeWalkerArgs{})!
-			mut fm := cw.filemap_get(path: ch.path.path)!
-			for rel, fc in fm.content {
-				if content.len > 0 {
-					content += '\n\n'
-				}
-				abs := os.join_path(ch.path.path, rel)
-				content += abs + '\n'
-				ext := get_file_extension(os.base(abs))
-				if fc.len == 0 {
-					content += '(Empty file)\n'
-				} else {
-					content += '```' + ext + '\n' + fc + '\n```'
-				}
-			}
-		}
-	}
 	return content
 }
 
@@ -300,115 +280,9 @@ fn (wsp Workspace) build_user_instructions(text string) string {
 // build_file_map creates a complete file map with base path and metadata
 fn (wsp Workspace) build_file_map() string {
 	mut file_map := ''
-	// roots are selected directories
-	mut roots := []HeropromptChild{}
-	mut files_only := []HeropromptChild{}
 	for ch in wsp.children {
-		if ch.path.cat == .dir && ch.include_tree {
-			roots << ch // only include directories explicitly marked to include subtree
-		} else if ch.path.cat == .file {
-			files_only << ch
-		}
-	}
-	if roots.len > 0 || files_only.len > 0 {
-		// derive a parent path for display
-		mut parent_path := ''
-		if roots.len > 0 {
-			if roots.len == 1 {
-				// Single root - show parent directory
-				base_path := roots[0].path.path
-				parent_path = if base_path.contains('/') {
-					base_path.split('/')[..base_path.split('/').len - 1].join('/')
-				} else {
-					base_path
-				}
-			} else {
-				// Multiple roots - show all root paths, comma-separated
-				mut root_paths := []string{}
-				for r in roots {
-					root_paths << r.path.path
-				}
-				parent_path = root_paths.join(', ')
-				// Truncate if too long for UI display
-				if parent_path.len > 100 {
-					parent_path = parent_path[..97] + '...'
-				}
-			}
-		} else {
-			// no roots; show the parent of first file if available
-			parent_path = if files_only.len > 0 {
-				os.dir(files_only[0].path.path)
-			} else {
-				''
-			}
-		}
-		// metadata
-		mut total_files := 0
-		mut total_content_length := 0
-		mut file_extensions := map[string]int{}
-		// files under dirs (only when roots present)
-		if roots.len > 0 {
-			for r in roots {
-				for f in codewalker.list_files_recursive(r.path.path) {
-					total_files++
-					ext := get_file_extension(os.base(f))
-					if ext.len > 0 {
-						file_extensions[ext] = file_extensions[ext] + 1
-					}
-					total_content_length += (os.read_file(f) or { '' }).len
-				}
-			}
-		}
-		// standalone files
-		for fo in files_only {
-			total_files++
-			ext := get_file_extension(fo.name)
-			if ext.len > 0 {
-				file_extensions[ext] = file_extensions[ext] + 1
-			}
-			// if content not loaded, read length on demand
-			file_len := if fo.content.len == 0 {
-				(os.read_file(fo.path.path) or { '' }).len
-			} else {
-				fo.content.len
-			}
-			total_content_length += file_len
-		}
-		mut extensions_summary := ''
-		for ext, count in file_extensions {
-			if extensions_summary.len > 0 {
-				extensions_summary += ', '
-			}
-			extensions_summary += '${ext}(${count})'
-		}
-		file_map = '${parent_path}\n'
-		file_map += '# Selected Files: ${total_files} | Total Content: ${total_content_length} chars'
-		if extensions_summary.len > 0 {
-			file_map += ' | Extensions: ${extensions_summary}'
-		}
-		file_map += '\n\n'
-		// Build a comprehensive tree that includes all files from selected directories
-		mut all_file_paths := []string{}
-
-		// For each selected directory, get all files within it
-		for r in roots {
-			mut cw := codewalker.new(codewalker.CodeWalkerArgs{}) or { continue }
-			fm := cw.filemap_get(path: r.path.path) or { continue }
-			for rel_path, _ in fm.content {
-				abs_file_path := os.join_path(r.path.path, rel_path)
-				all_file_paths << abs_file_path
-			}
-		}
-
-		// Add all standalone file paths
-		for fo in files_only {
-			all_file_paths << fo.path.path
-		}
-
-		if all_file_paths.len > 0 {
-			// Build a tree that shows all files in their proper directory structure
-			file_map += codewalker.build_file_tree_fs(all_file_paths, '')
-		}
+		file_map += codewalker.build_file_tree_fs([ch.path.path], '')
+		file_map += '\n'
 	}
 	return file_map
 }
