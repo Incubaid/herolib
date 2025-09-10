@@ -2,7 +2,7 @@ module heropods
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.core as osal
-import time
+import freeflowuniverse.herolib.virt.crun
 import os
 
 @[heap]
@@ -11,6 +11,7 @@ pub mut:
 	tmux_session string
 	containers   map[string]&Container
 	images       map[string]&ContainerImage
+	crun_configs map[string]&crun.CrunConfig
 	base_dir     string
 }
 
@@ -104,7 +105,7 @@ pub fn (mut self ContainerFactory) get(args ContainerNewArgs) !&Container {
 	if args.name !in self.containers {
 		return error('Container "${args.name}" does not exist. Use factory.new() to create it first.')
 	}
-	return self.containers[args.name]
+	return self.containers[args.name] or { panic('bug: container should exist') }
 }
 
 // Get image by name
@@ -112,7 +113,7 @@ pub fn (mut self ContainerFactory) image_get(name string) !&ContainerImage {
 	if name !in self.images {
 		return error('Image "${name}" not found in cache. Try importing or downloading it.')
 	}
-	return self.images[name]
+	return self.images[name] or { panic('bug: image should exist') }
 }
 
 // List all containers currently managed by crun

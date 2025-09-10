@@ -3,16 +3,19 @@ module heropods
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.tmux
 import freeflowuniverse.herolib.osal.core as osal
+import freeflowuniverse.herolib.virt.crun
 import time
 import freeflowuniverse.herolib.builder
 import json
 
+@[heap]
 pub struct Container {
 pub mut:
-	name      string
-	node      ?&builder.Node
-	tmux_pane ?&tmux.Pane
-	factory   &ContainerFactory
+	name        string
+	node        ?&builder.Node
+	tmux_pane   ?&tmux.Pane
+	crun_config ?&crun.CrunConfig
+	factory     &ContainerFactory
 }
 
 // Struct to parse JSON output of `crun state`
@@ -241,4 +244,59 @@ pub fn (mut self Container) node() !&builder.Node {
 
 	self.node = node
 	return node
+}
+
+// Get the crun configuration for this container
+pub fn (self Container) config() !&crun.CrunConfig {
+	return self.crun_config or { return error('Container ${self.name} has no crun configuration') }
+}
+
+// Container configuration customization methods
+pub fn (mut self Container) set_memory_limit(limit_mb u64) !&Container {
+	mut config := self.config()!
+	config.set_memory_limit(limit_mb * 1024 * 1024) // Convert MB to bytes
+	return &self
+}
+
+pub fn (mut self Container) set_cpu_limits(period u64, quota i64, shares u64) !&Container {
+	mut config := self.config()!
+	config.set_cpu_limits(period, quota, shares)
+	return &self
+}
+
+pub fn (mut self Container) add_mount(source string, destination string, mount_type crun.MountType, options []crun.MountOption) !&Container {
+	mut config := self.config()!
+	config.add_mount(source, destination, mount_type, options)
+	return &self
+}
+
+pub fn (mut self Container) add_capability(cap crun.Capability) !&Container {
+	mut config := self.config()!
+	config.add_capability(cap)
+	return &self
+}
+
+pub fn (mut self Container) remove_capability(cap crun.Capability) !&Container {
+	mut config := self.config()!
+	config.remove_capability(cap)
+	return &self
+}
+
+pub fn (mut self Container) add_env(key string, value string) !&Container {
+	mut config := self.config()!
+	config.add_env(key, value)
+	return &self
+}
+
+pub fn (mut self Container) set_working_dir(dir string) !&Container {
+	mut config := self.config()!
+	config.set_working_dir(dir)
+	return &self
+}
+
+// Save the current configuration to disk
+pub fn (self Container) save_config() ! {
+	config := self.config()!
+	config_path := '${self.factory.base_dir}/configs/${self.name}/config.json'
+	config.save_to_file(config_path)!
 }
