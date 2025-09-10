@@ -82,7 +82,7 @@ pub mut:
 pub struct LinuxNamespace {
 pub mut:
 	typ  string @[json: 'type']
-	path string
+	path string @[omitempty]
 }
 
 pub struct LinuxResources {
@@ -95,30 +95,30 @@ pub mut:
 
 pub struct Memory {
 pub mut:
-	limit       u64
-	reservation u64
-	swap        u64
-	kernel      u64
-	swappiness  i64
+	limit       u64 @[omitempty]
+	reservation u64 @[omitempty]
+	swap        u64 @[omitempty]
+	kernel      u64 @[omitempty]
+	swappiness  i64 @[omitempty]
 }
 
 pub struct CPU {
 pub mut:
-	shares u64
-	quota  i64
-	period u64
-	cpus   string
-	mems   string
+	shares u64    @[omitempty]
+	quota  i64    @[omitempty]
+	period u64    @[omitempty]
+	cpus   string @[omitempty]
+	mems   string @[omitempty]
 }
 
 pub struct Pids {
 pub mut:
-	limit i64
+	limit i64 @[omitempty]
 }
 
 pub struct BlockIO {
 pub mut:
-	weight u16
+	weight u16 @[omitempty]
 }
 
 pub struct LinuxDevice {
@@ -160,6 +160,8 @@ pub enum MountType {
 	proc
 	sysfs
 	devpts
+	mqueue
+	cgroup
 	nfs
 	overlay
 }

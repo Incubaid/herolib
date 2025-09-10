@@ -5,7 +5,8 @@ pub fn example_heropods_compatible() ! {
 	// Create a container configuration compatible with heropods template
 	mut config := new(mut configs, name: 'heropods-example')!
 
-	// Configure to match the template
+	// Configure to match the template - disable terminal for background containers
+	config.set_terminal(false)
 	config.set_command(['/bin/sh'])
 	config.set_working_dir('/')
 	config.set_user(0, 0, [])

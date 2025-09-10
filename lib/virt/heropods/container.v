@@ -34,10 +34,32 @@ pub fn (mut self Container) start() ! {
 	if !container_exists {
 		// Container doesn't exist, create it first
 		console.print_debug('Container ${self.name} does not exist, creating it...')
-		osal.exec(
-			cmd:    'crun create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
+		// Try to create the container, if it fails with "File exists" error,
+		// try to force delete any leftover state and retry
+		crun_root := '${self.factory.base_dir}/runtime'
+		create_result := osal.exec(
+			cmd:    'crun --root ${crun_root} create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
 			stdout: true
-		)!
+		) or {
+			if err.msg().contains('File exists') {
+				console.print_debug('Container creation failed with "File exists", attempting to clean up leftover state...')
+				// Force delete any leftover state - try multiple cleanup approaches
+				osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {}
+				osal.exec(cmd: 'crun delete ${self.name}', stdout: false) or {} // Also try default root
+				// Clean up any leftover runtime directories
+				osal.exec(cmd: 'rm -rf ${crun_root}/${self.name}', stdout: false) or {}
+				osal.exec(cmd: 'rm -rf /run/crun/${self.name}', stdout: false) or {}
+				// Wait a moment for cleanup to complete
+				time.sleep(500 * time.millisecond)
+				// Retry creation
+				osal.exec(
+					cmd:    'crun --root ${crun_root} create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
+					stdout: true
+				)!
+			} else {
+				return err
+			}
+		}
 		console.print_debug('Container ${self.name} created')
 	}
 
@@ -51,16 +73,18 @@ pub fn (mut self Container) start() ! {
 	// because crun doesn't allow restarting a stopped container
 	if container_exists && status != .running {
 		console.print_debug('Container ${self.name} exists but is stopped, recreating...')
-		osal.exec(cmd: 'crun delete ${self.name}', stdout: false) or {}
+		crun_root := '${self.factory.base_dir}/runtime'
+		osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {}
 		osal.exec(
-			cmd:    'crun create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
+			cmd:    'crun --root ${crun_root} create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
 			stdout: true
 		)!
 		console.print_debug('Container ${self.name} recreated')
 	}
 
 	// start the container (crun start doesn't have --detach flag)
-	osal.exec(cmd: 'crun start ${self.name}', stdout: true)!
+	crun_root := '${self.factory.base_dir}/runtime'
+	osal.exec(cmd: 'crun --root ${crun_root} start ${self.name}', stdout: true)!
 	console.print_green('Container ${self.name} started')
 }
 
@@ -71,12 +95,13 @@ pub fn (mut self Container) stop() ! {
 		return
 	}
 
-	osal.exec(cmd: 'crun kill ${self.name} SIGTERM', stdout: false) or {}
+	crun_root := '${self.factory.base_dir}/runtime'
+	osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGTERM', stdout: false) or {}
 	time.sleep(2 * time.second)
 
 	// Force kill if still running
 	if self.status()! == .running {
-		osal.exec(cmd: 'crun kill ${self.name} SIGKILL', stdout: false) or {}
+		osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGKILL', stdout: false) or {}
 	}
 	console.print_green('Container ${self.name} stopped')
 }
@@ -89,7 +114,8 @@ pub fn (mut self Container) delete() ! {
 	}
 
 	self.stop()!
-	osal.exec(cmd: 'crun delete ${self.name}', stdout: false) or {}
+	crun_root := '${self.factory.base_dir}/runtime'
+	osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {}
 
 	// Remove from factory's container cache
 	if self.name in self.factory.containers {
@@ -113,7 +139,10 @@ pub fn (mut self Container) exec(cmd_ osal.Command) !string {
 }
 
 pub fn (self Container) status() !ContainerStatus {
-	result := osal.exec(cmd: 'crun state ${self.name}', stdout: false) or { return .unknown }
+	crun_root := '${self.factory.base_dir}/runtime'
+	result := osal.exec(cmd: 'crun --root ${crun_root} state ${self.name}', stdout: false) or {
+		return .unknown
+	}
 
 	// Parse JSON output from crun state
 	state := json.decode(CrunState, result.output) or { return .unknown }
@@ -129,7 +158,10 @@ pub fn (self Container) status() !ContainerStatus {
 // Check if container exists in crun (regardless of its state)
 fn (self Container) container_exists_in_crun() !bool {
 	// Try to get container state - if it fails, container doesn't exist
-	result := osal.exec(cmd: 'crun state ${self.name}', stdout: false) or { return false }
+	crun_root := '${self.factory.base_dir}/runtime'
+	result := osal.exec(cmd: 'crun --root ${crun_root} state ${self.name}', stdout: false) or {
+		return false
+	}
 
 	// If we get here, the container exists (even if stopped/paused)
 	return result.exit_code == 0
@@ -209,7 +241,8 @@ pub fn (mut self Container) tmux_pane(args TmuxPaneArgs) !&tmux.Pane {
 
 	// Execute command if provided
 	if args.cmd != '' {
-		pane.send_keys('crun exec ${self.name} ${args.cmd}')!
+		crun_root := '${self.factory.base_dir}/runtime'
+		pane.send_keys('crun --root ${crun_root} exec ${self.name} ${args.cmd}')!
 	}
 
 	self.tmux_pane = pane
@@ -226,6 +259,7 @@ pub fn (mut self Container) node() !&builder.Node {
 
 	mut exec := builder.ExecutorCrun{
 		container_id: self.name
+		crun_root:    '${self.factory.base_dir}/runtime'
 		debug:        false
 	}
 

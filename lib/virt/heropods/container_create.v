@@ -93,6 +93,7 @@ fn (mut self ContainerFactory) create_crun_config(container_name string, rootfs_
 	mut config := crun.new(mut self.crun_configs, name: container_name)!
 
 	// Configure for heropods use case - disable terminal for background containers
+	config.set_terminal(false)
 	config.set_command(['/bin/sh', '-c', 'while true; do sleep 30; done'])
 	config.set_working_dir('/')
 	config.set_user(0, 0, [])

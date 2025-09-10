@@ -2,11 +2,10 @@ module crun
 
 import freeflowuniverse.herolib.core.texttools
 
-
 @[params]
 pub struct FactoryArgs {
 pub mut:
-	name string = "default"
+	name string = 'default'
 }
 
 pub struct CrunConfig {
@@ -23,6 +22,8 @@ pub fn (mount_type MountType) to_string() string {
 		.proc { 'proc' }
 		.sysfs { 'sysfs' }
 		.devpts { 'devpts' }
+		.mqueue { 'mqueue' }
+		.cgroup { 'cgroup' }
 		.nfs { 'nfs' }
 		.overlay { 'overlay' }
 	}
@@ -120,21 +121,23 @@ pub fn (mut config CrunConfig) set_working_dir(cwd string) &CrunConfig {
 
 pub fn (mut config CrunConfig) set_user(uid u32, gid u32, additional_gids []u32) &CrunConfig {
 	config.spec.process.user = User{
-		uid: uid
-		gid: gid
+		uid:             uid
+		gid:             gid
 		additional_gids: additional_gids.clone()
 	}
 	return config
 }
 
 pub fn (mut config CrunConfig) add_env(key string, value string) &CrunConfig {
+	// Remove existing env var with same key to avoid duplicates
+	config.spec.process.env = config.spec.process.env.filter(!it.starts_with('${key}='))
 	config.spec.process.env << '${key}=${value}'
 	return config
 }
 
 pub fn (mut config CrunConfig) set_rootfs(path string, readonly bool) &CrunConfig {
 	config.spec.root = Root{
-		path: path
+		path:     path
 		readonly: readonly
 	}
 	return config
@@ -165,16 +168,16 @@ pub fn (mut config CrunConfig) set_pids_limit(limit i64) &CrunConfig {
 pub fn (mut config CrunConfig) add_mount(destination string, source string, typ MountType, options []MountOption) &CrunConfig {
 	config.spec.mounts << Mount{
 		destination: destination
-		typ: typ.to_string()
-		source: source
-		options: options.map(it.to_string())
+		typ:         typ.to_string()
+		source:      source
+		options:     options.map(it.to_string())
 	}
 	return config
 }
 
 pub fn (mut config CrunConfig) add_capability(cap Capability) &CrunConfig {
 	cap_str := cap.to_string()
-	
+
 	if cap_str !in config.spec.process.capabilities.bounding {
 		config.spec.process.capabilities.bounding << cap_str
 	}
@@ -189,7 +192,7 @@ pub fn (mut config CrunConfig) add_capability(cap Capability) &CrunConfig {
 
 pub fn (mut config CrunConfig) remove_capability(cap Capability) &CrunConfig {
 	cap_str := cap.to_string()
-	
+
 	config.spec.process.capabilities.bounding = config.spec.process.capabilities.bounding.filter(it != cap_str)
 	config.spec.process.capabilities.effective = config.spec.process.capabilities.effective.filter(it != cap_str)
 	config.spec.process.capabilities.permitted = config.spec.process.capabilities.permitted.filter(it != cap_str)
@@ -197,8 +200,11 @@ pub fn (mut config CrunConfig) remove_capability(cap Capability) &CrunConfig {
 }
 
 pub fn (mut config CrunConfig) add_rlimit(typ RlimitType, hard u64, soft u64) &CrunConfig {
+	// Remove existing rlimit with same type to avoid duplicates
+	typ_str := typ.to_string()
+	config.spec.process.rlimits = config.spec.process.rlimits.filter(it.typ != typ_str)
 	config.spec.process.rlimits << Rlimit{
-		typ: typ.to_string()
+		typ:  typ_str
 		hard: hard
 		soft: soft
 	}
@@ -207,6 +213,11 @@ pub fn (mut config CrunConfig) add_rlimit(typ RlimitType, hard u64, soft u64) &C
 
 pub fn (mut config CrunConfig) set_no_new_privileges(value bool) &CrunConfig {
 	config.spec.process.no_new_privileges = value
+	return config
+}
+
+pub fn (mut config CrunConfig) set_terminal(value bool) &CrunConfig {
+	config.spec.process.terminal = value
 	return config
 }
 
@@ -226,67 +237,65 @@ pub fn (mut config CrunConfig) add_readonly_path(path string) &CrunConfig {
 
 pub fn new(mut configs map[string]&CrunConfig, args FactoryArgs) !&CrunConfig {
 	name := texttools.name_fix(args.name)
-	
+
 	mut config := &CrunConfig{
 		name: name
 		spec: create_default_spec()
 	}
-	
+
 	configs[name] = config
 	return config
 }
 
 pub fn get(configs map[string]&CrunConfig, args FactoryArgs) !&CrunConfig {
 	name := texttools.name_fix(args.name)
-	return configs[name] or {
-		return error('crun config with name "${name}" does not exist')
-	}
+	return configs[name] or { return error('crun config with name "${name}" does not exist') }
 }
 
 fn create_default_spec() Spec {
 	// Create default spec that matches the heropods template
 	mut spec := Spec{
 		oci_version: '1.0.2' // Set default here
-		platform: Platform{
-			os: 'linux'
+		platform:    Platform{
+			os:   'linux'
 			arch: 'amd64'
 		}
-		process: Process{
-			terminal: true
-			user: User{
+		process:     Process{
+			terminal:          true
+			user:              User{
 				uid: 0
 				gid: 0
 			}
-			args: ['/bin/sh']
-			env: [
+			args:              ['/bin/sh']
+			env:               [
 				'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-				'TERM=xterm'
+				'TERM=xterm',
 			]
-			cwd: '/'
-			capabilities: Capabilities{
-				bounding: ['CAP_AUDIT_WRITE', 'CAP_KILL', 'CAP_NET_BIND_SERVICE']
-				effective: ['CAP_AUDIT_WRITE', 'CAP_KILL', 'CAP_NET_BIND_SERVICE']
+			cwd:               '/'
+			capabilities:      Capabilities{
+				bounding:    ['CAP_AUDIT_WRITE', 'CAP_KILL', 'CAP_NET_BIND_SERVICE']
+				effective:   ['CAP_AUDIT_WRITE', 'CAP_KILL', 'CAP_NET_BIND_SERVICE']
 				inheritable: ['CAP_AUDIT_WRITE', 'CAP_KILL', 'CAP_NET_BIND_SERVICE']
-				permitted: ['CAP_AUDIT_WRITE', 'CAP_KILL', 'CAP_NET_BIND_SERVICE']
+				permitted:   ['CAP_AUDIT_WRITE', 'CAP_KILL', 'CAP_NET_BIND_SERVICE']
 			}
-			rlimits: [
+			rlimits:           [
 				Rlimit{
-					typ: 'RLIMIT_NOFILE'
+					typ:  'RLIMIT_NOFILE'
 					hard: 1024
 					soft: 1024
-				}
+				},
 			]
 			no_new_privileges: true // No JSON annotation needed here
 		}
-		root: Root{
-			path: 'rootfs'
+		root:        Root{
+			path:     'rootfs'
 			readonly: false
 		}
-		hostname: 'container'
-		mounts: create_default_mounts()
-		linux: Linux{
-			namespaces: create_default_namespaces()
-			masked_paths: [
+		hostname:    'container'
+		mounts:      create_default_mounts()
+		linux:       Linux{
+			namespaces:     create_default_namespaces()
+			masked_paths:   [
 				'/proc/acpi',
 				'/proc/kcore',
 				'/proc/keys',
@@ -295,7 +304,7 @@ fn create_default_spec() Spec {
 				'/proc/timer_stats',
 				'/proc/sched_debug',
 				'/proc/scsi',
-				'/sys/firmware'
+				'/sys/firmware',
 			]
 			readonly_paths: [
 				'/proc/asound',
@@ -303,21 +312,34 @@ fn create_default_spec() Spec {
 				'/proc/fs',
 				'/proc/irq',
 				'/proc/sys',
-				'/proc/sysrq-trigger'
+				'/proc/sysrq-trigger',
 			]
 		}
 	}
-	
+
 	return spec
 }
 
 fn create_default_namespaces() []LinuxNamespace {
 	return [
-		LinuxNamespace{typ: 'pid'},
-		LinuxNamespace{typ: 'network'},
-		LinuxNamespace{typ: 'ipc'},
-		LinuxNamespace{typ: 'uts'},
-		LinuxNamespace{typ: 'mount'},
+		LinuxNamespace{
+			typ: 'pid'
+		},
+		LinuxNamespace{
+			typ: 'network'
+		},
+		LinuxNamespace{
+			typ: 'ipc'
+		},
+		LinuxNamespace{
+			typ: 'uts'
+		},
+		LinuxNamespace{
+			typ: 'cgroup'
+		},
+		LinuxNamespace{
+			typ: 'mount'
+		},
 	]
 }
 
@@ -325,20 +347,44 @@ fn create_default_mounts() []Mount {
 	return [
 		Mount{
 			destination: '/proc'
-			typ: 'proc'
-			source: 'proc'
+			typ:         'proc'
+			source:      'proc'
 		},
 		Mount{
 			destination: '/dev'
-			typ: 'tmpfs'
-			source: 'tmpfs'
-			options: ['nosuid', 'strictatime', 'mode=755', 'size=65536k']
+			typ:         'tmpfs'
+			source:      'tmpfs'
+			options:     ['nosuid', 'strictatime', 'mode=755', 'size=65536k']
+		},
+		Mount{
+			destination: '/dev/pts'
+			typ:         'devpts'
+			source:      'devpts'
+			options:     ['nosuid', 'noexec', 'newinstance', 'ptmxmode=0666', 'mode=0620', 'gid=5']
+		},
+		Mount{
+			destination: '/dev/shm'
+			typ:         'tmpfs'
+			source:      'shm'
+			options:     ['nosuid', 'noexec', 'nodev', 'mode=1777', 'size=65536k']
+		},
+		Mount{
+			destination: '/dev/mqueue'
+			typ:         'mqueue'
+			source:      'mqueue'
+			options:     ['nosuid', 'noexec', 'nodev']
 		},
 		Mount{
 			destination: '/sys'
-			typ: 'sysfs'
-			source: 'sysfs'
-			options: ['nosuid', 'noexec', 'nodev', 'ro']
+			typ:         'sysfs'
+			source:      'sysfs'
+			options:     ['nosuid', 'noexec', 'nodev', 'ro']
+		},
+		Mount{
+			destination: '/sys/fs/cgroup'
+			typ:         'cgroup'
+			source:      'cgroup'
+			options:     ['nosuid', 'noexec', 'nodev', 'relatime', 'ro']
 		},
 	]
 }

@@ -8,7 +8,7 @@ mut factory := heropods.new(
 ) or { panic('Failed to init ContainerFactory: ${err}') }
 
 mut container := factory.new(
-	name:              'myalpine'
+	name:              'alpine_demo'
 	image:             .custom
 	custom_image_name: 'alpine_3_20'
 	docker_url:        'docker.io/library/alpine:3.20'
