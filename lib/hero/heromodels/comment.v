@@ -1,9 +1,7 @@
 module heromodels
 
 import freeflowuniverse.herolib.data.encoder
-import crypto.md5
 import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.hero.db
 
 @[heap]
