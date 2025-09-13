@@ -1,53 +1,98 @@
 module heromodels
 
+import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
-import time
+import freeflowuniverse.herolib.hero.db
 
 // Calendar represents a collection of events
 @[heap]
 pub struct Calendar {
-	Base
+	db.Base
 pub mut:
-	events    []u32  // IDs of calendar events (changed to u32 to match CalendarEvent)
+	events    []u32  // IDs of calendar events
 	color     string // Hex color code
 	timezone  string
 	is_public bool
 }
 
-@[params]
-pub struct CalendarArgs {
-	BaseArgs
+pub struct DBCalendar {
 pub mut:
-	events    []u32
-	color     string
-	timezone  string
-	is_public bool
+	db &db.DB @[skip; str: skip]
 }
 
-pub fn calendar_new(args CalendarArgs) !Calendar {
-    mut commentids:=[]u32{}
-    mut obj := Calendar{
-        id: args.id or {0} // Will be set by DB?
-        name: args.name
-        description: args.description
-        created_at: ourtime.now().unix()
-        updated_at: ourtime.now().unix()
-        securitypolicy: args.securitypolicy or {0}
-        tags: tags2id(args.tags)!
-        comments: comments2ids(args.comments)!
-        group_id: args.group_id
-        events: args.events
-        color: args.color
-        timezone: args.timezone
-        is_public: args.is_public
-    }
-    return obj
+pub fn (self Calendar) type_name() string {
+	return 'calendar'
 }
 
-pub fn (mut c Calendar) add_event(event_id u32) { // Changed event_id to u32
-	if event_id !in c.events {
-		c.events << event_id
-		c.updated_at = ourtime.now().unix() // Use Base's updated_at
+pub fn (self Calendar) dump(mut e &encoder.Encoder) ! {
+	e.add_list_u32(self.events)
+	e.add_string(self.color)
+	e.add_string(self.timezone)
+	e.add_bool(self.is_public)
+}
+
+fn (mut self DBCalendar) load(mut o Calendar, mut e &encoder.Decoder) ! {
+	o.events = e.get_list_u32()!
+	o.color = e.get_string()!
+	o.timezone = e.get_string()!
+	o.is_public = e.get_bool()!
+}
+
+@[params]
+pub struct CalendarArg {
+pub mut:
+	name        string
+	description string
+	color       string
+	timezone    string
+	is_public   bool
+	events      []u32
+}
+
+// get new calendar, not from the DB
+pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
+	mut o := Calendar{
+		color:      args.color
+		timezone:   args.timezone
+		is_public:  args.is_public
+		events:     args.events
+	}
+	
+	// Set base fields
+	o.name = args.name
+	o.description = args.description
+	o.updated_at = ourtime.now().unix()
+	
+	return o
+}
+
+pub fn (mut self DBCalendar) set(o Calendar) !u32 {
+	// Use openrpcserver set function which now returns the ID
+	return self.db.set[Calendar](o)!
+}
+
+pub fn (mut self DBCalendar) delete(id u32) ! {
+	self.db.delete[Calendar](id)!
+}
+
+pub fn (mut self DBCalendar) exist(id u32) !bool {
+	return self.db.exists[Calendar](id)!
+}
+
+pub fn (mut self DBCalendar) get(id u32) !Calendar {
+	mut o, data := self.db.get_data[Calendar](id)!
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
+	return o
+}
+
+pub fn (mut self DBCalendar) list() ![]Calendar {
+	return self.db.list[Calendar]()!.map(self.get(it)!)
+}
+
+pub fn (mut self DBCalendar) add_event(mut o &Calendar, event_id u32) {
+	if event_id !in o.events {
+		o.events << event_id
+		o.updated_at = ourtime.now().unix()
 	}
 }
-

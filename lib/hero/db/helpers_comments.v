@@ -2,34 +2,6 @@ module db
 
 import crypto.md5
 
-// @[params]
-// pub struct BaseArgs {
-// pub mut:
-// 	id             ?u32
-// 	name           string
-// 	description    string
-// 	securitypolicy ?u32
-// 	tags           []string
-// 	comments       []u32
-// }
-
-// // make it easy to get a base object
-// pub fn (mut self DB) new_base(args BaseArgs) !Base {
-// 	mut redis := redisclient.core_get()!
-
-// 	tags := tags2id(args.tags)!
-
-// 	return Base{
-// 		id:             args.id or { 0 }
-// 		name:           args.name
-// 		description:    args.description
-// 		created_at:     ourtime.now().unix()
-// 		updated_at:     ourtime.now().unix()
-// 		securitypolicy: args.securitypolicy or { 0 }
-// 		tags:           tags
-// 		comments:       args.comments
-// 	}
-// }
 
 @[params]
 pub struct CommentArg {
