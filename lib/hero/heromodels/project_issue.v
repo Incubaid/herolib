@@ -150,7 +150,7 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	project_obj := db_project.get(args.project_id)!
 	
 	// Validate swimlane exists in the project
-	swimlane_exists := false
+	mut swimlane_exists := false
 	for swimlane in project_obj.swimlanes {
 		if swimlane.name == o.swimlane {
 			swimlane_exists = true
@@ -162,7 +162,7 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	}
 	
 	// Validate milestone exists in the project
-	milestone_exists := false
+	mut milestone_exists := false
 	for milestone in project_obj.milestones {
 		if milestone.name == o.milestone {
 			milestone_exists = true
