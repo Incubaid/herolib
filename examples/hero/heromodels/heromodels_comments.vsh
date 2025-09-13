@@ -1,8 +1,10 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
+import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.hero.heromodels
 
 mut mydb := heromodels.new()!
+// mydb.comments.db.redis.flushdb()!
 
 mut o := mydb.comments.new(comment: 'Hello, world!')!
 

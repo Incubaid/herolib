@@ -9,6 +9,7 @@ pub fn (mut self DB) tags_get(tags []string) !u32 {
 		hash := md5.hexhash(tags_fixed.join(','))
 		tags_found := self.redis.hget('db:tags', hash)!
 		return if tags_found == '' {
+			println('tags_get: new tags: ${tags_fixed.join(",")}')
 			id := self.new_id()!
 			self.redis.hset('db:tags', hash, id.str())!
 			self.redis.hset('db:tags', id.str(), tags_fixed.join(','))!

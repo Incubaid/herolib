@@ -36,7 +36,9 @@ pub fn (mut self DB) set[T](obj_ T) !u32 {
 	for comment in obj.comments {
 		e.add_u32(comment)
 	}
+	// println('set: before dump, e.data.len: ${e.data.len}')
 	obj.dump(mut e)!
+	// println('set: after dump, e.data.len: ${e.data.len}')
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
 	return obj.id
 }
@@ -49,6 +51,7 @@ pub fn (mut self DB) get_data[T](id u32) !(T, []u8) {
 		return error('herodb:${self.db_name[T]()} not found for ${id}')
 	}
 
+	// println('get_data: data.len: ${data.len}')
 	mut e := encoder.decoder_new(data.bytes())
 	version := e.get_u8()!
 	if version != 1 {
@@ -89,7 +92,10 @@ pub fn (mut self DB) new_from_base[T](args BaseArgs) !Base {
 }
 
 fn (mut self DB) db_name[T]() string {
-	return 'db:${T.name}'
+	// get the name of the type T
+	mut name := T.name.to_lower_ascii().split('.').last()
+	// println("db_name rediskey: '${name}'")
+	return 'db:${name}'
 }
 
 pub fn (mut self DB) new_id() !u32 {
