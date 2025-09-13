@@ -4,8 +4,9 @@ import freeflowuniverse.herolib.hero.db
 
 pub struct ModelsFactory {
 pub mut:
-	comments  DBComments
-	calendar  DBCalendar
+	comments      DBComments
+	calendar      DBCalendar
+	calendar_event DBCalendarEvent
 }
 
 pub fn new() !ModelsFactory {
@@ -15,6 +16,9 @@ pub fn new() !ModelsFactory {
 			db: &mydb
 		}
 		calendar: DBCalendar{
+			db: &mydb
+		}
+		calendar_event: DBCalendarEvent{
 			db: &mydb
 		}
 	}
