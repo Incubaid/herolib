@@ -26,18 +26,13 @@ pub fn (self Comment) type_name() string {
 	return 'comments'
 }
 
-pub fn (self Comment) dump() ![]u8 {
-	// Create a new encoder
-	mut e := encoder.new()
+pub fn (self Comment) dump(mut e &encoder.Encoder) ! {
 	e.add_string(self.comment)
 	e.add_u32(self.parent)
 	e.add_u32(self.author)
-	return e.data
 }
 
-fn (mut self DBComments) load(mut o Comment, data []u8) ! {
-	// Create a new decoder
-	mut e := encoder.decoder_new(data)
+fn (mut self DBComments) load(mut o Comment, mut e &encoder.Decoder) ! {
 	o.comment = e.get_string()!
 	o.parent = e.get_u32()!
 	o.author = e.get_u32()!
@@ -77,7 +72,8 @@ pub fn (mut self DBComments) exist(id u32) !bool {
 
 pub fn (mut self DBComments) get(id u32) !Comment {
 	mut o, data := self.db.get_data[Comment](id)!
-	self.load(mut o, data)!
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
 	return o
 }
 

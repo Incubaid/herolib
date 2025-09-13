@@ -36,9 +36,7 @@ pub fn (mut self DB) set[T](obj_ T) !u32 {
 	for comment in obj.comments {
 		e.add_u32(comment)
 	}
-	println('aaaa: ${e.data.len} - ${obj.dump()!.len}')
-	e.data << obj.dump()!
-	println('bbbb: ${e.data.len} - ${obj.dump()!.len}')
+	obj.dump(mut e)!
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
 	return obj.id
 }
