@@ -137,6 +137,41 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 		parent_id:  args.parent_id
 		children:   args.children
 	}
+
+	// Validate that project_id exists
+	mut db_project := DBProject{
+		db: self.db
+	}
+	if !db_project.exist(args.project_id)! {
+		return error('Project with ID ${args.project_id} does not exist')
+	}
+	
+	// Get the project to validate swimlane and milestone
+	project_obj := db_project.get(args.project_id)!
+	
+	// Validate swimlane exists in the project
+	swimlane_exists := false
+	for swimlane in project_obj.swimlanes {
+		if swimlane.name == o.swimlane {
+			swimlane_exists = true
+			break
+		}
+	}
+	if !swimlane_exists {
+		return error('Swimlane "${args.swimlane}" does not exist in project "${project_obj.name}"')
+	}
+	
+	// Validate milestone exists in the project
+	milestone_exists := false
+	for milestone in project_obj.milestones {
+		if milestone.name == o.milestone {
+			milestone_exists = true
+			break
+		}
+	}
+	if !milestone_exists {
+		return error('Milestone "${args.milestone}" does not exist in project "${project_obj.name}"')
+	}
 	
 	// Set base fields
 	o.name = args.name
