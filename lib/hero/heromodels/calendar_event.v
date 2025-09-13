@@ -116,7 +116,7 @@ fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e &encoder.Decoder) 
 	o.attendees = e.get_list_u32()!
 	o.fs_items = e.get_list_u32()!
 	o.calendar_id = e.get_u32()!
-	o.status = unsafe { EventStatus(e.get_u8()!) }
+	o.status = unsafe { EventStatus(e.get_u8()!) } //TODO: is there no better way?
 	o.is_all_day = e.get_bool()!
 	o.is_recurring = e.get_bool()!
 
