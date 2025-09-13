@@ -7,6 +7,7 @@ pub mut:
 	comments      DBComments
 	calendar      DBCalendar
 	calendar_event DBCalendarEvent
+	group         DBGroup
 }
 
 pub fn new() !ModelsFactory {
@@ -19,6 +20,9 @@ pub fn new() !ModelsFactory {
 			db: &mydb
 		}
 		calendar_event: DBCalendarEvent{
+			db: &mydb
+		}
+		group: DBGroup{
 			db: &mydb
 		}
 	}

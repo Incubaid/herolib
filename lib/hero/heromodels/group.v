@@ -1,28 +1,23 @@
 module heromodels
 
-import time
-import crypto.blake3
-import json
+import freeflowuniverse.herolib.data.encoder
+import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.hero.db
 
 // Group represents a collection of users with roles and permissions
 @[heap]
 pub struct Group {
+	db.Base
 pub mut:
-	id           string // blake192 hash
-	name         string
-	description  string
 	members      []GroupMember
-	subgroups    []string // IDs of child groups
-	parent_group string   // ID of parent group
-	created_at   i64
-	updated_at   i64
+	subgroups    []u32 // IDs of child groups
+	parent_group u32   // ID of parent group
 	is_public    bool
-	tags         []string
 }
 
 pub struct GroupMember {
 pub mut:
-	user_id   string
+	user_id   u32
 	role      GroupRole
 	joined_at i64
 }
@@ -34,48 +29,107 @@ pub enum GroupRole {
 	owner
 }
 
-pub fn (mut g Group) calculate_id() {
-	content := json.encode(GroupContent{
-		name:         g.name
-		description:  g.description
-		members:      g.members
-		subgroups:    g.subgroups
-		parent_group: g.parent_group
-		is_public:    g.is_public
-		tags:         g.tags
-	})
-	hash := blake3.sum256(content.bytes())
-	g.id = hash.hex()[..48]
+pub fn (self Group) type_name() string {
+	return 'group'
 }
 
-struct GroupContent {
+pub fn (self Group) dump(mut e &encoder.Encoder) ! {
+	e.add_u16(u16(self.members.len))
+	for member in self.members {
+		e.add_u32(member.user_id)
+		e.add_u8(u8(member.role))
+		e.add_i64(member.joined_at)
+	}
+	e.add_list_u32(self.subgroups)
+	e.add_u32(self.parent_group)
+	e.add_bool(self.is_public)
+}
+
+fn (mut self DBGroup) load(mut o Group, mut e &encoder.Decoder) ! {
+	members_len := e.get_u16()!
+	mut members := []GroupMember{}
+	for _ in 0 .. members_len {
+		user_id := e.get_u32()!
+		role := unsafe { GroupRole(e.get_u8()!) }
+		joined_at := e.get_i64()!
+		
+		members << GroupMember{
+			user_id:   user_id
+			role:      role
+			joined_at: joined_at
+		}
+	}
+	o.members = members
+	
+	o.subgroups = e.get_list_u32()!
+	o.parent_group = e.get_u32()!
+	o.is_public = e.get_bool()!
+}
+
+@[params]
+pub struct GroupArg {
+pub mut:
 	name         string
 	description  string
 	members      []GroupMember
-	subgroups    []string
-	parent_group string
+	subgroups    []u32
+	parent_group u32
 	is_public    bool
-	tags         []string
 }
 
-pub fn new_group(name string, description string) Group {
-	mut group := Group{
-		name:        name
-		description: description
-		created_at:  time.now().unix()
-		updated_at:  time.now().unix()
-		is_public:   false
+pub struct DBGroup {
+pub mut:
+	db &db.DB @[skip; str: skip]
+}
+
+// get new group, not from the DB
+pub fn (mut self DBGroup) new(args GroupArg) !Group {
+	mut o := Group{
+		members:      args.members
+		subgroups:    args.subgroups
+		parent_group: args.parent_group
+		is_public:    args.is_public
 	}
-	group.calculate_id()
-	return group
+	
+	// Set base fields
+	o.name = args.name
+	o.description = args.description
+	o.updated_at = ourtime.now().unix()
+	
+	return o
 }
 
-pub fn (mut g Group) add_member(user_id string, role GroupRole) {
-	g.members << GroupMember{
+pub fn (mut self DBGroup) set(o Group) !u32 {
+	return self.db.set[Group](o)!
+}
+
+pub fn (mut self DBGroup) delete(id u32) ! {
+	self.db.delete[Group](id)!
+}
+
+pub fn (mut self DBGroup) exist(id u32) !bool {
+	return self.db.exists[Group](id)!
+}
+
+pub fn (mut self DBGroup) get(id u32) !Group {
+	mut o, data := self.db.get_data[Group](id)!
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
+	return o
+}
+
+pub fn (mut self DBGroup) list() ![]Group {
+	return self.db.list[Group]()!.map(self.get(it)!)
+}
+
+pub fn (mut self Group) add_member(user_id u32, role GroupRole) {
+	mut member := GroupMember{
 		user_id:   user_id
 		role:      role
-		joined_at: time.now().unix()
+		joined_at: ourtime.now().unix()
 	}
-	g.updated_at = time.now().unix()
-	g.calculate_id()
+	self.members << member
 }
+
+
+//CUSTOM FEATURES FOR GROUP
