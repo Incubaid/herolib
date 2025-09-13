@@ -90,9 +90,3 @@ pub fn (mut self DBCalendar) list() ![]Calendar {
 	return self.db.list[Calendar]()!.map(self.get(it)!)
 }
 
-pub fn (mut self DBCalendar) add_event(mut o &Calendar, event_id u32) {
-	if event_id !in o.events {
-		o.events << event_id
-		o.updated_at = ourtime.now().unix()
-	}
-}
