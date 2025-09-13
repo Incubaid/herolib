@@ -8,12 +8,8 @@ import json
 @[heap]
 pub struct ChatGroup {
 pub mut:
-	id            string // blake192 hash
-	name          string
-	description   string
-	group_id      string // Associated group for permissions
 	chat_type     ChatType
-	messages      []string // IDs of chat messages
+	messages      []u32 // IDs of chat messages
 	created_at    i64
 	updated_at    i64
 	last_activity i64

@@ -1,12 +1,13 @@
 module heromodels
 
-import time
-import crypto.blake3
-import json
+import freeflowuniverse.herolib.data.encoder
+import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.hero.db
 
 // ProjectIssue represents a task, story, bug, or question in a project
 @[heap]
 pub struct ProjectIssue {
+	db.Base
 pub mut:
 	title        string
 	project_id   u32 // Associated project
@@ -50,4 +51,127 @@ pub enum IssueStatus {
 	testing
 	done
 	closed
+}
+
+pub struct DBProjectIssue {
+pub mut:
+	db &db.DB @[skip; str: skip]
+}
+
+pub fn (self ProjectIssue) type_name() string {
+	return 'project_issue'
+}
+
+pub fn (self ProjectIssue) dump(mut e &encoder.Encoder) ! {
+	e.add_string(self.title)
+	e.add_u32(self.project_id)
+	e.add_u8(u8(self.issue_type))
+	e.add_u8(u8(self.priority))
+	e.add_u8(u8(self.status))
+	e.add_string(self.swimlane)
+	e.add_list_u32(self.assignees)
+	e.add_u32(self.reporter)
+	e.add_string(self.milestone)
+	e.add_i64(self.deadline)
+	e.add_int(self.estimate)
+	e.add_list_u32(self.fs_files)
+	e.add_u32(self.parent_id)
+	e.add_list_u32(self.children)
+}
+
+fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e &encoder.Decoder) ! {
+	o.title = e.get_string()!
+	o.project_id = e.get_u32()!
+	o.issue_type = unsafe { IssueType(e.get_u8()!) }
+	o.priority = unsafe { IssuePriority(e.get_u8()!) }
+	o.status = unsafe { IssueStatus(e.get_u8()!) }
+	o.swimlane = e.get_string()!
+	o.assignees = e.get_list_u32()!
+	o.reporter = e.get_u32()!
+	o.milestone = e.get_string()!
+	o.deadline = e.get_i64()!
+	o.estimate = e.get_int()!
+	o.fs_files = e.get_list_u32()!
+	o.parent_id = e.get_u32()!
+	o.children = e.get_list_u32()!
+}
+
+@[params]
+pub struct ProjectIssueArg {
+pub mut:
+	name        string
+	description string
+	title        string
+	project_id   u32
+	issue_type   IssueType
+	priority     IssuePriority
+	status       IssueStatus
+	swimlane     string
+	assignees    []u32
+	reporter     u32
+	milestone    string
+	deadline     string // Use ourtime module to convert to epoch
+	estimate     int
+	fs_files     []u32
+	parent_id    u32
+	children     []u32
+	securitypolicy u32
+	tags           []string
+	comments       []db.CommentArg
+}
+
+// get new project issue, not from the DB
+pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
+	mut o := ProjectIssue{
+		title:      args.title
+		project_id: args.project_id
+		issue_type: args.issue_type
+		priority:   args.priority
+		status:     args.status
+		swimlane:   args.swimlane.to_lower().trim_space()
+		assignees:  args.assignees
+		reporter:   args.reporter
+		milestone:  args.milestone.to_lower().trim_space()
+		estimate:   args.estimate
+		fs_files:   args.fs_files
+		parent_id:  args.parent_id
+		children:   args.children
+	}
+	
+	// Set base fields
+	o.name = args.name
+	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.comments = self.db.comments_get(args.comments)!
+	o.updated_at = ourtime.now().unix()
+	
+	// Convert deadline string to Unix timestamp
+	mut deadline_obj := ourtime.new(args.deadline)!
+	o.deadline = deadline_obj.unix()
+	
+	return o
+}
+
+pub fn (mut self DBProjectIssue) set(o ProjectIssue) !u32 {
+	return self.db.set[ProjectIssue](o)!
+}
+
+pub fn (mut self DBProjectIssue) delete(id u32) ! {
+	self.db.delete[ProjectIssue](id)!
+}
+
+pub fn (mut self DBProjectIssue) exist(id u32) !bool {
+	return self.db.exists[ProjectIssue](id)!
+}
+
+pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
+	mut o, data := self.db.get_data[ProjectIssue](id)!
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
+	return o
+}
+
+pub fn (mut self DBProjectIssue) list() ![]ProjectIssue {
+	return self.db.list[ProjectIssue]()!.map(self.get(it)!)
 }

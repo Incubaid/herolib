@@ -9,6 +9,8 @@ pub mut:
 	calendar_event DBCalendarEvent
 	group         DBGroup
 	user          DBUser
+	project       DBProject
+	project_issue DBProjectIssue
 }
 
 pub fn new() !ModelsFactory {
@@ -27,6 +29,12 @@ pub fn new() !ModelsFactory {
 			db: &mydb
 		}
 		user: DBUser{
+			db: &mydb
+		}
+		project: DBProject{
+			db: &mydb
+		}
+		project_issue: DBProjectIssue{
 			db: &mydb
 		}
 	}
