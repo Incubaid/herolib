@@ -11,6 +11,8 @@ pub mut:
 	user          DBUser
 	project       DBProject
 	project_issue DBProjectIssue
+	chat_group    DBChatGroup
+	chat_message  DBChatMessage
 }
 
 pub fn new() !ModelsFactory {
@@ -35,6 +37,12 @@ pub fn new() !ModelsFactory {
 			db: &mydb
 		}
 		project_issue: DBProjectIssue{
+			db: &mydb
+		}
+		chat_group: DBChatGroup{
+			db: &mydb
+		}
+		chat_message: DBChatMessage{
 			db: &mydb
 		}
 	}
