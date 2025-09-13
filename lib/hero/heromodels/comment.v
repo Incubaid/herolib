@@ -31,27 +31,18 @@ pub fn (self Comment) type_name() string {
 pub fn (self Comment) dump() ![]u8 {
 	// Create a new encoder
 	mut e := encoder.new()
-	e.add_u8(1)
-	e.add_u32(self.id)
 	e.add_string(self.comment)
 	e.add_u32(self.parent)
 	e.add_u32(self.author)
 	return e.data
 }
 
-pub fn (mut self DBComments) load(data []u8) !Comment {
+fn (mut self DBComments) load(mut o Comment, data []u8) ! {
 	// Create a new decoder
 	mut e := encoder.decoder_new(data)
-	version := e.get_u8()!
-	if version != 1 {
-		panic('wrong version in comment load')
-	}
-	mut comment := Comment{}
-	comment.id = e.get_u32()!
-	comment.comment = e.get_string()!
-	comment.parent = e.get_u32()!
-	comment.author = e.get_u32()!
-	return comment
+	o.comment = e.get_string()!
+	o.parent = e.get_u32()!
+	o.author = e.get_u32()!
 }
 
 @[params]
@@ -87,9 +78,11 @@ pub fn (mut self DBComments) exist(id u32) !bool {
 }
 
 pub fn (mut self DBComments) get(id u32) !Comment {
-	return self.load(self.db.get_data[Comment](id)!)!
+	mut o, data := self.db.get_data[Comment](id)!
+	self.load(mut o, data)!
+	return o
 }
 
 pub fn (mut self DBComments) list() ![]Comment {
-	return self.db.list[Comment]()!.map(self.load(self.db.get_data[Comment](it)!)!)
+	return self.db.list[Comment]()!.map(self.get(it)!)
 }

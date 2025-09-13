@@ -1,6 +1,7 @@
 module db
 
 import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.data.encoder
 
 pub fn (mut self DB) set[T](obj_ T) !u32 {
 	// Get the next ID	
@@ -14,15 +15,59 @@ pub fn (mut self DB) set[T](obj_ T) !u32 {
 	}
 	obj.updated_at = t
 
-	data := obj.dump()!
-	self.redis.hset(self.db_name[T](), obj.id.str(), data.bytestr())!
+	// id             u32
+	// name           string
+	// description    string
+	// created_at     i64
+	// updated_at     i64
+	// securitypolicy u32
+	// tags           u32 // when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
+	// comments       []u32
+	mut e := encoder.new()
+	e.add_u8(1)
+	e.add_u32(obj.id)
+	e.add_string(obj.name)
+	e.add_string(obj.description)
+	e.add_i64(obj.created_at)
+	e.add_i64(obj.updated_at)
+	e.add_u32(obj.securitypolicy)
+	e.add_u32(obj.tags)
+	e.add_u16(u16(obj.comments.len))
+	for comment in obj.comments {
+		e.add_u32(comment)
+	}
+	println('aaaa: ${e.data.len} - ${obj.dump()!.len}')
+	e.data << obj.dump()!
+	println('bbbb: ${e.data.len} - ${obj.dump()!.len}')
+	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
 	return obj.id
 }
 
 // return the data, cannot return the object as we do not know the type
-pub fn (mut self DB) get_data[T](id u32) ![]u8 {
+pub fn (mut self DB) get_data[T](id u32) !(T, []u8) {
 	data := self.redis.hget(self.db_name[T](), id.str())!
-	return data.bytes()
+
+	if data.len == 0 {
+		return error('herodb:${self.db_name[T]()} not found for ${id}')
+	}
+
+	mut e := encoder.decoder_new(data.bytes())
+	version := e.get_u8()!
+	if version != 1 {
+		panic('wrong version in base load')
+	}
+	mut base := T{}
+	base.id = e.get_u32()!
+	base.name = e.get_string()!
+	base.description = e.get_string()!
+	base.created_at = e.get_i64()!
+	base.updated_at = e.get_i64()!
+	base.securitypolicy = e.get_u32()!
+	base.tags = e.get_u32()!
+	for _ in 0 .. e.get_u16()! {
+		base.comments << e.get_u32()!
+	}
+	return base, e.data
 }
 
 pub fn (mut self DB) exists[T](id u32) !bool {
