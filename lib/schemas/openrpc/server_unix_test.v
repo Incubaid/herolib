@@ -27,21 +27,21 @@ pub fn test_new_unix_server() ! {
 	// client()
 }
 
-pub fn test_unix_server_start() ! {
-	mut spec := OpenRPC{}
-	handler := Handler{
-		specification: new(path: openrpc_path)!
-	}
-	mut server := new_unix_server(handler)!
+// pub fn test_unix_server_start() ! {
+// 	mut spec := OpenRPC{}
+// 	handler := Handler{
+// 		specification: new(path: openrpc_path)!
+// 	}
+// 	mut server := new_unix_server(handler)!
 
-	defer {
-		server.close() or {panic(err)}
-	}
+// 	defer {
+// 		server.close() or {panic(err)}
+// 	}
 
-	spawn server.start()
+// 	spawn server.start()
 
-	// client()
-}
+// 	// client()
+// }
 
 pub fn test_unix_server_handle_connection() ! {
 	mut spec := OpenRPC{}
@@ -54,7 +54,7 @@ pub fn test_unix_server_handle_connection() ! {
 	spawn server.start()
 	
 	// Give server time to start
-	// time.sleep(50 * time.millisecond)
+	time.sleep(50 * time.millisecond)
 	
 	// Connect to the server
 	mut conn := unix.connect_stream(server.socket_path)!
@@ -63,6 +63,7 @@ pub fn test_unix_server_handle_connection() ! {
 		conn.close() or {panic(err)}
 		server.close() or {panic(err)}
 	}
+	println('Connected to server at ${server.socket_path}')
 
 	// Test 1: Send rpc.discover request
 	discover_request := jsonrpc.new_request('rpc.discover', '')

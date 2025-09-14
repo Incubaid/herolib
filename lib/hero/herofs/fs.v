@@ -79,10 +79,22 @@ pub fn (mut self DBFs) new(args FsArg) !Fs {
 }
 
 pub fn (mut self DBFs) set(o Fs) !u32 {
-	return self.db.set[Fs](o)!
+	id := self.db.set[Fs](o)!
+	
+	// Store name -> id mapping for lookups
+	self.db.redis.hset('fs:names', o.name, id.str())!
+	
+	return id
 }
 
 pub fn (mut self DBFs) delete(id u32) ! {
+	// Get the filesystem to retrieve its name
+	fs := self.get(id)!
+	
+	// Remove name -> id mapping
+	self.db.redis.hdel('fs:names', fs.name)!
+	
+	// Delete the filesystem
 	self.db.delete[Fs](id)!
 }
 

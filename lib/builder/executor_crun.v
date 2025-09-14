@@ -11,13 +11,22 @@ import freeflowuniverse.herolib.core.texttools
 pub struct ExecutorCrun {
 pub mut:
 	container_id string // container ID for crun
+	crun_root    string // custom crun root directory
 	retry        int  = 1
 	debug        bool = true
 }
 
+// Helper method to get crun command with custom root
+fn (executor ExecutorCrun) crun_cmd(cmd string) string {
+	if executor.crun_root != '' {
+		return 'crun --root ${executor.crun_root} ${cmd}'
+	}
+	return 'crun ${cmd}'
+}
+
 pub fn (mut executor ExecutorCrun) init() ! {
 	// Verify container exists and is running
-	result := osal.exec(cmd: 'crun state ${executor.container_id}', stdout: false) or {
+	result := osal.exec(cmd: executor.crun_cmd('state ${executor.container_id}'), stdout: false) or {
 		return error('Container ${executor.container_id} not found or not accessible')
 	}
 
@@ -41,7 +50,7 @@ pub fn (mut executor ExecutorCrun) exec(args_ ExecArgs) !string {
 		console.print_debug('execute in container ${executor.container_id}: ${args.cmd}')
 	}
 
-	mut cmd := 'crun exec ${executor.container_id} ${args.cmd}'
+	mut cmd := executor.crun_cmd('exec ${executor.container_id} ${args.cmd}')
 	if args.cmd.contains('\n') {
 		// For multiline commands, write to temp file first
 		temp_script := '/tmp/crun_script_${rand.uuid_v4()}.sh'
@@ -50,7 +59,7 @@ pub fn (mut executor ExecutorCrun) exec(args_ ExecArgs) !string {
 
 		// Copy script into container and execute
 		executor.file_write('/tmp/exec_script.sh', script_content)!
-		cmd = 'crun exec ${executor.container_id} bash /tmp/exec_script.sh'
+		cmd = executor.crun_cmd('exec ${executor.container_id} bash /tmp/exec_script.sh')
 	}
 
 	res := osal.exec(cmd: cmd, stdout: args.stdout, debug: executor.debug)!
@@ -66,7 +75,7 @@ pub fn (mut executor ExecutorCrun) exec_interactive(args_ ExecArgs) ! {
 		args.cmd = 'bash /tmp/interactive_script.sh'
 	}
 
-	cmd := 'crun exec -t ${executor.container_id} ${args.cmd}'
+	cmd := executor.crun_cmd('exec -t ${executor.container_id} ${args.cmd}')
 	console.print_debug(cmd)
 	osal.execute_interactive(cmd)!
 }
@@ -82,7 +91,8 @@ pub fn (mut executor ExecutorCrun) file_write(path string, text string) ! {
 	defer { os.rm(temp_file) or {} }
 
 	// Use crun exec to copy file content
-	cmd := 'cat ${temp_file} | crun exec -i ${executor.container_id} tee ${path} > /dev/null'
+	sbcmd := executor.crun_cmd('exec -i ${executor.container_id} tee ${path}')
+	cmd := 'cat ${temp_file} | ${sbcmd} > /dev/null'
 	osal.exec(cmd: cmd, stdout: false)!
 }
 

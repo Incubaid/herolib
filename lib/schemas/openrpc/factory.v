@@ -20,7 +20,7 @@ pub fn new(params Params) !OpenRPC {
 	}
 
 	text := if params.path != '' {
-		os.read_file(params.path)!
+		os.read_file(params.path) or { return error('Could not read openrpc spec file at ${params.path}: ${err}') }
 	} else {
 		params.text
 	}

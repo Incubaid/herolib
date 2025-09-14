@@ -194,11 +194,13 @@ fn main() {
 	// 1. Move a file to multiple directories (hard link-like behavior)
 	println('Moving logo.png to both images and docs directories...')
 	image_file = fs_factory.fs_file.get(image_file_id)!
-	image_file = fs_factory.fs_file.move(image_file_id, [images_dir_id, docs_dir_id])!
+	fs_factory.fs_file.move(image_file_id, [images_dir_id, docs_dir_id])!
+	image_file = fs_factory.fs_file.get(image_file_id)!
 	
 	// 2. Rename a file
 	println('Renaming main.v to app.v...')
-	code_file = fs_factory.fs_file.rename(code_file_id, 'app.v')!
+	fs_factory.fs_file.rename(code_file_id, 'app.v')!
+	code_file = fs_factory.fs_file.get(code_file_id)!
 	
 	// 3. Update file metadata
 	println('Updating file metadata...')

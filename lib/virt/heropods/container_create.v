@@ -2,10 +2,9 @@ module heropods
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.pathlib
+import freeflowuniverse.herolib.virt.crun
 import freeflowuniverse.herolib.installers.virt.herorunner as herorunner_installer
 import os
-import x.json2
 
 // Updated enum to be more flexible
 pub enum ContainerImageType {
@@ -27,7 +26,7 @@ pub:
 
 pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 	if args.name in self.containers && !args.reset {
-		return self.containers[args.name]
+		return self.containers[args.name] or { panic('bug: container should exist') }
 	}
 
 	// Determine image to use
@@ -67,8 +66,8 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 		return error('Image rootfs not found: ${rootfs_path}. Please ensure the image is available.')
 	}
 
-	// Create container config (with terminal disabled) but don't create the container yet
-	self.create_container_config(args.name, rootfs_path)!
+	// Create crun configuration using the crun module
+	mut crun_config := self.create_crun_config(args.name, rootfs_path)!
 
 	// Ensure crun is installed on host
 	if !osal.cmd_exists('crun') {
@@ -79,41 +78,45 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 	// Create container struct but don't create the actual container in crun yet
 	// The actual container creation will happen in container.start()
 	mut container := &Container{
-		name:    args.name
-		factory: &self
+		name:        args.name
+		crun_config: crun_config
+		factory:     &self
 	}
 
 	self.containers[args.name] = container
 	return container
 }
 
-// Create OCI config.json from template
-fn (self ContainerFactory) create_container_config(container_name string, rootfs_path string) ! {
+// Create crun configuration using the crun module
+fn (mut self ContainerFactory) create_crun_config(container_name string, rootfs_path string) !&crun.CrunConfig {
+	// Create crun configuration using the factory pattern
+	mut config := crun.new(mut self.crun_configs, name: container_name)!
+
+	// Configure for heropods use case - disable terminal for background containers
+	config.set_terminal(false)
+	config.set_command(['/bin/sh', '-c', 'while true; do sleep 30; done'])
+	config.set_working_dir('/')
+	config.set_user(0, 0, [])
+	config.add_env('PATH', '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin')
+	config.add_env('TERM', 'xterm')
+	config.set_rootfs(rootfs_path, false)
+	config.set_hostname('container')
+	config.set_no_new_privileges(true)
+
+	// Add the specific rlimit for file descriptors
+	config.add_rlimit(.rlimit_nofile, 1024, 1024)
+
+	// Validate the configuration
+	config.validate()!
+
+	// Create config directory and save JSON
 	config_dir := '${self.base_dir}/configs/${container_name}'
 	osal.exec(cmd: 'mkdir -p ${config_dir}', stdout: false)!
 
-	// Load template
-	mut config_content := $tmpl('config_template.json')
-
-	// Parse JSON with json2
-	mut root := json2.raw_decode(config_content)!
-	mut config := root.as_map()
-
-	// Get or create process map
-	mut process := if 'process' in config {
-		config['process'].as_map()
-	} else {
-		map[string]json2.Any{}
-	}
-
-	// Force disable terminal
-	process['terminal'] = json2.Any(false)
-	config['process'] = json2.Any(process)
-
-	// Write back to config.json
 	config_path := '${config_dir}/config.json'
-	mut p := pathlib.get_file(path: config_path, create: true)!
-	p.write(json2.encode_pretty(json2.Any(config)))!
+	config.save_to_file(config_path)!
+
+	return config
 }
 
 // Use podman to pull image and extract rootfs

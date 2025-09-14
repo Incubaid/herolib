@@ -3,7 +3,7 @@ module crun
 // OCI Runtime Spec structures that can be directly encoded to JSON
 pub struct Spec {
 pub mut:
-	oci_version string
+	oci_version string @[json: 'ociVersion']
 	platform    Platform
 	process     Process
 	root        Root
@@ -21,21 +21,21 @@ pub mut:
 
 pub struct Process {
 pub mut:
-	terminal             bool = true
-	user                 User
-	args                 []string
-	env                  []string
-	cwd                  string = '/'
-	capabilities         Capabilities
-	rlimits              []Rlimit
-	no_new_privileges    bool
+	terminal          bool = true
+	user              User
+	args              []string
+	env               []string
+	cwd               string = '/'
+	capabilities      Capabilities
+	rlimits           []Rlimit
+	no_new_privileges bool @[json: 'noNewPrivileges']
 }
 
 pub struct User {
 pub mut:
 	uid             u32
 	gid             u32
-	additional_gids []u32
+	additional_gids []u32 @[json: 'additionalGids']
 }
 
 pub struct Capabilities {
@@ -49,7 +49,7 @@ pub mut:
 
 pub struct Rlimit {
 pub mut:
-	typ  string
+	typ  string @[json: 'type']
 	hard u64
 	soft u64
 }
@@ -63,26 +63,26 @@ pub mut:
 pub struct Mount {
 pub mut:
 	destination string
-	typ         string
+	typ         string @[json: 'type']
 	source      string
 	options     []string
 }
 
 pub struct Linux {
 pub mut:
-	namespaces      []LinuxNamespace
-	resources       LinuxResources
-	devices         []LinuxDevice
-	masked_paths    []string
-	readonly_paths  []string
-	uid_mappings    []LinuxIDMapping
-	gid_mappings    []LinuxIDMapping
+	namespaces     []LinuxNamespace
+	resources      LinuxResources
+	devices        []LinuxDevice
+	masked_paths   []string         @[json: 'maskedPaths']
+	readonly_paths []string         @[json: 'readonlyPaths']
+	uid_mappings   []LinuxIDMapping @[json: 'uidMappings']
+	gid_mappings   []LinuxIDMapping @[json: 'gidMappings']
 }
 
 pub struct LinuxNamespace {
 pub mut:
-	typ  string
-	path string
+	typ  string @[json: 'type']
+	path string @[omitempty]
 }
 
 pub struct LinuxResources {
@@ -95,47 +95,47 @@ pub mut:
 
 pub struct Memory {
 pub mut:
-	limit       u64
-	reservation u64
-	swap        u64
-	kernel      u64
-	swappiness  i64
+	limit       u64 @[omitempty]
+	reservation u64 @[omitempty]
+	swap        u64 @[omitempty]
+	kernel      u64 @[omitempty]
+	swappiness  i64 @[omitempty]
 }
 
 pub struct CPU {
 pub mut:
-	shares u64
-	quota  i64
-	period u64
-	cpus   string
-	mems   string
+	shares u64    @[omitempty]
+	quota  i64    @[omitempty]
+	period u64    @[omitempty]
+	cpus   string @[omitempty]
+	mems   string @[omitempty]
 }
 
 pub struct Pids {
 pub mut:
-	limit i64
+	limit i64 @[omitempty]
 }
 
 pub struct BlockIO {
 pub mut:
-	weight u16
+	weight u16 @[omitempty]
 }
 
 pub struct LinuxDevice {
 pub mut:
-	path        string
-	typ         string
-	major       i64
-	minor       i64
-	file_mode   u32
-	uid         u32
-	gid         u32
+	path      string
+	typ       string @[json: 'type']
+	major     i64
+	minor     i64
+	file_mode u32 @[json: 'fileMode']
+	uid       u32
+	gid       u32
 }
 
 pub struct LinuxIDMapping {
 pub mut:
-	container_id u32
-	host_id      u32
+	container_id u32 @[json: 'containerID']
+	host_id      u32 @[json: 'hostID']
 	size         u32
 }
 
@@ -160,6 +160,8 @@ pub enum MountType {
 	proc
 	sysfs
 	devpts
+	mqueue
+	cgroup
 	nfs
 	overlay
 }

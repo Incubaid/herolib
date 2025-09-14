@@ -40,6 +40,38 @@ pub fn new_response(id int, result string) Response {
 	}
 }
 
+pub fn new_response_true(id int) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  'true'
+		id:      id
+	}
+}
+
+pub fn new_response_false(id int) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  'false'
+		id:      id
+	}
+}
+
+pub fn new_response_int(id int, result int) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  result.str()
+		id:      id
+	}
+}
+
+pub fn new_response_u32(id int, result u32) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  result.str()
+		id:      id
+	}
+}
+
 // new_error_response creates an error JSON-RPC response with the given error object.
 //
 // Parameters:
@@ -65,7 +97,9 @@ pub fn new_error_response(id int, error RPCError) Response {
 // Returns:
 //   - A Response object or an error if parsing fails or the response is invalid
 pub fn decode_response(data string) !Response {
-	raw := json2.raw_decode(data) or { return error('Failed to decode JSONRPC response ${data}\n${err}') }
+	raw := json2.raw_decode(data) or {
+		return error('Failed to decode JSONRPC response ${data}\n${err}')
+	}
 	raw_map := raw.as_map()
 
 	// Validate that the response contains either result or error, but not both or neither
