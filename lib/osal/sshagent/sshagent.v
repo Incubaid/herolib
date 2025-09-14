@@ -62,8 +62,8 @@ pub fn (mut agent SSHAgent) is_agent_responsive() bool {
 pub fn (mut agent SSHAgent) cleanup_orphaned_agents() ! {
 	user := os.getenv('USER')
 
-	// Find ssh-agent processes for current user
-	res := os.execute('pgrep -u ${user} ssh-agent')
+	// Find ssh-agent processes for current user (limit to prevent memory issues)
+	res := os.execute('pgrep -u ${user} ssh-agent | head -20')
 	if res.exit_code == 0 && res.output.len > 0 {
 		pids := res.output.trim_space().split('\n')
 
@@ -82,8 +82,8 @@ pub fn (mut agent SSHAgent) cleanup_orphaned_agents() ! {
 
 // check if specific agent PID is valid and responsive
 fn (mut agent SSHAgent) is_agent_pid_valid(pid int) bool {
-	// Try to find socket for this PID
-	res := os.execute('find /tmp -name "agent.*" -user ${os.getenv('USER')} 2>/dev/null | head -10')
+	// Try to find socket for this PID (limit output to prevent memory issues)
+	res := os.execute('find /tmp -maxdepth 1 -name "agent.*" -user ${os.getenv('USER')} 2>/dev/null | head -5')
 	if res.exit_code != 0 {
 		return false
 	}
@@ -154,9 +154,9 @@ pub fn (mut agent SSHAgent) diagnostics() map[string]string {
 
 // get all keys from sshagent and from the local .ssh dir
 pub fn (mut agent SSHAgent) init() ! {
-	// first get keys out of ssh-add
+	// first get keys out of ssh-add (limit output to prevent memory issues)
 	agent.keys = []SSHKey{}
-	res := os.execute('ssh-add -L')
+	res := os.execute('ssh-add -L | head -100')
 	if res.exit_code == 0 {
 		for line in res.output.split('\n') {
 			if line.trim(' ') == '' {
