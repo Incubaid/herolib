@@ -66,9 +66,3 @@ pub fn comment_list(request jsonrpc.Request) !jsonrpc.Response {
 	
 	return jsonrpc.new_response(request.id, json.encode(comments))
 }
-
-pub fn calendar_get(request jsonrpc.Request) !jsonrpc.Response {
-	payload := jsonrpc.decode_payload[u32](request.params) or { return jsonrpc.invalid_params }
-	result := heromodels.get[heromodels.Calendar](payload) or { return jsonrpc.internal_error }
-	return jsonrpc.new_response(request.id, json.encode(result))
-}

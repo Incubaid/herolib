@@ -20,6 +20,11 @@ pub mut:
 	socket_path string = '/tmp/heromodels'
 }
 
+pub fn start_unix_server(handler Handler, params UNIXServerParams) ! {
+	mut server := new_unix_server(handler, params)!
+	server.start()!
+}
+
 pub fn new_unix_server(handler Handler, params UNIXServerParams) !&UNIXServer {
 	// Remove existing socket file if it exists
 	if os.exists(params.socket_path) {
