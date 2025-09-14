@@ -13,7 +13,7 @@ println('=== HeroPods Refactored API Demo ===')
 // Step 1: factory.new() now only creates a container definition/handle
 // It does NOT create the actual container in the backend yet
 mut container := factory.new(
-	name:              'myalpine'
+	name:              'demo_alpine'
 	image:             .custom
 	custom_image_name: 'alpine_3_20'
 	docker_url:        'docker.io/library/alpine:3.20'

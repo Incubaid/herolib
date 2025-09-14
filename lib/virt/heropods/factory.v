@@ -2,7 +2,7 @@ module heropods
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.core as osal
-import time
+import freeflowuniverse.herolib.virt.crun
 import os
 
 @[heap]
@@ -11,6 +11,7 @@ pub mut:
 	tmux_session string
 	containers   map[string]&Container
 	images       map[string]&ContainerImage
+	crun_configs map[string]&crun.CrunConfig
 	base_dir     string
 }
 
@@ -43,6 +44,11 @@ fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 		} else {
 			console.print_debug('Using podman for image management')
 		}
+	}
+
+	// Clean up any leftover crun state if reset is requested
+	if args.reset {
+		self.cleanup_crun_state()!
 	}
 
 	// Load existing images into cache
@@ -104,7 +110,7 @@ pub fn (mut self ContainerFactory) get(args ContainerNewArgs) !&Container {
 	if args.name !in self.containers {
 		return error('Container "${args.name}" does not exist. Use factory.new() to create it first.')
 	}
-	return self.containers[args.name]
+	return self.containers[args.name] or { panic('bug: container should exist') }
 }
 
 // Get image by name
@@ -112,7 +118,7 @@ pub fn (mut self ContainerFactory) image_get(name string) !&ContainerImage {
 	if name !in self.images {
 		return error('Image "${name}" not found in cache. Try importing or downloading it.')
 	}
-	return self.images[name]
+	return self.images[name] or { panic('bug: image should exist') }
 }
 
 // List all containers currently managed by crun
@@ -135,4 +141,35 @@ pub fn (self ContainerFactory) list() ![]Container {
 		}
 	}
 	return containers
+}
+
+// Clean up any leftover crun state
+fn (mut self ContainerFactory) cleanup_crun_state() ! {
+	console.print_debug('Cleaning up leftover crun state...')
+	crun_root := '${self.base_dir}/runtime'
+
+	// Stop and delete all containers in our custom root
+	result := osal.exec(cmd: 'crun --root ${crun_root} list -q', stdout: false) or { return }
+
+	for container_name in result.output.split_into_lines() {
+		if container_name.trim_space() != '' {
+			console.print_debug('Cleaning up container: ${container_name}')
+			osal.exec(cmd: 'crun --root ${crun_root} kill ${container_name} SIGKILL', stdout: false) or {}
+			osal.exec(cmd: 'crun --root ${crun_root} delete ${container_name}', stdout: false) or {}
+		}
+	}
+
+	// Also clean up any containers in the default root that might be ours
+	result2 := osal.exec(cmd: 'crun list -q', stdout: false) or { return }
+	for container_name in result2.output.split_into_lines() {
+		if container_name.trim_space() != '' && container_name in self.containers {
+			console.print_debug('Cleaning up container from default root: ${container_name}')
+			osal.exec(cmd: 'crun kill ${container_name} SIGKILL', stdout: false) or {}
+			osal.exec(cmd: 'crun delete ${container_name}', stdout: false) or {}
+		}
+	}
+
+	// Clean up runtime directories
+	osal.exec(cmd: 'rm -rf ${crun_root}/*', stdout: false) or {}
+	osal.exec(cmd: 'find /run/crun -name "*" -type d -exec rm -rf {} + 2>/dev/null', stdout: false) or {}
 }
