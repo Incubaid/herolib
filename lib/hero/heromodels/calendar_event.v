@@ -80,7 +80,31 @@ pub fn (self CalendarEvent) type_name() string {
 	return 'calendar_event'
 }
 
-pub fn (self CalendarEvent) dump(mut e &encoder.Encoder) ! {
+// return example rpc call and result for each methodname
+pub fn (self CalendarEvent) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_i64(self.start_time)
 	e.add_i64(self.end_time)
@@ -108,7 +132,7 @@ pub fn (self CalendarEvent) dump(mut e &encoder.Encoder) ! {
 	e.add_string(self.timezone)
 }
 
-fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e &encoder.Decoder) ! {
+fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) ! {
 	o.title = e.get_string()!
 	o.start_time = e.get_i64()!
 	o.end_time = e.get_i64()!
@@ -116,7 +140,7 @@ fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e &encoder.Decoder) 
 	o.attendees = e.get_list_u32()!
 	o.fs_items = e.get_list_u32()!
 	o.calendar_id = e.get_u32()!
-	o.status = unsafe { EventStatus(e.get_u8()!) } //TODO: is there no better way?
+	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
 	o.is_all_day = e.get_bool()!
 	o.is_recurring = e.get_bool()!
 

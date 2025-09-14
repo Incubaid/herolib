@@ -26,13 +26,37 @@ pub fn (self Comment) type_name() string {
 	return 'comments'
 }
 
-pub fn (self Comment) dump(mut e &encoder.Encoder) ! {
+// return example rpc call and result for each methodname
+pub fn (self Comment) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"comment": {"comment": "This is a test comment.", "parent": 0, "author": 1}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"comment": "This is a test comment.", "parent": 0, "author": 1}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"comment": "This is a test comment.", "parent": 0, "author": 1}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn (self Comment) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.comment)
 	e.add_u32(self.parent)
 	e.add_u32(self.author)
 }
 
-fn (mut self DBComments) load(mut o Comment, mut e &encoder.Decoder) ! {
+fn (mut self DBComments) load(mut o Comment, mut e encoder.Decoder) ! {
 	o.comment = e.get_string()!
 	o.parent = e.get_u32()!
 	o.author = e.get_u32()!

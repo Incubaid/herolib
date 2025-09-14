@@ -30,7 +30,55 @@ pub fn (self User) type_name() string {
 	return 'user'
 }
 
-pub fn (self User) dump(mut e &encoder.Encoder) ! {
+// return example rpc call and result for each methodname
+pub fn (self User) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a user. Returns the ID of the user.'
+		}
+		'get' {
+			return 'Retrieve a user by ID. Returns the user object.'
+		}
+		'delete' {
+			return 'Delete a user by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a user exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all users. Returns an array of user objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
+
+// return example rpc call and result for each methodname
+pub fn (self User) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"user": {"name": "John Doe", "description": "A test user", "email": "john.doe@example.com", "public_key": "some_public_key", "phone": "123-456-7890", "address": "123 Main St", "avatar_url": "https://example.com/avatar.jpg", "bio": "Software Engineer", "timezone": "UTC", "status": "active"}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"name": "John Doe", "description": "A test user", "email": "john.doe@example.com", "public_key": "some_public_key", "phone": "123-456-7890", "address": "123 Main St", "avatar_url": "https://example.com/avatar.jpg", "bio": "Software Engineer", "timezone": "UTC", "status": "active"}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"name": "John Doe", "description": "A test user", "email": "john.doe@example.com", "public_key": "some_public_key", "phone": "123-456-7890", "address": "123 Main St", "avatar_url": "https://example.com/avatar.jpg", "bio": "Software Engineer", "timezone": "UTC", "status": "active"}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn (self User) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.email)
 	e.add_string(self.public_key)
 	e.add_string(self.phone)
@@ -41,7 +89,7 @@ pub fn (self User) dump(mut e &encoder.Encoder) ! {
 	e.add_u8(u8(self.status))
 }
 
-fn (mut self DBUser) load(mut o User, mut e &encoder.Decoder) ! {
+fn (mut self DBUser) load(mut o User, mut e encoder.Decoder) ! {
 	o.email = e.get_string()!
 	o.public_key = e.get_string()!
 	o.phone = e.get_string()!
@@ -55,19 +103,19 @@ fn (mut self DBUser) load(mut o User, mut e &encoder.Decoder) ! {
 @[params]
 pub struct UserArg {
 pub mut:
-	name       string @[required]
-	description string
-	email      string
-	public_key string // for encryption/signing
-	phone      string
-	address    string
-	avatar_url string
-	bio        string
-	timezone   string
-	status     UserStatus
+	name           string @[required]
+	description    string
+	email          string
+	public_key     string // for encryption/signing
+	phone          string
+	address        string
+	avatar_url     string
+	bio            string
+	timezone       string
+	status         UserStatus
 	securitypolicy u32
-	tags       u32
-	comments   []u32
+	tags           u32
+	comments       []u32
 }
 
 pub struct DBUser {

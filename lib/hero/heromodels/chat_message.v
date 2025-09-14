@@ -10,10 +10,10 @@ pub struct ChatMessage {
 	db.Base
 pub mut:
 	content         string
-	chat_group_id   u32        // Associated chat group
-	sender_id       u32        // User ID of sender
+	chat_group_id   u32           // Associated chat group
+	sender_id       u32           // User ID of sender
 	parent_messages []MessageLink // Referenced/replied messages
-	fs_files        []u32      // IDs of linked files
+	fs_files        []u32         // IDs of linked files
 	message_type    MessageType
 	status          MessageStatus
 	reactions       []MessageReaction
@@ -67,7 +67,31 @@ pub fn (self ChatMessage) type_name() string {
 	return 'chat_message'
 }
 
-pub fn (self ChatMessage) dump(mut e &encoder.Encoder) ! {
+// return example rpc call and result for each methodname
+pub fn (self ChatMessage) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"chat_message": {"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn (self ChatMessage) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.content)
 	e.add_u32(self.chat_group_id)
 	e.add_u32(self.sender_id)
@@ -94,7 +118,7 @@ pub fn (self ChatMessage) dump(mut e &encoder.Encoder) ! {
 	e.add_list_u32(self.mentions)
 }
 
-fn (mut self DBChatMessage) load(mut o ChatMessage, mut e &encoder.Decoder) ! {
+fn (mut self DBChatMessage) load(mut o ChatMessage, mut e encoder.Decoder) ! {
 	o.content = e.get_string()!
 	o.chat_group_id = e.get_u32()!
 	o.sender_id = e.get_u32()!
@@ -137,20 +161,20 @@ fn (mut self DBChatMessage) load(mut o ChatMessage, mut e &encoder.Decoder) ! {
 @[params]
 pub struct ChatMessageArg {
 pub mut:
-	name           string
-	description    string
-	content        string
-	chat_group_id  u32
-	sender_id      u32
+	name            string
+	description     string
+	content         string
+	chat_group_id   u32
+	sender_id       u32
 	parent_messages []MessageLink
-	fs_files       []u32
-	message_type   MessageType
-	status         MessageStatus
-	reactions      []MessageReaction
-	mentions       []u32
-	securitypolicy u32
-	tags           []string
-	comments       []db.CommentArg
+	fs_files        []u32
+	message_type    MessageType
+	status          MessageStatus
+	reactions       []MessageReaction
+	mentions        []u32
+	securitypolicy  u32
+	tags            []string
+	comments        []db.CommentArg
 }
 
 // get new chat message, not from the DB

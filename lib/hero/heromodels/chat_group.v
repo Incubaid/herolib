@@ -30,13 +30,37 @@ pub fn (self ChatGroup) type_name() string {
 	return 'chat_group'
 }
 
-pub fn (self ChatGroup) dump(mut e &encoder.Encoder) ! {
+// return example rpc call and result for each methodname
+pub fn (self ChatGroup) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"chat_group": {"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn (self ChatGroup) dump(mut e encoder.Encoder) ! {
 	e.add_u8(u8(self.chat_type))
 	e.add_i64(self.last_activity)
 	e.add_bool(self.is_archived)
 }
 
-fn (mut self DBChatGroup) load(mut o ChatGroup, mut e &encoder.Decoder) ! {
+fn (mut self DBChatGroup) load(mut o ChatGroup, mut e encoder.Decoder) ! {
 	o.chat_type = unsafe { ChatType(e.get_u8()!) }
 	o.last_activity = e.get_i64()!
 	o.is_archived = e.get_bool()!
