@@ -109,15 +109,15 @@ pub fn (mut self DBFsSymlink) set(o FsSymlink) !u32 {
 	path_key := '${o.parent_id}:${o.name}'
 	self.db.redis.hset('fssymlink:paths', path_key, id.str())!
 	
-	// Add to parent's symlinks list
-	self.db.redis.sadd('fssymlink:parent:${o.parent_id}', id.str())!
+	// Add to parent's symlinks list using hset
+	self.db.redis.hset('fssymlink:parent:${o.parent_id}', id.str(), id.str())!
 	
-	// Store in filesystem's symlink list
-	self.db.redis.sadd('fssymlink:fs:${o.fs_id}', id.str())!
+	// Store in filesystem's symlink list using hset
+	self.db.redis.hset('fssymlink:fs:${o.fs_id}', id.str(), id.str())!
 	
-	// Store in target's referrers list
+	// Store in target's referrers list using hset
 	target_key := '${o.target_type}:${o.target_id}'
-	self.db.redis.sadd('fssymlink:target:${target_key}', id.str())!
+	self.db.redis.hset('fssymlink:target:${target_key}', id.str(), id.str())!
 	
 	return id
 }
@@ -130,15 +130,15 @@ pub fn (mut self DBFsSymlink) delete(id u32) ! {
 	path_key := '${symlink.parent_id}:${symlink.name}'
 	self.db.redis.hdel('fssymlink:paths', path_key)!
 	
-	// Remove from parent's symlinks list
-	self.db.redis.srem('fssymlink:parent:${symlink.parent_id}', id.str())!
+	// Remove from parent's symlinks list using hdel
+	self.db.redis.hdel('fssymlink:parent:${symlink.parent_id}', id.str())!
 	
-	// Remove from filesystem's symlink list
-	self.db.redis.srem('fssymlink:fs:${symlink.fs_id}', id.str())!
+	// Remove from filesystem's symlink list using hdel
+	self.db.redis.hdel('fssymlink:fs:${symlink.fs_id}', id.str())!
 	
-	// Remove from target's referrers list
+	// Remove from target's referrers list using hdel
 	target_key := '${symlink.target_type}:${symlink.target_id}'
-	self.db.redis.srem('fssymlink:target:${target_key}', id.str())!
+	self.db.redis.hdel('fssymlink:target:${target_key}', id.str())!
 	
 	// Delete the symlink itself
 	self.db.delete[FsSymlink](id)!
@@ -171,7 +171,7 @@ pub fn (mut self DBFsSymlink) get_by_path(parent_id u32, name string) !FsSymlink
 
 // List symlinks in a parent directory
 pub fn (mut self DBFsSymlink) list_by_parent(parent_id u32) ![]FsSymlink {
-	symlink_ids := self.db.redis.smembers('fssymlink:parent:${parent_id}')!
+	symlink_ids := self.db.redis.hkeys('fssymlink:parent:${parent_id}')!
 	mut symlinks := []FsSymlink{}
 	for id_str in symlink_ids {
 		symlinks << self.get(id_str.u32())!
@@ -181,7 +181,7 @@ pub fn (mut self DBFsSymlink) list_by_parent(parent_id u32) ![]FsSymlink {
 
 // List symlinks in a filesystem
 pub fn (mut self DBFsSymlink) list_by_filesystem(fs_id u32) ![]FsSymlink {
-	symlink_ids := self.db.redis.smembers('fssymlink:fs:${fs_id}')!
+	symlink_ids := self.db.redis.hkeys('fssymlink:fs:${fs_id}')!
 	mut symlinks := []FsSymlink{}
 	for id_str in symlink_ids {
 		symlinks << self.get(id_str.u32())!
@@ -192,7 +192,7 @@ pub fn (mut self DBFsSymlink) list_by_filesystem(fs_id u32) ![]FsSymlink {
 // List symlinks pointing to a target
 pub fn (mut self DBFsSymlink) list_by_target(target_type SymlinkTargetType, target_id u32) ![]FsSymlink {
 	target_key := '${target_type}:${target_id}'
-	symlink_ids := self.db.redis.smembers('fssymlink:target:${target_key}')!
+	symlink_ids := self.db.redis.hkeys('fssymlink:target:${target_key}')!
 	mut symlinks := []FsSymlink{}
 	for id_str in symlink_ids {
 		symlinks << self.get(id_str.u32())!
@@ -231,8 +231,8 @@ pub fn (mut self DBFsSymlink) move(id u32, new_parent_id u32) !u32 {
 	old_path_key := '${symlink.parent_id}:${symlink.name}'
 	self.db.redis.hdel('fssymlink:paths', old_path_key)!
 	
-	// Remove from old parent's symlinks list
-	self.db.redis.srem('fssymlink:parent:${symlink.parent_id}', id.str())!
+	// Remove from old parent's symlinks list using hdel
+	self.db.redis.hdel('fssymlink:parent:${symlink.parent_id}', id.str())!
 	
 	// Update parent
 	symlink.parent_id = new_parent_id
@@ -260,7 +260,7 @@ pub fn (mut self DBFsSymlink) redirect(id u32, new_target_id u32, new_target_typ
 	
 	// Remove from old target's referrers list
 	old_target_key := '${symlink.target_type}:${symlink.target_id}'
-	self.db.redis.srem('fssymlink:target:${old_target_key}', id.str())!
+	self.db.redis.hdel('fssymlink:target:${old_target_key}', id.str())!
 	
 	// Update target
 	symlink.target_id = new_target_id

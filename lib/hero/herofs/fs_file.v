@@ -181,16 +181,16 @@ pub fn (mut self DBFsFile) set(o FsFile) !u32 {
 		path_key := '${dir_id}:${o.name}'
 		self.db.redis.hset('fsfile:paths', path_key, id.str())!
 		
-		// Add to directory's file list
-		self.db.redis.sadd('fsfile:dir:${dir_id}', id.str())!
+		// Add to directory's file list using hset
+		self.db.redis.hset('fsfile:dir:${dir_id}', id.str(), id.str())!
 	}
 	
-	// Store in filesystem's file list
-	self.db.redis.sadd('fsfile:fs:${o.fs_id}', id.str())!
+	// Store in filesystem's file list using hset
+	self.db.redis.hset('fsfile:fs:${o.fs_id}', id.str(), id.str())!
 	
-	// Store by mimetype
+	// Store by mimetype using hset
 	if o.mime_type != '' {
-		self.db.redis.sadd('fsfile:mime:${o.mime_type}', id.str())!
+		self.db.redis.hset('fsfile:mime:${o.mime_type}', id.str(), id.str())!
 	}
 	
 	return id
@@ -206,16 +206,16 @@ pub fn (mut self DBFsFile) delete(id u32) ! {
 		path_key := '${dir_id}:${file.name}'
 		self.db.redis.hdel('fsfile:paths', path_key)!
 		
-		// Remove from directory's file list
-		self.db.redis.srem('fsfile:dir:${dir_id}', id.str())!
+		// Remove from directory's file list using hdel
+		self.db.redis.hdel('fsfile:dir:${dir_id}', id.str())!
 	}
 	
-	// Remove from filesystem's file list
-	self.db.redis.srem('fsfile:fs:${file.fs_id}', id.str())!
+	// Remove from filesystem's file list using hdel
+	self.db.redis.hdel('fsfile:fs:${file.fs_id}', id.str())!
 	
-	// Remove from mimetype index
+	// Remove from mimetype index using hdel
 	if file.mime_type != '' {
-		self.db.redis.srem('fsfile:mime:${file.mime_type}', id.str())!
+		self.db.redis.hdel('fsfile:mime:${file.mime_type}', id.str())!
 	}
 	
 	// Delete the file itself
@@ -249,7 +249,7 @@ pub fn (mut self DBFsFile) get_by_path(dir_id u32, name string) !FsFile {
 
 // List files in a directory
 pub fn (mut self DBFsFile) list_by_directory(dir_id u32) ![]FsFile {
-	file_ids := self.db.redis.smembers('fsfile:dir:${dir_id}')!
+	file_ids := self.db.redis.hkeys('fsfile:dir:${dir_id}')!
 	mut files := []FsFile{}
 	for id_str in file_ids {
 		files << self.get(id_str.u32())!
@@ -259,7 +259,7 @@ pub fn (mut self DBFsFile) list_by_directory(dir_id u32) ![]FsFile {
 
 // List files in a filesystem
 pub fn (mut self DBFsFile) list_by_filesystem(fs_id u32) ![]FsFile {
-	file_ids := self.db.redis.smembers('fsfile:fs:${fs_id}')!
+	file_ids := self.db.redis.hkeys('fsfile:fs:${fs_id}')!
 	mut files := []FsFile{}
 	for id_str in file_ids {
 		files << self.get(id_str.u32())!
@@ -269,7 +269,7 @@ pub fn (mut self DBFsFile) list_by_filesystem(fs_id u32) ![]FsFile {
 
 // List files by mime type
 pub fn (mut self DBFsFile) list_by_mime_type(mime_type string) ![]FsFile {
-	file_ids := self.db.redis.smembers('fsfile:mime:${mime_type}')!
+	file_ids := self.db.redis.hkeys('fsfile:mime:${mime_type}')!
 	mut files := []FsFile{}
 	for id_str in file_ids {
 		files << self.get(id_str.u32())!
@@ -358,7 +358,7 @@ pub fn (mut self DBFsFile) move(id u32, new_directories []u32) !u32 {
 	for dir_id in file.directories {
 		path_key := '${dir_id}:${file.name}'
 		self.db.redis.hdel('fsfile:paths', path_key)!
-		self.db.redis.srem('fsfile:dir:${dir_id}', id.str())!
+		self.db.redis.hdel('fsfile:dir:${dir_id}', id.str())!
 	}
 	
 	// Update directories

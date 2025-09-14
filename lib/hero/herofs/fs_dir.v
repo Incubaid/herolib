@@ -75,12 +75,12 @@ pub fn (mut self DBFsDir) set(o FsDir) !u32 {
 	path_key := '${o.fs_id}:${o.parent_id}:${o.name}'
 	self.db.redis.hset('fsdir:paths', path_key, id.str())!
 	
-	// Store in filesystem's directory list
-	self.db.redis.sadd('fsdir:fs:${o.fs_id}', id.str())!
+	// Store in filesystem's directory list using hset
+	self.db.redis.hset('fsdir:fs:${o.fs_id}', id.str(), id.str())!
 	
-	// Store in parent's children list
+	// Store in parent's children list using hset
 	if o.parent_id > 0 {
-		self.db.redis.sadd('fsdir:children:${o.parent_id}', id.str())!
+		self.db.redis.hset('fsdir:children:${o.parent_id}', id.str(), id.str())!
 	}
 	
 	return id
@@ -90,8 +90,8 @@ pub fn (mut self DBFsDir) delete(id u32) ! {
 	// Get the directory info before deleting
 	dir := self.get(id)!
 	
-	// Check if directory has children
-	children := self.db.redis.smembers('fsdir:children:${id}')!
+	// Check if directory has children using hkeys
+	children := self.db.redis.hkeys('fsdir:children:${id}')!
 	if children.len > 0 {
 		return error('Cannot delete directory ${dir.name} (ID: ${id}) because it has ${children.len} children')
 	}
@@ -100,12 +100,12 @@ pub fn (mut self DBFsDir) delete(id u32) ! {
 	path_key := '${dir.fs_id}:${dir.parent_id}:${dir.name}'
 	self.db.redis.hdel('fsdir:paths', path_key)!
 	
-	// Remove from filesystem's directory list
-	self.db.redis.srem('fsdir:fs:${dir.fs_id}', id.str())!
+	// Remove from filesystem's directory list using hdel
+	self.db.redis.hdel('fsdir:fs:${dir.fs_id}', id.str())!
 	
-	// Remove from parent's children list
+	// Remove from parent's children list using hdel
 	if dir.parent_id > 0 {
-		self.db.redis.srem('fsdir:children:${dir.parent_id}', id.str())!
+		self.db.redis.hdel('fsdir:children:${dir.parent_id}', id.str())!
 	}
 	
 	// Delete the directory itself
@@ -139,7 +139,7 @@ pub fn (mut self DBFsDir) get_by_path(fs_id u32, parent_id u32, name string) !Fs
 
 // Get all directories in a filesystem
 pub fn (mut self DBFsDir) list_by_filesystem(fs_id u32) ![]FsDir {
-	dir_ids := self.db.redis.smembers('fsdir:fs:${fs_id}')!
+	dir_ids := self.db.redis.hkeys('fsdir:fs:${fs_id}')!
 	mut dirs := []FsDir{}
 	for id_str in dir_ids {
 		dirs << self.get(id_str.u32())!
@@ -149,7 +149,7 @@ pub fn (mut self DBFsDir) list_by_filesystem(fs_id u32) ![]FsDir {
 
 // Get children of a directory
 pub fn (mut self DBFsDir) list_children(dir_id u32) ![]FsDir {
-	child_ids := self.db.redis.smembers('fsdir:children:${dir_id}')!
+	child_ids := self.db.redis.hkeys('fsdir:children:${dir_id}')!
 	mut dirs := []FsDir{}
 	for id_str in child_ids {
 		dirs << self.get(id_str.u32())!
@@ -159,8 +159,8 @@ pub fn (mut self DBFsDir) list_children(dir_id u32) ![]FsDir {
 
 // Check if a directory has children
 pub fn (mut self DBFsDir) has_children(dir_id u32) !bool {
-	count := self.db.redis.scard('fsdir:children:${dir_id}')!
-	return count > 0
+	keys := self.db.redis.hkeys('fsdir:children:${dir_id}')!
+	return keys.len > 0
 }
 
 // Rename a directory
@@ -196,7 +196,7 @@ pub fn (mut self DBFsDir) move(id u32, new_parent_id u32) !u32 {
 	
 	// Remove from old parent's children list
 	if dir.parent_id > 0 {
-		self.db.redis.srem('fsdir:children:${dir.parent_id}', id.str())!
+		self.db.redis.hdel('fsdir:children:${dir.parent_id}', id.str())!
 	}
 	
 	// Update parent
