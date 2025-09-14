@@ -25,6 +25,16 @@ curl -s http://localhost:9933/ \
 
 ```
 
+rpc discovery:
+
+```bash
+curl -s http://localhost:9933/ \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"rpc.discover","params":[],"id":99}' | jq .
+```
+
+
+
 ## unix socket based RPC server
 
 ```bash
