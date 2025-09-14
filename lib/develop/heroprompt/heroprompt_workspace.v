@@ -26,12 +26,13 @@ pub fn (mut wsp Workspace) add_dir(args AddDirParams) !HeropromptChild {
 		return error('the directory path is required')
 	}
 
-	if !os.exists(args.path) || !os.is_dir(args.path) {
+	mut dir_path := pathlib.get(args.path)
+	if !dir_path.exists() || !dir_path.is_dir() {
 		return error('path is not an existing directory: ${args.path}')
 	}
 
-	abs_path := os.real_path(args.path)
-	name := os.base(abs_path)
+	abs_path := dir_path.realpath()
+	name := dir_path.name()
 
 	for child in wsp.children {
 		if child.path.cat == .dir && child.path.path == abs_path {
@@ -59,12 +60,13 @@ pub fn (mut wsp Workspace) add_file(args AddFileParams) !HeropromptChild {
 		return error('The file path is required')
 	}
 
-	if !os.exists(args.path) || !os.is_file(args.path) {
+	mut file_path := pathlib.get(args.path)
+	if !file_path.exists() || !file_path.is_file() {
 		return error('Path is not an existing file: ${args.path}')
 	}
 
-	abs_path := os.real_path(args.path)
-	name := os.base(abs_path)
+	abs_path := file_path.realpath()
+	name := file_path.name()
 
 	for child in wsp.children {
 		if child.path.cat == .file && child.name == name {
@@ -76,7 +78,7 @@ pub fn (mut wsp Workspace) add_file(args AddFileParams) !HeropromptChild {
 		}
 	}
 
-	content := os.read_file(abs_path) or { '' }
+	content := file_path.read() or { '' }
 	mut ch := HeropromptChild{
 		path:    pathlib.Path{
 			path:  abs_path
@@ -110,7 +112,7 @@ pub fn (mut wsp Workspace) remove_dir(args RemoveParams) ! {
 		if ch.path.cat != .dir {
 			continue
 		}
-		if args.path.len > 0 && os.real_path(args.path) == ch.path.path {
+		if args.path.len > 0 && pathlib.get(args.path).realpath() == ch.path.path {
 			idxs << i
 			continue
 		}
@@ -139,7 +141,7 @@ pub fn (mut wsp Workspace) remove_file(args RemoveParams) ! {
 		if ch.path.cat != .file {
 			continue
 		}
-		if args.path.len > 0 && os.real_path(args.path) == ch.path.path {
+		if args.path.len > 0 && pathlib.get(args.path).realpath() == ch.path.path {
 			idxs << i
 			continue
 		}
@@ -252,8 +254,9 @@ fn (wsp Workspace) build_file_content() !string {
 			content += '${ch.path.path}\n'
 			ext := get_file_extension(ch.name)
 			if ch.content.len == 0 {
-				// read on demand
-				ch_content := os.read_file(ch.path.path) or { '' }
+				// read on demand using pathlib
+				mut file_path := pathlib.get(ch.path.path)
+				ch_content := file_path.read() or { '' }
 				if ch_content.len == 0 {
 					content += '(Empty file)\n'
 				} else {

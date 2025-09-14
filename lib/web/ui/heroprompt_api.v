@@ -1,10 +1,11 @@
 module ui
 
 import veb
-import os
 import json
 import freeflowuniverse.herolib.develop.heroprompt as hp
 import freeflowuniverse.herolib.develop.codewalker
+import freeflowuniverse.herolib.core.pathlib
+import os
 
 // ============================================================================
 // Types and Structures
@@ -38,11 +39,8 @@ struct RecursiveListResponse {
 // ============================================================================
 
 fn expand_home_path(path string) string {
-	if path.starts_with('~') {
-		home := os.home_dir()
-		return os.join_path(home, path.all_after('~'))
-	}
-	return path
+	mut p := pathlib.get(path)
+	return p.absolute()
 }
 
 fn json_error(message string) string {

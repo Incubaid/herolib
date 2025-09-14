@@ -1,7 +1,6 @@
 module heroprompt
 
 import freeflowuniverse.herolib.core.pathlib
-import os
 
 pub struct HeropromptChild {
 pub mut:
@@ -61,6 +60,7 @@ pub fn (chl HeropromptChild) read() !string {
 	if chl.path.cat != .file {
 		return error('cannot read content of a directory')
 	}
-	content := os.read_file(chl.path.path)!
+	mut file_path := pathlib.get(chl.path.path)
+	content := file_path.read()!
 	return content
 }

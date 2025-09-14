@@ -1,18 +1,17 @@
 #!/usr/bin/env -S v -n -w -gc none -cg -cc tcc -d use_openssl -enable-globals run
 
 import freeflowuniverse.herolib.develop.heroprompt
+import freeflowuniverse.herolib.develop.codewalker
+import freeflowuniverse.herolib.core.pathlib
 import os
 
-// mut workspace := heroprompt.new(
-// 	path: '${os.home_dir()}/code/github/freeflowuniverse/herolib'
-// 	name: 'workspace'
-// )!
-
+// Comprehensive example demonstrating heroprompt with codewalker integration
 mut workspace := heroprompt.get(
-	name:   ''
-	path:   '${os.home_dir()}/code/github/freeflowuniverse/herolib'
+	name:   'hero'
 	create: true
 )!
+
+println(workspace)
 
 // println('workspace (initial): ${workspace}')
 // workspace.delete_workspace()!

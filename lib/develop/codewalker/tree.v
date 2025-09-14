@@ -299,3 +299,72 @@ pub fn build_file_tree_selected(files []string, base_root string) string {
 	rels.sort()
 	return tree_from_rel_paths(rels, '')
 }
+
+// SearchResult represents a search result item
+pub struct SearchResult {
+pub:
+	name      string // filename
+	path      string // relative path from base
+	full_path string // absolute path
+	typ       string // 'file' or 'directory'
+}
+
+// search_files searches for files and directories matching a query string
+// - base_path: the root directory to search from
+// - query: the search query (case-insensitive substring match)
+// - ignore_matcher: optional ignore matcher to filter results (can be null)
+// Returns a list of SearchResult items
+pub fn search_files(base_path string, query string, ignore_matcher &IgnoreMatcher) ![]SearchResult {
+	if query.len == 0 {
+		return []SearchResult{}
+	}
+
+	query_lower := query.to_lower()
+	mut results := []SearchResult{}
+
+	search_directory_recursive(base_path, base_path, query_lower, ignore_matcher, mut
+		results)!
+
+	return results
+}
+
+// search_directory_recursive recursively searches directories for matching files
+fn search_directory_recursive(dir_path string, base_path string, query_lower string, ignore_matcher &IgnoreMatcher, mut results []SearchResult) ! {
+	entries := os.ls(dir_path) or { return }
+
+	for entry in entries {
+		full_path := os.join_path(dir_path, entry)
+
+		// Calculate relative path from base_path
+		mut rel_path := full_path
+		if full_path.starts_with(base_path) {
+			rel_path = full_path[base_path.len..]
+			if rel_path.starts_with('/') {
+				rel_path = rel_path[1..]
+			}
+		}
+
+		// Check if this entry should be ignored
+		if unsafe { ignore_matcher != 0 } {
+			if ignore_matcher.is_ignored(rel_path) {
+				continue
+			}
+		}
+
+		// Check if filename or path matches search query
+		if entry.to_lower().contains(query_lower) || rel_path.to_lower().contains(query_lower) {
+			results << SearchResult{
+				name:      entry
+				path:      rel_path
+				full_path: full_path
+				typ:       if os.is_dir(full_path) { 'directory' } else { 'file' }
+			}
+		}
+
+		// Recursively search subdirectories
+		if os.is_dir(full_path) {
+			search_directory_recursive(full_path, base_path, query_lower, ignore_matcher, mut
+				results)!
+		}
+	}
+}
