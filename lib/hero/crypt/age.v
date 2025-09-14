@@ -1,6 +1,5 @@
 module crypt
 
-import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.data.resp
 
 // Stateless AGE operations
