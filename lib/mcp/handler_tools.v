@@ -113,11 +113,11 @@ fn (mut s Server) tools_call_handler(data string) !string {
 		}
 	}
 
-	log.error('Calling tool: ${tool_name} with arguments: ${arguments}')
+	log.debug('Calling tool: ${tool_name} with arguments: ${arguments}')
 	// Call the tool with the provided arguments
 	result := s.backend.tool_call(tool_name, arguments)!
 
-	log.error('Received result from tool: ${tool_name} with result: ${result}')
+	log.debug('Received result from tool: ${tool_name} with result: ${result}')
 	// Create a success response with the result
 	response := jsonrpc.new_response_generic[ToolCallResult](request_map['id'].int(),
 		result)

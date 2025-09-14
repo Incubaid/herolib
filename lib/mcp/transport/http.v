@@ -2,9 +2,9 @@ module transport
 
 import veb
 import veb.sse
-import log
 import time
 import freeflowuniverse.herolib.schemas.jsonrpc
+import freeflowuniverse.herolib.ui.console
 
 // HttpTransport implements the Transport interface for HTTP communication.
 // It provides both JSON-RPC over HTTP and REST API endpoints for MCP servers.
@@ -43,7 +43,7 @@ pub fn (mut t HttpTransport) start(handler &jsonrpc.Handler) ! {
 	unsafe {
 		t.handler = handler
 	}
-	log.info('Starting MCP server with HTTP transport on ${t.host}:${t.port}')
+	console.print_debug('Starting MCP server with HTTP transport on ${t.host}:${t.port}')
 
 	mut app := &HttpApp{
 		transport: t
@@ -58,7 +58,7 @@ pub fn (mut t HttpTransport) start(handler &jsonrpc.Handler) ! {
 pub fn (mut t HttpTransport) send(response string) {
 	// HTTP responses are handled directly in the route handlers
 	// This method is kept for interface compatibility
-	log.debug('HTTP transport send called: ${response}')
+	console.print_debug('HTTP transport send called: ${response}')
 }
 
 // JSON-RPC over HTTP endpoint
@@ -72,15 +72,21 @@ pub fn (mut app HttpApp) handle_jsonrpc(mut ctx Context) veb.Result {
 		return ctx.request_error('Empty request body')
 	}
 
+	// Parse the JSON-RPC request
+	request := jsonrpc.decode_request(request_body) or {
+		console.print_stderr('Invalid JSON-RPC request: ${err}')
+		return ctx.request_error('Invalid JSON-RPC request')
+	}
+
 	// Process the JSON-RPC request using the existing handler
-	response := app.transport.handler.handle(request_body) or {
-		log.error('JSON-RPC handler error: ${err}')
+	response := app.transport.handler.handle(request) or {
+		console.print_stderr('JSON-RPC handler error: ${err}')
 		return ctx.server_error('Internal server error')
 	}
 
 	// Return the JSON-RPC response
 	ctx.set_content_type('application/json')
-	return ctx.text(response)
+	return ctx.text(response.encode())
 }
 
 // Health check endpoint
@@ -89,7 +95,7 @@ pub fn (mut app HttpApp) health(mut ctx Context) veb.Result {
 	return ctx.json({
 		'status':    'ok'
 		'transport': 'http'
-		'timestamp': 'now'
+		'timestamp': time.now().str()
 	})
 }
 
@@ -112,15 +118,19 @@ pub fn (mut app HttpApp) list_tools(mut ctx Context) veb.Result {
 	}
 
 	// Create JSON-RPC request for tools/list
-	request := '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+	request_str := '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+	request := jsonrpc.decode_request(request_str) or {
+		console.print_stderr('Failed to create tools/list request: ${err}')
+		return ctx.server_error('Failed to create request')
+	}
 
 	response := app.transport.handler.handle(request) or {
-		log.error('Tools list error: ${err}')
+		console.print_stderr('Tools list error: ${err}')
 		return ctx.server_error('Failed to list tools')
 	}
 
 	// Parse JSON-RPC response and extract result
-	result := extract_jsonrpc_result(response) or {
+	result := extract_jsonrpc_result(response.encode()) or {
 		return ctx.server_error('Invalid response format')
 	}
 
@@ -141,14 +151,19 @@ pub fn (mut app HttpApp) call_tool(mut ctx Context, tool_name string) veb.Result
 	arguments_json := ctx.req.data
 
 	request_json := '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"${tool_name}","arguments":${arguments_json}}}'
+	request := jsonrpc.decode_request(request_json) or {
+		console.print_stderr('Failed to create tools/call request: ${err}')
+		return ctx.server_error('Failed to create request')
+	}
 
-	response := app.transport.handler.handle(request_json) or {
-		log.error('Tool call error: ${err}')
+	response := app.transport.handler.handle(request) or {
+		console.print_stderr('Tool call error: ${err}')
 		return ctx.server_error('Tool call failed')
 	}
 
 	// Parse JSON-RPC response and extract result
-	result := extract_jsonrpc_result(response) or {
+	response_str := response.encode()
+	result := extract_jsonrpc_result(response_str) or {
 		return ctx.server_error('Invalid response format')
 	}
 
@@ -165,15 +180,19 @@ pub fn (mut app HttpApp) list_resources(mut ctx Context) veb.Result {
 	}
 
 	// Create JSON-RPC request for resources/list
-	request := '{"jsonrpc":"2.0","id":1,"method":"resources/list","params":{}}'
+	request_str := '{"jsonrpc":"2.0","id":1,"method":"resources/list","params":{}}'
+	request := jsonrpc.decode_request(request_str) or {
+		console.print_stderr('Failed to create resources/list request: ${err}')
+		return ctx.server_error('Failed to create request')
+	}
 
 	response := app.transport.handler.handle(request) or {
-		log.error('Resources list error: ${err}')
+		console.print_stderr('Resources list error: ${err}')
 		return ctx.server_error('Failed to list resources')
 	}
 
 	// Parse JSON-RPC response and extract result
-	result := extract_jsonrpc_result(response) or {
+	result := extract_jsonrpc_result(response.encode()) or {
 		return ctx.server_error('Invalid response format')
 	}
 
@@ -203,7 +222,7 @@ pub fn (mut app HttpApp) handle_sse(mut ctx Context) veb.Result {
 fn handle_sse_connection(mut ctx Context, handler &jsonrpc.Handler) {
 	mut sse_conn := sse.start_connection(mut ctx.Context)
 
-	log.info('SSE connection established for MCP')
+	console.print_debug('SSE connection established for MCP')
 
 	// Keep connection alive with periodic messages
 	for {
@@ -214,23 +233,28 @@ fn handle_sse_connection(mut ctx Context, handler &jsonrpc.Handler) {
 			event: 'capabilities'
 			data:  capabilities_msg
 		) or {
-			log.info('SSE connection closed during capabilities send')
+			console.print_debug('SSE connection closed during capabilities send')
 			break
 		}
 
 		time.sleep(2 * time.second)
 
 		// Send tools list
-		tools_response := handler.handle('{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}') or {
-			log.error('Failed to get tools list: ${err}')
+		tools_request_str := '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}'
+		tools_request := jsonrpc.decode_request(tools_request_str) or {
+			console.print_stderr('Failed to create tools/list request: ${err}')
+			continue
+		}
+		tools_response := handler.handle(tools_request) or {
+			console.print_stderr('Failed to get tools list: ${err}')
 			continue
 		}
 
 		sse_conn.send_message(
 			event: 'tools'
-			data:  tools_response
+			data:  tools_response.encode()
 		) or {
-			log.info('SSE connection closed during tools send')
+			console.print_debug('SSE connection closed during tools send')
 			break
 		}
 
@@ -241,7 +265,7 @@ fn handle_sse_connection(mut ctx Context, handler &jsonrpc.Handler) {
 			event: 'ping'
 			data:  '{"status":"alive"}'
 		) or {
-			log.info('SSE connection closed during ping')
+			console.print_debug('SSE connection closed during ping')
 			break
 		}
 
@@ -253,17 +277,20 @@ fn handle_sse_connection(mut ctx Context, handler &jsonrpc.Handler) {
 
 // Helper function to extract result from JSON-RPC response
 fn extract_jsonrpc_result(response string) !string {
-	// Simple string-based JSON extraction to avoid json2.Any issues
-	// Look for "result": and extract the value
-	if response.contains('"error"') {
-		return error('JSON-RPC error in response')
+	// Parse the JSON-RPC response
+	response_obj := jsonrpc.decode_response(response) or {
+		return error('Failed to parse JSON-RPC response: ${err}')
 	}
 
-	if !response.contains('"result":') {
-		return error('No result in JSON-RPC response')
+	// Check if there's an error in the response
+	if error_obj := response_obj.error_ {
+		return error('JSON-RPC error: ${error_obj.message}')
 	}
 
-	// Simple extraction - for now just return the whole response
-	// In a production system, you'd want proper JSON parsing here
-	return response
+	// Extract the result
+	if result := response_obj.result {
+		return result
+	}
+
+	return error('No result in JSON-RPC response')
 }
