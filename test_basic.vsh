@@ -121,11 +121,11 @@ fn dotest(path string, base_dir string, mut cache TestCache) ! {
 
 	cmd := 'v -stats -enable-globals -n -w -gc none  test ${norm_path}'
 	println(cmd)
-	result := os.execute(cmd)
-	eprintln(result)
-	if result.exit_code != 0 {
-		eprintln('Test failed: ${path}')
-		eprintln(result.output)
+
+	// Use system() instead of execute() to avoid hanging on unclosed file descriptors
+	exit_code := os.system(cmd)
+	if exit_code != 0 {
+		eprintln('Test failed: ${path} (exit code: ${exit_code})')
 		exit(1)
 	}
 
