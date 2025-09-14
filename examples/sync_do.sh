@@ -3,9 +3,9 @@
 # SSH and rsync configuration
 SSH_HOST="verse.tf"
 SSH_USER="root"
-SOURCE_DIR="${HOME}/code/github/freeflowuniverse/herolib/"
-DEST_DIR="/root/code/github/freeflowuniverse/herolib/"
-FINAL_DIR="/root/code/github/freeflowuniverse/herolib/examples/hero"
+SOURCE_DIR="${HOME}/code/github/incubaid/herolib/"
+DEST_DIR="/root/code/github/incubaid/herolib/"
+FINAL_DIR="/root/code/github/incubaid/herolib/examples/hero"
 
 # Check if the source directory exists, if not stop
 if [ ! -d "$SOURCE_DIR" ]; then

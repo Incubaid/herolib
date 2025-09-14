@@ -163,7 +163,7 @@ search_result := client.search(
 Qdrant server can be installed using the provided installer script:
 
 ```bash
-~/code/github/freeflowuniverse/herolib/examples/installers/db/qdrant.vsh
+~/code/github/incubaid/herolib/examples/installers/db/qdrant.vsh
 ```
 
 This will install and start a Qdrant server locally.

@@ -23,7 +23,7 @@ when I generate vlang scripts I will always use .vsh extension and use following
 As AI agent I should also execute v or .vsh scripts with vrun
 
 ```bash
-vrun ~/code/github/freeflowuniverse/herolib/examples/biztools/bizmodel.vsh
+vrun ~/code/github/incubaid/herolib/examples/biztools/bizmodel.vsh
 ```
 
 ## executing test scripts
@@ -31,7 +31,7 @@ vrun ~/code/github/freeflowuniverse/herolib/examples/biztools/bizmodel.vsh
 instruct user to test as follows (vtest is an alias which gets installed when herolib gets installed), can be done for a dir and for a file
 
 ```bash
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal/package_test.v
+vtest ~/code/github/incubaid/herolib/lib/osal/package_test.v
 ```
 
 - use ~ so it works over all machines

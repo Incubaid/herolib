@@ -9,7 +9,7 @@ import freeflowuniverse.herolib...
 
 ```
 
-the files are in ~/code/github/freeflowuniverse/herolib/examples for herolib
+the files are in ~/code/github/incubaid/herolib/examples for herolib
 
 ## important instructions
 

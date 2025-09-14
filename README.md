@@ -38,7 +38,7 @@ curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/deve
 bash /tmp/install_v.sh --analyzer --herolib 
 
 #do not forget to do the following this makes sure vtest and vrun exists
-cd ~/code/github/freeflowuniverse/herolib
+cd ~/code/github/incubaid/herolib
 v install_herolib.vsh
 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
@@ -50,7 +50,7 @@ v install_herolib.vsh
 ```
 V & HeroLib Installer Script
 
-Usage: ~/code/github/freeflowuniverse/herolib/install_v.sh [options]
+Usage: ~/code/github/incubaid/herolib/install_v.sh [options]
 
 Options:
   -h, --help     Show this help message
@@ -60,12 +60,12 @@ Options:
   --herolib      Install our herolib
 
 Examples:
-  ~/code/github/freeflowuniverse/herolib/install_v.sh
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --reset
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --remove
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --analyzer
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --herolib
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --reset --analyzer # Fresh install of both
+  ~/code/github/incubaid/herolib/install_v.sh
+  ~/code/github/incubaid/herolib/install_v.sh --reset
+  ~/code/github/incubaid/herolib/install_v.sh --remove
+  ~/code/github/incubaid/herolib/install_v.sh --analyzer
+  ~/code/github/incubaid/herolib/install_v.sh --herolib
+  ~/code/github/incubaid/herolib/install_v.sh --reset --analyzer # Fresh install of both
 ```
 
 ## Features
@@ -98,13 +98,13 @@ Running tests is an essential part of development. To run the basic tests:
 
 ```bash
 # Run all basic tests
-~/code/github/freeflowuniverse/herolib/test_basic.vsh
+~/code/github/incubaid/herolib/test_basic.vsh
 
 # Run tests for a specific module
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal/package_test.v
+vtest ~/code/github/incubaid/herolib/lib/osal/package_test.v
 
 # Run tests for an entire directory
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal
+vtest ~/code/github/incubaid/herolib/lib/osal
 ```
 
 The `vtest` command is an alias for testing functionality.
@@ -168,7 +168,7 @@ This is caused by incompatibility between TCC and the half precision math functi
 To generate documentation locally:
 
 ```bash
-cd ~/code/github/freeflowuniverse/herolib
+cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
 
