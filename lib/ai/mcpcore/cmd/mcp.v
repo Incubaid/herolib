@@ -6,8 +6,8 @@ import freeflowuniverse.herolib.osal.core as osal
 // import freeflowuniverse.herolib.ai.mcp.vcode
 // import freeflowuniverse.herolib.ai.mcp.mcpgen
 // import freeflowuniverse.herolib.ai.mcp.baobab
-import freeflowuniverse.herolib.ai.mcp.rhai.mcp as rhai_mcp
-import freeflowuniverse.herolib.ai.mcp.rust
+// import freeflowuniverse.herolib.ai.mcp.rhai.mcp as rhai_mcp
+// import freeflowuniverse.herolib.ai.mcp.rust
 
 fn main() {
 	do() or { panic(err) }
