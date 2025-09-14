@@ -26,32 +26,6 @@ pub fn new_heromodels_handler() !openrpc.Handler {
 	return openrpc_handler
 }
 
-pub fn comment_get(request jsonrpc.Request) !jsonrpc.Response {
-	payload := jsonrpc.decode_payload[u32](request.params) or { return jsonrpc.invalid_params }
-	result := heromodels.comment_get(payload) or { return jsonrpc.internal_error }
-	return jsonrpc.new_response(request.id, json.encode(result))
-}
-
-pub fn comment_set(request jsonrpc.Request) !jsonrpc.Response{
-    payload := jsonrpc.decode_payload[heromodels.CommentArg](request.params) or { return jsonrpc.invalid_params }
-    return jsonrpc.new_response(request.id, heromodels.comment_set(payload)!.str())
-}
-
-pub fn comment_delete(request jsonrpc.Request) !jsonrpc.Response {
-    payload := jsonrpc.decode_payload[u32](request.params) or { return jsonrpc.invalid_params }
-    return jsonrpc.new_response(request.id, '')
-}
-
-pub fn comment_list(request jsonrpc.Request) !jsonrpc.Response {
-	result := heromodels.list[heromodels.Comment]() or { return jsonrpc.internal_error }
-    return jsonrpc.new_response(request.id, json.encode(result))
-}
-
-pub fn calendar_get(request jsonrpc.Request) !jsonrpc.Response {
-	payload := jsonrpc.decode_payload[u32](request.params) or { return jsonrpc.invalid_params }
-	result := heromodels.get[heromodels.Calendar](payload) or { return jsonrpc.internal_error }
-	return jsonrpc.new_response(request.id, json.encode(result))
-}
 
 pub fn calendar_set(request jsonrpc.Request) !jsonrpc.Response{
 	mut payload := json.decode(heromodels.Calendar, request.params) or { 
