@@ -17,7 +17,7 @@ pub mut:
 
 // start starts the MCP server using the configured transport
 pub fn (mut s Server) start() ! {
-	log.info('Starting MCP server')
+	// Note: Removed log.info() as it interferes with STDIO transport JSON-RPC communication
 	s.transport.start(&s.handler)!
 }
 

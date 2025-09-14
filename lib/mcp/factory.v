@@ -87,6 +87,14 @@ fn create_tools_call_wrapper(mut server Server) jsonrpc.ProcedureHandler {
 	}
 }
 
+fn create_logging_set_level_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.logging_set_level_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
 @[params]
 pub struct ServerParams {
 pub:
@@ -122,6 +130,8 @@ pub fn new_server(backend Backend, params ServerParams) !&Server {
 			// Core handlers
 			'initialize':                create_initialize_wrapper(mut server)
 			'notifications/initialized': create_initialized_notification_wrapper()
+			// Logging handlers
+			'logging/setLevel':          create_logging_set_level_wrapper(mut server)
 			// Resource handlers
 			'resources/list':            create_resources_list_wrapper(mut server)
 			'resources/read':            create_resources_read_wrapper(mut server)

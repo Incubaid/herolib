@@ -177,11 +177,9 @@ fn main() {
 		println('  Use JSON-RPC endpoint: http://localhost:${port}/jsonrpc')
 		println('')
 	} else {
-		println('📟 MCP Inspector Server - STDIO Mode')
-		println('====================================')
-		println('Ready for JSON-RPC messages on stdin...')
-		println('')
-		println('💡 Tip: Run with --http --port 9000 for HTTP mode')
+		// In STDIO mode, we should be completely silent to avoid interfering with JSON-RPC communication
+		// The MCP Inspector captures both stdout and stderr, so any output can cause parsing errors
+		// If you need to see startup messages, run with --http mode instead
 	}
 
 	server.start()!
