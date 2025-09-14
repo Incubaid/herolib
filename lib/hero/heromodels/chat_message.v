@@ -66,6 +66,29 @@ pub mut:
 pub fn (self ChatMessage) type_name() string {
 	return 'chat_message'
 }
+// return example rpc call and result for each methodname
+pub fn (self ChatMessage) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a chat message. Returns the ID of the message.'
+		}
+		'get' {
+			return 'Retrieve a chat message by ID. Returns the message object.'
+		}
+		'delete' {
+			return 'Delete a chat message by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a chat message exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all chat messages. Returns an array of message objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
 
 // return example rpc call and result for each methodname
 pub fn (self ChatMessage) example(methodname string) (string, string) {

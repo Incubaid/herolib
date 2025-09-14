@@ -23,6 +23,7 @@ pub mut:
 pub fn (self Calendar) type_name() string {
 	return 'calendar'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self Calendar) description(methodname string) string {
 	match methodname {

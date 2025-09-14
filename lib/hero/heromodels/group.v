@@ -32,6 +32,29 @@ pub enum GroupRole {
 pub fn (self Group) type_name() string {
 	return 'group'
 }
+// return example rpc call and result for each methodname
+pub fn (self Group) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a group. Returns the ID of the group.'
+		}
+		'get' {
+			return 'Retrieve a group by ID. Returns the group object.'
+		}
+		'delete' {
+			return 'Delete a group by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a group exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all groups. Returns an array of group objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
 
 // return example rpc call and result for each methodname
 pub fn (self Group) example(methodname string) (string, string) {

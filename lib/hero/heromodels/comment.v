@@ -25,6 +25,29 @@ pub mut:
 pub fn (self Comment) type_name() string {
 	return 'comments'
 }
+// return example rpc call and result for each methodname
+pub fn (self Comment) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a comment. Returns the ID of the comment.'
+		}
+		'get' {
+			return 'Retrieve a comment by ID. Returns the comment object.'
+		}
+		'delete' {
+			return 'Delete a comment by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a comment exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all comments. Returns an array of comment objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
 
 // return example rpc call and result for each methodname
 pub fn (self Comment) example(methodname string) (string, string) {

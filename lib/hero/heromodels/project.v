@@ -52,6 +52,29 @@ pub mut:
 pub fn (self Project) type_name() string {
 	return 'project'
 }
+// return example rpc call and result for each methodname
+pub fn (self Project) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a project. Returns the ID of the project.'
+		}
+		'get' {
+			return 'Retrieve a project by ID. Returns the project object.'
+		}
+		'delete' {
+			return 'Delete a project by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a project exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all projects. Returns an array of project objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
 
 // return example rpc call and result for each methodname
 pub fn (self Project) example(methodname string) (string, string) {
