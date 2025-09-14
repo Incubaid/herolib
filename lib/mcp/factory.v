@@ -3,6 +3,90 @@ module mcp
 import freeflowuniverse.herolib.schemas.jsonrpc
 import freeflowuniverse.herolib.mcp.transport
 
+// Wrapper functions to convert string-based handlers to jsonrpc.Request/Response format
+// We reconstruct the original JSON to avoid double-encoding issues
+
+fn create_initialize_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		// Reconstruct the original JSON from the request object
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.initialize_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_initialized_notification_wrapper() jsonrpc.ProcedureHandler {
+	return fn (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := initialized_notification_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_resources_list_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.resources_list_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_resources_read_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.resources_read_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_resources_templates_list_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.resources_templates_list_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_resources_subscribe_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.resources_subscribe_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_prompts_list_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.prompts_list_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_prompts_get_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.prompts_get_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_tools_list_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.tools_list_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
+fn create_tools_call_wrapper(mut server Server) jsonrpc.ProcedureHandler {
+	return fn [mut server] (request jsonrpc.Request) !jsonrpc.Response {
+		original_json := '{"jsonrpc":"${request.jsonrpc}","method":"${request.method}","params":${request.params},"id":${request.id}}'
+		response_str := server.tools_call_handler(original_json)!
+		return jsonrpc.decode_response(response_str)!
+	}
+}
+
 @[params]
 pub struct ServerParams {
 pub:
@@ -36,20 +120,20 @@ pub fn new_server(backend Backend, params ServerParams) !&Server {
 		procedures: {
 			// ...params.handlers,
 			// Core handlers
-			'initialize':                server.initialize_handler
-			'notifications/initialized': initialized_notification_handler
+			'initialize':                create_initialize_wrapper(mut server)
+			'notifications/initialized': create_initialized_notification_wrapper()
 			// Resource handlers
-			'resources/list':            server.resources_list_handler
-			'resources/read':            server.resources_read_handler
-			'resources/templates/list':  server.resources_templates_list_handler
-			'resources/subscribe':       server.resources_subscribe_handler
+			'resources/list':            create_resources_list_wrapper(mut server)
+			'resources/read':            create_resources_read_wrapper(mut server)
+			'resources/templates/list':  create_resources_templates_list_wrapper(mut server)
+			'resources/subscribe':       create_resources_subscribe_wrapper(mut server)
 			// Prompt handlers
-			'prompts/list':              server.prompts_list_handler
-			'prompts/get':               server.prompts_get_handler
-			'completion/complete':       server.prompts_get_handler
+			'prompts/list':              create_prompts_list_wrapper(mut server)
+			'prompts/get':               create_prompts_get_wrapper(mut server)
+			'completion/complete':       create_prompts_get_wrapper(mut server)
 			// Tool handlers
-			'tools/list':                server.tools_list_handler
-			'tools/call':                server.tools_call_handler
+			'tools/list':                create_tools_list_wrapper(mut server)
+			'tools/call':                create_tools_call_wrapper(mut server)
 		}
 	})!
 

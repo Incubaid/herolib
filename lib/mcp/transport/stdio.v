@@ -2,7 +2,7 @@ module transport
 
 import time
 import os
-import log
+import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.schemas.jsonrpc
 
 // StdioTransport implements the Transport interface for standard input/output communication.
@@ -25,7 +25,7 @@ pub fn (mut t StdioTransport) start(handler &jsonrpc.Handler) ! {
 	unsafe {
 		t.handler = handler
 	}
-	log.info('Starting MCP server with STDIO transport')
+	console.print_debug('Starting MCP server with STDIO transport')
 
 	for {
 		// Read a message from stdin
@@ -35,23 +35,32 @@ pub fn (mut t StdioTransport) start(handler &jsonrpc.Handler) ! {
 			continue
 		}
 
-		// Handle the message using the JSON-RPC handler
-		response := t.handler.handle(message) or {
-			log.error('message: ${message}')
-			log.error('Error handling message: ${err}')
-
+		// Parse the JSON-RPC request
+		request := jsonrpc.decode_request(message) or {
+			console.print_stderr('Invalid JSON-RPC request: ${err}')
 			// Try to extract the request ID for error response
 			id := jsonrpc.decode_request_id(message) or { 0 }
-
-			// Create an internal error response
-			error_response := jsonrpc.new_error(id, jsonrpc.internal_error).encode()
+			// Create an invalid request error response
+			error_response := jsonrpc.new_error(id, jsonrpc.invalid_request).encode()
 			print(error_response)
 			continue
 		}
 
-		// Send the response only if it's not empty (notifications return empty responses)
-		if response.len > 0 {
-			t.send(response)
+		// Handle the message using the JSON-RPC handler
+		response := t.handler.handle(request) or {
+			console.print_stderr('message: ${message}')
+			console.print_stderr('Error handling message: ${err}')
+
+			// Create an internal error response
+			error_response := jsonrpc.new_error(request.id, jsonrpc.internal_error).encode()
+			console.print_debug(error_response)
+			continue
+		}
+
+		// Send the response (notifications may return empty responses)
+		response_str := response.encode()
+		if response_str.len > 0 {
+			t.send(response_str)
 		}
 	}
 }
