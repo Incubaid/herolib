@@ -81,18 +81,9 @@
             ],
             "result": {
                 "name": "result",
-                "description": "Success result with deleted comment ID",
+                "description": "Success result",
                 "schema": {
-                    "type": "object",
-                    "properties": {
-                        "success": {
-                            "type": "boolean"
-                        },
-                        "id": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
-                    }
+                    "type": "boolean"
                 }
             }
         },
@@ -210,18 +201,9 @@
             ],
             "result": {
                 "name": "result",
-                "description": "Success result with deleted calendar ID",
+                "description": "Success result",
                 "schema": {
-                    "type": "object",
-                    "properties": {
-                        "success": {
-                            "type": "boolean"
-                        },
-                        "id": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
-                    }
+                    "type": "boolean"
                 }
             }
         },

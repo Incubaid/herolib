@@ -56,9 +56,7 @@ pub fn calendar_set(request jsonrpc.Request) !jsonrpc.Response {
 
 	id := mydb.calendar.set(calendar_obj)!
 
-	return jsonrpc.new_response(request.id, json.encode({
-		'id': id
-	}))
+	return jsonrpc.new_response_u32(request.id, id)
 }
 
 pub fn calendar_delete(request jsonrpc.Request) !jsonrpc.Response {
@@ -70,7 +68,7 @@ pub fn calendar_delete(request jsonrpc.Request) !jsonrpc.Response {
 	mydb.calendar.delete(payload.id)!
 
 	// returns
-	return jsonrpc.new_response(request.id, 'true')
+	return jsonrpc.new_response_true(request.id) // return true as jsonrpc (bool)
 }
 
 pub fn calendar_list(request jsonrpc.Request) !jsonrpc.Response {

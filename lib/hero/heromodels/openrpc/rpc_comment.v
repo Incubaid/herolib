@@ -50,9 +50,7 @@ pub fn comment_set(request jsonrpc.Request) !jsonrpc.Response {
 
 	id := mydb.comments.set(comment_obj)!
 
-	return jsonrpc.new_response(request.id, json.encode({
-		'id': id
-	}))
+	return jsonrpc.new_response_u32(request.id, id)
 }
 
 pub fn comment_delete(request jsonrpc.Request) !jsonrpc.Response {
@@ -63,7 +61,7 @@ pub fn comment_delete(request jsonrpc.Request) !jsonrpc.Response {
 	mut mydb := heromodels.new()!
 	mydb.comments.delete(payload.id)!
 
-	return jsonrpc.new_response(request.id, 'true')
+	return jsonrpc.new_response_true(request.id) // return true as jsonrpc (bool)
 }
 
 pub fn comment_list(request jsonrpc.Request) !jsonrpc.Response {
