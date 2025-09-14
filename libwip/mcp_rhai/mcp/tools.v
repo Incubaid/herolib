@@ -1,7 +1,7 @@
 module mcp
 
 import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.core.code
+import freeflowuniverse.herolib.develop.codetools as code
 import freeflowuniverse.herolib.ai.mcp.rhai.logic
 import freeflowuniverse.herolib.schemas.jsonschema
 import x.json2 as json { Any }

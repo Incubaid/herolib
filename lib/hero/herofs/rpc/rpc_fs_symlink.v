@@ -65,10 +65,10 @@ pub fn fs_symlink_set(request Request) !Response {
 
 	mut fs_factory := herofs.new()!
 	mut symlink_obj := fs_factory.fs_symlink.new(
-		name: payload.name
-		fs_id: payload.fs_id
-		parent_id: payload.parent_id
-		target_id: payload.target_id
+		name:        payload.name
+		fs_id:       payload.fs_id
+		parent_id:   payload.parent_id
+		target_id:   payload.target_id
 		target_type: target_type
 		description: payload.description
 	)!

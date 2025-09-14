@@ -61,6 +61,7 @@ pub mut:
 pub fn (self ProjectIssue) type_name() string {
 	return 'project_issue'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self ProjectIssue) description(methodname string) string {
 	match methodname {

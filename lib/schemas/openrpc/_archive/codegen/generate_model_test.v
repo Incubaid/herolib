@@ -2,7 +2,7 @@ module codegen
 
 import os
 import json
-import freeflowuniverse.herolib.core.code { Alias, Struct }
+import freeflowuniverse.herolib.develop.codetools as code { Alias, Struct }
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.schemas.openrpc
 

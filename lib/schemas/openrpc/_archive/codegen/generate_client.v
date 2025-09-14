@@ -1,6 +1,6 @@
 module codegen
 
-import freeflowuniverse.herolib.core.code { CodeItem, CustomCode, Function, Struct, VFile, parse_function }
+import freeflowuniverse.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Struct, VFile, parse_function }
 // import freeflowuniverse.herolib.schemas.jsonrpc.codegen {generate_client_struct}
 import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
 import freeflowuniverse.herolib.core.texttools

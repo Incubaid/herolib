@@ -1,7 +1,7 @@
 module openrpc
 
 import freeflowuniverse.herolib.schemas.jsonschema { Reference }
-import freeflowuniverse.herolib.core.code { Struct, StructField }
+import freeflowuniverse.herolib.develop.codetools as code { Struct, StructField }
 import x.json2
 
 pub fn parse_example_pairing(text_ string) !ExamplePairing {

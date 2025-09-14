@@ -8,7 +8,7 @@ import freeflowuniverse.herolib.heroserver.handlers
 
 pub struct ServerConfig {
 pub mut:
-	port       int = 8080
+	port        int = 8080
 	auth_config auth.AuthConfig
 }
 
@@ -67,7 +67,7 @@ pub fn (mut s HeroServer) api(mut ctx Context) veb.Result {
 	request := jsonrpc.decode_request(ctx.req.data) or {
 		return ctx.request_error('Invalid JSON-RPC request')
 	}
-	
+
 	response := handler.handle(request) or { return ctx.server_error('Handler error') }
 
 	return ctx.json(response)

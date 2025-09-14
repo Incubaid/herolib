@@ -1,6 +1,6 @@
 module codegen
 
-import freeflowuniverse.herolib.core.code
+import freeflowuniverse.herolib.develop.codetools as code
 import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schemaref_to_type }
 import freeflowuniverse.herolib.schemas.openapi { ResponseSpec }
 

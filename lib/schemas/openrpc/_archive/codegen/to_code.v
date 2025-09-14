@@ -1,6 +1,6 @@
 module codegen
 
-import freeflowuniverse.herolib.core.code { Function, Struct }
+import freeflowuniverse.herolib.develop.codetools as code { Function, Struct }
 import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schema_to_struct, schemaref_to_type }
 import freeflowuniverse.herolib.schemas.jsonschema { Schema }
 import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, Method }

@@ -1,6 +1,6 @@
 module specification
 
-import freeflowuniverse.herolib.core.code { Struct }
+import freeflowuniverse.herolib.develop.codetools as code { Struct }
 import freeflowuniverse.herolib.schemas.openapi
 import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, ExamplePairing }
 import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema }

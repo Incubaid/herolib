@@ -2,7 +2,7 @@ module logic
 
 import freeflowuniverse.herolib.ai.escalayer
 import freeflowuniverse.herolib.lang.rust
-import freeflowuniverse.herolib.ai.utils
+import freeflowuniverse.herolib.develop.codetools.utils as ai_utils
 import os
 
 pub fn generate_rhai_wrapper(name string, source_path string) !string {
@@ -241,30 +241,30 @@ struct CodeBlocks {
 // Extract code blocks from the AI response
 fn extract_code_blocks(response string) !CodeBlocks {
 	// Extract wrapper.rs content
-	wrapper_rs_content := utils.extract_code_block(response, 'wrapper.rs', 'rust')
+	wrapper_rs_content := ai_utils.extract_code_block(response, 'wrapper.rs', 'rust')
 	if wrapper_rs_content == '' {
 		return error('Failed to extract wrapper.rs content from response. Please ensure your code is properly formatted inside a code block that starts with ```rust\n// wrapper.rs and ends with ```')
 	}
 
 	// Extract engine.rs content
-	mut engine_rs_content := utils.extract_code_block(response, 'engine.rs', 'rust')
+	mut engine_rs_content := ai_utils.extract_code_block(response, 'engine.rs', 'rust')
 	if engine_rs_content == '' {
 		// Try to extract from the response without explicit language marker
-		engine_rs_content = utils.extract_code_block(response, 'engine.rs', '')
+		engine_rs_content = ai_utils.extract_code_block(response, 'engine.rs', '')
 	}
 
 	// Extract example.rhai content
-	mut example_rhai_content := utils.extract_code_block(response, 'example.rhai', 'rhai')
+	mut example_rhai_content := ai_utils.extract_code_block(response, 'example.rhai', 'rhai')
 	if example_rhai_content == '' {
 		// Try to extract from the response without explicit language marker
-		example_rhai_content = utils.extract_code_block(response, 'example.rhai', '')
+		example_rhai_content = ai_utils.extract_code_block(response, 'example.rhai', '')
 		if example_rhai_content == '' {
 			return error('Failed to extract example.rhai content from response. Please ensure your code is properly formatted inside a code block that starts with ```rhai\n// example.rhai and ends with ```')
 		}
 	}
 
 	// Extract lib.rs content
-	lib_rs_content := utils.extract_code_block(response, 'lib.rs', 'rust')
+	lib_rs_content := ai_utils.extract_code_block(response, 'lib.rs', 'rust')
 	if lib_rs_content == '' {
 		return error('Failed to extract lib.rs content from response. Please ensure your code is properly formatted inside a code block that starts with ```rust\n// lib.rs and ends with ```')
 	}

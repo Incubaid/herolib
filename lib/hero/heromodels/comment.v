@@ -25,6 +25,7 @@ pub mut:
 pub fn (self Comment) type_name() string {
 	return 'comments'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self Comment) description(methodname string) string {
 	match methodname {

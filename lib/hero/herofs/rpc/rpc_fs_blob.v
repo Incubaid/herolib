@@ -33,25 +33,25 @@ pub fn fs_blob_get(request Request) !Response {
 	}
 
 	mut fs_factory := herofs.new()!
-	
+
 	// Get blob by either id or hash
 	mut blob := if payload.id > 0 {
 		fs_factory.fs_blob.get(payload.id)!
 	} else if payload.hash != '' {
 		fs_factory.fs_blob.get_by_hash(payload.hash)!
 	} else {
-		return jsonrpc.invalid_params_with_msg("Either id or hash must be provided")
+		return jsonrpc.invalid_params_with_msg('Either id or hash must be provided')
 	}
 
 	// Convert binary data to base64 for JSON transport
 	blob_response := {
-		'id': blob.id.str()
-		'created_at': blob.created_at.str()
-		'updated_at': blob.updated_at.str()
-		'mime_type': blob.mime_type
-		'name': blob.name
-		'hash': blob.hash
-		'size_bytes': blob.size_bytes.str()
+		'id':          blob.id.str()
+		'created_at':  blob.created_at.str()
+		'updated_at':  blob.updated_at.str()
+		'mime_type':   blob.mime_type
+		'name':        blob.name
+		'hash':        blob.hash
+		'size_bytes':  blob.size_bytes.str()
 		'data_base64': base64.encode(blob.data)
 	}
 
@@ -65,14 +65,14 @@ pub fn fs_blob_set(request Request) !Response {
 
 	// Decode the base64 data
 	data := base64.decode(payload.data_base64) or {
-		return jsonrpc.invalid_params_with_msg("Invalid base64 data")
+		return jsonrpc.invalid_params_with_msg('Invalid base64 data')
 	}
 
 	mut fs_factory := herofs.new()!
 	mut blob_obj := fs_factory.fs_blob.new(
-		data: data
+		data:      data
 		mime_type: payload.mime_type
-		name: payload.name
+		name:      payload.name
 	)!
 
 	id := fs_factory.fs_blob.set(blob_obj)!

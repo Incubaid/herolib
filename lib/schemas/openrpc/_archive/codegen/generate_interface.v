@@ -1,6 +1,6 @@
 module codegen
 
-import freeflowuniverse.herolib.core.code { CustomCode, VFile, parse_function, parse_import }
+import freeflowuniverse.herolib.develop.codetools as code { CustomCode, VFile, parse_function, parse_import }
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
 

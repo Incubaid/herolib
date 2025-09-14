@@ -66,6 +66,7 @@ pub mut:
 pub fn (self ChatMessage) type_name() string {
 	return 'chat_message'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self ChatMessage) description(methodname string) string {
 	match methodname {

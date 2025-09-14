@@ -78,6 +78,7 @@ pub mut:
 pub fn (self CalendarEvent) type_name() string {
 	return 'calendar_event'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self CalendarEvent) description(methodname string) string {
 	match methodname {

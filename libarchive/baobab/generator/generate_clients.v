@@ -1,6 +1,6 @@
 module generator
 
-import freeflowuniverse.herolib.core.code { CodeItem, CustomCode, Function, Import, Param, Result, VFile }
+import freeflowuniverse.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Import, Param, Result, VFile }
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schemaref_to_type }
 import freeflowuniverse.herolib.schemas.openrpc.codegen { content_descriptor_to_parameter }

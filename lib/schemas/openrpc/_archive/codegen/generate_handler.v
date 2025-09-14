@@ -1,6 +1,6 @@
 module codegen
 
-import freeflowuniverse.herolib.core.code { CodeItem, CustomCode, Function, Param, Struct, VFile, parse_import }
+import freeflowuniverse.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Param, Struct, VFile, parse_import }
 import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
 import freeflowuniverse.herolib.core.texttools
 import rand

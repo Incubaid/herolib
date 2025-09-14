@@ -29,6 +29,7 @@ pub mut:
 pub fn (self ChatGroup) type_name() string {
 	return 'chat_group'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self ChatGroup) description(methodname string) string {
 	match methodname {

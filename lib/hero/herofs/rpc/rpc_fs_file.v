@@ -14,8 +14,8 @@ pub mut:
 @[params]
 pub struct FSFileSetArgs {
 pub mut:
-	name        string   @[required]
-	fs_id       u32      @[required]
+	name        string @[required]
+	fs_id       u32    @[required]
 	directories []u32
 	blobs       []u32
 	mime_type   string
@@ -99,12 +99,12 @@ pub fn fs_file_set(request Request) !Response {
 
 	mut fs_factory := herofs.new()!
 	mut file_obj := fs_factory.fs_file.new(
-		name: payload.name
-		fs_id: payload.fs_id
+		name:        payload.name
+		fs_id:       payload.fs_id
 		directories: payload.directories
-		blobs: payload.blobs
-		mime_type: payload.mime_type
-		metadata: payload.metadata
+		blobs:       payload.blobs
+		mime_type:   payload.mime_type
+		metadata:    payload.metadata
 	)!
 
 	id := fs_factory.fs_file.set(file_obj)!

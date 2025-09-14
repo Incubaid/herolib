@@ -10,7 +10,6 @@ module models
 // - Location models (addresses)
 
 // Import all model modules for easy access
-
 import freeflowuniverse.herolib.threefold.models.core
 import freeflowuniverse.herolib.threefold.models.finance
 import freeflowuniverse.herolib.threefold.models.flow

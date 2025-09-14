@@ -26,15 +26,15 @@ pub mut:
 	include_patterns []string // File/directory name patterns to include (e.g. ['*.v', 'doc*'])
 	exclude_patterns []string // File/directory name patterns to exclude
 	max_depth        int = -1 // Maximum depth to search (-1 for unlimited)
-	follow_symlinks  bool     // Whether to follow symbolic links during search
+	follow_symlinks  bool // Whether to follow symbolic links during search
 }
 
 // CopyOptions provides options for copy operations
 @[params]
 pub struct CopyOptions {
 pub mut:
-	recursive       bool = true  // Copy directories recursively
-	preserve_links  bool = true  // Preserve symbolic links as links
+	recursive       bool = true // Copy directories recursively
+	preserve_links  bool = true // Preserve symbolic links as links
 	overwrite       bool // Overwrite existing files
 	follow_symlinks bool // Follow symlinks instead of copying them
 }
@@ -74,12 +74,12 @@ fn matches_pattern(name string, patterns []string) bool {
 	if patterns.len == 0 {
 		return true // No patterns means include everything
 	}
-	
+
 	for pattern in patterns {
 		if pattern.contains('*') {
 			prefix := pattern.all_before('*')
 			suffix := pattern.all_after('*')
-			
+
 			if prefix == '' && suffix == '' {
 				return true // Pattern is just "*"
 			} else if prefix == '' {
@@ -99,7 +99,7 @@ fn matches_pattern(name string, patterns []string) bool {
 			return true // Exact match
 		}
 	}
-	
+
 	return false
 }
 
@@ -109,12 +109,12 @@ fn should_include(name string, include_patterns []string, exclude_patterns []str
 	if !matches_pattern(name, include_patterns) && include_patterns.len > 0 {
 		return false
 	}
-	
+
 	// Then apply exclude patterns
 	if matches_pattern(name, exclude_patterns) && exclude_patterns.len > 0 {
 		return false
 	}
-	
+
 	return true
 }
 
@@ -132,14 +132,14 @@ fn split_path(path string) (string, string) {
 	if normalized == '/' {
 		return '/', ''
 	}
-	
+
 	mut dir_path := normalized.all_before_last('/')
 	filename := normalized.all_after_last('/')
-	
+
 	if dir_path == '' {
 		dir_path = '/'
 	}
-	
+
 	return dir_path, filename
 }
 
@@ -149,7 +149,7 @@ fn parent_path(path string) string {
 	if normalized == '/' {
 		return '/'
 	}
-	
+
 	parent := normalized.all_before_last('/')
 	if parent == '' {
 		return '/'
@@ -169,13 +169,13 @@ fn join_path(base string, component string) string {
 // Find filesystem objects starting from a given path
 pub fn (mut self FsTools) find(fs_id u32, start_path string, opts FindOptions) ![]FindResult {
 	mut results := []FindResult{}
-	
+
 	// Get the starting directory
 	start_dir := self.factory.fs_dir.get_by_absolute_path(fs_id, start_path)!
-	
+
 	// Start recursive search
 	self.find_recursive(fs_id, start_dir.id, start_path, opts, mut results, 0)!
-	
+
 	return results
 }
 
@@ -185,20 +185,20 @@ fn (mut self FsTools) find_recursive(fs_id u32, dir_id u32, current_path string,
 	if opts.max_depth >= 0 && current_depth > opts.max_depth {
 		return
 	}
-	
+
 	// Get current directory info
 	current_dir := self.factory.fs_dir.get(dir_id)!
-	
+
 	// Check if current directory matches search criteria
 	if should_include(current_dir.name, opts.include_patterns, opts.exclude_patterns) {
 		results << FindResult{
 			result_type: .directory
-			id: dir_id
-			path: current_path
-			name: current_dir.name
+			id:          dir_id
+			path:        current_path
+			name:        current_dir.name
 		}
 	}
-	
+
 	// Get files in current directory
 	files := self.factory.fs_file.list_by_directory(dir_id)!
 	for file in files {
@@ -206,13 +206,13 @@ fn (mut self FsTools) find_recursive(fs_id u32, dir_id u32, current_path string,
 			file_path := join_path(current_path, file.name)
 			results << FindResult{
 				result_type: .file
-				id: file.id
-				path: file_path
-				name: file.name
+				id:          file.id
+				path:        file_path
+				name:        file.name
 			}
 		}
 	}
-	
+
 	// Get symlinks in current directory
 	symlinks := self.factory.fs_symlink.list_by_parent(dir_id)!
 	for symlink in symlinks {
@@ -220,22 +220,23 @@ fn (mut self FsTools) find_recursive(fs_id u32, dir_id u32, current_path string,
 			symlink_path := join_path(current_path, symlink.name)
 			results << FindResult{
 				result_type: .symlink
-				id: symlink.id
-				path: symlink_path
-				name: symlink.name
+				id:          symlink.id
+				path:        symlink_path
+				name:        symlink.name
 			}
 		}
-		
+
 		// Follow symlinks if requested and they point to directories
 		if opts.follow_symlinks && opts.recursive && symlink.target_type == .directory {
 			// Check if symlink is not broken
 			if !self.factory.fs_symlink.is_broken(symlink.id)! {
 				symlink_path := join_path(current_path, symlink.name)
-				self.find_recursive(fs_id, symlink.target_id, symlink_path, opts, mut results, current_depth + 1)!
+				self.find_recursive(fs_id, symlink.target_id, symlink_path, opts, mut
+					results, current_depth + 1)!
 			}
 		}
 	}
-	
+
 	// Process subdirectories if recursive
 	if opts.recursive {
 		subdirs := self.factory.fs_dir.list_children(dir_id)!
@@ -245,29 +246,30 @@ fn (mut self FsTools) find_recursive(fs_id u32, dir_id u32, current_path string,
 		}
 	}
 }
+
 // Remove filesystem objects starting from a given path
 pub fn (mut self FsTools) rm(fs_id u32, target_path string, opts RemoveOptions) ! {
 	normalized_path := normalize_path(target_path)
-	
+
 	// Try to find what we're removing (file, directory, or symlink)
 	dir_path, filename := split_path(normalized_path)
-	
+
 	if filename == '' {
 		// We're removing a directory by its path
 		self.rm_directory_by_path(fs_id, normalized_path, opts)!
 	} else {
 		// We're removing a specific item within a directory
 		parent_dir := self.factory.fs_dir.get_by_absolute_path(fs_id, dir_path)!
-		
+
 		// Try to find what we're removing
 		mut found := false
-		
+
 		// Try file first
 		if file := self.factory.fs_file.get_by_path(parent_dir.id, filename) {
 			self.rm_file(file.id, opts)!
 			found = true
 		}
-		
+
 		// Try symlink if file not found
 		if !found {
 			if symlink := self.factory.fs_symlink.get_by_path(parent_dir.id, filename) {
@@ -275,7 +277,7 @@ pub fn (mut self FsTools) rm(fs_id u32, target_path string, opts RemoveOptions) 
 				found = true
 			}
 		}
-		
+
 		// Try directory if neither file nor symlink found
 		if !found {
 			if subdir := self.factory.fs_dir.get_by_path(fs_id, parent_dir.id, filename) {
@@ -283,7 +285,7 @@ pub fn (mut self FsTools) rm(fs_id u32, target_path string, opts RemoveOptions) 
 				found = true
 			}
 		}
-		
+
 		if !found {
 			return error('Path "${target_path}" not found')
 		}
@@ -293,18 +295,18 @@ pub fn (mut self FsTools) rm(fs_id u32, target_path string, opts RemoveOptions) 
 // Remove a file by ID
 fn (mut self FsTools) rm_file(file_id u32, opts RemoveOptions) ! {
 	file := self.factory.fs_file.get(file_id)!
-	
+
 	// If file is in multiple directories and force is not set, only remove from directories
 	if file.directories.len > 1 && !opts.force {
 		return error('File "${file.name}" exists in multiple directories. Use force=true to delete completely or remove from specific directories.')
 	}
-	
+
 	// Collect blob IDs before deleting the file
 	blob_ids := file.blobs.clone()
-	
+
 	// Delete the file
 	self.factory.fs_file.delete(file_id)!
-	
+
 	// Delete blobs if requested
 	if opts.delete_blobs {
 		for blob_id in blob_ids {
@@ -326,11 +328,11 @@ fn (mut self FsTools) rm_directory(dir_id u32, opts RemoveOptions) ! {
 			dir := self.factory.fs_dir.get(dir_id)!
 			return error('Directory "${dir.name}" is not empty. Use recursive=true to remove contents.')
 		}
-		
+
 		// Remove all children recursively
 		self.rm_directory_contents(dir_id, opts)!
 	}
-	
+
 	// Remove the directory itself
 	self.factory.fs_dir.delete(dir_id)!
 }
@@ -348,13 +350,13 @@ fn (mut self FsTools) rm_directory_contents(dir_id u32, opts RemoveOptions) ! {
 	for file in files {
 		self.rm_file(file.id, opts)!
 	}
-	
+
 	// Remove all symlinks in the directory
 	symlinks := self.factory.fs_symlink.list_by_parent(dir_id)!
 	for symlink in symlinks {
 		self.rm_symlink(symlink.id)!
 	}
-	
+
 	// Remove all subdirectories recursively
 	subdirs := self.factory.fs_dir.list_children(dir_id)!
 	for subdir in subdirs {
@@ -379,14 +381,15 @@ fn (mut self FsTools) is_blob_used_by_other_files(blob_id u32, exclude_file_id u
 	}
 	return false
 }
+
 // Copy filesystem objects from source path to destination path
 pub fn (mut self FsTools) cp(fs_id u32, source_path string, dest_path string, opts CopyOptions) ! {
 	normalized_source := normalize_path(source_path)
 	normalized_dest := normalize_path(dest_path)
-	
+
 	// Determine what we're copying
 	source_dir_path, source_filename := split_path(normalized_source)
-	
+
 	if source_filename == '' {
 		// We're copying a directory
 		source_dir := self.factory.fs_dir.get_by_absolute_path(fs_id, normalized_source)!
@@ -394,16 +397,16 @@ pub fn (mut self FsTools) cp(fs_id u32, source_path string, dest_path string, op
 	} else {
 		// We're copying a specific item
 		source_parent_dir := self.factory.fs_dir.get_by_absolute_path(fs_id, source_dir_path)!
-		
+
 		// Try to find what we're copying
 		mut found := false
-		
+
 		// Try file first
 		if file := self.factory.fs_file.get_by_path(source_parent_dir.id, source_filename) {
 			self.cp_file(fs_id, file.id, normalized_dest, opts)!
 			found = true
 		}
-		
+
 		// Try symlink if file not found
 		if !found {
 			if symlink := self.factory.fs_symlink.get_by_path(source_parent_dir.id, source_filename) {
@@ -411,15 +414,18 @@ pub fn (mut self FsTools) cp(fs_id u32, source_path string, dest_path string, op
 				found = true
 			}
 		}
-		
+
 		// Try directory if neither file nor symlink found
 		if !found {
-			if subdir := self.factory.fs_dir.get_by_path(fs_id, source_parent_dir.id, source_filename) {
-				self.cp_directory(fs_id, subdir.id, normalized_source, normalized_dest, opts)!
+			if subdir := self.factory.fs_dir.get_by_path(fs_id, source_parent_dir.id,
+				source_filename)
+			{
+				self.cp_directory(fs_id, subdir.id, normalized_source, normalized_dest,
+					opts)!
 				found = true
 			}
 		}
-		
+
 		if !found {
 			return error('Source path "${source_path}" not found')
 		}
@@ -429,16 +435,16 @@ pub fn (mut self FsTools) cp(fs_id u32, source_path string, dest_path string, op
 // Copy a file to destination path
 fn (mut self FsTools) cp_file(fs_id u32, file_id u32, dest_path string, opts CopyOptions) ! {
 	source_file := self.factory.fs_file.get(file_id)!
-	
+
 	// Determine destination directory and filename
 	dest_dir_path, mut dest_filename := split_path(dest_path)
 	if dest_filename == '' {
 		dest_filename = source_file.name
 	}
-	
+
 	// Ensure destination directory exists (create if needed)
 	dest_dir_id := self.factory.fs_dir.create_path(fs_id, dest_dir_path)!
-	
+
 	// Check if destination file already exists
 	if existing_file := self.factory.fs_file.get_by_path(dest_dir_id, dest_filename) {
 		if !opts.overwrite {
@@ -447,26 +453,26 @@ fn (mut self FsTools) cp_file(fs_id u32, file_id u32, dest_path string, opts Cop
 		// Remove existing file
 		self.factory.fs_file.delete(existing_file.id)!
 	}
-	
+
 	// Create new file with same content (reuse blobs)
 	new_file := self.factory.fs_file.new(
-		name: dest_filename
-		fs_id: fs_id
+		name:        dest_filename
+		fs_id:       fs_id
 		directories: [dest_dir_id]
-		blobs: source_file.blobs.clone()
-		mime_type: source_file.mime_type
-		checksum: source_file.checksum
-		metadata: source_file.metadata.clone()
+		blobs:       source_file.blobs.clone()
+		mime_type:   source_file.mime_type
+		checksum:    source_file.checksum
+		metadata:    source_file.metadata.clone()
 		description: source_file.description
 	)!
-	
+
 	self.factory.fs_file.set(new_file)!
 }
 
 // Copy a symlink to destination path
 fn (mut self FsTools) cp_symlink(fs_id u32, symlink_id u32, dest_path string, opts CopyOptions) ! {
 	source_symlink := self.factory.fs_symlink.get(symlink_id)!
-	
+
 	if opts.follow_symlinks {
 		// Follow the symlink and copy its target instead
 		if source_symlink.target_type == .file {
@@ -476,16 +482,16 @@ fn (mut self FsTools) cp_symlink(fs_id u32, symlink_id u32, dest_path string, op
 		}
 		return
 	}
-	
+
 	// Copy the symlink itself
 	dest_dir_path, mut dest_filename := split_path(dest_path)
 	if dest_filename == '' {
 		dest_filename = source_symlink.name
 	}
-	
+
 	// Ensure destination directory exists
 	dest_dir_id := self.factory.fs_dir.create_path(fs_id, dest_dir_path)!
-	
+
 	// Check if destination symlink already exists
 	if existing_symlink := self.factory.fs_symlink.get_by_path(dest_dir_id, dest_filename) {
 		if !opts.overwrite {
@@ -493,38 +499,38 @@ fn (mut self FsTools) cp_symlink(fs_id u32, symlink_id u32, dest_path string, op
 		}
 		self.factory.fs_symlink.delete(existing_symlink.id)!
 	}
-	
+
 	// Create new symlink
 	new_symlink := self.factory.fs_symlink.new(
-		name: dest_filename
-		fs_id: fs_id
-		parent_id: dest_dir_id
-		target_id: source_symlink.target_id
+		name:        dest_filename
+		fs_id:       fs_id
+		parent_id:   dest_dir_id
+		target_id:   source_symlink.target_id
 		target_type: source_symlink.target_type
 		description: source_symlink.description
 	)!
-	
+
 	self.factory.fs_symlink.set(new_symlink)!
 }
 
 // Copy a directory to destination path
 fn (mut self FsTools) cp_directory(fs_id u32, source_dir_id u32, source_path string, dest_path string, opts CopyOptions) ! {
 	source_dir := self.factory.fs_dir.get(source_dir_id)!
-	
+
 	// Create destination directory
 	dest_dir_id := self.factory.fs_dir.create_path(fs_id, dest_path)!
-	
+
 	if !opts.recursive {
-		return // Just create the directory, don't copy contents
+		return
 	}
-	
+
 	// Copy all files in the source directory
 	files := self.factory.fs_file.list_by_directory(source_dir_id)!
 	for file in files {
 		file_dest_path := join_path(dest_path, file.name)
 		self.cp_file(fs_id, file.id, file_dest_path, opts)!
 	}
-	
+
 	// Copy all symlinks in the source directory
 	if opts.preserve_links {
 		symlinks := self.factory.fs_symlink.list_by_parent(source_dir_id)!
@@ -533,7 +539,7 @@ fn (mut self FsTools) cp_directory(fs_id u32, source_dir_id u32, source_path str
 			self.cp_symlink(fs_id, symlink.id, symlink_dest_path, opts)!
 		}
 	}
-	
+
 	// Copy all subdirectories recursively
 	subdirs := self.factory.fs_dir.list_children(source_dir_id)!
 	for subdir in subdirs {
@@ -546,14 +552,15 @@ fn (mut self FsTools) cp_directory(fs_id u32, source_dir_id u32, source_path str
 		self.cp_directory(fs_id, subdir.id, subdir_source_path, subdir_dest_path, opts)!
 	}
 }
+
 // Move filesystem objects from source path to destination path
 pub fn (mut self FsTools) mv(fs_id u32, source_path string, dest_path string, opts MoveOptions) ! {
 	normalized_source := normalize_path(source_path)
 	normalized_dest := normalize_path(dest_path)
-	
+
 	// Determine what we're moving
 	source_dir_path, source_filename := split_path(normalized_source)
-	
+
 	if source_filename == '' {
 		// We're moving a directory
 		source_dir := self.factory.fs_dir.get_by_absolute_path(fs_id, normalized_source)!
@@ -561,16 +568,16 @@ pub fn (mut self FsTools) mv(fs_id u32, source_path string, dest_path string, op
 	} else {
 		// We're moving a specific item
 		source_parent_dir := self.factory.fs_dir.get_by_absolute_path(fs_id, source_dir_path)!
-		
+
 		// Try to find what we're moving
 		mut found := false
-		
+
 		// Try file first
 		if file := self.factory.fs_file.get_by_path(source_parent_dir.id, source_filename) {
 			self.mv_file(fs_id, file.id, normalized_dest, opts)!
 			found = true
 		}
-		
+
 		// Try symlink if file not found
 		if !found {
 			if symlink := self.factory.fs_symlink.get_by_path(source_parent_dir.id, source_filename) {
@@ -578,15 +585,17 @@ pub fn (mut self FsTools) mv(fs_id u32, source_path string, dest_path string, op
 				found = true
 			}
 		}
-		
+
 		// Try directory if neither file nor symlink found
 		if !found {
-			if subdir := self.factory.fs_dir.get_by_path(fs_id, source_parent_dir.id, source_filename) {
+			if subdir := self.factory.fs_dir.get_by_path(fs_id, source_parent_dir.id,
+				source_filename)
+			{
 				self.mv_directory(fs_id, subdir.id, normalized_dest)!
 				found = true
 			}
 		}
-		
+
 		if !found {
 			return error('Source path "${source_path}" not found')
 		}
@@ -596,16 +605,16 @@ pub fn (mut self FsTools) mv(fs_id u32, source_path string, dest_path string, op
 // Move a file to destination path
 fn (mut self FsTools) mv_file(fs_id u32, file_id u32, dest_path string, opts MoveOptions) ! {
 	source_file := self.factory.fs_file.get(file_id)!
-	
+
 	// Determine destination directory and filename
 	dest_dir_path, mut dest_filename := split_path(dest_path)
 	if dest_filename == '' {
 		dest_filename = source_file.name
 	}
-	
+
 	// Ensure destination directory exists
 	dest_dir_id := self.factory.fs_dir.create_path(fs_id, dest_dir_path)!
-	
+
 	// Check if destination file already exists
 	if existing_file := self.factory.fs_file.get_by_path(dest_dir_id, dest_filename) {
 		if !opts.overwrite {
@@ -614,12 +623,12 @@ fn (mut self FsTools) mv_file(fs_id u32, file_id u32, dest_path string, opts Mov
 		// Remove existing file
 		self.factory.fs_file.delete(existing_file.id)!
 	}
-	
+
 	// Update file name if it's different
 	if dest_filename != source_file.name {
 		self.factory.fs_file.rename(file_id, dest_filename)!
 	}
-	
+
 	// Move file to new directory (replace all directory associations)
 	self.factory.fs_file.move(file_id, [dest_dir_id])!
 }
@@ -627,7 +636,7 @@ fn (mut self FsTools) mv_file(fs_id u32, file_id u32, dest_path string, opts Mov
 // Move a symlink to destination path
 fn (mut self FsTools) mv_symlink(fs_id u32, symlink_id u32, dest_path string, opts MoveOptions) ! {
 	source_symlink := self.factory.fs_symlink.get(symlink_id)!
-	
+
 	if opts.follow_symlinks {
 		// Follow the symlink and move its target instead
 		if source_symlink.target_type == .file {
@@ -639,16 +648,16 @@ fn (mut self FsTools) mv_symlink(fs_id u32, symlink_id u32, dest_path string, op
 		self.factory.fs_symlink.delete(symlink_id)!
 		return
 	}
-	
+
 	// Move the symlink itself
 	dest_dir_path, mut dest_filename := split_path(dest_path)
 	if dest_filename == '' {
 		dest_filename = source_symlink.name
 	}
-	
+
 	// Ensure destination directory exists
 	dest_dir_id := self.factory.fs_dir.create_path(fs_id, dest_dir_path)!
-	
+
 	// Check if destination symlink already exists
 	if existing_symlink := self.factory.fs_symlink.get_by_path(dest_dir_id, dest_filename) {
 		if !opts.overwrite {
@@ -656,12 +665,12 @@ fn (mut self FsTools) mv_symlink(fs_id u32, symlink_id u32, dest_path string, op
 		}
 		self.factory.fs_symlink.delete(existing_symlink.id)!
 	}
-	
+
 	// Update symlink name if it's different
 	if dest_filename != source_symlink.name {
 		self.factory.fs_symlink.rename(symlink_id, dest_filename)!
 	}
-	
+
 	// Move symlink to new parent directory
 	self.factory.fs_symlink.move(symlink_id, dest_dir_id)!
 }
@@ -669,13 +678,13 @@ fn (mut self FsTools) mv_symlink(fs_id u32, symlink_id u32, dest_path string, op
 // Move a directory to destination path
 fn (mut self FsTools) mv_directory(fs_id u32, source_dir_id u32, dest_path string) ! {
 	source_dir := self.factory.fs_dir.get(source_dir_id)!
-	
+
 	// Parse destination path
 	dest_parent_path, mut dest_dirname := split_path(dest_path)
 	if dest_dirname == '' {
 		dest_dirname = source_dir.name
 	}
-	
+
 	// Ensure destination parent directory exists
 	dest_parent_id := if dest_parent_path == '/' {
 		// Moving to root level, find root directory
@@ -684,12 +693,12 @@ fn (mut self FsTools) mv_directory(fs_id u32, source_dir_id u32, dest_path strin
 	} else {
 		self.factory.fs_dir.create_path(fs_id, dest_parent_path)!
 	}
-	
+
 	// Update directory name if it's different
 	if dest_dirname != source_dir.name {
 		self.factory.fs_dir.rename(source_dir_id, dest_dirname)!
 	}
-	
+
 	// Move directory to new parent
 	self.factory.fs_dir.move(source_dir_id, dest_parent_id)!
 }

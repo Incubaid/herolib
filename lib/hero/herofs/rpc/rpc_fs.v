@@ -44,11 +44,11 @@ pub fn fs_set(request Request) !Response {
 
 	mut fs_factory := herofs.new()!
 	mut fs_obj := fs_factory.fs.new(
-		name: payload.name
+		name:        payload.name
 		description: payload.description
 		quota_bytes: payload.quota_bytes
 	)!
-	
+
 	if payload.root_dir_id > 0 {
 		fs_obj.root_dir_id = payload.root_dir_id
 	}

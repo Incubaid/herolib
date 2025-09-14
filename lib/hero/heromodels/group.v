@@ -32,6 +32,7 @@ pub enum GroupRole {
 pub fn (self Group) type_name() string {
 	return 'group'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self Group) description(methodname string) string {
 	match methodname {
