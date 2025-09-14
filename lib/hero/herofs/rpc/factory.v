@@ -30,6 +30,7 @@ pub fn start(args ServerArgs) ! {
 	openrpc_handler.register_procedure_handle('fs_dir_rename', fs_dir_rename)
 	openrpc_handler.register_procedure_handle('fs_dir_list_by_filesystem', fs_dir_list_by_filesystem)
 	openrpc_handler.register_procedure_handle('fs_dir_has_children', fs_dir_has_children)
+	openrpc_handler.register_procedure_handle('fs_dir_list_contents', fs_dir_list_contents)
 
 	// Register fs_file procedures
 	openrpc_handler.register_procedure_handle('fs_file_get', fs_file_get)

@@ -981,6 +981,97 @@
                     }
                 }
             }
+        },
+        {
+            "name": "fs_dir_list_contents",
+            "summary": "List directory contents with filtering",
+            "description": "List files, directories, and symlinks in a directory with optional filtering and recursion",
+            "params": [
+                {
+                    "name": "dir_id",
+                    "description": "ID of directory to list contents for",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "path",
+                    "description": "Absolute path to the directory",
+                    "required": false,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "fs_id",
+                    "description": "ID of filesystem (required when using path)",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "recursive",
+                    "description": "Whether to list contents recursively",
+                    "required": false,
+                    "schema": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                {
+                    "name": "include",
+                    "description": "Patterns to include (e.g. ['*.py', 'doc*'])",
+                    "required": false,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "exclude",
+                    "description": "Patterns to exclude (e.g. ['*~', '.git'])",
+                    "required": false,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "contents",
+                "description": "Directory contents with files, directories, and symlinks",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "directories": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Directory"
+                            }
+                        },
+                        "files": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/File"
+                            }
+                        },
+                        "symlinks": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Symlink"
+                            }
+                        }
+                    }
+                }
+            }
         }
     ],
     "components": {
