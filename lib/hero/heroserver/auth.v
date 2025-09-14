@@ -5,6 +5,12 @@ import crypto.ed25519
 import rand
 import time
 
+pub struct AuthConfig {
+pub mut:
+	// Add any authentication-related configuration here
+	// For now, it can be empty or have default values
+}
+
 pub struct AuthManager {
 mut:
     registered_keys map[string]string    // pubkey -> user_id
@@ -28,7 +34,9 @@ pub:
     expires_at i64
 }
 
-pub fn new_auth_manager() &AuthManager {
+pub fn new_auth_manager(config AuthConfig) &AuthManager {
+	// Use config if needed, for now it's just passed
+	_ = config
     return &AuthManager{}
 }
 

@@ -2,12 +2,22 @@ module heroserver
 
 import veb
 import freeflowuniverse.herolib.schemas.jsonrpc
+import freeflowuniverse.herolib.crypt
+import freeflowuniverse.herolib.heroserver.auth
+import freeflowuniverse.herolib.heroserver.handlers
+
+pub struct ServerConfig {
+pub mut:
+	port       int = 8080
+	auth_config auth.AuthConfig
+}
 
 pub struct HeroServer {
 pub mut:
 	config           ServerConfig
-	auth_manager     &AuthManager
-	handler_registry &HandlerRegistry
+	auth_manager     &auth.AuthManager
+	handler_registry &handlers.HandlerRegistry
+	age_client       &crypt.AGEClient
 }
 
 pub struct Context {
@@ -57,7 +67,7 @@ pub fn (mut s HeroServer) api(mut ctx Context) veb.Result {
 	request := jsonrpc.decode_request(ctx.req.data) or {
 		return ctx.request_error('Invalid JSON-RPC request')
 	}
-
+	
 	response := handler.handle(request) or { return ctx.server_error('Handler error') }
 
 	return ctx.json(response)
@@ -77,4 +87,18 @@ pub fn (mut s HeroServer) doc(mut ctx Context) veb.Result {
 	}
 
 	return ctx.html(doc_html)
+}
+
+// new_server creates a new HeroServer instance
+pub fn new_server(config ServerConfig) !&HeroServer {
+	mut auth_manager := auth.new_auth_manager(config.auth_config)!
+	mut handler_registry := handlers.new_handler_registry()!
+	mut age_client := crypt.new_age_client(crypt.AGEClientConfig{})!
+
+	return &HeroServer{
+		config:           config
+		auth_manager:     auth_manager
+		handler_registry: handler_registry
+		age_client:       age_client
+	}
 }
