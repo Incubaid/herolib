@@ -1,4 +1,4 @@
-module utils
+module codetools
 
 // Helper function to extract code blocks from the response
 pub fn extract_code_block(response string, identifier string, language string) string {

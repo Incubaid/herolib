@@ -92,10 +92,10 @@ pub fn (mut node Node) hero_update(args_ HeroUpdateArgs) ! {
 
 	if args.sync_from_local {
 		if args.sync_full {
-			node.sync_code('hero', heropath_ + '/..', '~/code/github/freeflowuniverse/herolib',
+			node.sync_code('hero', heropath_ + '/..', '~/code/github/incubaid/herolib',
 				args.sync_fast)!
 		} else {
-			node.sync_code('hero_lib', heropath_, '~/code/github/freeflowuniverse/herolib/herolib',
+			node.sync_code('hero_lib', heropath_, '~/code/github/incubaid/herolib/herolib',
 				args.sync_fast)!
 		}
 		return
@@ -108,7 +108,7 @@ pub fn (mut node Node) hero_update(args_ HeroUpdateArgs) ! {
 		args.git_pull = false
 		node.exec_cmd(
 			cmd: '
-			cd ~/code/github/freeflowuniverse/herolib
+			cd ~/code/github/incubaid/herolib
 			rm -f .git/index
 			git fetch --all
 			git reset HEAD --hard
@@ -121,7 +121,7 @@ pub fn (mut node Node) hero_update(args_ HeroUpdateArgs) ! {
 	if args.git_pull {
 		node.exec_cmd(
 			cmd: '
-			cd ~/code/github/freeflowuniverse/herolib
+			cd ~/code/github/incubaid/herolib
 			git pull
 			${branchstr}		
 			'
@@ -147,25 +147,25 @@ pub fn (mut node Node) sync_code(name string, src_ string, dest string, fast_rsy
 
 // sync local hero code to rmote and then compile hero
 pub fn (mut node Node) hero_compile_sync() ! {
-	if !node.file_exists('~/code/github/freeflowuniverse/herolib/cli/readme.md') {
+	if !node.file_exists('~/code/github/incubaid/herolib/cli/readme.md') {
 		node.hero_install()!
 	}
 	node.hero_update()!
 	node.exec_cmd(
 		cmd: '
-		~/code/github/freeflowuniverse/herolib/install.sh
-		~/code/github/freeflowuniverse/herolib/cli/hero/compile_debug.sh		
+		~/code/github/incubaid/herolib/install.sh
+		~/code/github/incubaid/herolib/cli/hero/compile_debug.sh		
 		'
 	)!
 }
 
 pub fn (mut node Node) hero_compile() ! {
-	if !node.file_exists('~/code/github/freeflowuniverse/herolib/cli/readme.md') {
+	if !node.file_exists('~/code/github/incubaid/herolib/cli/readme.md') {
 		node.hero_install()!
 	}
 	node.exec_cmd(
 		cmd: '
-		~/code/github/freeflowuniverse/herolib/cli/hero/compile_debug.sh		
+		~/code/github/incubaid/herolib/cli/hero/compile_debug.sh		
 		'
 	)!
 }
