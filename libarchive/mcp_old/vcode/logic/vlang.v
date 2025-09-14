@@ -233,7 +233,7 @@ pub fn vtest(fullpath string) !string {
 		}
 		return results
 	} else {
-		cmd := 'v -gc none -stats -enable-globals -show-c-output -keepc -n -w -cg -o /tmp/tester.c -g -cc tcc test ${fullpath}'
+		cmd := 'v -cg -gc none -stats -enable-globals -show-c-output -keepc -n -w -cg -o /tmp/tester.c -g -cc tcc test ${fullpath}'
 		logger.debug('Executing command: ${cmd}')
 		result := os.execute(cmd)
 		if result.exit_code != 0 {

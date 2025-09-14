@@ -1,4 +1,4 @@
-module mcp
+module mcpcore
 
 import freeflowuniverse.herolib.schemas.jsonrpc
 
