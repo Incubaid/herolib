@@ -70,7 +70,7 @@ pub fn decode_file_metadata(data []u8) !File {
 		// blocksize is max 2 bytes, so max 4gb entry size
 		blocksize := d.get_u16()!
 		for i in 0 .. blocksize {
-			chunk_ids << d.get_u32()! or { return error('Failed to get block id ${err}') }
+			chunk_ids << d.get_u32() or { return error('Failed to get block id ${err}') }
 		}
 	}
 

@@ -6,11 +6,11 @@ mut mydb := heromodels.new()!
 
 // Create a new group
 mut o := mydb.group.new(
-	name: 'Development Team'
-	description: 'Group for software developers'
-	is_public: false
-	members: []
-	subgroups: []
+	name:         'Development Team'
+	description:  'Group for software developers'
+	is_public:    false
+	members:      []
+	subgroups:    []
 	parent_group: 0
 )!
 

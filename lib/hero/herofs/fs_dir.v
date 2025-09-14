@@ -12,12 +12,12 @@ import freeflowuniverse.herolib.hero.db
 pub struct FsDir {
 	db.Base
 pub mut:
-	name       string
-	fs_id      u32   // Associated filesystem
-	parent_id  u32   // Parent directory ID (0 for root)
+	name      string
+	fs_id     u32 // Associated filesystem
+	parent_id u32 // Parent directory ID (0 for root)
 }
 
-//we only keep the parents, not the children, as children can be found by doing a query on parent_id, we will need some smart hsets to make this fast enough and efficient
+// we only keep the parents, not the children, as children can be found by doing a query on parent_id, we will need some smart hsets to make this fast enough and efficient
 
 pub struct DBFsDir {
 pub mut:
@@ -28,13 +28,13 @@ pub fn (self FsDir) type_name() string {
 	return 'fs_dir'
 }
 
-pub fn (self FsDir) dump(mut e &encoder.Encoder) ! {
+pub fn (self FsDir) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.name)
 	e.add_u32(self.fs_id)
 	e.add_u32(self.parent_id)
 }
 
-fn (mut self DBFsDir) load(mut o FsDir, mut e &encoder.Decoder) ! {
+fn (mut self DBFsDir) load(mut o FsDir, mut e encoder.Decoder) ! {
 	o.name = e.get_string()!
 	o.fs_id = e.get_u32()!
 	o.parent_id = e.get_u32()!
@@ -54,60 +54,60 @@ pub mut:
 // get new directory, not from the DB
 pub fn (mut self DBFsDir) new(args FsDirArg) !FsDir {
 	mut o := FsDir{
-		name:      args.name,
-		fs_id:     args.fs_id,
+		name:      args.name
+		fs_id:     args.fs_id
 		parent_id: args.parent_id
 	}
-	
+
 	// Set base fields
 	o.description = args.description
 	o.tags = self.db.tags_get(args.tags)!
 	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
-	
+
 	return o
 }
 
 pub fn (mut self DBFsDir) set(o FsDir) !u32 {
 	id := self.db.set[FsDir](o)!
-	
+
 	// Store directory in filesystem's directory index
 	path_key := '${o.fs_id}:${o.parent_id}:${o.name}'
 	self.db.redis.hset('fsdir:paths', path_key, id.str())!
-	
+
 	// Store in filesystem's directory list using hset
 	self.db.redis.hset('fsdir:fs:${o.fs_id}', id.str(), id.str())!
-	
+
 	// Store in parent's children list using hset
 	if o.parent_id > 0 {
 		self.db.redis.hset('fsdir:children:${o.parent_id}', id.str(), id.str())!
 	}
-	
+
 	return id
 }
 
 pub fn (mut self DBFsDir) delete(id u32) ! {
 	// Get the directory info before deleting
 	dir := self.get(id)!
-	
+
 	// Check if directory has children using hkeys
 	children := self.db.redis.hkeys('fsdir:children:${id}')!
 	if children.len > 0 {
 		return error('Cannot delete directory ${dir.name} (ID: ${id}) because it has ${children.len} children')
 	}
-	
+
 	// Remove from path index
 	path_key := '${dir.fs_id}:${dir.parent_id}:${dir.name}'
 	self.db.redis.hdel('fsdir:paths', path_key)!
-	
+
 	// Remove from filesystem's directory list using hdel
 	self.db.redis.hdel('fsdir:fs:${dir.fs_id}', id.str())!
-	
+
 	// Remove from parent's children list using hdel
 	if dir.parent_id > 0 {
 		self.db.redis.hdel('fsdir:children:${dir.parent_id}', id.str())!
 	}
-	
+
 	// Delete the directory itself
 	self.db.delete[FsDir](id)!
 }
@@ -166,14 +166,14 @@ pub fn (mut self DBFsDir) has_children(dir_id u32) !bool {
 // Rename a directory
 pub fn (mut self DBFsDir) rename(id u32, new_name string) !u32 {
 	mut dir := self.get(id)!
-	
+
 	// Remove old path index
 	old_path_key := '${dir.fs_id}:${dir.parent_id}:${dir.name}'
 	self.db.redis.hdel('fsdir:paths', old_path_key)!
-	
+
 	// Update name
 	dir.name = new_name
-	
+
 	// Save with new name
 	return self.set(dir)!
 }
@@ -181,7 +181,7 @@ pub fn (mut self DBFsDir) rename(id u32, new_name string) !u32 {
 // Move a directory to a new parent
 pub fn (mut self DBFsDir) move(id u32, new_parent_id u32) !u32 {
 	mut dir := self.get(id)!
-	
+
 	// Check that new parent exists and is in the same filesystem
 	if new_parent_id > 0 {
 		parent := self.get(new_parent_id)!
@@ -189,19 +189,19 @@ pub fn (mut self DBFsDir) move(id u32, new_parent_id u32) !u32 {
 			return error('Cannot move directory across filesystems')
 		}
 	}
-	
+
 	// Remove old path index
 	old_path_key := '${dir.fs_id}:${dir.parent_id}:${dir.name}'
 	self.db.redis.hdel('fsdir:paths', old_path_key)!
-	
+
 	// Remove from old parent's children list
 	if dir.parent_id > 0 {
 		self.db.redis.hdel('fsdir:children:${dir.parent_id}', id.str())!
 	}
-	
+
 	// Update parent
 	dir.parent_id = new_parent_id
-	
+
 	// Save with new parent
 	return self.set(dir)!
 }

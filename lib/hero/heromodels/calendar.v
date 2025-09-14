@@ -23,6 +23,29 @@ pub mut:
 pub fn (self Calendar) type_name() string {
 	return 'calendar'
 }
+// return example rpc call and result for each methodname
+pub fn (self Calendar) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a calendar. Returns the ID of the calendar.'
+		}
+		'get' {
+			return 'Retrieve a calendar by ID. Returns the calendar object.'
+		}
+		'delete' {
+			return 'Delete a calendar by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a calendar exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all calendars. Returns an array of calendar objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
 
 // return example rpc call and result for each methodname
 pub fn (self Calendar) example(methodname string) (string, string) {

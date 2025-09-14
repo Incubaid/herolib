@@ -192,6 +192,7 @@ python/
 rust_test.v
 rclone/
 qdrant/
+sshagent_test.v
 '
 
 if in_github_actions() {

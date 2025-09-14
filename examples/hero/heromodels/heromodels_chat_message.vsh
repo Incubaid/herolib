@@ -7,27 +7,27 @@ mut mydb := heromodels.new()!
 
 // First create a chat group to reference
 mut chat_group := mydb.chat_group.new(
-	name: 'General Discussion'
-	description: 'A public channel for general discussions'
-	chat_type: .public_channel
+	name:          'General Discussion'
+	description:   'A public channel for general discussions'
+	chat_type:     .public_channel
 	last_activity: 0
-	is_archived: false
+	is_archived:   false
 )!
 chat_group_id := mydb.chat_group.set(chat_group)!
 
 // Create a new chat message
 mut chat_message := mydb.chat_message.new(
-	name: 'Hello World Message'
-	description: 'A simple hello world message'
-	content: 'Hello, world!'
-	chat_group_id: chat_group_id
-	sender_id: 1
+	name:            'Hello World Message'
+	description:     'A simple hello world message'
+	content:         'Hello, world!'
+	chat_group_id:   chat_group_id
+	sender_id:       1
 	parent_messages: []
-	fs_files: []
-	message_type: .text
-	status: .sent
-	reactions: []
-	mentions: []
+	fs_files:        []
+	message_type:    .text
+	status:          .sent
+	reactions:       []
+	mentions:        []
 )!
 
 // Save to database

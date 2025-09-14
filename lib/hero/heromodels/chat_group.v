@@ -29,6 +29,29 @@ pub mut:
 pub fn (self ChatGroup) type_name() string {
 	return 'chat_group'
 }
+// return example rpc call and result for each methodname
+pub fn (self ChatGroup) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a chat group. Returns the ID of the chat group.'
+		}
+		'get' {
+			return 'Retrieve a chat group by ID. Returns the chat group object.'
+		}
+		'delete' {
+			return 'Delete a chat group by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a chat group exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all chat groups. Returns an array of chat group objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
 
 // return example rpc call and result for each methodname
 pub fn (self ChatGroup) example(methodname string) (string, string) {

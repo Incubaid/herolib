@@ -13,12 +13,12 @@ pub struct FsFile {
 	db.Base
 pub mut:
 	name        string
-	fs_id       u32     // Associated filesystem
-	directories []u32   // Directory IDs where this file exists, means file can be part of multiple directories (like hard links in Linux)
-	blobs       []u32   // IDs of file content blobs
-	size_bytes  u64    
-	mime_type   string  // e.g., "image/png"
-	checksum    string  // e.g., SHA256 checksum of the file
+	fs_id       u32   // Associated filesystem
+	directories []u32 // Directory IDs where this file exists, means file can be part of multiple directories (like hard links in Linux)
+	blobs       []u32 // IDs of file content blobs
+	size_bytes  u64
+	mime_type   string // e.g., "image/png"
+	checksum    string // e.g., SHA256 checksum of the file
 	accessed_at i64
 	metadata    map[string]string // Custom metadata
 }
@@ -32,27 +32,27 @@ pub fn (self FsFile) type_name() string {
 	return 'fs_file'
 }
 
-pub fn (self FsFile) dump(mut e &encoder.Encoder) ! {
+pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.name)
 	e.add_u32(self.fs_id)
-	
+
 	// Handle directories
 	e.add_u16(u16(self.directories.len))
 	for dir_id in self.directories {
 		e.add_u32(dir_id)
 	}
-	
+
 	// Handle blobs
 	e.add_u16(u16(self.blobs.len))
 	for blob_id in self.blobs {
 		e.add_u32(blob_id)
 	}
-	
+
 	e.add_u64(self.size_bytes)
 	e.add_string(self.mime_type)
 	e.add_string(self.checksum)
 	e.add_i64(self.accessed_at)
-	
+
 	// Handle metadata map
 	e.add_u16(u16(self.metadata.len))
 	for key, value in self.metadata {
@@ -61,29 +61,29 @@ pub fn (self FsFile) dump(mut e &encoder.Encoder) ! {
 	}
 }
 
-fn (mut self DBFsFile) load(mut o FsFile, mut e &encoder.Decoder) ! {
+fn (mut self DBFsFile) load(mut o FsFile, mut e encoder.Decoder) ! {
 	o.name = e.get_string()!
 	o.fs_id = e.get_u32()!
-	
+
 	// Load directories
 	dirs_count := e.get_u16()!
 	o.directories = []u32{cap: int(dirs_count)}
 	for _ in 0 .. dirs_count {
 		o.directories << e.get_u32()!
 	}
-	
+
 	// Load blobs
 	blobs_count := e.get_u16()!
 	o.blobs = []u32{cap: int(blobs_count)}
 	for _ in 0 .. blobs_count {
 		o.blobs << e.get_u32()!
 	}
-	
+
 	o.size_bytes = e.get_u64()!
 	o.mime_type = e.get_string()!
 	o.checksum = e.get_string()!
 	o.accessed_at = e.get_i64()!
-	
+
 	// Load metadata map
 	metadata_count := e.get_u16()!
 	o.metadata = map[string]string{}
@@ -97,17 +97,17 @@ fn (mut self DBFsFile) load(mut o FsFile, mut e &encoder.Decoder) ! {
 @[params]
 pub struct FsFileArg {
 pub mut:
-	name          string @[required]
-	description   string
-	fs_id         u32 @[required]
-	directories   []u32 @[required]
-	blobs         []u32
-	size_bytes    u64
-	mime_type     string
-	checksum      string
-	metadata      map[string]string
-	tags          []string
-	comments      []db.CommentArg
+	name        string @[required]
+	description string
+	fs_id       u32   @[required]
+	directories []u32 @[required]
+	blobs       []u32
+	size_bytes  u64
+	mime_type   string
+	checksum    string
+	metadata    map[string]string
+	tags        []string
+	comments    []db.CommentArg
 }
 
 // get new file, not from the DB
@@ -121,38 +121,38 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 			if !blob_exists {
 				return error('Blob with ID ${blob_id} does not exist')
 			}
-			
+
 			// Get blob data
 			mut blob_obj, blob_data := self.db.get_data[FsBlob](blob_id)!
 			mut e_decoder := encoder.decoder_new(blob_data)
-			
+
 			// Skip hash
 			e_decoder.get_string()!
-			
+
 			// Skip data, get size directly
 			e_decoder.get_list_u8()!
 			size += u64(e_decoder.get_int()!)
 		}
 	}
-	
+
 	mut o := FsFile{
-		name: args.name,
-		fs_id: args.fs_id,
-		directories: args.directories,
-		blobs: args.blobs,
-		size_bytes: size,
-		mime_type: args.mime_type,
-		checksum: args.checksum,
-		accessed_at: ourtime.now().unix(),
-		metadata: args.metadata
+		name:        args.name
+		fs_id:       args.fs_id
+		directories: args.directories
+		blobs:       args.blobs
+		size_bytes:  size
+		mime_type:   args.mime_type
+		checksum:    args.checksum
+		accessed_at: ourtime.now().unix()
+		metadata:    args.metadata
 	}
-	
+
 	// Set base fields
 	o.description = args.description
 	o.tags = self.db.tags_get(args.tags)!
 	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
-	
+
 	return o
 }
 
@@ -164,7 +164,7 @@ pub fn (mut self DBFsFile) set(o FsFile) !u32 {
 			return error('Directory with ID ${dir_id} does not exist')
 		}
 	}
-	
+
 	// Check that blobs exist
 	for blob_id in o.blobs {
 		blob_exists := self.db.exists[FsBlob](blob_id)!
@@ -172,52 +172,52 @@ pub fn (mut self DBFsFile) set(o FsFile) !u32 {
 			return error('Blob with ID ${blob_id} does not exist')
 		}
 	}
-	
+
 	id := self.db.set[FsFile](o)!
-	
+
 	// Store file in each directory's file index
 	for dir_id in o.directories {
 		// Store by name in each directory
 		path_key := '${dir_id}:${o.name}'
 		self.db.redis.hset('fsfile:paths', path_key, id.str())!
-		
+
 		// Add to directory's file list using hset
 		self.db.redis.hset('fsfile:dir:${dir_id}', id.str(), id.str())!
 	}
-	
+
 	// Store in filesystem's file list using hset
 	self.db.redis.hset('fsfile:fs:${o.fs_id}', id.str(), id.str())!
-	
+
 	// Store by mimetype using hset
 	if o.mime_type != '' {
 		self.db.redis.hset('fsfile:mime:${o.mime_type}', id.str(), id.str())!
 	}
-	
+
 	return id
 }
 
 pub fn (mut self DBFsFile) delete(id u32) ! {
 	// Get the file info before deleting
 	file := self.get(id)!
-	
+
 	// Remove from each directory's file index
 	for dir_id in file.directories {
 		// Remove from path index
 		path_key := '${dir_id}:${file.name}'
 		self.db.redis.hdel('fsfile:paths', path_key)!
-		
+
 		// Remove from directory's file list using hdel
 		self.db.redis.hdel('fsfile:dir:${dir_id}', id.str())!
 	}
-	
+
 	// Remove from filesystem's file list using hdel
 	self.db.redis.hdel('fsfile:fs:${file.fs_id}', id.str())!
-	
+
 	// Remove from mimetype index using hdel
 	if file.mime_type != '' {
 		self.db.redis.hdel('fsfile:mime:${file.mime_type}', id.str())!
 	}
-	
+
 	// Delete the file itself
 	self.db.delete[FsFile](id)!
 }
@@ -284,28 +284,28 @@ pub fn (mut self DBFsFile) append_blob(id u32, blob_id u32) !u32 {
 	if !blob_exists {
 		return error('Blob with ID ${blob_id} does not exist')
 	}
-	
+
 	// Get blob size
 	mut blob_obj, blob_data := self.db.get_data[FsBlob](blob_id)!
 	mut e_decoder := encoder.decoder_new(blob_data)
-	
+
 	// Skip hash
 	e_decoder.get_string()!
-	
+
 	// Skip data, get size directly
 	e_decoder.get_list_u8()!
 	blob_size := e_decoder.get_int()!
-	
+
 	// Get file
 	mut file := self.get(id)!
-	
+
 	// Add blob if not already in the list
 	if blob_id !in file.blobs {
 		file.blobs << blob_id
 		file.size_bytes += u64(blob_size)
 		file.updated_at = ourtime.now().unix()
 	}
-	
+
 	// Save file
 	return self.set(file)!
 }
@@ -328,16 +328,16 @@ pub fn (mut self DBFsFile) update_metadata(id u32, key string, value string) !u3
 // Rename a file
 pub fn (mut self DBFsFile) rename(id u32, new_name string) !u32 {
 	mut file := self.get(id)!
-	
+
 	// Remove old path indexes
 	for dir_id in file.directories {
 		old_path_key := '${dir_id}:${file.name}'
 		self.db.redis.hdel('fsfile:paths', old_path_key)!
 	}
-	
+
 	// Update name
 	file.name = new_name
-	
+
 	// Save with new name
 	return self.set(file)!
 }
@@ -345,7 +345,7 @@ pub fn (mut self DBFsFile) rename(id u32, new_name string) !u32 {
 // Move file to different directories
 pub fn (mut self DBFsFile) move(id u32, new_directories []u32) !u32 {
 	mut file := self.get(id)!
-	
+
 	// Check that all new directories exist
 	for dir_id in new_directories {
 		dir_exists := self.db.exists[FsDir](dir_id)!
@@ -353,17 +353,17 @@ pub fn (mut self DBFsFile) move(id u32, new_directories []u32) !u32 {
 			return error('Directory with ID ${dir_id} does not exist')
 		}
 	}
-	
+
 	// Remove from old directories
 	for dir_id in file.directories {
 		path_key := '${dir_id}:${file.name}'
 		self.db.redis.hdel('fsfile:paths', path_key)!
 		self.db.redis.hdel('fsfile:dir:${dir_id}', id.str())!
 	}
-	
+
 	// Update directories
 	file.directories = new_directories
-	
+
 	// Save with new directories
 	return self.set(file)!
 }

@@ -1,4 +1,3 @@
-
 module heromodels
 
 import freeflowuniverse.herolib.data.encoder
@@ -78,6 +77,29 @@ pub mut:
 
 pub fn (self CalendarEvent) type_name() string {
 	return 'calendar_event'
+}
+// return example rpc call and result for each methodname
+pub fn (self CalendarEvent) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a calendar event. Returns the ID of the event.'
+		}
+		'get' {
+			return 'Retrieve a calendar event by ID. Returns the event object.'
+		}
+		'delete' {
+			return 'Delete a calendar event by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a calendar event exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all calendar events. Returns an array of event objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
 }
 
 // return example rpc call and result for each methodname

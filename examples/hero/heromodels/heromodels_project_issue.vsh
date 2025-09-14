@@ -8,26 +8,30 @@ mydb.project_issue.db.redis.flushdb()!
 
 // Create a new project issue
 mut issue := mydb.project_issue.new(
-	name: 'Fix login bug'
+	name:        'Fix login bug'
 	description: 'Users are unable to login with their credentials'
-	title: 'Login functionality is broken'
-	project_id: u32(1)
-	issue_type: .bug
-	priority: .high
-	status: .open
-	swimlane: 'todo'
-	assignees: [u32(10), u32(20)]
-	reporter: u32(5)
-	milestone: 'phase_1'
-	deadline: '2023-01-15'
-	estimate: 8
-	fs_files: [u32(1000), u32(2000)]
-	parent_id: u32(0)
-	children: [u32(100), u32(101)]
-	tags: ['bug', 'login', 'authentication']
-	comments: [
-		db.CommentArg{comment: 'This issue needs to be fixed urgently'},
-		db.CommentArg{comment: 'I am working on this now'}
+	title:       'Login functionality is broken'
+	project_id:  u32(1)
+	issue_type:  .bug
+	priority:    .high
+	status:      .open
+	swimlane:    'todo'
+	assignees:   [u32(10), u32(20)]
+	reporter:    u32(5)
+	milestone:   'phase_1'
+	deadline:    '2023-01-15'
+	estimate:    8
+	fs_files:    [u32(1000), u32(2000)]
+	parent_id:   u32(0)
+	children:    [u32(100), u32(101)]
+	tags:        ['bug', 'login', 'authentication']
+	comments:    [
+		db.CommentArg{
+			comment: 'This issue needs to be fixed urgently'
+		},
+		db.CommentArg{
+			comment: 'I am working on this now'
+		},
 	]
 )!
 

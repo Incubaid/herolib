@@ -8,7 +8,7 @@ const blank_openrpc = '{"openrpc": "1.0.0","info": {"version": "1.0.0"},"methods
 // test if encode can correctly encode a blank OpenRPC
 fn test_encode_blank() ! {
 	doc := OpenRPC{
-		info:    Info{
+		info: Info{
 			title:   ''
 			version: '1.0.0'
 		}

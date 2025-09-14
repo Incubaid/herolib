@@ -23,7 +23,7 @@ pub mut:
 pub fn new_unix_client(params UNIXClientParams) &UNIXClient {
 	return &UNIXClient{
 		socket_path: params.socket_path
-		timeout: params.timeout
+		timeout:     params.timeout
 	}
 }
 
@@ -46,11 +46,9 @@ pub fn (mut client UNIXClient) call(method string, params string) !string {
 	response := jsonrpc.decode_response(response_json) or {
 		return error('Failed to decode response: ${err}')
 	}
-	
+
 	// Validate response
-	response.validate() or {
-		return error('Invalid response: ${err}')
-	}
+	response.validate() or { return error('Invalid response: ${err}') }
 
 	// Check ID matches
 	if response.id != request.id {
@@ -73,46 +71,40 @@ fn (mut client UNIXClient) send_request(request string) !string {
 	mut conn := unix.connect_stream(client.socket_path) or {
 		return error('Failed to connect to Unix socket at ${client.socket_path}: ${err}')
 	}
-	
+
 	defer {
 		conn.close() or { console.print_stderr('Error closing connection: ${err}') }
 	}
-	
+
 	// Set timeout
 	if client.timeout > 0 {
 		conn.set_read_timeout(client.timeout * time.second)
 		conn.set_write_timeout(client.timeout * time.second)
 	}
-	
+
 	// Send request
 	console.print_debug('Sending request: ${request}')
-	
-	conn.write_string(request) or {
-		return error('Failed to send request: ${err}')
-	}
-	
+
+	conn.write_string(request) or { return error('Failed to send request: ${err}') }
+
 	// Read response
 	mut buffer := []u8{len: 4096}
-	bytes_read := conn.read(mut buffer) or {
-		return error('Failed to read response: ${err}')
-	}
-	
+	bytes_read := conn.read(mut buffer) or { return error('Failed to read response: ${err}') }
+
 	if bytes_read == 0 {
 		return error('No response received from server')
 	}
-	
+
 	response := buffer[..bytes_read].bytestr()
 	console.print_debug('Received response: ${response}')
-	
+
 	return response
 }
 
 // ping sends a simple ping to test connectivity
 pub fn (mut client UNIXClient) ping() !bool {
 	// Try to discover the specification as a connectivity test
-	client.discover() or {
-		return error('Ping failed: ${err}')
-	}
+	client.discover() or { return error('Ping failed: ${err}') }
 	return true
 }
 

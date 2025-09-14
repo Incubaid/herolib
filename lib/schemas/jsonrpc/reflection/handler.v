@@ -16,6 +16,6 @@ pub fn new_handler[T](receiver T) Handler[T] {
 pub fn (mut h Handler[T]) handle(request jsonrpc.Request) !jsonrpc.Response {
 	receiver := h.receiver
 	$for method in receiver.methods {
-		println("method ${method}")
+		println('method ${method}')
 	}
 }

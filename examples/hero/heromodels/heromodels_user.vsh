@@ -6,19 +6,19 @@ mut mydb := heromodels.new()!
 
 // Create a new user
 mut o := mydb.user.new(
-	name: 'John Doe'
-	description: 'Software Developer'
-	email: 'john.doe@example.com'
-	public_key: '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----'
-	phone: '+1234567890'
-	address: '123 Main St, City, Country'
-	avatar_url: 'https://example.com/avatar.jpg'
-	bio: 'Experienced software developer with a passion for V language'
-	timezone: 'UTC'
-	status: .active
+	name:           'John Doe'
+	description:    'Software Developer'
+	email:          'john.doe@example.com'
+	public_key:     '-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----'
+	phone:          '+1234567890'
+	address:        '123 Main St, City, Country'
+	avatar_url:     'https://example.com/avatar.jpg'
+	bio:            'Experienced software developer with a passion for V language'
+	timezone:       'UTC'
+	status:         .active
 	securitypolicy: 0
-	tags: 0
-	comments: []
+	tags:           0
+	comments:       []
 )!
 
 // Save to database

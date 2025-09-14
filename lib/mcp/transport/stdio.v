@@ -2,7 +2,7 @@ module transport
 
 import time
 import os
-import log
+import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.schemas.jsonrpc
 
 // StdioTransport implements the Transport interface for standard input/output communication.
@@ -25,7 +25,8 @@ pub fn (mut t StdioTransport) start(handler &jsonrpc.Handler) ! {
 	unsafe {
 		t.handler = handler
 	}
-	log.info('Starting MCP server with STDIO transport')
+	// Note: In STDIO mode, we should not print any debug messages to stdout
+	// as it interferes with JSON-RPC communication
 
 	for {
 		// Read a message from stdin
@@ -35,23 +36,31 @@ pub fn (mut t StdioTransport) start(handler &jsonrpc.Handler) ! {
 			continue
 		}
 
-		// Handle the message using the JSON-RPC handler
-		response := t.handler.handle(message) or {
-			log.error('message: ${message}')
-			log.error('Error handling message: ${err}')
-
+		// Parse the JSON-RPC request
+		request := jsonrpc.decode_request(message) or {
+			// Note: Removed stderr logging as it can interfere with MCP Inspector
 			// Try to extract the request ID for error response
 			id := jsonrpc.decode_request_id(message) or { 0 }
-
-			// Create an internal error response
-			error_response := jsonrpc.new_error(id, jsonrpc.internal_error).encode()
-			print(error_response)
+			// Create an invalid request error response
+			error_response := jsonrpc.new_error(id, jsonrpc.invalid_request).encode()
+			println(error_response)
 			continue
 		}
 
-		// Send the response only if it's not empty (notifications return empty responses)
-		if response.len > 0 {
-			t.send(response)
+		// Handle the message using the JSON-RPC handler
+		response := t.handler.handle(request) or {
+			// Note: Removed stderr logging as it can interfere with MCP Inspector
+
+			// Create an internal error response
+			error_response := jsonrpc.new_error(request.id, jsonrpc.internal_error).encode()
+			println(error_response)
+			continue
+		}
+
+		// Send the response (notifications may return empty responses)
+		response_str := response.encode()
+		if response_str.len > 0 {
+			t.send(response_str)
 		}
 	}
 }
