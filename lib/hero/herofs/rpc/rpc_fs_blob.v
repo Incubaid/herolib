@@ -9,7 +9,8 @@ import encoding.base64
 @[params]
 pub struct FSBlobGetArgs {
 pub mut:
-	id u32 @[required]
+	id   u32
+	hash string
 }
 
 @[params]
@@ -32,8 +33,16 @@ pub fn fs_blob_get(request Request) !Response {
 	}
 
 	mut fs_factory := herofs.new()!
-	blob := fs_factory.fs_blob.get(payload.id)!
 	
+	// Get blob by either id or hash
+	mut blob := if payload.id > 0 {
+		fs_factory.fs_blob.get(payload.id)!
+	} else if payload.hash != '' {
+		fs_factory.fs_blob.get_by_hash(payload.hash)!
+	} else {
+		return jsonrpc.invalid_params_with_msg("Either id or hash must be provided")
+	}
+
 	// Convert binary data to base64 for JSON transport
 	blob_response := {
 		'id': blob.id.str()
@@ -80,26 +89,4 @@ pub fn fs_blob_delete(request Request) !Response {
 	fs_factory.fs_blob.delete(payload.id)!
 
 	return new_response_true(request.id)
-}
-
-pub fn fs_blob_list(request Request) !Response {
-	mut fs_factory := herofs.new()!
-	blob_list := fs_factory.fs_blob.list()!
-	
-	// Convert binary data to base64 for each blob
-	mut blob_responses := []map[string]string{}
-	for blob in blob_list {
-		blob_responses << {
-			'id': blob.id.str()
-			'created_at': blob.created_at.str()
-			'updated_at': blob.updated_at.str()
-			'mime_type': blob.mime_type
-			'name': blob.name
-			'hash': blob.hash
-			'size_bytes': blob.size_bytes.str()
-			'data_base64': base64.encode(blob.data)
-		}
-	}
-
-	return jsonrpc.new_response(request.id, json.encode(blob_responses))
 }

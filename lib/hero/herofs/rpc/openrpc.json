@@ -717,16 +717,24 @@
         },
         {
             "name": "fs_blob_get",
-            "summary": "Get a blob by ID",
-            "description": "Retrieve a blob by its ID",
+            "summary": "Get a blob by ID or hash",
+            "description": "Retrieve a blob by its ID or hash",
             "params": [
                 {
                     "name": "id",
                     "description": "ID of blob to fetch",
-                    "required": true,
+                    "required": false,
                     "schema": {
                         "type": "integer",
                         "minimum": 0
+                    }
+                },
+                {
+                    "name": "hash",
+                    "description": "Hash of blob to fetch",
+                    "required": false,
+                    "schema": {
+                        "type": "string"
                     }
                 }
             ],
@@ -795,22 +803,6 @@
                 "description": "Success result",
                 "schema": {
                     "type": "boolean"
-                }
-            }
-        },
-        {
-            "name": "fs_blob_list",
-            "summary": "List all blobs",
-            "description": "List all blobs in the system",
-            "params": [],
-            "result": {
-                "name": "blobs",
-                "description": "List of all blob objects with base64-encoded data",
-                "schema": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/components/schemas/Blob"
-                    }
                 }
             }
         },
