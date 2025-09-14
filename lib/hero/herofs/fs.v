@@ -30,7 +30,7 @@ pub fn (self Fs) type_name() string {
 	return 'fs'
 }
 
-pub fn (self Fs) dump(mut e &encoder.Encoder) ! {
+pub fn (self Fs) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.name)
 	e.add_u32(self.group_id)
 	e.add_u32(self.root_dir_id)
@@ -38,7 +38,7 @@ pub fn (self Fs) dump(mut e &encoder.Encoder) ! {
 	e.add_u64(self.used_bytes)
 }
 
-fn (mut self DBFs) load(mut o Fs, mut e &encoder.Decoder) ! {
+fn (mut self DBFs) load(mut o Fs, mut e encoder.Decoder) ! {
 	o.name = e.get_string()!
 	o.group_id = e.get_u32()!
 	o.root_dir_id = e.get_u32()!
@@ -68,32 +68,32 @@ pub fn (mut self DBFs) new(args FsArg) !Fs {
 		quota_bytes: args.quota_bytes
 		used_bytes:  args.used_bytes
 	}
-	
+
 	// Set base fields
 	o.description = args.description
 	o.tags = self.db.tags_get(args.tags)!
 	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
-	
+
 	return o
 }
 
 pub fn (mut self DBFs) set(o Fs) !u32 {
 	id := self.db.set[Fs](o)!
-	
+
 	// Store name -> id mapping for lookups
 	self.db.redis.hset('fs:names', o.name, id.str())!
-	
+
 	return id
 }
 
 pub fn (mut self DBFs) delete(id u32) ! {
 	// Get the filesystem to retrieve its name
 	fs := self.get(id)!
-	
+
 	// Remove name -> id mapping
 	self.db.redis.hdel('fs:names', fs.name)!
-	
+
 	// Delete the filesystem
 	self.db.delete[Fs](id)!
 }

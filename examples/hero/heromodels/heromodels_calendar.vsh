@@ -7,11 +7,11 @@ mut mydb := heromodels.new()!
 // mydb.calendar.db.redis.flushdb()!
 
 mut o := mydb.calendar.new(
-	name: 'Work Calendar'
+	name:        'Work Calendar'
 	description: 'Calendar for work events'
-	color: '#FF0000'
-	timezone: 'Europe/Brussels'
-	is_public: false
+	color:       '#FF0000'
+	timezone:    'Europe/Brussels'
+	is_public:   false
 )!
 
 o.events << 2

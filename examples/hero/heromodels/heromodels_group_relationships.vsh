@@ -6,11 +6,11 @@ mut mydb := heromodels.new()!
 
 // Create a parent group
 mut parent_group := mydb.group.new(
-	name: 'Company'
-	description: 'Main company group'
-	is_public: true
-	members: []
-	subgroups: []
+	name:         'Company'
+	description:  'Main company group'
+	is_public:    true
+	members:      []
+	subgroups:    []
 	parent_group: 0
 )!
 
@@ -19,11 +19,11 @@ println('Created Parent Group ID: ${parent_oid}')
 
 // Create a subgroup
 mut subgroup := mydb.group.new(
-	name: 'Development Team'
-	description: 'Subgroup for developers'
-	is_public: false
-	members: []
-	subgroups: []
+	name:         'Development Team'
+	description:  'Subgroup for developers'
+	is_public:    false
+	members:      []
+	subgroups:    []
 	parent_group: parent_oid
 )!
 

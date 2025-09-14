@@ -33,7 +33,7 @@ pub fn (self Group) type_name() string {
 	return 'group'
 }
 
-pub fn (self Group) dump(mut e &encoder.Encoder) ! {
+pub fn (self Group) dump(mut e encoder.Encoder) ! {
 	e.add_u16(u16(self.members.len))
 	for member in self.members {
 		e.add_u32(member.user_id)
@@ -45,14 +45,14 @@ pub fn (self Group) dump(mut e &encoder.Encoder) ! {
 	e.add_bool(self.is_public)
 }
 
-fn (mut self DBGroup) load(mut o Group, mut e &encoder.Decoder) ! {
+fn (mut self DBGroup) load(mut o Group, mut e encoder.Decoder) ! {
 	members_len := e.get_u16()!
 	mut members := []GroupMember{}
 	for _ in 0 .. members_len {
 		user_id := e.get_u32()!
 		role := unsafe { GroupRole(e.get_u8()!) }
 		joined_at := e.get_i64()!
-		
+
 		members << GroupMember{
 			user_id:   user_id
 			role:      role
@@ -60,7 +60,7 @@ fn (mut self DBGroup) load(mut o Group, mut e &encoder.Decoder) ! {
 		}
 	}
 	o.members = members
-	
+
 	o.subgroups = e.get_list_u32()!
 	o.parent_group = e.get_u32()!
 	o.is_public = e.get_bool()!
@@ -90,12 +90,12 @@ pub fn (mut self DBGroup) new(args GroupArg) !Group {
 		parent_group: args.parent_group
 		is_public:    args.is_public
 	}
-	
+
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
 	o.updated_at = ourtime.now().unix()
-	
+
 	return o
 }
 
@@ -131,5 +131,4 @@ pub fn (mut self Group) add_member(user_id u32, role GroupRole) {
 	self.members << member
 }
 
-
-//CUSTOM FEATURES FOR GROUP
+// CUSTOM FEATURES FOR GROUP

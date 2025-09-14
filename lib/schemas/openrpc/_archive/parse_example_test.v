@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.core.code { Attribute, Struct, StructField, Type }
+import freeflowuniverse.herolib.core.code { Attribute, Struct, StructField }
 
 const example_txt = "
 Example: Get pet example.
@@ -40,7 +40,7 @@ const test_struct = Struct{
 	fields: [
 		StructField{
 			name:  'TestField'
-			typ: code.type_i32
+			typ:   code.type_i32
 			attrs: [Attribute{
 				name: 'example'
 				arg:  '21'

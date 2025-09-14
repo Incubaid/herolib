@@ -1,4 +1,3 @@
-
 module heromodels
 
 import freeflowuniverse.herolib.data.encoder
@@ -80,7 +79,7 @@ pub fn (self CalendarEvent) type_name() string {
 	return 'calendar_event'
 }
 
-pub fn (self CalendarEvent) dump(mut e &encoder.Encoder) ! {
+pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_i64(self.start_time)
 	e.add_i64(self.end_time)
@@ -108,7 +107,7 @@ pub fn (self CalendarEvent) dump(mut e &encoder.Encoder) ! {
 	e.add_string(self.timezone)
 }
 
-fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e &encoder.Decoder) ! {
+fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) ! {
 	o.title = e.get_string()!
 	o.start_time = e.get_i64()!
 	o.end_time = e.get_i64()!
@@ -116,7 +115,7 @@ fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e &encoder.Decoder) 
 	o.attendees = e.get_list_u32()!
 	o.fs_items = e.get_list_u32()!
 	o.calendar_id = e.get_u32()!
-	o.status = unsafe { EventStatus(e.get_u8()!) } //TODO: is there no better way?
+	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
 	o.is_all_day = e.get_bool()!
 	o.is_recurring = e.get_bool()!
 

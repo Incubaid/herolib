@@ -9,20 +9,20 @@ import freeflowuniverse.herolib.hero.db
 pub struct ProjectIssue {
 	db.Base
 pub mut:
-	title        string
-	project_id   u32 // Associated project
-	issue_type   IssueType
-	priority     IssuePriority
-	status       IssueStatus
-	swimlane  string   // Current swimlane, is string corresponds to name, need to be to_lower and trim_space
-	assignees    []u32 // User IDs
-	reporter     u32   // User ID who created the issue
-	milestone   string // Associated milestone, is string corresponds to name, need to be to_lower and trim_space
-	deadline     i64      // Unix timestamp
-	estimate     int      // Story points or hours
-	fs_files     []u32 // IDs of linked files
-	parent_id    u32   // Parent issue ID (for sub-tasks)
-	children     []u32 // Child issue IDs
+	title      string
+	project_id u32 // Associated project
+	issue_type IssueType
+	priority   IssuePriority
+	status     IssueStatus
+	swimlane   string // Current swimlane, is string corresponds to name, need to be to_lower and trim_space
+	assignees  []u32  // User IDs
+	reporter   u32    // User ID who created the issue
+	milestone  string // Associated milestone, is string corresponds to name, need to be to_lower and trim_space
+	deadline   i64    // Unix timestamp
+	estimate   int    // Story points or hours
+	fs_files   []u32  // IDs of linked files
+	parent_id  u32    // Parent issue ID (for sub-tasks)
+	children   []u32  // Child issue IDs
 }
 
 pub enum IssueType {
@@ -62,7 +62,7 @@ pub fn (self ProjectIssue) type_name() string {
 	return 'project_issue'
 }
 
-pub fn (self ProjectIssue) dump(mut e &encoder.Encoder) ! {
+pub fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_u32(self.project_id)
 	e.add_u8(u8(self.issue_type))
@@ -79,7 +79,7 @@ pub fn (self ProjectIssue) dump(mut e &encoder.Encoder) ! {
 	e.add_list_u32(self.children)
 }
 
-fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e &encoder.Decoder) ! {
+fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder) ! {
 	o.title = e.get_string()!
 	o.project_id = e.get_u32()!
 	o.issue_type = unsafe { IssueType(e.get_u8()!) }
@@ -99,22 +99,22 @@ fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e &encoder.Decoder) ! 
 @[params]
 pub struct ProjectIssueArg {
 pub mut:
-	name        string
-	description string
-	title        string
-	project_id   u32
-	issue_type   IssueType
-	priority     IssuePriority
-	status       IssueStatus
-	swimlane     string
-	assignees    []u32
-	reporter     u32
-	milestone    string
-	deadline     string // Use ourtime module to convert to epoch
-	estimate     int
-	fs_files     []u32
-	parent_id    u32
-	children     []u32
+	name           string
+	description    string
+	title          string
+	project_id     u32
+	issue_type     IssueType
+	priority       IssuePriority
+	status         IssueStatus
+	swimlane       string
+	assignees      []u32
+	reporter       u32
+	milestone      string
+	deadline       string // Use ourtime module to convert to epoch
+	estimate       int
+	fs_files       []u32
+	parent_id      u32
+	children       []u32
 	securitypolicy u32
 	tags           []string
 	comments       []db.CommentArg
@@ -145,10 +145,10 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	if !db_project.exist(args.project_id)! {
 		return error('Project with ID ${args.project_id} does not exist')
 	}
-	
+
 	// Get the project to validate swimlane and milestone
 	project_obj := db_project.get(args.project_id)!
-	
+
 	// Validate swimlane exists in the project
 	mut swimlane_exists := false
 	for swimlane in project_obj.swimlanes {
@@ -160,7 +160,7 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	if !swimlane_exists {
 		return error('Swimlane "${args.swimlane}" does not exist in project "${project_obj.name}"')
 	}
-	
+
 	// Validate milestone exists in the project
 	mut milestone_exists := false
 	for milestone in project_obj.milestones {
@@ -172,7 +172,7 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	if !milestone_exists {
 		return error('Milestone "${args.milestone}" does not exist in project "${project_obj.name}"')
 	}
-	
+
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
@@ -180,11 +180,11 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	o.tags = self.db.tags_get(args.tags)!
 	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
-	
+
 	// Convert deadline string to Unix timestamp
 	mut deadline_obj := ourtime.new(args.deadline)!
 	o.deadline = deadline_obj.unix()
-	
+
 	return o
 }
 

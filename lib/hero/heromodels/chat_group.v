@@ -30,13 +30,13 @@ pub fn (self ChatGroup) type_name() string {
 	return 'chat_group'
 }
 
-pub fn (self ChatGroup) dump(mut e &encoder.Encoder) ! {
+pub fn (self ChatGroup) dump(mut e encoder.Encoder) ! {
 	e.add_u8(u8(self.chat_type))
 	e.add_i64(self.last_activity)
 	e.add_bool(self.is_archived)
 }
 
-fn (mut self DBChatGroup) load(mut o ChatGroup, mut e &encoder.Decoder) ! {
+fn (mut self DBChatGroup) load(mut o ChatGroup, mut e encoder.Decoder) ! {
 	o.chat_type = unsafe { ChatType(e.get_u8()!) }
 	o.last_activity = e.get_i64()!
 	o.is_archived = e.get_bool()!

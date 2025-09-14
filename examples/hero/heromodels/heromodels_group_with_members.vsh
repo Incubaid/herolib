@@ -6,22 +6,22 @@ mut mydb := heromodels.new()!
 
 // Create a new group with members
 mut o := mydb.group.new(
-	name: 'Development Team'
-	description: 'Group for software developers'
-	is_public: false
-	members: [
+	name:         'Development Team'
+	description:  'Group for software developers'
+	is_public:    false
+	members:      [
 		heromodels.GroupMember{
-			user_id: 1
-			role: heromodels.GroupRole.admin
+			user_id:   1
+			role:      heromodels.GroupRole.admin
 			joined_at: 0 // Will be set when adding to group
 		},
 		heromodels.GroupMember{
-			user_id: 2
-			role: heromodels.GroupRole.writer
+			user_id:   2
+			role:      heromodels.GroupRole.writer
 			joined_at: 0 // Will be set when adding to group
-		}
+		},
 	]
-	subgroups: []
+	subgroups:    []
 	parent_group: 0
 )!
 

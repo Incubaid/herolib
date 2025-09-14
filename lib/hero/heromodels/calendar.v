@@ -24,14 +24,14 @@ pub fn (self Calendar) type_name() string {
 	return 'calendar'
 }
 
-pub fn (self Calendar) dump(mut e &encoder.Encoder) ! {
+pub fn (self Calendar) dump(mut e encoder.Encoder) ! {
 	e.add_list_u32(self.events)
 	e.add_string(self.color)
 	e.add_string(self.timezone)
 	e.add_bool(self.is_public)
 }
 
-fn (mut self DBCalendar) load(mut o Calendar, mut e &encoder.Decoder) ! {
+fn (mut self DBCalendar) load(mut o Calendar, mut e encoder.Decoder) ! {
 	o.events = e.get_list_u32()!
 	o.color = e.get_string()!
 	o.timezone = e.get_string()!
@@ -52,17 +52,17 @@ pub mut:
 // get new calendar, not from the DB
 pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
 	mut o := Calendar{
-		color:      args.color
-		timezone:   args.timezone
-		is_public:  args.is_public
-		events:     args.events
+		color:     args.color
+		timezone:  args.timezone
+		is_public: args.is_public
+		events:    args.events
 	}
-	
+
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
 	o.updated_at = ourtime.now().unix()
-	
+
 	return o
 }
 
@@ -89,4 +89,3 @@ pub fn (mut self DBCalendar) get(id u32) !Calendar {
 pub fn (mut self DBCalendar) list() ![]Calendar {
 	return self.db.list[Calendar]()!.map(self.get(it)!)
 }
-

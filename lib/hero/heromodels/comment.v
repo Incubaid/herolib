@@ -26,13 +26,13 @@ pub fn (self Comment) type_name() string {
 	return 'comments'
 }
 
-pub fn (self Comment) dump(mut e &encoder.Encoder) ! {
+pub fn (self Comment) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.comment)
 	e.add_u32(self.parent)
 	e.add_u32(self.author)
 }
 
-fn (mut self DBComments) load(mut o Comment, mut e &encoder.Decoder) ! {
+fn (mut self DBComments) load(mut o Comment, mut e encoder.Decoder) ! {
 	o.comment = e.get_string()!
 	o.parent = e.get_u32()!
 	o.author = e.get_u32()!

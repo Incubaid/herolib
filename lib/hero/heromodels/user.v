@@ -30,7 +30,7 @@ pub fn (self User) type_name() string {
 	return 'user'
 }
 
-pub fn (self User) dump(mut e &encoder.Encoder) ! {
+pub fn (self User) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.email)
 	e.add_string(self.public_key)
 	e.add_string(self.phone)
@@ -41,7 +41,7 @@ pub fn (self User) dump(mut e &encoder.Encoder) ! {
 	e.add_u8(u8(self.status))
 }
 
-fn (mut self DBUser) load(mut o User, mut e &encoder.Decoder) ! {
+fn (mut self DBUser) load(mut o User, mut e encoder.Decoder) ! {
 	o.email = e.get_string()!
 	o.public_key = e.get_string()!
 	o.phone = e.get_string()!
@@ -55,19 +55,19 @@ fn (mut self DBUser) load(mut o User, mut e &encoder.Decoder) ! {
 @[params]
 pub struct UserArg {
 pub mut:
-	name       string @[required]
-	description string
-	email      string
-	public_key string // for encryption/signing
-	phone      string
-	address    string
-	avatar_url string
-	bio        string
-	timezone   string
-	status     UserStatus
+	name           string @[required]
+	description    string
+	email          string
+	public_key     string // for encryption/signing
+	phone          string
+	address        string
+	avatar_url     string
+	bio            string
+	timezone       string
+	status         UserStatus
 	securitypolicy u32
-	tags       u32
-	comments   []u32
+	tags           u32
+	comments       []u32
 }
 
 pub struct DBUser {

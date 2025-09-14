@@ -2,7 +2,6 @@ module db
 
 import crypto.md5
 
-
 @[params]
 pub struct CommentArg {
 pub mut:

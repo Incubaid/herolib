@@ -9,18 +9,18 @@ import freeflowuniverse.herolib.hero.db
 pub struct Project {
 	db.Base
 pub mut:
-	swimlanes   []Swimlane
-	milestones  []Milestone
-	issues      []string // IDs of project issues
-	fs_files    []u32 // IDs of linked files or dirs
-	status      ProjectStatus
-	start_date  i64
-	end_date    i64
+	swimlanes  []Swimlane
+	milestones []Milestone
+	issues     []string // IDs of project issues
+	fs_files   []u32    // IDs of linked files or dirs
+	status     ProjectStatus
+	start_date i64
+	end_date   i64
 }
 
 pub struct Swimlane {
 pub mut:
-	name        string //allways to to_lower and trim_space
+	name        string // allways to to_lower and trim_space
 	description string
 	order       int
 	color       string
@@ -29,7 +29,7 @@ pub mut:
 
 pub struct Milestone {
 pub mut:
-	name        string //allways to to_lower and trim_space
+	name        string // allways to to_lower and trim_space
 	description string
 	due_date    i64
 	completed   bool
@@ -53,7 +53,7 @@ pub fn (self Project) type_name() string {
 	return 'project'
 }
 
-pub fn (self Project) dump(mut e &encoder.Encoder) ! {
+pub fn (self Project) dump(mut e encoder.Encoder) ! {
 	e.add_u16(u16(self.swimlanes.len))
 	for swimlane in self.swimlanes {
 		e.add_string(swimlane.name)
@@ -62,7 +62,7 @@ pub fn (self Project) dump(mut e &encoder.Encoder) ! {
 		e.add_string(swimlane.color)
 		e.add_bool(swimlane.is_done)
 	}
-	
+
 	e.add_u16(u16(self.milestones.len))
 	for milestone in self.milestones {
 		e.add_string(milestone.name)
@@ -71,7 +71,7 @@ pub fn (self Project) dump(mut e &encoder.Encoder) ! {
 		e.add_bool(milestone.completed)
 		e.add_list_u32(milestone.issues)
 	}
-	
+
 	e.add_list_string(self.issues)
 	e.add_list_u32(self.fs_files)
 	e.add_u8(u8(self.status))
@@ -79,7 +79,7 @@ pub fn (self Project) dump(mut e &encoder.Encoder) ! {
 	e.add_i64(self.end_date)
 }
 
-fn (mut self DBProject) load(mut o Project, mut e &encoder.Decoder) ! {
+fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
 	swimlanes_len := e.get_u16()!
 	mut swimlanes := []Swimlane{}
 	for _ in 0 .. swimlanes_len {
@@ -88,7 +88,7 @@ fn (mut self DBProject) load(mut o Project, mut e &encoder.Decoder) ! {
 		order := e.get_int()!
 		color := e.get_string()!
 		is_done := e.get_bool()!
-		
+
 		swimlanes << Swimlane{
 			name:        name
 			description: description
@@ -98,7 +98,7 @@ fn (mut self DBProject) load(mut o Project, mut e &encoder.Decoder) ! {
 		}
 	}
 	o.swimlanes = swimlanes
-	
+
 	milestones_len := e.get_u16()!
 	mut milestones := []Milestone{}
 	for _ in 0 .. milestones_len {
@@ -107,7 +107,7 @@ fn (mut self DBProject) load(mut o Project, mut e &encoder.Decoder) ! {
 		due_date := e.get_i64()!
 		completed := e.get_bool()!
 		issues := e.get_list_u32()!
-		
+
 		milestones << Milestone{
 			name:        name
 			description: description
@@ -117,7 +117,7 @@ fn (mut self DBProject) load(mut o Project, mut e &encoder.Decoder) ! {
 		}
 	}
 	o.milestones = milestones
-	
+
 	o.issues = e.get_list_string()!
 	o.fs_files = e.get_list_u32()!
 	o.status = unsafe { ProjectStatus(e.get_u8()!) }
@@ -128,15 +128,15 @@ fn (mut self DBProject) load(mut o Project, mut e &encoder.Decoder) ! {
 @[params]
 pub struct ProjectArg {
 pub mut:
-	name        string
-	description string
-	swimlanes   []Swimlane
-	milestones  []Milestone
-	issues      []string
-	fs_files    []u32
-	status      ProjectStatus
-	start_date  string // Use ourtime module to convert to epoch
-	end_date    string // Use ourtime module to convert to epoch
+	name           string
+	description    string
+	swimlanes      []Swimlane
+	milestones     []Milestone
+	issues         []string
+	fs_files       []u32
+	status         ProjectStatus
+	start_date     string // Use ourtime module to convert to epoch
+	end_date       string // Use ourtime module to convert to epoch
 	securitypolicy u32
 	tags           []string
 	comments       []db.CommentArg
@@ -145,13 +145,13 @@ pub mut:
 // get new project, not from the DB
 pub fn (mut self DBProject) new(args ProjectArg) !Project {
 	mut o := Project{
-		swimlanes:   args.swimlanes
-		milestones:  args.milestones
-		issues:      args.issues
-		fs_files:    args.fs_files
-		status:      args.status
+		swimlanes:  args.swimlanes
+		milestones: args.milestones
+		issues:     args.issues
+		fs_files:   args.fs_files
+		status:     args.status
 	}
-	
+
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
@@ -159,14 +159,14 @@ pub fn (mut self DBProject) new(args ProjectArg) !Project {
 	o.tags = self.db.tags_get(args.tags)!
 	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
-	
+
 	// Convert string dates to Unix timestamps
 	mut start_time_obj := ourtime.new(args.start_date)!
 	o.start_date = start_time_obj.unix()
-	
+
 	mut end_time_obj := ourtime.new(args.end_date)!
 	o.end_date = end_time_obj.unix()
-	
+
 	return o
 }
 

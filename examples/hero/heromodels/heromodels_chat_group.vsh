@@ -7,11 +7,11 @@ mut mydb := heromodels.new()!
 
 // Create a new chat group
 mut chat_group := mydb.chat_group.new(
-	name: 'General Discussion'
-	description: 'A public channel for general discussions'
-	chat_type: .public_channel
+	name:          'General Discussion'
+	description:   'A public channel for general discussions'
+	chat_type:     .public_channel
 	last_activity: 0
-	is_archived: false
+	is_archived:   false
 )!
 
 // Save to database

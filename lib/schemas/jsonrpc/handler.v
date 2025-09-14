@@ -72,13 +72,13 @@ pub fn (mut handler Handler) register_procedure_handle(method string, procedure 
 
 pub struct Procedure[T, U] {
 pub mut:
-	method string
+	method   string
 	function fn (T) !U
 }
 
 pub struct ProcedureVoid[T] {
 pub mut:
-	method string
+	method   string
 	function fn (T) !
 }
 
@@ -124,7 +124,7 @@ fn error_to_jsonrpc(err IError) !RPCError {
 //   - The JSON-RPC response as a string
 // Note: This method panics if an error occurs during handling
 // pub fn (handler Handler) handle_message(client &websocket.Client, message string) string {
-// 	req := decode_request(message) or { 
+// 	req := decode_request(message) or {
 // 		return invalid_request }
 // 	resp := handler.handle(req) or { panic(err) }
 // 	return resp.encode()
@@ -138,13 +138,11 @@ fn error_to_jsonrpc(err IError) !RPCError {
 //
 // Returns:
 //   - The JSON-RPC response as a string, or an error if processing fails
-pub fn (handler Handler) handle(request Request) !Response {		
+pub fn (handler Handler) handle(request Request) !Response {
 	procedure_func := handler.procedures[request.method] or {
 		return new_error(request.id, method_not_found)
 	}
 
 	// Execute the procedure handler with the request payload
-	return procedure_func(request) or {
-		panic(err)
-	 }
+	return procedure_func(request) or { panic(err) }
 }
