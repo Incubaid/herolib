@@ -3,7 +3,6 @@ module openrpc
 import json
 import freeflowuniverse.herolib.schemas.jsonrpc
 import freeflowuniverse.herolib.hero.heromodels
-import freeflowuniverse.herolib.schemas.jsonrpc
 
 // Comment-specific argument structures
 @[params]
@@ -26,43 +25,50 @@ pub mut:
 	id u32 @[required]
 }
 
-
 pub fn comment_get(request jsonrpc.Request) !jsonrpc.Response {
-	payload := jsonrpc.decode_payload[CommentGetArgs](request.params) or { return jsonrpc.invalid_params }
-	
+	payload := jsonrpc.decode_payload[CommentGetArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
 	comment := mydb.comments.get(payload.id)!
-	
+
 	return jsonrpc.new_response(request.id, json.encode(comment))
 }
 
-pub fn comment_set(request jsonrpc.Request) !jsonrpc.Response{
-    payload := jsonrpc.decode_payload[CommentSetArgs](request.params) or { return jsonrpc.invalid_params }
-	
+pub fn comment_set(request jsonrpc.Request) !jsonrpc.Response {
+	payload := jsonrpc.decode_payload[CommentSetArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
 	mut comment_obj := mydb.comments.new(
 		comment: payload.comment
-		parent: payload.parent
-		author: payload.author
+		parent:  payload.parent
+		author:  payload.author
 	)!
-	
+
 	id := mydb.comments.set(comment_obj)!
-	
-	return jsonrpc.new_response(request.id, json.encode({'id': id}))
+
+	return jsonrpc.new_response(request.id, json.encode({
+		'id': id
+	}))
 }
 
 pub fn comment_delete(request jsonrpc.Request) !jsonrpc.Response {
-	payload := jsonrpc.decode_payload[CommentDeleteArgs](request.params) or { return jsonrpc.invalid_params }
-	
+	payload := jsonrpc.decode_payload[CommentDeleteArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
 	mydb.comments.delete(payload.id)!
-	
-	return jsonrpc.new_response(request.id, json.encode({'success': true, 'id': payload.id}))
+
+	return jsonrpc.new_response(request.id, 'true')
 }
 
 pub fn comment_list(request jsonrpc.Request) !jsonrpc.Response {
 	mut mydb := heromodels.new()!
 	comments := mydb.comments.list()!
-	
+
 	return jsonrpc.new_response(request.id, json.encode(comments))
 }

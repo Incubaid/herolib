@@ -1,17 +1,18 @@
 module openrpc
 
-import json
 import freeflowuniverse.herolib.schemas.openrpc
-import freeflowuniverse.herolib.hero.heromodels
-import freeflowuniverse.herolib.schemas.jsonrpc
 import os
 
 const openrpc_path = os.join_path(os.dir(@FILE), 'openrpc.json')
 
-pub fn new() !openrpc.Handler {
-	mut openrpc_handler := openrpc.Handler {
-		specification: openrpc.new(path: openrpc_path)!
-	}
+@[params]
+pub struct ServerArgs {
+pub mut:
+	socket_path string = '/tmp/heromodels'
+}
+
+pub fn new(args ServerArgs) ! {
+	mut openrpc_handler := openrpc.new_handler(openrpc_path)!
 
 	openrpc_handler.register_procedure_handle('comment_get', comment_get)
 	openrpc_handler.register_procedure_handle('comment_set', comment_set)
@@ -23,5 +24,5 @@ pub fn new() !openrpc.Handler {
 	openrpc_handler.register_procedure_handle('calendar_delete', calendar_delete)
 	openrpc_handler.register_procedure_handle('calendar_list', calendar_list)
 
-	return openrpc_handler
+	openrpc.start_unix_server(openrpc_handler, socket_path: args.socket_path)!
 }
