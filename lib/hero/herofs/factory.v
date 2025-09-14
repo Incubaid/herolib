@@ -2,6 +2,7 @@ module herofs
 
 import freeflowuniverse.herolib.hero.db
 
+@[heap]
 pub struct FsFactory {
 pub mut:
 	fs         DBFs

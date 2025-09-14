@@ -201,7 +201,7 @@ pub fn (mut self DBFsDir) get_by_absolute_path(fs_id u32, path string) !FsDir {
 	
 	// Navigate through path components
 	for component in components {
-		found := false
+		mut found := false
 		for dir in dirs {
 			if dir.parent_id == current_dir_id && dir.name == component {
 				current_dir_id = dir.id
@@ -273,7 +273,7 @@ pub fn (mut self DBFsDir) create_path(fs_id u32, path string) !u32 {
 	
 	// Navigate/create through path components
 	for component in components {
-		found := false
+		mut found := false
 		for dir in dirs {
 			if dir.parent_id == current_dir_id && dir.name == component {
 				current_dir_id = dir.id
@@ -391,52 +391,54 @@ pub fn (mut self DBFsDir) move(id u32, new_parent_id u32) !u32 {
 }
 
 // List contents of a directory with filtering capabilities
-pub fn (mut self DBFsDir) list_contents(fs_factory &FsFactory, dir_id u32, opts ListContentsOptions) !DirectoryContents {
+pub fn (mut self DBFsDir) list_contents(mut fs_factory FsFactory, dir_id u32, opts ListContentsOptions) !DirectoryContents {
 	mut result := DirectoryContents{}
 	
 	// Helper function to check if name matches include/exclude patterns
-	matches_pattern := fn (name string, patterns []string) bool {
-		if patterns.len == 0 {
-			return true // No patterns means include everything
-		}
-		
-		for pattern in patterns {
-			if pattern.contains('*') {
-				prefix := pattern.all_before('*')
-				suffix := pattern.all_after('*')
-				
-				if prefix == '' && suffix == '' {
-					return true // Pattern is just "*"
-				} else if prefix == '' {
-					if name.ends_with(suffix) {
-						return true
-					}
-				} else if suffix == '' {
-					if name.starts_with(prefix) {
-						return true
-					}
-				} else {
-					if name.starts_with(prefix) && name.ends_with(suffix) {
-						return true
-					}
-				}
-			} else if name == pattern {
-				return true // Exact match
-			}
-		}
-		
-		return false
-	}
 	
 	// Check if item should be included based on patterns
-	should_include := fn (name string, include_patterns []string, exclude_patterns []string) bool {
+	should_include_local := fn (name string, include_patterns []string, exclude_patterns []string) bool {
+		// Helper function to check if name matches include/exclude patterns
+		matches_pattern_fn := fn (name_inner string, patterns []string) bool {
+			if patterns.len == 0 {
+				return true // No patterns means include everything
+			}
+			
+			for pattern in patterns {
+				if pattern.contains('*') {
+					prefix := pattern.all_before('*')
+					suffix := pattern.all_after('*')
+					
+					if prefix == '' && suffix == '' {
+						return true // Pattern is just "*"
+					} else if prefix == '' {
+						if name_inner.ends_with(suffix) {
+							return true
+						}
+					} else if suffix == '' {
+						if name_inner.starts_with(prefix) {
+							return true
+						}
+					} else {
+						if name_inner.starts_with(prefix) && name_inner.ends_with(suffix) {
+							return true
+						}
+					}
+				} else if name_inner == pattern {
+					return true // Exact match
+				}
+			}
+			
+			return false
+		}
+		
 		// First apply include patterns (if empty, include everything)
-		if !matches_pattern(name, include_patterns) && include_patterns.len > 0 {
+		if !matches_pattern_fn(name, include_patterns) && include_patterns.len > 0 {
 			return false
 		}
 		
 		// Then apply exclude patterns
-		if matches_pattern(name, exclude_patterns) && exclude_patterns.len > 0 {
+		if matches_pattern_fn(name, exclude_patterns) && exclude_patterns.len > 0 {
 			return false
 		}
 		
@@ -446,13 +448,13 @@ pub fn (mut self DBFsDir) list_contents(fs_factory &FsFactory, dir_id u32, opts 
 	// Get directories, files, and symlinks in the current directory
 	dirs := self.list_children(dir_id)!
 	for dir in dirs {
-		if should_include(dir.name, opts.include_patterns, opts.exclude_patterns) {
+		if should_include_local(dir.name, opts.include_patterns, opts.exclude_patterns) {
 			result.directories << dir
 		}
 		
 		// If recursive, process subdirectories
 		if opts.recursive {
-			sub_contents := self.list_contents(fs_factory, dir.id, opts)!
+			sub_contents := self.list_contents(mut fs_factory, dir.id, opts)!
 			result.directories << sub_contents.directories
 			result.files << sub_contents.files
 			result.symlinks << sub_contents.symlinks
@@ -462,7 +464,7 @@ pub fn (mut self DBFsDir) list_contents(fs_factory &FsFactory, dir_id u32, opts 
 	// Get files in the directory
 	files := fs_factory.fs_file.list_by_directory(dir_id)!
 	for file in files {
-		if should_include(file.name, opts.include_patterns, opts.exclude_patterns) {
+		if should_include_local(file.name, opts.include_patterns, opts.exclude_patterns) {
 			result.files << file
 		}
 	}
@@ -470,7 +472,7 @@ pub fn (mut self DBFsDir) list_contents(fs_factory &FsFactory, dir_id u32, opts 
 	// Get symlinks in the directory
 	symlinks := fs_factory.fs_symlink.list_by_parent(dir_id)!
 	for symlink in symlinks {
-		if should_include(symlink.name, opts.include_patterns, opts.exclude_patterns) {
+		if should_include_local(symlink.name, opts.include_patterns, opts.exclude_patterns) {
 			result.symlinks << symlink
 		}
 	}
