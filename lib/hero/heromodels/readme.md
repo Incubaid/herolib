@@ -1,17 +1,31 @@
 
+## http based RPC server
 
 
-## unix socket based RPC server
+```bash
 
-see lib/hero/heromodels/rpc/rpc_comment.v for an example of how to implement RPC methods.
+curl -s http://localhost:9933/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "comment_set",
+    "params": {
+      "comment": "Hello world!",
+      "parent": 0,
+      "author": 42
+    },
+    "id": 1
+  }' | jq .
 
-```v
-import freeflowuniverse.herolib.hero.heromodels.rpc
-
-#starts the rpc server
-rpc.start()!
+{
+  "jsonrpc": "2.0",
+  "result": "46",
+  "id": 1
+}
 
 ```
+
+## unix socket based RPC server
 
 ```bash
 # to test the discover function, this returns the openrpc specification:

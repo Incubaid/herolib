@@ -9,6 +9,7 @@ const openrpc_path = os.join_path(os.dir(@FILE), 'openrpc.json')
 pub struct ServerArgs {
 pub mut:
 	socket_path string = '/tmp/heromodels'
+	http_port   int // if 0, no http server will be started
 }
 
 pub fn start(args ServerArgs) ! {
@@ -59,5 +60,9 @@ pub fn start(args ServerArgs) ! {
 	openrpc_handler.register_procedure_handle('user_delete', user_delete)
 	openrpc_handler.register_procedure_handle('user_list', user_list)
 
-	openrpc.start_unix_server(openrpc_handler, socket_path: args.socket_path)!
+	if args.http_port != 0 {
+		openrpc.start_http_server(openrpc_handler, port: args.http_port)!
+	} else {
+		openrpc.start_unix_server(openrpc_handler, socket_path: args.socket_path)!
+	}
 }

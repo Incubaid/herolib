@@ -14,24 +14,22 @@ pub struct Context {
 	veb.Context
 }
 
-// Creates a new HTTPController instance
-pub fn new_http_controller(c HTTPController) &HTTPController {
-	return &HTTPController{
-		...c
-		Handler: c.Handler
-	}
+@[params]
+pub struct HTTPServerParams {
+pub mut:
+	port int = 9944 // Default to port 9944
 }
 
-// Parameters for running the server
-@[params]
-pub struct RunParams {
-pub:
-	port int = 8080 // Default to port 8080
+pub fn start_http_server(handler Handler, params HTTPServerParams) ! {
+	mut server := HTTPController{
+		Handler: handler
+	}
+	server.start(params)!
 }
 
 // Starts the server
-pub fn (mut c HTTPController) run(params RunParams) {
-	veb.run[HTTPController, Context](mut c, 8080)
+pub fn (mut c HTTPController) start(params HTTPServerParams) ! {
+	veb.run[HTTPController, Context](mut c, params.port)
 }
 
 // Handles POST requests at the index endpoint
@@ -43,9 +41,7 @@ pub fn (mut c HTTPController) index(mut ctx Context) veb.Result {
 	}
 
 	// Process the JSONRPC request with the OpenRPC handler
-	response := c.handle(request) or {
-		return ctx.server_error('Handler error: ${err.msg()}')
-	}
+	response := c.handle(request) or { return ctx.server_error('Handler error: ${err.msg()}') }
 
 	// Encode and return the handler's JSONRPC Response
 	return ctx.json(response)

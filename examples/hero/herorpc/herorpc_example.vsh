@@ -2,21 +2,25 @@
 
 import freeflowuniverse.herolib.hero.heromodels.rpc
 
-println('
-#to test the discover function:
-echo \'\{"jsonrpc":"2.0","method":"rpc.discover","params":[],"id":1\}\' \\
-  | nc -U /tmp/heromodels
-\'
-#to test interactively:
+mut http_port := 9933
 
-nc -U /tmp/heromodels
+if http_port == 0 {
+	println('
+    #to test the discover function:
+    echo \'\{"jsonrpc":"2.0","method":"rpc.discover","params":[],"id":1\}\' \\
+      | nc -U /tmp/heromodels
+    \'
+    #to test interactively:
 
-then e.g. do 
+    nc -U /tmp/heromodels
 
-\{"jsonrpc":"2.0","method":"comment_set","params":{"comment":"Hello world!","parent":0,"author":42},"id":1\}
+    then e.g. do 
 
-needs to be on one line for openrpc to work
+    \{"jsonrpc":"2.0","method":"comment_set","params":{"comment":"Hello world!","parent":0,"author":42},"id":1\}
 
-')
+    needs to be on one line for openrpc to work
 
-rpc.start()!
+    ')
+}
+
+rpc.start(http_port: http_port)!
