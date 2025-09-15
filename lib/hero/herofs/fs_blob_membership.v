@@ -62,7 +62,7 @@ pub fn (mut self DBFsBlobMembership) set(o FsBlobMembership) !string {
 
 	// Validate that all filesystems exist
 	for fs_id in o.fsid {
-		fs_exists := self.factory.fs_file.exist(fs_id)!
+		fs_exists := self.factory.fs.exist(fs_id)!
 		if !fs_exists {
 			return error('Filesystem with ID ${fs_id} does not exist')
 		}
@@ -106,7 +106,7 @@ pub fn (mut self DBFsBlobMembership) get(hash string) !FsBlobMembership {
 // Add a filesystem to an existing blob membership
 pub fn (mut self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) !string {
 	// Validate filesystem exists
-	fs_exists := self.factory.fs_file.exist(fs_id)!
+	fs_exists := self.factory.fs.exist(fs_id)!
 	if !fs_exists {
 		return error('Filesystem with ID ${fs_id} does not exist')
 	}
