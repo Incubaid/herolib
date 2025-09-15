@@ -121,7 +121,15 @@ pub fn (mut self DBFsDir) set(o FsDir) !u32 {
 pub fn (mut self DBFsDir) delete(id u32) ! {
 	// Get the directory info before deleting
 	dir := self.get(id)!
-	//TODO: now remove myself from parent dir too
+	
+	// If has parent, remove from parent's directories list	
+	if dir.parent_id > 0 {
+		mut parent_dir := self.db.directories.get(dir.parent_id) or {
+			return error('Parent directory with ID ${dir.parent_id} does not exist')
+		}
+		parent_dir.directories = parent_dir.directories.filter(it != id)
+		self.db.directories.set(parent_dir)!
+	}
 	// Delete the directory itself
 	self.db.delete[FsDir](id)!
 }
