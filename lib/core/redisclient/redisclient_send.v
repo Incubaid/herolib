@@ -83,5 +83,16 @@ pub fn (mut r Redis) send_expect_list(items []string) ![]resp.RValue {
 	}
 	r.write_cmds(items)!
 	res := r.get_response()!
+
+	// Check if we got an error response
+	if res is resp.RError {
+		return error('Redis error: ${res.value}')
+	}
+
+	// Check if we got an array response
+	if res !is resp.RArray {
+		return error('Expected array response but got ${res.type_name()}. Response: ${resp.get_redis_value(res)}')
+	}
+
 	return resp.get_redis_array(res)
 }

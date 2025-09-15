@@ -103,7 +103,7 @@ pub fn (v RValue) u32() u32 {
 pub fn (v RValue) strget() string {
 	match v {
 		RInt {
-			return v.str()
+			return v.value.str()
 		}
 		// RArray{
 		// 	return v.str()
@@ -112,10 +112,16 @@ pub fn (v RValue) strget() string {
 			return v.value.bytestr()
 		}
 		RString {
-			return v.str()
+			return v.value
+		}
+		RError {
+			return v.value
+		}
+		RNil {
+			return ''
 		}
 		else {
-			panic('could not find type')
+			panic('could not find type: ${v.type_name()}')
 		}
 	}
 }
