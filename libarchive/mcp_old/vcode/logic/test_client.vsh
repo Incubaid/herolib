@@ -37,7 +37,7 @@ import json
 // 	}
 
 // 	// Execute the MCP server with the request
-// 	cmd := 'cat /tmp/mcp_request.txt | v run /Users/despiegk/code/github/freeflowuniverse/herolib/lib/mcp/v_do/main.v'
+// 	cmd := 'cat /tmp/mcp_request.txt | v run /Users/despiegk/code/github/incubaid/herolib/lib/mcp/v_do/main.v'
 // 	result := os.execute(cmd)
 
 // 	if result.exit_code != 0 {

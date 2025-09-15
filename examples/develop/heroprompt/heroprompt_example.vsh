@@ -4,13 +4,13 @@ import freeflowuniverse.herolib.develop.heroprompt
 import os
 
 // mut workspace := heroprompt.new(
-// 	path: '${os.home_dir()}/code/github/freeflowuniverse/herolib'
+// 	path: '${os.home_dir()}/code/github/incubaid/herolib'
 // 	name: 'workspace'
 // )!
 
 mut workspace := heroprompt.get(
 	name:   'example_ws'
-	path:   '${os.home_dir()}/code/github/freeflowuniverse/herolib'
+	path:   '${os.home_dir()}/code/github/incubaid/herolib'
 	create: true
 )!
 
@@ -18,9 +18,9 @@ println('workspace (initial): ${workspace}')
 println('selected (initial): ${workspace.selected_children()}')
 
 // Add a directory and a file
-workspace.add_dir(path: '${os.home_dir()}/code/github/freeflowuniverse/herolib/docker')!
+workspace.add_dir(path: '${os.home_dir()}/code/github/incubaid/herolib/docker')!
 workspace.add_file(
-	path: '${os.home_dir()}/code/github/freeflowuniverse/herolib/docker/docker_ubuntu_install.sh'
+	path: '${os.home_dir()}/code/github/incubaid/herolib/docker/docker_ubuntu_install.sh'
 )!
 println('selected (after add): ${workspace.selected_children()}')
 

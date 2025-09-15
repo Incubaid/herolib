@@ -102,17 +102,17 @@ fn cmd_bootstrap_execute(cmd Command) ! {
 	}
 	if compileupload {
 		// mycmd:='
-		// 	\${HOME}/code/github/freeflowuniverse/herolib/scripts/package.vsh
+		// 	\${HOME}/code/github/incubaid/herolib/scripts/package.vsh
 		// '
 		// osal.exec(cmd: mycmd)!
-		println('please execute:\n~/code/github/freeflowuniverse/herolib/scripts/githubactions.sh')
+		println('please execute:\n~/code/github/incubaid/herolib/scripts/githubactions.sh')
 	}
 
 	if update {
 		// mycmd:='
-		// 	\${HOME}/code/github/freeflowuniverse/herolib/scripts/package.vsh
+		// 	\${HOME}/code/github/incubaid/herolib/scripts/package.vsh
 		// '
 		// osal.exec(cmd: mycmd)!
-		println('please execute:\n~/code/github/freeflowuniverse/herolib/scripts/install_hero.sh')
+		println('please execute:\n~/code/github/incubaid/herolib/scripts/install_hero.sh')
 	}
 }

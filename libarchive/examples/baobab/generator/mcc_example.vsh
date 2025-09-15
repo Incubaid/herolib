@@ -5,9 +5,9 @@ import freeflowuniverse.herolib.baobab.specification
 import freeflowuniverse.herolib.schemas.openapi
 import os
 
-const example_dir = os.join_path('${os.home_dir()}/code/github/freeflowuniverse/herolib/lib/circles/mcc',
+const example_dir = os.join_path('${os.home_dir()}/code/github/incubaid/herolib/lib/circles/mcc',
 	'baobab')
-const openapi_spec_path = os.join_path('${os.home_dir()}/code/github/freeflowuniverse/herolib/lib/circles/mcc',
+const openapi_spec_path = os.join_path('${os.home_dir()}/code/github/incubaid/herolib/lib/circles/mcc',
 	'openapi.json')
 
 // the actor specification obtained from the OpenRPC Specification
