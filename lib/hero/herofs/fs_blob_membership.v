@@ -7,7 +7,7 @@ import freeflowuniverse.herolib.hero.db
 @[heap]
 pub struct FsBlobMembership {
 pub mut:
-	hash   string // blake192 hash of content
+	hash   string // blake192 hash of content (key)
 	fsid   []u32  // list of fs ids where this blob is used
 	blobid u32    // id of the blob
 }
@@ -42,7 +42,6 @@ pub mut:
 	blobid u32    @[required]
 }
 
-// get new blob membership, not from the DB
 pub fn (mut self DBFsBlobMembership) new(args FsBlobMembershipArg) !FsBlobMembership {
 	mut o := FsBlobMembership{
 		hash:   args.hash
@@ -64,7 +63,14 @@ pub fn (mut self DBFsBlobMembership) set(mut o FsBlobMembership) ! {
 	}
 
 	if o.hash == '' {
-		return error('Blob membership hash cannot be empty')
+		mut blob := self.factory.fs_blob.get(o.blobid) or {
+			return error('Failed to retrieve blob with ID ${o.blobid}: ${err.msg()}')
+		}
+		o.hash = blob.hash
+	}
+
+	if o.fsid.len == 0 {
+		return error('Blob membership filesystem IDs cannot be empty')
 	}
 
 	// Validate that all filesystems exist
@@ -97,10 +103,7 @@ pub fn (mut self DBFsBlobMembership) get(hash string) !FsBlobMembership {
 	if data == '' {
 		return error('Blob membership with hash "${hash}" not found')
 	}
-
-	// Decode hex data back to bytes
 	data2 := data.bytes()
-
 	// Create object and decode
 	mut o := FsBlobMembership{}
 	mut e_decoder := encoder.decoder_new(data2)
@@ -110,7 +113,7 @@ pub fn (mut self DBFsBlobMembership) get(hash string) !FsBlobMembership {
 }
 
 // Add a filesystem to an existing blob membership
-pub fn (mut self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) !string {
+pub fn (mut self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) ! {
 	// Validate filesystem exists
 	fs_exists := self.factory.fs.exist(fs_id)!
 	if !fs_exists {
@@ -128,7 +131,7 @@ pub fn (mut self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) !str
 }
 
 // Remove a filesystem from an existing blob membership
-pub fn (mut self DBFsBlobMembership) remove_filesystem(hash string, fs_id u32) !string {
+pub fn (mut self DBFsBlobMembership) remove_filesystem(hash string, fs_id u32) ! {
 	mut membership := self.get(hash)!
 
 	// Remove filesystem from the list
@@ -137,10 +140,10 @@ pub fn (mut self DBFsBlobMembership) remove_filesystem(hash string, fs_id u32) !
 	// If no filesystems left, delete the membership entirely
 	if membership.fsid.len == 0 {
 		self.delete(hash)!
-		return hash
+		return
 	}
 
-	return self.set(membership)!
+	self.set(mut membership)!
 }
 
 // BlobList represents a simplified blob structure for listing purposes
@@ -153,7 +156,7 @@ pub mut:
 
 // list_by_hash_prefix lists blob memberships where hash starts with the given prefix
 // Returns maximum 10000 items as FsBlobMembership entries
-pub fn (mut self DBFsBlobMembership) list(prefix string) ![]FsBlobMembership {
+pub fn (mut self DBFsBlobMembership) list_prefix(prefix string) ![]FsBlobMembership {
 	mut result := []FsBlobMembership{}
 	mut cursor := 0
 	mut count := 0

@@ -68,20 +68,12 @@ pub fn (mut self DBFsBlob) new(args FsBlobArg) !FsBlob {
 	return o
 }
 
-pub fn (mut self DBFsBlob) set(mut o FsBlob) !u32 {
-	// Check if a blob with this hash already exists
-	hash_id := self.db.redis.hget('fsblob:hashes', o.hash)!
-	if hash_id != '' {
-		// Blob already exists, return existing ID
-		return hash_id.u32()
-	}
-
+pub fn (mut self DBFsBlob) set(mut o FsBlob) ! {
 	// Use db set function which now modifies the object in-place
 	self.db.set[FsBlob](mut o)!
 
 	// Store the hash -> id mapping for lookup
 	self.db.redis.hset('fsblob:hashes', o.hash, o.id.str())!
-
 }
 
 pub fn (mut self DBFsBlob) delete(id u32) ! {

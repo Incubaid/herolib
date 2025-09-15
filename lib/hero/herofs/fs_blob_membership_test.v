@@ -2,12 +2,18 @@ module herofs
 
 import freeflowuniverse.herolib.hero.db
 
-fn test_basic() {
-	println('Testing FsBlobMembership functionality...')
+fn test_cleanup()!{
+	delete_fs_test()!
+}
 
-	// Initialize the HeroFS factory
-	mut fs_factory := new()!
-	println('HeroFS factory initialized')
+fn test_basic() {
+
+	defer {
+		test_cleanup()
+	}
+	// Initialize the HeroFS factory for test purposes
+	my_fs:=new_fs_test()!
+	mut fs_factory := my_fs.factory
 
 	// Create a new filesystem (required for FsBlobMembership validation)
 	mut my_fs := fs_factory.fs.new(
@@ -16,22 +22,7 @@ fn test_basic() {
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
 	fs_factory.fs.set(mut my_fs)!
-	fs_id := my_fs.id
-	println('Created test filesystem with ID: ${fs_id}')
-
-	// Create root directory for the filesystem
-	mut root_dir := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       fs_id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing'
-	)!
-	fs_factory.fs_dir.set(mut root_dir)!
-	root_dir_id := root_dir.id
-
-	// Update the filesystem with the root directory ID
-	my_fs.root_dir_id = root_dir_id
-	fs_factory.fs.set(my_fs)!
+	println('Created test filesystem with ID: ${my_fs.id}')
 
 	// Create test blob for membership
 	test_data := 'This is test content for blob membership'.bytes()
@@ -96,8 +87,13 @@ fn test_basic() {
 fn test_filesystem_operations() {
 	println('\nTesting FsBlobMembership filesystem operations...')
 
-	// Initialize the HeroFS factory
-	mut fs_factory := new()!
+	defer {
+		test_cleanup()
+	}
+	// Initialize the HeroFS factory for test purposes
+	
+	my_fs:=new_fs_test()!
+	mut fs_factory := my_fs.factory
 
 	// Create filesystems for testing
 	mut fs1 := fs_factory.fs.new(
@@ -115,33 +111,6 @@ fn test_filesystem_operations() {
 	)!
 	fs_factory.fs.set(mut fs2)!
 	fs2_id := fs2.id
-
-	// Create root directories for the filesystems
-	mut root_dir1 := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       fs1_id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing'
-	)!
-	fs_factory.fs_dir.set(mut root_dir1)!
-	root_dir1_id := root_dir1.id
-
-	// Update the filesystems with the root directory IDs
-	fs1.root_dir_id = root_dir1_id
-	fs_factory.fs.set(fs1)!
-
-	mut root_dir2 := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       fs2_id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing'
-	)!
-	fs_factory.fs_dir.set(mut root_dir2)!
-	root_dir2_id := root_dir2.id
-
-	// Update the filesystems with the root directory IDs
-	fs2.root_dir_id = root_dir2_id
-	fs_factory.fs.set(fs2)!
 
 	// Create test blob
 	test_data := 'This is test content for filesystem operations'.bytes()
@@ -223,8 +192,13 @@ fn test_filesystem_operations() {
 fn test_validation() {
 	println('\nTesting FsBlobMembership validation...')
 
-	// Initialize the HeroFS factory
-	mut fs_factory := new()!
+	defer {
+		test_cleanup()
+	}
+	// Initialize the HeroFS factory for test purposes
+	
+	my_fs:=new_fs_test()!
+	mut fs_factory := my_fs.factory
 
 	// Create a filesystem for validation tests
 	mut my_fs := fs_factory.fs.new(
@@ -280,8 +254,13 @@ fn test_validation() {
 fn test_list_by_prefix() {
 	println('\nTesting FsBlobMembership list by prefix...')
 
-	// Initialize the HeroFS factory
-	mut fs_factory := new()!
+	defer {
+		test_cleanup()
+	}
+	// Initialize the HeroFS factory for test purposes
+	
+	my_fs:=new_fs_test()!
+	mut fs_factory := my_fs.factory
 
 	// Create a filesystem
 	mut my_fs := fs_factory.fs.new(

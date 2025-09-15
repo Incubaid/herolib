@@ -12,14 +12,12 @@ import freeflowuniverse.herolib.hero.db
 pub struct FsFile {
 	db.Base
 pub mut:
-	fs_id       u32   // Associated filesystem
-	directories []u32 // Directory IDs where this file exists, means file can be part of multiple directories (like hard links in Linux)
-	blobs       []u32 // IDs of file content blobs
-	size_bytes  u64
-	mime_type   MimeType // MIME type as enum (MOVED FROM FsBlob)
-	checksum    string   // e.g., SHA256 checksum of the file
-	accessed_at i64
-	metadata    map[string]string // Custom metadata
+	fs_id      u32   // Associated filesystem
+	blobs      []u32 // IDs of file content blobs
+	size_bytes u64
+	mime_type  MimeType
+	checksum   string            // e.g., checksum of the file, needs to be calculated is blake 192
+	metadata   map[string]string // Custom metadata
 }
 
 pub struct DBFsFile {
@@ -34,12 +32,6 @@ pub fn (self FsFile) type_name() string {
 
 pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.fs_id)
-	// Handle directories
-	e.add_u16(u16(self.directories.len))
-	for dir_id in self.directories {
-		e.add_u32(dir_id)
-	}
-
 	// Handle blobs
 	e.add_u16(u16(self.blobs.len))
 	for blob_id in self.blobs {
@@ -49,7 +41,6 @@ pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 	e.add_u64(self.size_bytes)
 	e.add_u8(u8(self.mime_type)) // ADD: Serialize mime_type as u8
 	e.add_string(self.checksum)
-	e.add_i64(self.accessed_at)
 
 	// Handle metadata map
 	e.add_u16(u16(self.metadata.len))
@@ -62,13 +53,6 @@ pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 fn (mut self DBFsFile) load(mut o FsFile, mut e encoder.Decoder) ! {
 	o.fs_id = e.get_u32()!
 
-	// Load directories
-	dirs_count := e.get_u16()!
-	o.directories = []u32{cap: int(dirs_count)}
-	for _ in 0 .. dirs_count {
-		o.directories << e.get_u32()!
-	}
-
 	// Load blobs
 	blobs_count := e.get_u16()!
 	o.blobs = []u32{cap: int(blobs_count)}
@@ -79,7 +63,6 @@ fn (mut self DBFsFile) load(mut o FsFile, mut e encoder.Decoder) ! {
 	o.size_bytes = e.get_u64()!
 	o.mime_type = unsafe { MimeType(e.get_u8()!) } // ADD: Deserialize mime_type
 	o.checksum = e.get_string()!
-	o.accessed_at = e.get_i64()!
 
 	// Load metadata map
 	metadata_count := e.get_u16()!
@@ -96,8 +79,7 @@ pub struct FsFileArg {
 pub mut:
 	name        string @[required]
 	description string
-	fs_id       u32   @[required]
-	directories []u32 @[required]
+	fs_id       u32 @[required]
 	blobs       []u32
 	size_bytes  u64
 	mime_type   MimeType // Changed from string to MimeType enum
@@ -133,15 +115,13 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 	}
 
 	mut o := FsFile{
-		name:        args.name
-		fs_id:       args.fs_id
-		directories: args.directories
-		blobs:       args.blobs
-		size_bytes:  size
-		mime_type:   args.mime_type // ADD: Set mime_type
-		checksum:    args.checksum
-		accessed_at: ourtime.now().unix()
-		metadata:    args.metadata
+		name:       args.name
+		fs_id:      args.fs_id
+		blobs:      args.blobs
+		size_bytes: size
+		mime_type:  args.mime_type // ADD: Set mime_type
+		checksum:   args.checksum
+		metadata:   args.metadata
 	}
 
 	// Set base fields
@@ -169,7 +149,6 @@ pub fn (mut self DBFsFile) set(mut o FsFile) ! {
 			return error('Blob with ID ${blob_id} does not exist')
 		}
 	}
-
 	self.db.set[FsFile](mut o)!
 }
 
@@ -191,17 +170,18 @@ pub fn (mut self DBFsFile) get(id u32) !FsFile {
 	return o
 }
 
-// Update file accessed timestamp
-pub fn (mut self DBFsFile) update_accessed(id u32) !u32 {
-	mut file := self.get(id)!
-	file.accessed_at = ourtime.now().unix()
-	return self.set(file)!
-}
+// TODO: future, have separate redis struct for the updates, not in root obj
+// // Update file accessed timestamp
+// pub fn (mut self DBFsFile) update_accessed(id u32) !u32 {
+// 	mut file := self.get(id)!
+// 	file.accessed_at = ourtime.now().unix()
+// 	return self.set(file)!
+// }
 
-// Update file metadata
-pub fn (mut self DBFsFile) update_metadata(id u32, key string, value string) !u32 {
-	mut file := self.get(id)!
-	file.metadata[key] = value
-	file.updated_at = ourtime.now().unix()
-	return self.set(file)!
-}
+// // Update file metadata
+// pub fn (mut self DBFsFile) update_metadata(id u32, key string, value string) !u32 {
+// 	mut file := self.get(id)!
+// 	file.metadata[key] = value
+// 	file.updated_at = ourtime.now().unix()
+// 	return self.set(file)!
+// }

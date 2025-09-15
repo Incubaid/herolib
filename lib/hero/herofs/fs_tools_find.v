@@ -43,7 +43,7 @@ pub mut:
 //     exclude_patterns: ['*test*']
 // })!
 // ```
-pub fn (mut self FsTools) find(start_path string, opts FindOptions) ![]FindResult {
+pub fn (mut self Fs) find(start_path string, opts FindOptions) ![]FindResult {
 	mut results := []FindResult{}
 
 	// Get the starting directory
@@ -68,7 +68,7 @@ pub fn (mut self FsTools) find(start_path string, opts FindOptions) ![]FindResul
 // - Files: Direct files in the current directory
 // - Symlinks: Symbolic links in the current directory (handled according to opts.follow_symlinks)
 // - Directories: Subdirectories of the current directory (recursed into according to opts.recursive)
-fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindOptions, mut results []FindResult, current_depth int) ! {
+fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOptions, mut results []FindResult, current_depth int) ! {
 	println('DEBUG: find_recursive called with dir_id=${dir_id}, current_path="${current_path}", current_depth=${current_depth}')
 
 	// Check depth limit
@@ -225,7 +225,7 @@ fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindO
 // ```
 // dir := tools.get_dir_by_absolute_path('/home/user/documents')!
 // ```
-pub fn (mut self FsTools) get_dir_by_absolute_path(path string) !FsDir {
+pub fn (mut self Fs) get_dir_by_absolute_path(path string) !FsDir {
 	println('DEBUG: get_dir_by_absolute_path called with path "${path}"')
 	normalized_path_ := normalize_path(path)
 	println('DEBUG: normalized_path_ = "${normalized_path_}"')

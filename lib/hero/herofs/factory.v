@@ -1,6 +1,7 @@
 module herofs
 
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.core.redisclient
 
 @[heap]
 pub struct FsFactory {
@@ -13,8 +14,14 @@ pub mut:
 	fs_symlink         DBFsSymlink
 }
 
-pub fn new() !FsFactory {
-	mut mydb := db.new()!
+@[params]
+pub struct DBArgs {
+pub mut:
+	redis ?&redisclient.Redis
+}
+
+pub fn new(args DBArgs) !FsFactory {
+	mut mydb := db.new(redis:args.redis)!
 	mut f := FsFactory{
 		fs:                 DBFs{
 			db: &mydb
@@ -42,4 +49,24 @@ pub fn new() !FsFactory {
 	f.fs_file.factory = &f
 	f.fs_symlink.factory = &f
 	return f
+}
+
+// is the main function we need to use to get a filesystem, will get it from database and initialize if needed
+pub fn new_fs(args FsArg) !Fs {
+	mut f := new()!
+	mut fs := f.fs.new_get_set(args)!
+	return fs
+}
+
+pub fn new_fs_test() !Fs {
+	mut r:=redisclient.test_get()!
+	mut f := new(redis:r)!
+	mut fs := f.fs.new_get_set(name: 'test')!
+	return fs
+}
+
+pub fn delete_fs_test() ! {
+	mut r:=redisclient.test_get()!
+	r.flush()!
+	return fs
 }
