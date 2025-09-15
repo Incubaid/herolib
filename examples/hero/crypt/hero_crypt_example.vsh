@@ -38,7 +38,7 @@ signing_keypair := age_client.generate_signing_keypair() or {
 	return
 }
 
-!signed := age_client.sign(signing_keypair.sign_key, message) or {
+signed := age_client.sign(signing_keypair.sign_key, message) or {
 	println('Error signing message: ${err}')
 	return
 }
@@ -47,7 +47,7 @@ verified := age_client.verify(signing_keypair.verify_key, message, signed.signat
 	println('Error verifying signature: ${err}')
 	return
 }
-!println('Message: ${message}')
+println('Message: ${message}')
 println('Signature: ${signed.signature}')
 println('Signature valid: ${verified}')
 

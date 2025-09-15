@@ -50,13 +50,9 @@ pub fn (mut s HeroServer) auth(mut ctx Context) veb.Result {
 
 // API endpoints
 @['/api/:handler_type'; post]
-pub fn (mut s HeroServer) api(mut ctx Context) veb.Result {
-	handler_type := ctx.params['handler_type'] or {
-		return ctx.request_error('handler_type not found in params')
-	}
-
+pub fn (mut s HeroServer) api(mut ctx Context, handler_type string) veb.Result {
 	// Validate session
-	session_key := ctx.req.header.get('Authorization') or { '' }
+	session_key := ctx.get_custom_header('Authorization') or { '' }
 	if !s.auth_manager.validate_session(session_key) {
 		return ctx.request_error('Invalid session')
 	}
@@ -75,11 +71,7 @@ pub fn (mut s HeroServer) api(mut ctx Context) veb.Result {
 
 // Documentation endpoints
 @['/doc/:handler_type'; get]
-pub fn (mut s HeroServer) doc(mut ctx Context) veb.Result {
-	handler_type := ctx.params['handler_type'] or {
-		return ctx.request_error('handler_type not found in params')
-	}
-
+pub fn (mut s HeroServer) doc(mut ctx Context, handler_type string) veb.Result {
 	handler := s.handler_registry.get(handler_type) or { return ctx.not_found() }
 
 	doc_html := s.generate_documentation(handler_type, handler) or {
