@@ -12,7 +12,6 @@ import freeflowuniverse.herolib.hero.db
 pub struct FsFile {
 	db.Base
 pub mut:
-	name        string
 	fs_id       u32   // Associated filesystem
 	directories []u32 // Directory IDs where this file exists, means file can be part of multiple directories (like hard links in Linux)
 	blobs       []u32 // IDs of file content blobs
