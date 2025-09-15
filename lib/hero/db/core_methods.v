@@ -3,9 +3,8 @@ module db
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.data.encoder
 
-pub fn (mut self DB) set[T](obj_ T) !u32 {
+pub fn (mut self DB) set[T](mut obj T) ! {
 	// Get the next ID	
-	mut obj := obj_
 	if obj.id == 0 {
 		obj.id = self.new_id()!
 	}
@@ -40,7 +39,6 @@ pub fn (mut self DB) set[T](obj_ T) !u32 {
 	obj.dump(mut e)!
 	// println('set: after dump, e.data.len: ${e.data.len}')
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
-	return obj.id
 }
 
 // return the data, cannot return the object as we do not know the type
