@@ -82,7 +82,6 @@ pub fn (mut self DBFsBlob) set(mut o FsBlob) !u32 {
 	// Store the hash -> id mapping for lookup
 	self.db.redis.hset('fsblob:hashes', o.hash, o.id.str())!
 
-	return o.id
 }
 
 pub fn (mut self DBFsBlob) delete(id u32) ! {

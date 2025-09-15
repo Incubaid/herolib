@@ -68,13 +68,16 @@ fn test_basic() {
 
 	// Save the test directories
 	fs_factory.fs_dir.set(mut test_dir1)!
+	dir1_id := test_dir1.id
 	fs_factory.fs_dir.set(mut test_dir2)!
+	dir2_id := test_dir2.id
 	fs_factory.fs_dir.set(mut test_dir3)!
+	dir3_id := test_dir3.id
 
 	println('Created test directories:')
-	println('- ${test_dir1.name} with ID: ${dir1.id}')
-	println('- ${test_dir2.name} with ID: ${dir2.id}')
-	println('- ${test_dir3.name} with ID: ${dir3.id}')
+	println('- ${test_dir1.name} with ID: ${test_dir1.id}')
+	println('- ${test_dir2.name} with ID: ${test_dir2.id}')
+	println('- ${test_dir3.name} with ID: ${test_dir3.id}')
 
 	// Test loading directories by ID
 	println('\nTesting directory loading...')
@@ -243,7 +246,8 @@ fn test_directory_deletion() {
 	)!
 
 	// Save the test directory
-	dir_id := fs_factory.fs_dir.set(test_dir)!
+		fs_factory.fs_dir.set(mut test_dir)!
+	dir_id := test_dir.id
 
 	// Verify directory exists
 	mut exists := fs_factory.fs_dir.exist(dir_id)!

@@ -53,11 +53,18 @@ pub fn (mut self DBFsBlobMembership) new(args FsBlobMembershipArg) !FsBlobMember
 	return o
 }
 
-pub fn (mut self DBFsBlobMembership) set(o FsBlobMembership) !string {
+pub fn (mut self DBFsBlobMembership) set(mut o FsBlobMembership) ! {
 	// Validate that the blob exists
+	if o.blobid == 0 {
+		return error('Blob ID cannot be 0')
+	}
 	blob_exists := self.factory.fs_blob.exist(o.blobid)!
 	if !blob_exists {
 		return error('Blob with ID ${o.blobid} does not exist')
+	}
+
+	if o.hash == '' {
+		return error('Blob membership hash cannot be empty')
 	}
 
 	// Validate that all filesystems exist
@@ -74,7 +81,6 @@ pub fn (mut self DBFsBlobMembership) set(o FsBlobMembership) !string {
 
 	// Store using hash as key in the blob_membership hset
 	self.db.redis.hset('fs_blob_membership', o.hash, e_encoder.data.bytestr())!
-	return o.hash
 }
 
 pub fn (mut self DBFsBlobMembership) delete(hash string) ! {
@@ -118,7 +124,7 @@ pub fn (mut self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) !str
 		membership.fsid << fs_id
 	}
 
-	return self.set(membership)!
+	self.set(mut membership)!
 }
 
 // Remove a filesystem from an existing blob membership

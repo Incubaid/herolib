@@ -15,7 +15,8 @@ fn test_basic() {
 		description: 'Filesystem for testing FsBlobMembership functionality'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_id := fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
+	fs_id := my_fs.id
 	println('Created test filesystem with ID: ${fs_id}')
 
 	// Create root directory for the filesystem
@@ -47,7 +48,8 @@ fn test_basic() {
 		description: 'Test file for blob membership'
 		mime_type:   .txt
 	)!
-	file_id := fs_factory.fs_file.set(test_file)!
+	fs_factory.fs_file.set(mut test_file)!
+	file_id := test_file.id
 	println('Created test file with ID: ${file_id}')
 
 	// Create test blob membership
@@ -103,14 +105,16 @@ fn test_filesystem_operations() {
 		description: 'First filesystem for testing'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs1_id := fs_factory.fs.set(fs1)!
+	fs_factory.fs.set(mut fs1)!
+	fs1_id := fs1.id
 
 	mut fs2 := fs_factory.fs.new(
 		name:        'test_filesystem_2'
 		description: 'Second filesystem for testing'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs2_id := fs_factory.fs.set(fs2)!
+	fs_factory.fs.set(mut fs2)!
+	fs2_id := fs2.id
 
 	// Create root directories for the filesystems
 	mut root_dir1 := fs_factory.fs_dir.new(
@@ -153,7 +157,8 @@ fn test_filesystem_operations() {
 		description: 'Test file 1 for blob membership'
 		mime_type:   .txt
 	)!
-	file1_id := fs_factory.fs_file.set(test_file1)!
+	fs_factory.fs_file.set(mut test_file1)!
+	file1_id := test_file1.id
 	println('Created test file 1 with ID: ${file1_id}')
 
 	mut test_file2 := fs_factory.fs_file.new(
@@ -164,7 +169,8 @@ fn test_filesystem_operations() {
 		description: 'Test file 2 for blob membership'
 		mime_type:   .txt
 	)!
-	file2_id := fs_factory.fs_file.set(test_file2)!
+	fs_factory.fs_file.set(mut test_file2)!
+	file2_id := test_file2.id
 	println('Created test file 2 with ID: ${file2_id}')
 
 	// Create blob membership with first filesystem
@@ -226,7 +232,8 @@ fn test_validation() {
 		description: 'Filesystem for validation tests'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_id := fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
+	fs_id := my_fs.id
 
 	// Test setting membership with non-existent blob (should fail)
 	println('Testing membership set with non-existent blob...')
@@ -282,7 +289,8 @@ fn test_list_by_prefix() {
 		description: 'Filesystem for list testing'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_id := fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
+	fs_id := my_fs.id
 
 	// Create root directory for the filesystem
 	mut root_dir := fs_factory.fs_dir.new(
@@ -319,7 +327,8 @@ fn test_list_by_prefix() {
 		description: 'Test file for blob membership'
 		mime_type:   .txt
 	)!
-	file_id := fs_factory.fs_file.set(test_file)!
+	fs_factory.fs_file.set(mut test_file)!
+	file_id := test_file.id
 	println('Created test file with ID: ${file_id}')
 
 	// Create memberships with similar hashes (first 16 characters)

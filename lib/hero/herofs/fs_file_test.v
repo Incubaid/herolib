@@ -104,9 +104,12 @@ fn test_basic() {
 	)!
 
 	// Save the test files
-	file1_id := fs_factory.fs_file.set(test_file1)!
-	file2_id := fs_factory.fs_file.set(test_file2)!
-	file3_id := fs_factory.fs_file.set(test_file3)!
+	fs_factory.fs_file.set(mut test_file1)!
+	file1_id := test_file1.id
+	fs_factory.fs_file.set(mut test_file2)!
+	file2_id := test_file2.id
+	fs_factory.fs_file.set(mut test_file3)!
+	file3_id := test_file3.id
 
 	println('Created test files:')
 	println('- ${test_file1.name} with ID: ${file1_id}')
@@ -229,7 +232,8 @@ fn test_file_operations() {
 	)!
 
 	// Save the test file
-	file_id := fs_factory.fs_file.set(test_file)!
+	fs_factory.fs_file.set(mut test_file)!
+	file_id := test_file.id
 	println('Created test file with ID: ${file_id}')
 
 	// Test update_accessed method
@@ -319,7 +323,8 @@ fn test_file_deletion() {
 	)!
 
 	// Save the test file
-	file_id := fs_factory.fs_file.set(test_file)!
+	fs_factory.fs_file.set(mut test_file)!
+	file_id := test_file.id
 
 	// Verify file exists
 	mut exists := fs_factory.fs_file.exist(file_id)!
@@ -387,7 +392,8 @@ fn test_file_validation() {
 
 	// If we get here, the validation didn't work as expected
 	// Try to save it, which should fail
-	validation_result_id := fs_factory.fs_file.set(validation_result) or {
+	fs_factory.fs_file.set(mut validation_result)!
+	validation_result_id := validation_result.id or {
 		println('✓ File set correctly failed with non-existent directory')
 		return
 	}
@@ -411,7 +417,8 @@ fn test_file_validation() {
 
 	// If we get here, the validation didn't work as expected
 	// Try to save it, which should fail
-	validation_result_id2 := fs_factory.fs_file.set(validation_result2) or {
+	fs_factory.fs_file.set(mut validation_result2)!
+	validation_result_id2 := validation_result2.id or {
 		println('✓ File set correctly failed with non-existent blob')
 		return
 	}

@@ -200,19 +200,19 @@ fn test_blob_deletion() {
 
 	// Create and save test blob
 	mut blob := fs_factory.fs_blob.new(data: test_data)!
-	blob_id := fs_factory.fs_blob.set(blob)!
-	println('Created test blob with ID: ${blob_id}')
+	fs_factory.fs_blob.set(mut blob)!
+	println('Created test blob with ID: ${blob.id}')
 
 	// Verify blob exists
-	mut exists := fs_factory.fs_blob.exist(blob_id)!
+	mut exists := fs_factory.fs_blob.exist(blob.id)!
 	assert exists == true
 	println('✓ Blob exists before deletion')
 
 	// Delete the blob
-	fs_factory.fs_blob.delete(blob_id)!
+	fs_factory.fs_blob.delete(blob.id)!
 
 	// Verify blob no longer exists by ID
-	exists = fs_factory.fs_blob.exist(blob_id)!
+	exists = fs_factory.fs_blob.exist(blob.id)!
 	assert exists == false
 	println('✓ Blob no longer exists by ID after deletion')
 
@@ -225,14 +225,14 @@ fn test_blob_deletion() {
 	mut blob2 := fs_factory.fs_blob.new(data: test_data2)!
 	mut blob3 := fs_factory.fs_blob.new(data: test_data3)!
 
-	blob1_id := fs_factory.fs_blob.set(blob1)!
-	blob2_id := fs_factory.fs_blob.set(blob2)!
-	blob3_id := fs_factory.fs_blob.set(blob3)!
+	fs_factory.fs_blob.set(mut blob1)!
+	fs_factory.fs_blob.set(mut blob2)!
+	fs_factory.fs_blob.set(mut blob3)!
 
 	println('Created multiple blobs for deletion test:')
-	println('- Blob 1 ID: ${blob1_id}')
-	println('- Blob 2 ID: ${blob2_id}')
-	println('- Blob 3 ID: ${blob3_id}')
+	println('- Blob 1 ID: ${blob1.id}')
+	println('- Blob 2 ID: ${blob2.id}')
+	println('- Blob 3 ID: ${blob3.id}')
 
 	// Delete multiple blobs
 	mut ids := []u32{len: 3}
@@ -269,7 +269,7 @@ fn test_blob_size_limit() {
 
 	// If we get here, the validation didn't work as expected
 	// Try to save it, which should fail
-	result_id := fs_factory.fs_blob.set(result) or {
+	fs_factory.fs_blob.set(mut result) or {
 		println('✓ Blob set correctly failed with data exceeding 1MB limit')
 		return
 	}
@@ -297,11 +297,11 @@ fn test_blob_hash_functionality() {
 	println('✓ Blob hash calculated correctly')
 
 	// Save blob
-	blob_id := fs_factory.fs_blob.set(blob)!
+	fs_factory.fs_blob.set(mut blob)!
 
 	// Retrieve by hash
 	loaded_blob := fs_factory.fs_blob.get_by_hash(blob.hash)!
-	assert loaded_blob.id == blob_id
+	assert loaded_blob.id == blob.id
 	assert loaded_blob.data == test_data
 	println('✓ Blob retrieved by hash correctly')
 
