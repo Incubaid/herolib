@@ -18,14 +18,15 @@ pub mut:
 	blobs       []u32 // IDs of file content blobs
 	size_bytes  u64
 	mime_type   MimeType // MIME type as enum (MOVED FROM FsBlob)
-	checksum    string // e.g., SHA256 checksum of the file
+	checksum    string   // e.g., SHA256 checksum of the file
 	accessed_at i64
 	metadata    map[string]string // Custom metadata
 }
 
 pub struct DBFsFile {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsFile) type_name() string {

@@ -1,11 +1,9 @@
 module herofs
 
-import time
 import crypto.blake3
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.core.texttools
 
 // FsBlob represents binary data up to 1MB
 @[heap]
@@ -19,7 +17,8 @@ pub mut:
 
 pub struct DBFsBlob {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsBlob) type_name() string {
@@ -41,7 +40,7 @@ fn (mut self DBFsBlob) load(mut o FsBlob, mut e encoder.Decoder) ! {
 @[params]
 pub struct FsBlobArg {
 pub mut:
-	data        []u8 @[required]
+	data []u8 @[required]
 }
 
 pub fn (mut blob FsBlob) calculate_hash() {
@@ -64,10 +63,6 @@ pub fn (mut self DBFsBlob) new(args FsBlobArg) !FsBlob {
 	o.calculate_hash()
 
 	// Set base fields
-	o.name = args.name
-	o.description = args.description
-	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
@@ -90,7 +85,6 @@ pub fn (mut self DBFsBlob) set(o FsBlob) !u32 {
 	return id
 }
 
-
 pub fn (mut self DBFsBlob) delete(id u32) ! {
 	// Get the blob to retrieve its hash
 	mut blob := self.get(id)!
@@ -102,8 +96,23 @@ pub fn (mut self DBFsBlob) delete(id u32) ! {
 	self.db.delete[FsBlob](id)!
 }
 
+pub fn (mut self DBFsBlob) delete_multi(ids []u32) ! {
+	for id in ids {
+		self.delete(id)!
+	}
+}
+
 pub fn (mut self DBFsBlob) exist(id u32) !bool {
 	return self.db.exists[FsBlob](id)!
+}
+
+pub fn (mut self DBFsBlob) exist_multi(ids []u32) !bool {
+	for id in ids {
+		if !self.exist(id)! {
+			return false
+		}
+	}
+	return true
 }
 
 pub fn (mut self DBFsBlob) get(id u32) !FsBlob {
@@ -113,17 +122,24 @@ pub fn (mut self DBFsBlob) get(id u32) !FsBlob {
 	return o
 }
 
-pub fn (mut self DBFsBlob) get_by_hash(hash string) !FsBlob {
-	id_str := self.db.redis.hget('fsblob:hashes', hash)!
-	if id_str == '' {
-		return error('Blob with hash "${hash}" not found')
+pub fn (mut self DBFsBlob) get_multi(id []u32) ![]FsBlob {
+	mut blobs := []FsBlob{}
+	for i in id {
+		blobs << self.get(i)!
 	}
-	return self.get(id_str.u32())!
+	return blobs
+}
+
+pub fn (mut self DBFsBlob) get_by_hash(hash string) !FsBlob {
+	if self.factory.fs_blob_membership.exist(hash)! {
+		o := self.factory.fs_blob_membership.get(hash) or { panic('bug') }
+		return self.get(o.blobid)!
+	}
+	return error('Blob with hash ${hash} not found')
 }
 
 pub fn (mut self DBFsBlob) exists_by_hash(hash string) !bool {
-	id_str := self.db.redis.hget('fsblob:hashes', hash)!
-	return id_str != ''
+	return self.factory.fs_blob_membership.exist(hash)
 }
 
 pub fn (blob FsBlob) verify_integrity() bool {
@@ -131,16 +147,7 @@ pub fn (blob FsBlob) verify_integrity() bool {
 	return hash.hex()[..48] == blob.hash
 }
 
-// verify checks the integrity of a blob by its ID or hash
-// Returns true if the blob's data matches its stored hash
-pub fn (mut self DBFsBlob) verify(id_or_hash string) !bool {
-	// Try to parse as ID first
-	if id_or_hash.is_int() {
-		blob := self.get(id_or_hash.int().u32())!
-		return blob.verify_integrity()
-	}
-	
-	// Otherwise treat as hash
-	blob := self.get_by_hash(id_or_hash)!
+pub fn (mut self DBFsBlob) verify(hash string) !bool {
+	blob := self.get_by_hash(hash)!
 	return blob.verify_integrity()
 }

@@ -26,7 +26,8 @@ pub enum SymlinkTargetType {
 
 pub struct DBFsSymlink {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsSymlink) type_name() string {

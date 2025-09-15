@@ -12,8 +12,8 @@ import freeflowuniverse.herolib.hero.db
 pub struct FsDir {
 	db.Base
 pub mut:
-	fs_id     u32 // Associated filesystem
-	parent_id u32 // Parent directory ID (0 for root)
+	fs_id       u32 // Associated filesystem
+	parent_id   u32 // Parent directory ID (0 for root)
 	directories []u32
 	files       []u32
 	symlinks    []u32
@@ -21,7 +21,8 @@ pub mut:
 
 pub struct DBFsDir {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsDir) type_name() string {
@@ -29,22 +30,21 @@ pub fn (self FsDir) type_name() string {
 }
 
 pub fn (self FsDir) dump(mut e encoder.Encoder) ! {
-		
 	e.add_u32(self.fs_id)
 	e.add_u32(self.parent_id)
-	
+
 	// Handle directories array
 	e.add_u16(u16(self.directories.len))
 	for dir_id in self.directories {
 		e.add_u32(dir_id)
 	}
-	
+
 	// Handle files array
 	e.add_u16(u16(self.files.len))
 	for file_id in self.files {
 		e.add_u32(file_id)
 	}
-	
+
 	// Handle symlinks array
 	e.add_u16(u16(self.symlinks.len))
 	for symlink_id in self.symlinks {
@@ -55,21 +55,21 @@ pub fn (self FsDir) dump(mut e encoder.Encoder) ! {
 fn (mut self DBFsDir) load(mut o FsDir, mut e encoder.Decoder) ! {
 	o.fs_id = e.get_u32()!
 	o.parent_id = e.get_u32()!
-	
+
 	// Load directories array
 	directories_count := e.get_u16()!
 	o.directories = []u32{cap: int(directories_count)}
 	for _ in 0 .. directories_count {
 		o.directories << e.get_u32()!
 	}
-	
+
 	// Load files array
 	files_count := e.get_u16()!
 	o.files = []u32{cap: int(files_count)}
 	for _ in 0 .. files_count {
 		o.files << e.get_u32()!
 	}
-	
+
 	// Load symlinks array
 	symlinks_count := e.get_u16()!
 	o.symlinks = []u32{cap: int(symlinks_count)}
@@ -121,14 +121,14 @@ pub fn (mut self DBFsDir) set(o FsDir) !u32 {
 pub fn (mut self DBFsDir) delete(id u32) ! {
 	// Get the directory info before deleting
 	dir := self.get(id)!
-	
+
 	// If has parent, remove from parent's directories list	
 	if dir.parent_id > 0 {
-		mut parent_dir := self.db.directories.get(dir.parent_id) or {
+		mut parent_dir := self.factory.fs_dir.get(dir.parent_id) or {
 			return error('Parent directory with ID ${dir.parent_id} does not exist')
 		}
 		parent_dir.directories = parent_dir.directories.filter(it != id)
-		self.db.directories.set(parent_dir)!
+		self.factory.fs_dir.set(parent_dir)!
 	}
 	// Delete the directory itself
 	self.db.delete[FsDir](id)!

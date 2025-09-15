@@ -23,7 +23,8 @@ pub mut:
 
 pub struct DBFs {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self Fs) type_name() string {
