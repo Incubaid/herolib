@@ -52,10 +52,6 @@ pub mut:
 	data        []u8 @[required]
 	mime_type   string
 	encoding    string
-	name        string
-	description string
-	tags        []string
-	comments    []db.CommentArg
 }
 
 pub fn (mut blob FsBlob) calculate_hash() {
@@ -106,6 +102,7 @@ pub fn (mut self DBFsBlob) set(o FsBlob) !u32 {
 
 	return id
 }
+
 
 pub fn (mut self DBFsBlob) delete(id u32) ! {
 	// Get the blob to retrieve its hash
