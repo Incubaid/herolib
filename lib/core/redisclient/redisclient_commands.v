@@ -284,23 +284,24 @@ pub fn (mut r Redis) scan(cursor int) !(string, []string) {
 
 @[params]
 pub struct HScanOpts {
+pub mut:
 	match string
 	count int
 }
 
 pub fn (mut r Redis) hscan(key string, cursor int, opts HScanOpts) !(string, []string) {
 	mut cmd := ['HSCAN', key, cursor.str()]
-	
+
 	if opts.match != '' {
 		cmd << 'MATCH'
 		cmd << opts.match
 	}
-	
+
 	if opts.count > 0 {
 		cmd << 'COUNT'
 		cmd << opts.count.str()
 	}
-	
+
 	res := r.send_expect_list(cmd)!
 	if res[0] !is resp.RBString {
 		return error('Redis HSCAN wrong response type (cursor)')
