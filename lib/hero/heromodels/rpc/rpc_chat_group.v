@@ -59,9 +59,9 @@ pub fn chat_group_set(request Request) !Response {
 		comments:       payload.comments
 	)!
 
-	id := mydb.chat_group.set(chat_group_obj)!
+	mydb.chat_group.set(mut chat_group_obj)!
 
-	return new_response_u32(request.id, id)
+	return new_response_u32(request.id, chat_group_obj.id)
 }
 
 pub fn chat_group_delete(request Request) !Response {

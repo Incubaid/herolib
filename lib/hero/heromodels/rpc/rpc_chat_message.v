@@ -71,9 +71,9 @@ pub fn chat_message_set(request Request) !Response {
 		comments:        payload.comments
 	)!
 
-	id := mydb.chat_message.set(chat_message_obj)!
+	mydb.chat_message.set(mut chat_message_obj)!
 
-	return new_response_u32(request.id, id)
+	return new_response_u32(request.id, chat_message_obj.id)
 }
 
 pub fn chat_message_delete(request Request) !Response {

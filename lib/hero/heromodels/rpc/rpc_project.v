@@ -67,9 +67,9 @@ pub fn project_set(request Request) !Response {
 		comments:       payload.comments
 	)!
 
-	id := mydb.project.set(project_obj)!
+	mydb.project.set(mut project_obj)!
 
-	return new_response_u32(request.id, id)
+	return new_response_u32(request.id, project_obj.id)
 }
 
 pub fn project_delete(request Request) !Response {

@@ -54,9 +54,9 @@ pub fn group_set(request Request) !Response {
 		is_public:    payload.is_public
 	)!
 
-	id := mydb.group.set(group_obj)!
+	mydb.group.set(mut group_obj)!
 
-	return new_response_u32(request.id, id)
+	return new_response_u32(request.id, group_obj.id)
 }
 
 pub fn group_delete(request Request) !Response {
