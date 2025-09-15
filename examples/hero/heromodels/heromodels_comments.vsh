@@ -1,4 +1,4 @@
-#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
 import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.hero.heromodels
