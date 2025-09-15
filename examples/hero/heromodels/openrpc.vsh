@@ -7,25 +7,43 @@ import freeflowuniverse.herolib.hero.heromodels
 import time
 
 fn main() {
-	spawn fn () ! {
-		println('starting server')
+	println('Starting RPC server on port 9090...')
+
+	// Start the server in a background thread
+	spawn fn () {
 		rpc.start(http_port: 9090) or { panic('Failed to start RPC server: ${err}') }
 	}()
 
-	time.sleep(time.second * 3)
-	println('sleeping for 3 seconds to let server start')
-	// my_calendar := heromodels.calendar_new(
-	// 	name:           'My Calendar'
-	// 	description:    'My Calendar'
-	// 	securitypolicy: 1
-	// 	tags:           ['tag1', 'tag2']
-	// 	group_id:       1
-	// 	events:         []u32{}
-	// 	color:          '#000000'
-	// 	timezone:       'UTC'
-	// 	is_public:      true
-	// )!
+	// Wait for server to start
+	time.sleep(time.second * 2)
+	println('Server started, now testing with some requests...')
 
-	// response := handler.handle(jsonrpc.new_request('calendar_set', json.encode(my_calendar)))!
-	// println(response)
+	// Create a calendar object to test with
+	mut mydb := heromodels.new()!
+	mut my_calendar := mydb.calendar.new(
+		color:     '#FF0000'
+		timezone:  'UTC'
+		is_public: true
+		events:    []u32{}
+	)!
+	my_calendar.name = 'Test Calendar'
+	my_calendar.description = 'A test calendar for RPC'
+
+	// Test the calendar_set RPC method
+	request := jsonrpc.new_request('calendar_set', json.encode(my_calendar))
+	println('Sending request: ${request}')
+
+	// TODO: Add HTTP client to actually send the request to localhost:9090
+	// For now, just show what would be sent
+
+	// Keep the server running
+	println('Server is running on http://localhost:9090')
+	println('You can test it with curl or other HTTP clients')
+	println('Press Ctrl+C to stop the server')
+
+	// Keep main thread alive so server continues running
+	for {
+		time.sleep(time.second * 10)
+		println('Server still running...')
+	}
 }
