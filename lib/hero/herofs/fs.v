@@ -79,8 +79,7 @@ pub fn (mut self DBFs) new(args FsArg) !Fs {
 	return o
 }
 
-pub fn (mut self DBFs) set(o_ Fs) !u32 {
-	mut o := o_
+pub fn (mut self DBFs) set(mut o Fs) ! {
 	if o.root_dir_id == 0 {
 		// If no root directory is set, create one
 		mut root_dir := self.factory.fs_dir.new(
@@ -88,11 +87,11 @@ pub fn (mut self DBFs) set(o_ Fs) !u32 {
 			fs_id:     o.id
 			parent_id: 0 // Root has no parent
 		)!
-		root_dir := self.factory.fs_dir.set(root_dir)!
+		self.factory.fs_dir.set(mut root_dir)!
+		o.root_dir_id = root_dir.id
 		// Update the filesystem with the new root directory ID
 	}
-	id := self.db.set[Fs](o)!
-	return id
+	self.db.set[Fs](mut o)!
 }
 
 pub fn (mut self DBFs) delete(id u32) ! {

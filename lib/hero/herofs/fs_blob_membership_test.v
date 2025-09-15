@@ -25,7 +25,8 @@ fn test_basic() {
 		parent_id:   0 // Root has no parent
 		description: 'Root directory for testing'
 	)!
-	root_dir_id := fs_factory.fs_dir.set(root_dir)!
+	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir_id := root_dir.id
 
 	// Update the filesystem with the root directory ID
 	my_fs.root_dir_id = root_dir_id
@@ -118,7 +119,8 @@ fn test_filesystem_operations() {
 		parent_id:   0 // Root has no parent
 		description: 'Root directory for testing'
 	)!
-	root_dir1_id := fs_factory.fs_dir.set(root_dir1)!
+	fs_factory.fs_dir.set(mut root_dir1)!
+	root_dir1_id := root_dir1.id
 
 	// Update the filesystems with the root directory IDs
 	fs1.root_dir_id = root_dir1_id
@@ -130,7 +132,8 @@ fn test_filesystem_operations() {
 		parent_id:   0 // Root has no parent
 		description: 'Root directory for testing'
 	)!
-	root_dir2_id := fs_factory.fs_dir.set(root_dir2)!
+	fs_factory.fs_dir.set(mut root_dir2)!
+	root_dir2_id := root_dir2.id
 
 	// Update the filesystems with the root directory IDs
 	fs2.root_dir_id = root_dir2_id

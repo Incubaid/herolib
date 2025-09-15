@@ -353,12 +353,13 @@ fn test_symlink_find() {
 	)!
 
 	// Save the root directory
-	root_dir_id := fs_factory.fs_dir.set(root_dir)!
+	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir_id := root_dir.id
+	println('Created root directory with ID: ${root_dir_id}')
 
 	// Update the filesystem with the root directory ID
 	my_fs.root_dir_id = root_dir_id
-	my_fs.id = fs_id // Set the ID to ensure we update the existing object
-	fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
 
 	// Retrieve the updated filesystem object
 	my_fs = fs_factory.fs.get(fs_id)!

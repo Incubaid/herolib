@@ -17,24 +17,9 @@ fn test_basic() {
 	)!
 
 	// Save the filesystem to get an ID
-	fs_id := fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
+	fs_id := my_fs.id
 	println('Created test filesystem with ID: ${fs_id}')
-
-	// Create root directory
-	mut root_dir := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       fs_id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing'
-	)!
-
-	// Save the root directory
-	root_dir_id := fs_factory.fs_dir.set(root_dir)!
-	println('Created root directory with ID: ${root_dir_id}')
-
-	// Update the filesystem with the root directory ID
-	my_fs.root_dir_id = root_dir_id
-	fs_factory.fs.set(my_fs)!
 
 	// Create test directories for files
 	mut test_dir1 := fs_factory.fs_dir.new(
@@ -43,7 +28,7 @@ fn test_basic() {
 		parent_id:   root_dir_id
 		description: 'First test directory for files'
 	)!
-	dir1_id := fs_factory.fs_dir.set(test_dir1)!
+	dir1_id := test_dir1.id
 
 	mut test_dir2 := fs_factory.fs_dir.new(
 		name:        'test_dir2'
@@ -51,7 +36,8 @@ fn test_basic() {
 		parent_id:   root_dir_id
 		description: 'Second test directory for files'
 	)!
-	dir2_id := fs_factory.fs_dir.set(test_dir2)!
+	fs_factory.fs_dir.set(mut test_dir2)!
+	dir2_id := test_dir2.id
 
 	// Create test blobs for files
 	mut test_blob1 := fs_factory.fs_blob.new(
@@ -209,22 +195,8 @@ fn test_file_operations() {
 	)!
 
 	// Save the filesystem to get an ID
-	fs_id := fs_factory.fs.set(my_fs)!
-
-	// Create root directory
-	mut root_dir := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       fs_id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing operations'
-	)!
-
-	// Save the root directory
-	root_dir_id := fs_factory.fs_dir.set(root_dir)!
-
-	// Update the filesystem with the root directory ID
-	my_fs.root_dir_id = root_dir_id
-	fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
+	fs_id := my_fs.id
 
 	// Create test directory
 	mut test_dir := fs_factory.fs_dir.new(
@@ -313,22 +285,8 @@ fn test_file_deletion() {
 	)!
 
 	// Save the filesystem to get an ID
-	fs_id := fs_factory.fs.set(my_fs)!
-
-	// Create root directory
-	mut root_dir := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       fs_id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing deletion'
-	)!
-
-	// Save the root directory
-	root_dir_id := fs_factory.fs_dir.set(root_dir)!
-
-	// Update the filesystem with the root directory ID
-	my_fs.root_dir_id = root_dir_id
-	fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
+	fs_id := my_fs.id
 
 	// Create test directory
 	mut test_dir := fs_factory.fs_dir.new(
@@ -393,22 +351,8 @@ fn test_file_validation() {
 	)!
 
 	// Save the filesystem to get an ID
-	fs_id := fs_factory.fs.set(my_fs)!
-
-	// Create root directory
-	mut root_dir := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       fs_id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing validation'
-	)!
-
-	// Save the root directory
-	root_dir_id := fs_factory.fs_dir.set(root_dir)!
-
-	// Update the filesystem with the root directory ID
-	my_fs.root_dir_id = root_dir_id
-	fs_factory.fs.set(my_fs)!
+	fs_factory.fs.set(mut my_fs)!
+	fs_id := my_fs.id
 
 	// Create test directory
 	mut test_dir := fs_factory.fs_dir.new(

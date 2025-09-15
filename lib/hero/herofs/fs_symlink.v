@@ -82,7 +82,7 @@ pub fn (mut self DBFsSymlink) new(args FsSymlinkArg) !FsSymlink {
 	return o
 }
 
-pub fn (mut self DBFsSymlink) set(o FsSymlink) !u32 {
+pub fn (mut self DBFsSymlink) set(mut o FsSymlink) ! {
 	// Check parent directory exists
 	if o.parent_id > 0 {
 		parent_exists := self.db.exists[FsDir](o.parent_id)!
@@ -104,23 +104,21 @@ pub fn (mut self DBFsSymlink) set(o FsSymlink) !u32 {
 		}
 	}
 
-	id := self.db.set[FsSymlink](o)!
+	self.db.set[FsSymlink](mut o)!
 
 	// Store symlink in parent directory's symlink index
 	path_key := '${o.parent_id}:${o.name}'
-	self.db.redis.hset('fssymlink:paths', path_key, id.str())!
+	self.db.redis.hset('fssymlink:paths', path_key, o.id.str())!
 
 	// Add to parent's symlinks list using hset
-	self.db.redis.hset('fssymlink:parent:${o.parent_id}', id.str(), id.str())!
+	self.db.redis.hset('fssymlink:parent:${o.parent_id}', o.id.str(), o.id.str())!
 
 	// Store in filesystem's symlink list using hset
-	self.db.redis.hset('fssymlink:fs:${o.fs_id}', id.str(), id.str())!
+	self.db.redis.hset('fssymlink:fs:${o.fs_id}', o.id.str(), o.id.str())!
 
 	// Store in target's referrers list using hset
 	target_key := '${o.target_type}:${o.target_id}'
-	self.db.redis.hset('fssymlink:target:${target_key}', id.str(), id.str())!
-
-	return id
+	self.db.redis.hset('fssymlink:target:${target_key}', o.id.str(), o.id.str())!
 }
 
 pub fn (mut self DBFsSymlink) delete(id u32) ! {

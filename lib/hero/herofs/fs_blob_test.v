@@ -35,9 +35,12 @@ fn test_basic() {
 	println('✓ Created test blobs with correct properties')
 
 	// Test saving blobs
-	blob1_id := fs_factory.fs_blob.set(test_blob1)!
-	blob2_id := fs_factory.fs_blob.set(test_blob2)!
-	blob3_id := fs_factory.fs_blob.set(test_blob3)!
+	fs_factory.fs_blob.set(mut test_blob1)!
+	blob1_id := test_blob1.id
+	fs_factory.fs_blob.set(mut test_blob2)!
+	blob2_id := test_blob2.id
+	fs_factory.fs_blob.set(mut test_blob3)!
+	blob3_id := test_blob3.id
 
 	println('Created test blobs with IDs:')
 	println('- Blob 1 ID: ${blob1_id}')
@@ -108,22 +111,22 @@ fn test_blob_deduplication() {
 	mut blob1 := fs_factory.fs_blob.new(
 		data: identical_data
 	)!
-	blob1_id := fs_factory.fs_blob.set(blob1)!
-	println('Created first blob with ID: ${blob1_id}')
+	fs_factory.fs_blob.set(mut blob1)!
+	println('Created first blob with ID: ${blob1.id}')
 
 	// Create second blob with identical data
 	mut blob2 := fs_factory.fs_blob.new(
 		data: identical_data
 	)!
-	blob2_id := fs_factory.fs_blob.set(blob2)!
-	println('Created second blob with ID: ${blob2_id}')
+	fs_factory.fs_blob.set(mut blob2)!
+	println('Created second blob with ID: ${blob2.id}')
 
 	// Verify that both blobs have the same ID (deduplication)
-	assert blob1_id == blob2_id
+	assert blob1.id == blob2.id
 	println('✓ Deduplication works correctly - identical content gets same ID')
 
 	// Verify that the blob can be retrieved by the ID
-	loaded_blob := fs_factory.fs_blob.get(blob1_id)!
+	loaded_blob := fs_factory.fs_blob.get(blob1.id)!
 	assert loaded_blob.data == identical_data
 	assert loaded_blob.hash == blob1.hash
 	println('✓ Retrieved deduplicated blob correctly')
@@ -147,14 +150,14 @@ fn test_blob_operations() {
 	mut blob2 := fs_factory.fs_blob.new(data: test_data2)!
 	mut blob3 := fs_factory.fs_blob.new(data: test_data3)!
 
-	blob1_id := fs_factory.fs_blob.set(blob1)!
-	blob2_id := fs_factory.fs_blob.set(blob2)!
-	blob3_id := fs_factory.fs_blob.set(blob3)!
+	fs_factory.fs_blob.set(mut blob1)!
+	fs_factory.fs_blob.set(mut blob2)!
+	fs_factory.fs_blob.set(mut blob3)!
 
 	println('Created test blobs:')
-	println('- Blob 1 ID: ${blob1_id}')
-	println('- Blob 2 ID: ${blob2_id}')
-	println('- Blob 3 ID: ${blob3_id}')
+	println('- Blob 1 ID: ${blob1.id}')
+	println('- Blob 2 ID: ${blob2.id}')
+	println('- Blob 3 ID: ${blob3.id}')
 
 	// Test get_multi method
 	mut ids := []u32{len: 3}

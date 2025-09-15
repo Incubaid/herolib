@@ -153,7 +153,7 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 	return o
 }
 
-pub fn (mut self DBFsFile) set(o FsFile) !u32 {
+pub fn (mut self DBFsFile) set(mut o FsFile) ! {
 	// Check that directories exist
 	for dir_id in o.directories {
 		dir_exists := self.db.exists[FsDir](dir_id)!
@@ -170,9 +170,7 @@ pub fn (mut self DBFsFile) set(o FsFile) !u32 {
 		}
 	}
 
-	id := self.db.set[FsFile](o)!
-
-	return id
+	self.db.set[FsFile](mut o)!
 }
 
 pub fn (mut self DBFsFile) delete(id u32) ! {
