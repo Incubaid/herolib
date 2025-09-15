@@ -17,7 +17,7 @@ pub mut:
 	directories []u32 // Directory IDs where this file exists, means file can be part of multiple directories (like hard links in Linux)
 	blobs       []u32 // IDs of file content blobs
 	size_bytes  u64
-	mime_type   string // e.g., "image/png"
+	mime_type   MimeType // MIME type as enum (MOVED FROM FsBlob)
 	checksum    string // e.g., SHA256 checksum of the file
 	accessed_at i64
 	metadata    map[string]string // Custom metadata
@@ -49,7 +49,7 @@ pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 	}
 
 	e.add_u64(self.size_bytes)
-	e.add_string(self.mime_type)
+	e.add_u8(u8(self.mime_type)) // ADD: Serialize mime_type as u8
 	e.add_string(self.checksum)
 	e.add_i64(self.accessed_at)
 
@@ -80,7 +80,7 @@ fn (mut self DBFsFile) load(mut o FsFile, mut e encoder.Decoder) ! {
 	}
 
 	o.size_bytes = e.get_u64()!
-	o.mime_type = e.get_string()!
+	o.mime_type = unsafe { MimeType(e.get_u8()!) } // ADD: Deserialize mime_type
 	o.checksum = e.get_string()!
 	o.accessed_at = e.get_i64()!
 
@@ -103,7 +103,7 @@ pub mut:
 	directories []u32 @[required]
 	blobs       []u32
 	size_bytes  u64
-	mime_type   string
+	mime_type   MimeType // Changed from string to MimeType enum
 	checksum    string
 	metadata    map[string]string
 	tags        []string
@@ -141,7 +141,7 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 		directories: args.directories
 		blobs:       args.blobs
 		size_bytes:  size
-		mime_type:   args.mime_type
+		mime_type:   args.mime_type // ADD: Set mime_type
 		checksum:    args.checksum
 		accessed_at: ourtime.now().unix()
 		metadata:    args.metadata
@@ -188,10 +188,7 @@ pub fn (mut self DBFsFile) set(o FsFile) !u32 {
 	// Store in filesystem's file list using hset
 	self.db.redis.hset('fsfile:fs:${o.fs_id}', id.str(), id.str())!
 
-	// Store by mimetype using hset
-	if o.mime_type != '' {
-		self.db.redis.hset('fsfile:mime:${o.mime_type}', id.str(), id.str())!
-	}
+	// REMOVE: Store by mimetype using hset
 
 	return id
 }
@@ -213,10 +210,7 @@ pub fn (mut self DBFsFile) delete(id u32) ! {
 	// Remove from filesystem's file list using hdel
 	self.db.redis.hdel('fsfile:fs:${file.fs_id}', id.str())!
 
-	// Remove from mimetype index using hdel
-	if file.mime_type != '' {
-		self.db.redis.hdel('fsfile:mime:${file.mime_type}', id.str())!
-	}
+	// REMOVE: Remove from mimetype index using hdel
 
 	// Delete the file itself
 	self.db.delete[FsFile](id)!
@@ -267,15 +261,6 @@ pub fn (mut self DBFsFile) list_by_filesystem(fs_id u32) ![]FsFile {
 	return files
 }
 
-// List files by mime type
-pub fn (mut self DBFsFile) list_by_mime_type(mime_type string) ![]FsFile {
-	file_ids := self.db.redis.hkeys('fsfile:mime:${mime_type}')!
-	mut files := []FsFile{}
-	for id_str in file_ids {
-		files << self.get(id_str.u32())!
-	}
-	return files
-}
 
 // Update file with a new blob (append)
 pub fn (mut self DBFsFile) append_blob(id u32, blob_id u32) !u32 {

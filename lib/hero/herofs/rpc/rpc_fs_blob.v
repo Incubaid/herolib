@@ -46,9 +46,8 @@ pub fn fs_blob_get(request Request) !Response {
 	// Convert binary data to base64 for JSON transport
 	blob_response := {
 		'id':          blob.id.str()
-		'created_at':  blob.created_at.str()
 		'updated_at':  blob.updated_at.str()
-		'mime_type':   blob.mime_type
+		'mime_type':   blob.mime_type.str()
 		'name':        blob.name
 		'hash':        blob.hash
 		'size_bytes':  blob.size_bytes.str()
@@ -68,10 +67,15 @@ pub fn fs_blob_set(request Request) !Response {
 		return jsonrpc.invalid_params_with_msg('Invalid base64 data')
 	}
 
+	// Convert MIME type string to enum
+	mime_type := herofs.string_to_mime_type(payload.mime_type) or {
+		return jsonrpc.invalid_params_with_msg('Invalid MIME type: ${payload.mime_type}')
+	}
+
 	mut fs_factory := herofs.new()!
 	mut blob_obj := fs_factory.fs_blob.new(
 		data:      data
-		mime_type: payload.mime_type
+		mime_type: mime_type
 		name:      payload.name
 	)!
 

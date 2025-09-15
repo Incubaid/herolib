@@ -46,3 +46,44 @@ pub mut:
 	blobid u32 @[required]
 }
 
+
+
+
+// BlobList represents a simplified blob structure for listing purposes
+pub struct BlobList {
+pub mut:
+	id   u32
+	hash string
+	size int
+}
+
+// list_by_hash_prefix lists blobs where hash starts with the given prefix
+// Returns maximum 10000 items as BlobList entries with id, hash, and size
+pub fn (mut self DBFsBlobMembership) list(prefix string) ![]BlobList {
+	// Get all blob IDs and hashes
+	//TODO: change don't use hgetall, this will create performance issues when there are many blobs
+	all_blobs := self.db.redis.hgetall('fsblob:hashes')!//TODO: change using keys (scan with prefix???)
+	 
+	mut result := []BlobList{}
+	mut count := 0
+	
+	// Iterate through all blobs to find those matching the prefix
+	for hash, id_str in all_blobs {
+		if count >= 10000 {
+			break
+		}
+		
+		if hash.starts_with(prefix) {
+			// Get the full blob to retrieve its size
+			blob := self.get(id_str.u32())!
+			result << BlobList{
+				id:   id_str.u32()
+				hash: hash
+				size: blob.size_bytes
+			}
+			count++
+		}
+	}
+	
+	return result
+}
