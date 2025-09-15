@@ -1,9 +1,5 @@
 module mcp
 
-import time
-import os
-import log
-import x.json2
 import json
 import freeflowuniverse.herolib.schemas.jsonrpc
 
@@ -158,7 +154,7 @@ pub fn (mut s Server) send_resources_list_changed_notification() ! {
 	s.send(json.encode(notification))
 	// Send the notification to all connected clients
 	// In a real implementation, this would use a WebSocket or other transport
-	log.info('Sending resources list changed notification: ${json.encode(notification)}')
+	// Note: Removed log.info() as it interferes with STDIO transport JSON-RPC communication
 }
 
 pub struct ResourceUpdatedParams {
@@ -182,5 +178,5 @@ pub fn (mut s Server) send_resource_updated_notification(uri string) ! {
 	s.send(json.encode(notification))
 	// Send the notification to all connected clients
 	// In a real implementation, this would use a WebSocket or other transport
-	log.info('Sending resource updated notification: ${json.encode(notification)}')
+	// Note: Removed log.info() as it interferes with STDIO transport JSON-RPC communication
 }

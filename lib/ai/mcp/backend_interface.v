@@ -2,7 +2,7 @@ module mcp
 
 import x.json2
 
-interface Backend {
+pub interface Backend {
 	// Resource methods
 	resource_exists(uri string) !bool
 	resource_get(uri string) !Resource

@@ -2,8 +2,6 @@ module mcp
 
 import time
 import os
-import log
-import x.json2
 import freeflowuniverse.herolib.schemas.jsonrpc
 
 // Server is the main MCP server struct
@@ -18,7 +16,7 @@ pub mut:
 
 // start starts the MCP server
 pub fn (mut s Server) start() ! {
-	log.info('Starting MCP server')
+	// Note: Removed log.info() as it interferes with STDIO transport JSON-RPC communication
 	for {
 		// Read a message from stdin
 		message := os.get_line()
@@ -27,23 +25,31 @@ pub fn (mut s Server) start() ! {
 			continue
 		}
 
-		// Handle the message using the JSON-RPC handler
-		response := s.handler.handle(message) or {
-			log.error('message: ${message}')
-			log.error('Error handling message: ${err}')
-
-			// Try to extract the request ID
+		// Parse the JSON-RPC request
+		request := jsonrpc.decode_request(message) or {
+			// Note: Removed stderr logging as it can interfere with MCP Inspector
+			// Try to extract the request ID for error response
 			id := jsonrpc.decode_request_id(message) or { 0 }
-
-			// Create an internal error response
-			error_response := jsonrpc.new_error(id, jsonrpc.internal_error).encode()
-			print(error_response)
+			// Create an invalid request error response
+			error_response := jsonrpc.new_error(id, jsonrpc.invalid_request).encode()
+			println(error_response)
 			continue
 		}
 
-		// Send the response only if it's not empty (notifications return empty responses)
-		if response.len > 0 {
-			s.send(response)
+		// Handle the message using the JSON-RPC handler
+		response := s.handler.handle(request) or {
+			// Note: Removed stderr logging as it can interfere with MCP Inspector
+
+			// Create an internal error response
+			error_response := jsonrpc.new_error(request.id, jsonrpc.internal_error).encode()
+			println(error_response)
+			continue
+		}
+
+		// Send the response (notifications may return empty responses)
+		response_str := response.encode()
+		if response_str.len > 0 {
+			s.send(response_str)
 		}
 	}
 }

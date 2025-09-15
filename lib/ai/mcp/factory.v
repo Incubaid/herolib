@@ -27,6 +27,8 @@ pub fn new_server(backend Backend, params ServerParams) !&Server {
 			// Core handlers
 			'initialize':                server.initialize_handler
 			'notifications/initialized': initialized_notification_handler
+			// Logging handlers
+			'logging/setLevel':          server.logging_set_level_handler
 			// Resource handlers
 			'resources/list':            server.resources_list_handler
 			'resources/read':            server.resources_read_handler

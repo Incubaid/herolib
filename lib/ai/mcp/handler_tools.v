@@ -1,8 +1,5 @@
 module mcp
 
-import time
-import os
-import log
 import x.json2
 import json
 import freeflowuniverse.herolib.schemas.jsonrpc
@@ -113,11 +110,9 @@ fn (mut s Server) tools_call_handler(data string) !string {
 		}
 	}
 
-	log.error('Calling tool: ${tool_name} with arguments: ${arguments}')
+	// Note: Removed log.error() calls as they interfere with STDIO transport JSON-RPC communication
 	// Call the tool with the provided arguments
 	result := s.backend.tool_call(tool_name, arguments)!
-
-	log.error('Received result from tool: ${tool_name} with result: ${result}')
 	// Create a success response with the result
 	response := jsonrpc.new_response_generic[ToolCallResult](request_map['id'].int(),
 		result)
@@ -137,7 +132,7 @@ pub fn (mut s Server) send_tools_list_changed_notification() ! {
 	notification := jsonrpc.new_blank_notification('notifications/tools/list_changed')
 	s.send(json.encode(notification))
 	// Send the notification to all connected clients
-	log.info('Sending tools list changed notification: ${json.encode(notification)}')
+	// Note: Removed log.info() as it interferes with STDIO transport JSON-RPC communication
 }
 
 pub fn error_tool_call_result(err IError) ToolCallResult {

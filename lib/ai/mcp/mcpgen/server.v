@@ -1,13 +1,12 @@
 module mcpgen
 
-import freeflowuniverse.herolib.ai.mcp.logger
 import freeflowuniverse.herolib.ai.mcp
 
 @[heap]
 pub struct MCPGen {}
 
 pub fn new_mcp_server(v &MCPGen) !&mcp.Server {
-	logger.info('Creating new Developer MCP server')
+	// Note: Removed logger.info() as it interferes with STDIO transport JSON-RPC communication
 
 	// Initialize the server with the empty handlers map
 	mut server := mcp.new_server(mcp.MemoryBackend{
