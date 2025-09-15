@@ -155,23 +155,41 @@ pub mut:
 // list_by_hash_prefix lists blob memberships where hash starts with the given prefix
 // Returns maximum 10000 items as FsBlobMembership entries
 pub fn (mut self DBFsBlobMembership) list(prefix string) ![]FsBlobMembership {
-	// Get all membership hashes
-	//TODO: check if this implementation is right
-	all_hashes := self.db.redis.hscan('fs_blob_membership',prefix)!
-	
 	mut result := []FsBlobMembership{}
+	mut cursor := 0
 	mut count := 0
 	
-	// Iterate through all memberships to find those matching the prefix
-	for hash in all_hashes {
+	for {
 		if count >= 10000 {
 			break
 		}
 		
-		if hash.starts_with(prefix) {
-			result << self.get(hash)!
-			count++
+		// Use hscan with MATCH pattern and COUNT to iterate through the hash
+		new_cursor, values := self.db.redis.hscan('fs_blob_membership', cursor, 
+			match: '${prefix}*',
+			count: 100
+		)!
+		
+		// Process the returned field-value pairs
+		// hscan returns alternating field-value pairs, so we iterate by 2
+		mut i := 0
+		for i < values.len && count < 10000 {
+			hash := values[i]
+			// Skip the value (we don't need it since we'll get the object by hash)
+			i += 2
+			
+			if hash.starts_with(prefix) {
+				result << self.get(hash)!
+				count++
+			}
 		}
+		
+		// If cursor is "0", we've completed the full iteration
+		if new_cursor == '0' {
+			break
+		}
+		
+		cursor = new_cursor.int()
 	}
 	
 	return result
