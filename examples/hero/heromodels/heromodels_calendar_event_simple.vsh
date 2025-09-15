@@ -31,8 +31,8 @@ o.tags = mydb.calendar_event.db.tags_get(['work', 'meeting', 'team'])!
 // Add comments if needed
 // o.comments = mydb.calendar_event.db.comments_get([CommentArg{comment: 'This is a comment'}])!
 
-oid := mydb.calendar_event.set(o)!
-mut o2 := mydb.calendar_event.get(oid)!
+mydb.calendar_event.set(mut o)!
+// mut o2 := mydb.calendar_event.get(o.Base.id)!
 
-println('Calendar Event ID: ${oid}')
-println('Calendar Event object: ${o2}')
+// println('Calendar Event ID: ${o.Base.id}')
+// println('Calendar Event object: ${o.Base.id}')

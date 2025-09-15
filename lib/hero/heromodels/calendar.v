@@ -114,9 +114,9 @@ pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
 	return o
 }
 
-pub fn (mut self DBCalendar) set(o Calendar) !u32 {
-	// Use openrpcserver set function which now returns the ID
-	return self.db.set[Calendar](o)!
+pub fn (mut self DBCalendar) set(mut o Calendar) ! {
+	// Use db set function which now modifies the object in-place	
+	self.db.set[Calendar](mut o)!
 }
 
 pub fn (mut self DBCalendar) delete(id u32) ! {

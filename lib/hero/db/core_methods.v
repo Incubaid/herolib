@@ -12,16 +12,9 @@ pub fn (mut self DB) set[T](mut obj T) ! {
 	if obj.created_at == 0 {
 		obj.created_at = t
 	}
+
 	obj.updated_at = t
 
-	// id             u32
-	// name           string
-	// description    string
-	// created_at     i64
-	// updated_at     i64
-	// securitypolicy u32
-	// tags           u32 // when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
-	// comments       []u32
 	mut e := encoder.new()
 	e.add_u8(1)
 	e.add_u32(obj.id)
@@ -35,9 +28,7 @@ pub fn (mut self DB) set[T](mut obj T) ! {
 	for comment in obj.comments {
 		e.add_u32(comment)
 	}
-	// println('set: before dump, e.data.len: ${e.data.len}')
 	obj.dump(mut e)!
-	// println('set: after dump, e.data.len: ${e.data.len}')
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
 }
 
