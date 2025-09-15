@@ -2,6 +2,7 @@ module db
 
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.data.encoder
+import time
 
 pub fn (mut self DB) set[T](mut obj T) ! {
 	// Get the next ID	
@@ -28,7 +29,15 @@ pub fn (mut self DB) set[T](mut obj T) ! {
 	for comment in obj.comments {
 		e.add_u32(comment)
 	}
+
 	obj.dump(mut e)!
+
+	// $for method in T.methods {
+	// 	$if method.name == 'dump' {
+	// 		println(method)
+	// 		method.name(mut e)!
+	// 	}
+	// }
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
 }
 
