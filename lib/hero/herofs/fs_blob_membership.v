@@ -6,7 +6,6 @@ import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 
-//IMPORTANT WHEN CREATING THIS TABLE WE NEED TO USE THE HASH AS THE KEY IN THE HSET (not the id, this one is not used, there is no base object for it)
 
 //FsBlobMembership represents membership of a blob in one or more filesystems, the key is the hash of the blob
 @[heap]
@@ -46,6 +45,102 @@ pub mut:
 	blobid u32 @[required]
 }
 
+// get new blob membership, not from the DB
+pub fn (mut self DBFsBlobMembership) new(args FsBlobMembershipArg) !FsBlobMembership {
+	mut o := FsBlobMembership{
+		hash:   args.hash
+		fsid:   args.fsid
+		blobid: args.blobid
+	}
+
+	return o
+}
+
+pub fn (mut self DBFsBlobMembership) set(o FsBlobMembership) !string {
+	// Validate that the blob exists
+	blob_exists := self.db.fs_blob.exists(o.blobid)!
+	if !blob_exists {
+		return error('Blob with ID ${o.blobid} does not exist')
+	}
+
+	// Validate that all filesystems exist
+	for fs_id in o.fsid {
+		fs_exists := self.db.fs_file.exists(fs_id)!
+		if !fs_exists {
+			return error('Filesystem with ID ${fs_id} does not exist')
+		}
+	}
+
+	// Encode the object
+	mut e_encoder := encoder.encoder_new()
+	o.dump(mut e_encoder)!
+
+	// Store using hash as key in the blob_membership hset
+	self.db.redis.hset('fs_blob_membership', o.hash, e_encoder.data.bytestr())!
+	return o.hash
+}
+
+pub fn (mut self DBFsBlobMembership) delete(hash string) ! {
+	self.db.redis.hdel('fs_blob_membership', hash)!
+}
+
+pub fn (mut self DBFsBlobMembership) exist(hash string) !bool {
+	result := self.db.redis.hexists('fs_blob_membership', hash)!
+	return result == 1
+}
+
+pub fn (mut self DBFsBlobMembership) get(hash string) !FsBlobMembership {
+	// Get the data from Redis
+	data := self.db.redis.hget('fs_blob_membership', hash)!
+	if data == '' {
+		return error('Blob membership with hash "${hash}" not found')
+	}
+
+	// Decode hex data back to bytes
+	data := data.bytes()
+
+	// Create object and decode
+	mut o := FsBlobMembership{}
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
+
+	return o
+}
+
+// Add a filesystem to an existing blob membership
+pub fn (mut self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) !string {
+	// Validate filesystem exists
+	fs_exists := self.db.fs_file.exists(fs_id)!
+	if !fs_exists {
+		return error('Filesystem with ID ${fs_id} does not exist')
+	}
+
+	mut membership := self.get(hash)!
+	
+	// Check if filesystem is already in the list
+	if fs_id !in membership.fsid {
+		membership.fsid << fs_id
+	}
+	
+	return self.set(membership)!
+}
+
+// Remove a filesystem from an existing blob membership
+pub fn (mut self DBFsBlobMembership) remove_filesystem(hash string, fs_id u32) !string {
+	mut membership := self.get(hash)!
+	
+	// Remove filesystem from the list
+	membership.fsid = membership.fsid.filter(it != fs_id)
+		
+	// If no filesystems left, delete the membership entirely
+	if membership.fsid.len == 0 {
+		self.delete(hash)!
+		return hash
+	}
+	
+	return self.set(membership)!
+}
+
 
 
 
@@ -57,30 +152,24 @@ pub mut:
 	size int
 }
 
-// list_by_hash_prefix lists blobs where hash starts with the given prefix
-// Returns maximum 10000 items as BlobList entries with id, hash, and size
-pub fn (mut self DBFsBlobMembership) list(prefix string) ![]BlobList {
-	// Get all blob IDs and hashes
-	//TODO: change don't use hgetall, this will create performance issues when there are many blobs
-	all_blobs := self.db.redis.hgetall('fsblob:hashes')!//TODO: change using keys (scan with prefix???)
-	 
-	mut result := []BlobList{}
+// list_by_hash_prefix lists blob memberships where hash starts with the given prefix
+// Returns maximum 10000 items as FsBlobMembership entries
+pub fn (mut self DBFsBlobMembership) list(prefix string) ![]FsBlobMembership {
+	// Get all membership hashes
+	//TODO: check if this implementation is right
+	all_hashes := self.db.redis.hscan('fs_blob_membership',prefix)!
+	
+	mut result := []FsBlobMembership{}
 	mut count := 0
 	
-	// Iterate through all blobs to find those matching the prefix
-	for hash, id_str in all_blobs {
+	// Iterate through all memberships to find those matching the prefix
+	for hash in all_hashes {
 		if count >= 10000 {
 			break
 		}
 		
 		if hash.starts_with(prefix) {
-			// Get the full blob to retrieve its size
-			blob := self.get(id_str.u32())!
-			result << BlobList{
-				id:   id_str.u32()
-				hash: hash
-				size: blob.size_bytes
-			}
+			result << self.get(hash)!
 			count++
 		}
 	}

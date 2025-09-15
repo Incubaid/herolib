@@ -7,6 +7,7 @@ pub struct FsFactory {
 pub mut:
 	fs         DBFs
 	fs_blob    DBFsBlob
+	fs_blob_membership DBFsBlobMembership
 	fs_dir     DBFsDir
 	fs_file    DBFsFile
 	fs_symlink DBFsSymlink
@@ -19,6 +20,9 @@ pub fn new() !FsFactory {
 			db: &mydb
 		}
 		fs_blob:    DBFsBlob{
+			db: &mydb
+		}
+		fs_blob_membership: DBFsBlobMembership{
 			db: &mydb
 		}
 		fs_dir:     DBFsDir{
