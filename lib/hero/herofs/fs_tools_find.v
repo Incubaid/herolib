@@ -26,7 +26,23 @@ pub mut:
 	follow_symlinks  bool // Whether to follow symbolic links during search
 }
 
-// Find filesystem objects starting from a given path
+// find searches for filesystem objects starting from a given path
+// 
+// Parameters:
+// - start_path: The path to start searching from
+// - opts: FindOptions struct with search parameters
+// 
+// Returns:
+// - []FindResult: Array of found filesystem objects
+// 
+// Example:
+// ```
+// results := tools.find('/', FindOptions{
+//     recursive: true
+//     include_patterns: ['*.v']
+//     exclude_patterns: ['*test*']
+// })!
+// ```
 pub fn (mut self FsTools) find(start_path string, opts FindOptions) ![]FindResult {
 	mut results := []FindResult{}
 
@@ -39,7 +55,19 @@ pub fn (mut self FsTools) find(start_path string, opts FindOptions) ![]FindResul
 	return results
 }
 
-// Internal recursive function for find operation
+// find_recursive is an internal function that recursively searches for filesystem objects
+// 
+// Parameters:
+// - dir_id: The ID of the current directory being searched
+// - current_path: The current path in the filesystem
+// - opts: FindOptions struct with search parameters
+// - results: Mutable array to store found filesystem objects
+// - current_depth: Current depth in the directory tree
+// 
+// This function handles three types of filesystem objects:
+// - Files: Direct files in the current directory
+// - Symlinks: Symbolic links in the current directory (handled according to opts.follow_symlinks)
+// - Directories: Subdirectories of the current directory (recursed into according to opts.recursive)
 fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindOptions, mut results []FindResult, current_depth int) ! {
 	// Check depth limit
 	if opts.max_depth >= 0 && current_depth > opts.max_depth {
@@ -55,7 +83,6 @@ fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindO
 			result_type: .directory
 			id:          dir_id
 			path:        current_path
-			name:        current_dir.name
 		}
 	}
 
@@ -88,7 +115,7 @@ fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindO
 				}
 			}else{
 				if symlink.target_type == .file {
-					if self.factor.fs_file.exists(symlink.target_id)! {
+					if self.factory.fs_file.exist(symlink.target_id)! {
 						target_file := self.factory.fs_file.get(symlink.target_id)!
 						target_file_path := join_path(current_path, target_file.name)
 						results << FindResult{
@@ -103,7 +130,7 @@ fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindO
 				}
 
 				if symlink.target_type == .directory {
-					if self.factor.fs_dir.exists(symlink.target_id)! {
+					if self.factory.fs_dir.exist(symlink.target_id)! {
 						target_dir := self.factory.fs_dir.get(symlink.target_id)!
 						target_dir_path := join_path(current_path, target_dir.name)
 						results << FindResult{
@@ -111,12 +138,12 @@ fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindO
 							id:          target_dir.id
 							path:        target_dir_path
 						}
+						if opts.recursive {
+							self.find_recursive(symlink.target_id, target_dir_path, opts, mut results, current_depth + 1)!
+						}
 					}else{
 						//dangling symlink, just add the symlink itself
 						return error('Dangling dir symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.fs_id}')
-					}
-					if opts.recursive {
-						self.find_recursive(symlink.target_id, target_dir_path, opts, mut results, current_depth + 1)!
 					}
 				}
 			}
@@ -124,7 +151,7 @@ fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindO
 
 	}
 
-	for dir_id in current_dir.subdirs {
+	for dir_id in current_dir.directories {
 		subdir := self.factory.fs_dir.get(dir_id)!
 		if should_include(subdir.name, opts.include_patterns, opts.exclude_patterns) {
 			subdir_path := join_path(current_path, subdir.name)
@@ -136,13 +163,8 @@ fn (mut self FsTools) find_recursive(dir_id u32, current_path string, opts FindO
 
 			// Process subdirectories if recursive
 			if opts.recursive {
-				subdirs := self.list_child_dirs(dir_id)!
-				for subdir in subdirs {
-					subdir_path := join_path(current_path, subdir.name)
-					self.find_recursive(fs_id, subdir.id, subdir_path, opts, mut results, current_depth + 1)!
-				}
+				self.find_recursive(dir_id, subdir_path, opts, mut results, current_depth + 1)!
 			}
-
 		}
 	}
 
