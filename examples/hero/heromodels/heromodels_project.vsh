@@ -1,4 +1,4 @@
-#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl,enable_globals -no-skip-unused run
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
 import freeflowuniverse.herolib.hero.heromodels
 import freeflowuniverse.herolib.hero.db
@@ -66,11 +66,11 @@ mut project := mydb.project.new(
 )!
 
 // Save the project to the database
-project_id := mydb.project.set(project)!
-println('Created project with ID: ${project_id}')
+mydb.project.set(mut project)!
+println('Created project with ID: ${project.id}')
 
 // Retrieve the project from the database
-mut retrieved_project := mydb.project.get(project_id)!
+mut retrieved_project := mydb.project.get(project.id)!
 println('Retrieved project: ${retrieved_project}')
 
 // List all projects
@@ -78,13 +78,13 @@ mut all_projects := mydb.project.list()!
 println('All projects: ${all_projects}')
 
 // Check if the project exists
-exists := mydb.project.exist(project_id)!
+mut exists := mydb.project.exist(project.id)!
 println('Project exists: ${exists}')
 
 // Delete the project
-mydb.project.delete(project_id)!
+mydb.project.delete(project.id)!
 println('Project deleted')
 
 // Check if the project still exists
-exists = mydb.project.exist(project_id)!
+exists = mydb.project.exist(project.id)!
 println('Project exists after deletion: ${exists}')

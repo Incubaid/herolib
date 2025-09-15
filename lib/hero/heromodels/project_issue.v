@@ -1,260 +1,260 @@
 module heromodels
 
-// import freeflowuniverse.herolib.data.encoder
-// import freeflowuniverse.herolib.data.ourtime
-// import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.data.encoder
+import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.hero.db
 
-// // ProjectIssue represents a task, story, bug, or question in a project
-// @[heap]
-// pub struct ProjectIssue {
-// 	db.Base
-// pub mut:
-// 	title      string
-// 	project_id u32 // Associated project
-// 	issue_type IssueType
-// 	priority   IssuePriority
-// 	status     IssueStatus
-// 	swimlane   string // Current swimlane, is string corresponds to name, need to be to_lower and trim_space
-// 	assignees  []u32  // User IDs
-// 	reporter   u32    // User ID who created the issue
-// 	milestone  string // Associated milestone, is string corresponds to name, need to be to_lower and trim_space
-// 	deadline   i64    // Unix timestamp
-// 	estimate   int    // Story points or hours
-// 	fs_files   []u32  // IDs of linked files
-// 	parent_id  u32    // Parent issue ID (for sub-tasks)
-// 	children   []u32  // Child issue IDs
-// }
+// ProjectIssue represents a task, story, bug, or question in a project
+@[heap]
+pub struct ProjectIssue {
+	db.Base
+pub mut:
+	title      string
+	project_id u32 // Associated project
+	issue_type IssueType
+	priority   IssuePriority
+	status     IssueStatus
+	swimlane   string // Current swimlane, is string corresponds to name, need to be to_lower and trim_space
+	assignees  []u32  // User IDs
+	reporter   u32    // User ID who created the issue
+	milestone  string // Associated milestone, is string corresponds to name, need to be to_lower and trim_space
+	deadline   i64    // Unix timestamp
+	estimate   int    // Story points or hours
+	fs_files   []u32  // IDs of linked files
+	parent_id  u32    // Parent issue ID (for sub-tasks)
+	children   []u32  // Child issue IDs
+}
 
-// pub enum IssueType {
-// 	task
-// 	story
-// 	bug
-// 	question
-// 	epic
-// 	subtask
-// }
+pub enum IssueType {
+	task
+	story
+	bug
+	question
+	epic
+	subtask
+}
 
-// pub enum IssuePriority {
-// 	lowest
-// 	low
-// 	medium
-// 	high
-// 	highest
-// 	critical
-// }
+pub enum IssuePriority {
+	lowest
+	low
+	medium
+	high
+	highest
+	critical
+}
 
-// pub enum IssueStatus {
-// 	open
-// 	in_progress
-// 	blocked
-// 	review
-// 	testing
-// 	done
-// 	closed
-// }
+pub enum IssueStatus {
+	open
+	in_progress
+	blocked
+	review
+	testing
+	done
+	closed
+}
 
-// pub struct DBProjectIssue {
-// pub mut:
-// 	db &db.DB @[skip; str: skip]
-// }
+pub struct DBProjectIssue {
+pub mut:
+	db &db.DB @[skip; str: skip]
+}
 
-// pub fn (self ProjectIssue) type_name() string {
-// 	return 'project_issue'
-// }
+pub fn (self ProjectIssue) type_name() string {
+	return 'project_issue'
+}
 
-// // return example rpc call and result for each methodname
-// pub fn (self ProjectIssue) description(methodname string) string {
-// 	match methodname {
-// 		'set' {
-// 			return 'Create or update a project issue. Returns the ID of the issue.'
-// 		}
-// 		'get' {
-// 			return 'Retrieve a project issue by ID. Returns the issue object.'
-// 		}
-// 		'delete' {
-// 			return 'Delete a project issue by ID. Returns true if successful.'
-// 		}
-// 		'exist' {
-// 			return 'Check if a project issue exists by ID. Returns true or false.'
-// 		}
-// 		'list' {
-// 			return 'List all project issues. Returns an array of issue objects.'
-// 		}
-// 		else {
-// 			return 'This is generic method for the root object, TODO fill in, ...'
-// 		}
-// 	}
-// }
+// return example rpc call and result for each methodname
+pub fn (self ProjectIssue) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a project issue. Returns the ID of the issue.'
+		}
+		'get' {
+			return 'Retrieve a project issue by ID. Returns the issue object.'
+		}
+		'delete' {
+			return 'Delete a project issue by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a project issue exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all project issues. Returns an array of issue objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
 
-// // return example rpc call and result for each methodname
-// pub fn (self ProjectIssue) example(methodname string) (string, string) {
-// 	match methodname {
-// 		'set' {
-// 			return '{"project_issue": {"title": "Implement new feature", "project_id": 1, "issue_type": "story", "priority": "high", "status": "open", "swimlane": "backlog", "assignees": [1], "reporter": 1, "milestone": "sprint 1", "deadline": "2025-03-01T00:00:00Z", "estimate": 8, "fs_files": [], "parent_id": 0, "children": []}}', '1'
-// 		}
-// 		'get' {
-// 			return '{"id": 1}', '{"title": "Implement new feature", "project_id": 1, "issue_type": "story", "priority": "high", "status": "open", "swimlane": "backlog", "assignees": [1], "reporter": 1, "milestone": "sprint 1", "deadline": "2025-03-01T00:00:00Z", "estimate": 8, "fs_files": [], "parent_id": 0, "children": []}'
-// 		}
-// 		'delete' {
-// 			return '{"id": 1}', 'true'
-// 		}
-// 		'exist' {
-// 			return '{"id": 1}', 'true'
-// 		}
-// 		'list' {
-// 			return '{}', '[{"title": "Implement new feature", "project_id": 1, "issue_type": "story", "priority": "high", "status": "open", "swimlane": "backlog", "assignees": [1], "reporter": 1, "milestone": "sprint 1", "deadline": "2025-03-01T00:00:00Z", "estimate": 8, "fs_files": [], "parent_id": 0, "children": []}]'
-// 		}
-// 		else {
-// 			return '{}', '{}'
-// 		}
-// 	}
-// }
+// return example rpc call and result for each methodname
+pub fn (self ProjectIssue) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"project_issue": {"title": "Implement new feature", "project_id": 1, "issue_type": "story", "priority": "high", "status": "open", "swimlane": "backlog", "assignees": [1], "reporter": 1, "milestone": "sprint 1", "deadline": "2025-03-01T00:00:00Z", "estimate": 8, "fs_files": [], "parent_id": 0, "children": []}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"title": "Implement new feature", "project_id": 1, "issue_type": "story", "priority": "high", "status": "open", "swimlane": "backlog", "assignees": [1], "reporter": 1, "milestone": "sprint 1", "deadline": "2025-03-01T00:00:00Z", "estimate": 8, "fs_files": [], "parent_id": 0, "children": []}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"title": "Implement new feature", "project_id": 1, "issue_type": "story", "priority": "high", "status": "open", "swimlane": "backlog", "assignees": [1], "reporter": 1, "milestone": "sprint 1", "deadline": "2025-03-01T00:00:00Z", "estimate": 8, "fs_files": [], "parent_id": 0, "children": []}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
 
-// pub fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
-// 	// e.add_string(self.title)
-// 	// e.add_u32(self.project_id)
-// 	// e.add_u8(u8(self.issue_type))
-// 	// e.add_u8(u8(self.priority))
-// 	// e.add_u8(u8(self.status))
-// 	// e.add_string(self.swimlane)
-// 	// e.add_list_u32(self.assignees)
-// 	// e.add_u32(self.reporter)
-// 	// e.add_string(self.milestone)
-// 	// e.add_i64(self.deadline)
-// 	// e.add_int(self.estimate)
-// 	// e.add_list_u32(self.fs_files)
-// 	// e.add_u32(self.parent_id)
-// 	// e.add_list_u32(self.children)
-// }
+pub fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
+	e.add_string(self.title)
+	e.add_u32(self.project_id)
+	e.add_u8(u8(self.issue_type))
+	e.add_u8(u8(self.priority))
+	e.add_u8(u8(self.status))
+	e.add_string(self.swimlane)
+	e.add_list_u32(self.assignees)
+	e.add_u32(self.reporter)
+	e.add_string(self.milestone)
+	e.add_i64(self.deadline)
+	e.add_int(self.estimate)
+	e.add_list_u32(self.fs_files)
+	e.add_u32(self.parent_id)
+	e.add_list_u32(self.children)
+}
 
-// fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder) ! {
-// 	// o.title = e.get_string()!
-// 	// o.project_id = e.get_u32()!
-// 	// o.issue_type = unsafe { IssueType(e.get_u8()!) }
-// 	// o.priority = unsafe { IssuePriority(e.get_u8()!) }
-// 	// o.status = unsafe { IssueStatus(e.get_u8()!) }
-// 	// o.swimlane = e.get_string()!
-// 	// o.assignees = e.get_list_u32()!
-// 	// o.reporter = e.get_u32()!
-// 	// o.milestone = e.get_string()!
-// 	// o.deadline = e.get_i64()!
-// 	// o.estimate = e.get_int()!
-// 	// o.fs_files = e.get_list_u32()!
-// 	// o.parent_id = e.get_u32()!
-// 	// o.children = e.get_list_u32()!
-// }
+fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder) ! {
+	o.title = e.get_string()!
+	o.project_id = e.get_u32()!
+	o.issue_type = unsafe { IssueType(e.get_u8()!) }
+	o.priority = unsafe { IssuePriority(e.get_u8()!) }
+	o.status = unsafe { IssueStatus(e.get_u8()!) }
+	o.swimlane = e.get_string()!
+	o.assignees = e.get_list_u32()!
+	o.reporter = e.get_u32()!
+	o.milestone = e.get_string()!
+	o.deadline = e.get_i64()!
+	o.estimate = e.get_int()!
+	o.fs_files = e.get_list_u32()!
+	o.parent_id = e.get_u32()!
+	o.children = e.get_list_u32()!
+}
 
-// @[params]
-// pub struct ProjectIssueArg {
-// pub mut:
-// 	name           string
-// 	description    string
-// 	title          string
-// 	project_id     u32
-// 	issue_type     IssueType
-// 	priority       IssuePriority
-// 	status         IssueStatus
-// 	swimlane       string
-// 	assignees      []u32
-// 	reporter       u32
-// 	milestone      string
-// 	deadline       string // Use ourtime module to convert to epoch
-// 	estimate       int
-// 	fs_files       []u32
-// 	parent_id      u32
-// 	children       []u32
-// 	securitypolicy u32
-// 	tags           []string
-// 	comments       []db.CommentArg
-// }
+@[params]
+pub struct ProjectIssueArg {
+pub mut:
+	name           string
+	description    string
+	title          string
+	project_id     u32
+	issue_type     IssueType
+	priority       IssuePriority
+	status         IssueStatus
+	swimlane       string
+	assignees      []u32
+	reporter       u32
+	milestone      string
+	deadline       string // Use ourtime module to convert to epoch
+	estimate       int
+	fs_files       []u32
+	parent_id      u32
+	children       []u32
+	securitypolicy u32
+	tags           []string
+	comments       []db.CommentArg
+}
 
-// // get new project issue, not from the DB
-// pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
-// 	mut o := ProjectIssue{
-// 		title:      args.title
-// 		project_id: args.project_id
-// 		issue_type: args.issue_type
-// 		priority:   args.priority
-// 		status:     args.status
-// 		swimlane:   args.swimlane.to_lower().trim_space()
-// 		assignees:  args.assignees
-// 		reporter:   args.reporter
-// 		milestone:  args.milestone.to_lower().trim_space()
-// 		estimate:   args.estimate
-// 		fs_files:   args.fs_files
-// 		parent_id:  args.parent_id
-// 		children:   args.children
-// 	}
+// get new project issue, not from the DB
+pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
+	mut o := ProjectIssue{
+		title:      args.title
+		project_id: args.project_id
+		issue_type: args.issue_type
+		priority:   args.priority
+		status:     args.status
+		swimlane:   args.swimlane.to_lower().trim_space()
+		assignees:  args.assignees
+		reporter:   args.reporter
+		milestone:  args.milestone.to_lower().trim_space()
+		estimate:   args.estimate
+		fs_files:   args.fs_files
+		parent_id:  args.parent_id
+		children:   args.children
+	}
 
-// 	// Validate that project_id exists
-// 	mut db_project := DBProject{
-// 		db: self.db
-// 	}
-// 	if !db_project.exist(args.project_id)! {
-// 		return error('Project with ID ${args.project_id} does not exist')
-// 	}
+	// Validate that project_id exists
+	mut db_project := DBProject{
+		db: self.db
+	}
+	if !db_project.exist(args.project_id)! {
+		return error('Project with ID ${args.project_id} does not exist')
+	}
 
-// 	// Get the project to validate swimlane and milestone
-// 	project_obj := db_project.get(args.project_id)!
+	// Get the project to validate swimlane and milestone
+	project_obj := db_project.get(args.project_id)!
 
-// 	// Validate swimlane exists in the project
-// 	mut swimlane_exists := false
-// 	for swimlane in project_obj.swimlanes {
-// 		if swimlane.name == o.swimlane {
-// 			swimlane_exists = true
-// 			break
-// 		}
-// 	}
-// 	if !swimlane_exists {
-// 		return error('Swimlane "${args.swimlane}" does not exist in project "${project_obj.name}"')
-// 	}
+	// Validate swimlane exists in the project
+	mut swimlane_exists := false
+	for swimlane in project_obj.swimlanes {
+		if swimlane.name == o.swimlane {
+			swimlane_exists = true
+			break
+		}
+	}
+	if !swimlane_exists {
+		return error('Swimlane "${args.swimlane}" does not exist in project "${project_obj.name}"')
+	}
 
-// 	// Validate milestone exists in the project
-// 	mut milestone_exists := false
-// 	for milestone in project_obj.milestones {
-// 		if milestone.name == o.milestone {
-// 			milestone_exists = true
-// 			break
-// 		}
-// 	}
-// 	if !milestone_exists {
-// 		return error('Milestone "${args.milestone}" does not exist in project "${project_obj.name}"')
-// 	}
+	// Validate milestone exists in the project
+	mut milestone_exists := false
+	for milestone in project_obj.milestones {
+		if milestone.name == o.milestone {
+			milestone_exists = true
+			break
+		}
+	}
+	if !milestone_exists {
+		return error('Milestone "${args.milestone}" does not exist in project "${project_obj.name}"')
+	}
 
-// 	// Set base fields
-// 	o.name = args.name
-// 	o.description = args.description
-// 	o.securitypolicy = args.securitypolicy
-// 	o.tags = self.db.tags_get(args.tags)!
-// 	o.comments = self.db.comments_get(args.comments)!
-// 	o.updated_at = ourtime.now().unix()
+	// Set base fields
+	o.name = args.name
+	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.comments = self.db.comments_get(args.comments)!
+	o.updated_at = ourtime.now().unix()
 
-// 	// Convert deadline string to Unix timestamp
-// 	mut deadline_obj := ourtime.new(args.deadline)!
-// 	o.deadline = deadline_obj.unix()
+	// Convert deadline string to Unix timestamp
+	mut deadline_obj := ourtime.new(args.deadline)!
+	o.deadline = deadline_obj.unix()
 
-// 	return o
-// }
+	return o
+}
 
-// pub fn (mut self DBProjectIssue) set(mut o ProjectIssue) ! {
-// 	self.db.set[ProjectIssue](mut o)!
-// }
+pub fn (mut self DBProjectIssue) set(mut o ProjectIssue) ! {
+	self.db.set[ProjectIssue](mut o)!
+}
 
-// pub fn (mut self DBProjectIssue) delete(id u32) ! {
-// 	self.db.delete[ProjectIssue](id)!
-// }
+pub fn (mut self DBProjectIssue) delete(id u32) ! {
+	self.db.delete[ProjectIssue](id)!
+}
 
-// pub fn (mut self DBProjectIssue) exist(id u32) !bool {
-// 	return self.db.exists[ProjectIssue](id)!
-// }
+pub fn (mut self DBProjectIssue) exist(id u32) !bool {
+	return self.db.exists[ProjectIssue](id)!
+}
 
-// pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
-// 	mut o, data := self.db.get_data[ProjectIssue](id)!
-// 	mut e_decoder := encoder.decoder_new(data)
-// 	self.load(mut o, mut e_decoder)!
-// 	return o
-// }
+pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
+	mut o, data := self.db.get_data[ProjectIssue](id)!
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
+	return o
+}
 
-// pub fn (mut self DBProjectIssue) list() ![]ProjectIssue {
-// 	return self.db.list[ProjectIssue]()!.map(self.get(it)!)
-// }
+pub fn (mut self DBProjectIssue) list() ![]ProjectIssue {
+	return self.db.list[ProjectIssue]()!.map(self.get(it)!)
+}

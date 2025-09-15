@@ -31,13 +31,6 @@ pub fn (mut self DB) set[T](mut obj T) ! {
 	}
 
 	obj.dump(mut e)!
-
-	// $for method in T.methods {
-	// 	$if method.name == 'dump' {
-	// 		println(method)
-	// 		method.name(mut e)!
-	// 	}
-	// }
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
 }
 

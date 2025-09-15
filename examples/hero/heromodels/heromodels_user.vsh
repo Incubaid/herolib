@@ -22,15 +22,15 @@ mut o := mydb.user.new(
 )!
 
 // Save to database
-oid := mydb.user.set(o)!
-println('Created User ID: ${oid}')
+mydb.user.set(mut o)!
+println('Created User ID: ${o.id}')
 
 // Check if the user exists
-mut exists := mydb.user.exist(oid)!
+mut exists := mydb.user.exist(o.id)!
 println('User exists: ${exists}')
 
 // Retrieve from database
-mut o2 := mydb.user.get(oid)!
+mut o2 := mydb.user.get(o.id)!
 println('Retrieved User object: ${o2}')
 
 // List all users
@@ -38,9 +38,9 @@ mut objects := mydb.user.list()!
 println('All users: ${objects}')
 
 // Delete the user
-mydb.user.delete(oid)!
-println('Deleted user with ID: ${oid}')
+mydb.user.delete(o.id)!
+println('Deleted user with ID: ${o.id}')
 
 // Check if the user still exists
-exists = mydb.user.exist(oid)!
+exists = mydb.user.exist(o.id)!
 println('User exists after deletion: ${exists}')

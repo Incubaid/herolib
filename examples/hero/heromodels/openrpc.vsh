@@ -1,12 +1,12 @@
 #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
 import json
-import freeflowuniverse.herolib.hero.heromodels.openrpc
+import freeflowuniverse.herolib.hero.heromodels.rpc
 import freeflowuniverse.herolib.schemas.jsonrpc
 import freeflowuniverse.herolib.hero.heromodels
 
 fn main() {
-	mut handler := openrpc.new_heromodels_handler()!
+	mut handler := rpc.new()!
 
 	my_calendar := heromodels.calendar_new(
 		name:           'My Calendar'

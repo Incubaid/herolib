@@ -29,15 +29,15 @@ mut o := mydb.group.new(
 o.tags = mydb.group.db.tags_get(['team', 'development'])!
 
 // Save to database
-oid := mydb.group.set(o)!
-println('Created Group ID: ${oid}')
+mydb.group.set(mut o)!
+println('Created Group ID: ${o.id}')
 
 // Check if the group exists
-mut exists := mydb.group.exist(oid)!
+mut exists := mydb.group.exist(o.id)!
 println('Group exists: ${exists}')
 
 // Retrieve from database
-mut o2 := mydb.group.get(oid)!
+mut o2 := mydb.group.get(o.id)!
 println('Retrieved Group object: ${o2}')
 
 // List all groups

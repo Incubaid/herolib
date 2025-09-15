@@ -15,11 +15,11 @@ mut chat_group := mydb.chat_group.new(
 )!
 
 // Save to database
-oid := mydb.chat_group.set(chat_group)!
-println('Created chat group with ID: ${oid}')
+mydb.chat_group.set(mut chat_group)!
+println('Created chat group with ID: ${chat_group.id}')
 
 // Retrieve from database
-mut chat_group2 := mydb.chat_group.get(oid)!
+mut chat_group2 := mydb.chat_group.get(chat_group.id)!
 println('Retrieved chat group: ${chat_group2}')
 
 // List all chat groups
@@ -29,8 +29,8 @@ println('All chat groups: ${chat_groups}')
 // Update the chat group
 chat_group2.is_archived = true
 chat_group2.last_activity = 1672531200
-mydb.chat_group.set(chat_group2)!
+mydb.chat_group.set(mut chat_group2)!
 
 // Retrieve updated chat group
-mut chat_group3 := mydb.chat_group.get(oid)!
+mut chat_group3 := mydb.chat_group.get(chat_group2.id)!
 println('Updated chat group: ${chat_group3}')

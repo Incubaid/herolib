@@ -54,9 +54,9 @@ pub fn calendar_set(request Request) !Response {
 		events:      payload.events
 	)!
 
-	id := mydb.calendar.set(calendar_obj)!
+	mydb.calendar.set(mut calendar_obj)!
 
-	return new_response_u32(request.id, id)
+	return new_response_u32(request.id, calendar_obj.id)
 }
 
 pub fn calendar_delete(request Request) !Response {
