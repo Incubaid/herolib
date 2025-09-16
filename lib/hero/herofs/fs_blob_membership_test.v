@@ -12,17 +12,31 @@ fn test_basic() {
 		test_cleanup()
 	}
 	// Initialize the HeroFS factory for test purposes
-	my_fs:=new_fs_test()!
+	mut my_fs:=new_fs_test()!
 	mut fs_factory := my_fs.factory
 
 	// Create a new filesystem (required for FsBlobMembership validation)
-	mut my_fs := fs_factory.fs.new(
+	mut test_fs := fs_factory.fs.new(
 		name:        'test_filesystem'
 		description: 'Filesystem for testing FsBlobMembership functionality'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_factory.fs.set(mut my_fs)!
-	println('Created test filesystem with ID: ${my_fs.id}')
+	fs_factory.fs.set(mut test_fs)!
+	fs_id := test_fs.id
+	println('Created test filesystem with ID: ${test_fs.id}')
+
+	// Create root directory for the filesystem
+	mut root_dir := fs_factory.fs_dir.new(
+		name:        'root'
+		fs_id:       fs_id
+		parent_id:   0 // Root has no parent
+		description: 'Root directory for testing'
+	)!
+	root_dir_id := fs_factory.fs_dir.set(root_dir)!
+
+	// Update the filesystem with the root directory ID
+	test_fs.root_dir_id = root_dir_id
+	fs_factory.fs.set(test_fs)!
 
 	// Create test blob for membership
 	test_data := 'This is test content for blob membership'.bytes()
@@ -92,7 +106,7 @@ fn test_filesystem_operations() {
 	}
 	// Initialize the HeroFS factory for test purposes
 	
-	my_fs:=new_fs_test()!
+	mut my_fs:=new_fs_test()!
 	mut fs_factory := my_fs.factory
 
 	// Create filesystems for testing
@@ -110,6 +124,7 @@ fn test_filesystem_operations() {
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
 	fs_factory.fs.set(mut fs2)!
+	fs1_root_dir_id := fs1.root_dir_id
 	fs2_id := fs2.id
 
 	// Create test blob
@@ -121,7 +136,7 @@ fn test_filesystem_operations() {
 	mut test_file1 := fs_factory.fs_file.new(
 		name:        'test_file1.txt'
 		fs_id:       fs1_id
-		directories: [root_dir1_id]
+		directories: [fs1_root_dir_id]
 		blobs:       [blob_id]
 		description: 'Test file 1 for blob membership'
 		mime_type:   .txt
@@ -133,7 +148,7 @@ fn test_filesystem_operations() {
 	mut test_file2 := fs_factory.fs_file.new(
 		name:        'test_file2.txt'
 		fs_id:       fs2_id
-		directories: [root_dir2_id]
+		directories: [fs2.root_dir_id]
 		blobs:       [blob_id]
 		description: 'Test file 2 for blob membership'
 		mime_type:   .txt
@@ -197,17 +212,17 @@ fn test_validation() {
 	}
 	// Initialize the HeroFS factory for test purposes
 	
-	my_fs:=new_fs_test()!
+	mut my_fs:=new_fs_test()!
 	mut fs_factory := my_fs.factory
 
 	// Create a filesystem for validation tests
-	mut my_fs := fs_factory.fs.new(
+	mut test_fs := fs_factory.fs.new(
 		name:        'validation_filesystem'
 		description: 'Filesystem for validation tests'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_factory.fs.set(mut my_fs)!
-	fs_id := my_fs.id
+	fs_factory.fs.set(mut test_fs)!
+	fs_id := test_fs.id
 
 	// Test setting membership with non-existent blob (should fail)
 	println('Testing membership set with non-existent blob...')
@@ -259,17 +274,17 @@ fn test_list_by_prefix() {
 	}
 	// Initialize the HeroFS factory for test purposes
 	
-	my_fs:=new_fs_test()!
+	mut my_fs:=new_fs_test()!
 	mut fs_factory := my_fs.factory
 
 	// Create a filesystem
-	mut my_fs := fs_factory.fs.new(
+	mut test_fs := fs_factory.fs.new(
 		name:        'list_test_filesystem'
 		description: 'Filesystem for list testing'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_factory.fs.set(mut my_fs)!
-	fs_id := my_fs.id
+	fs_factory.fs.set(mut test_fs)!
+	fs_id := test_fs.id
 
 	// Create root directory for the filesystem
 	mut root_dir := fs_factory.fs_dir.new(
@@ -340,13 +355,13 @@ fn test_list_by_prefix() {
 	// Test listing by hash prefix
 	// Use first 16 characters of the first hash as prefix
 	prefix := membership1_hash[..16]
-	mut memberships := fs_factory.fs_blob_membership.list(prefix)!
+	mut memberships := fs_factory.fs_blob_membership.list_prefix(prefix)!
 
 	// Should find at least one membership (membership1)
 	assert memberships.len >= 1
 	mut found := false
 	for membership in memberships {
-		if membership.hash == membership1_hash {
+		if membership.hash == membership1.hash {
 			found = true
 			break
 		}
@@ -356,7 +371,7 @@ fn test_list_by_prefix() {
 
 	// Test with non-existent prefix
 	non_existent_prefix := '0000000000000000'
-	mut empty_memberships := fs_factory.fs_blob_membership.list(non_existent_prefix)!
+	mut empty_memberships := fs_factory.fs_blob_membership.list_prefix(non_existent_prefix)!
 	assert empty_memberships.len == 0
 	println('✓ List with non-existent prefix returns empty array')
 

@@ -68,5 +68,4 @@ pub fn new_fs_test() !Fs {
 pub fn delete_fs_test() ! {
 	mut r:=redisclient.test_get()!
 	r.flush()!
-	return fs
 }
