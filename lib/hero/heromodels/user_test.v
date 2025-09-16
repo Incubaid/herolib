@@ -61,7 +61,7 @@ fn test_user_set_and_get() {
 	) or { panic('Failed to create user: ${err}') }
 
 	// Save the user
-	mydb.user.set(mut user) or { panic('Failed to save user: ${err}') }
+	user = mydb.user.set(user) or { panic('Failed to save user: ${err}') }
 
 	// Verify ID was assigned
 	assert user.id > 0
@@ -106,7 +106,7 @@ fn test_user_update() {
 		comments:       []u32{}
 	) or { panic('Failed to create user: ${err}') }
 
-	mydb.user.set(mut user) or { panic('Failed to save user: ${err}') }
+	user = mydb.user.set(user) or { panic('Failed to save user: ${err}') }
 	original_id := user.id
 	original_created_at := user.created_at
 	original_updated_at := user.updated_at
@@ -120,7 +120,7 @@ fn test_user_update() {
 	user.bio = 'Experienced full-stack developer'
 	user.status = .active
 
-	mydb.user.set(mut user) or { panic('Failed to update user: ${err}') }
+	user = mydb.user.set(user) or { panic('Failed to update user: ${err}') }
 
 	// Verify ID remains the same and updated_at is set
 	assert user.id == original_id
@@ -161,7 +161,7 @@ fn test_user_status_transitions() {
 			comments:       []u32{}
 		) or { panic('Failed to create user with status ${status}: ${err}') }
 
-		mydb.user.set(mut user) or { panic('Failed to save user with status ${status}: ${err}') }
+		user = mydb.user.set(user) or { panic('Failed to save user with status ${status}: ${err}') }
 
 		retrieved_user := mydb.user.get(user.id) or {
 			panic('Failed to get user with status ${status}: ${err}')
@@ -194,7 +194,7 @@ fn test_user_exist() {
 		comments:       []u32{}
 	) or { panic('Failed to create user: ${err}') }
 
-	mydb.user.set(mut user) or { panic('Failed to save user: ${err}') }
+	user = mydb.user.set(user) or { panic('Failed to save user: ${err}') }
 
 	// Test existing user
 	exists_after_save := mydb.user.exist(user.id) or { panic('Failed to check existence: ${err}') }
@@ -221,7 +221,7 @@ fn test_user_delete() {
 		comments:       []u32{}
 	) or { panic('Failed to create user: ${err}') }
 
-	mydb.user.set(mut user) or { panic('Failed to save user: ${err}') }
+	user = mydb.user.set(user) or { panic('Failed to save user: ${err}') }
 	user_id := user.id
 
 	// Verify it exists
@@ -285,8 +285,8 @@ fn test_user_list() {
 	) or { panic('Failed to create user2: ${err}') }
 
 	// Save both users
-	mydb.user.set(mut user1) or { panic('Failed to save user1: ${err}') }
-	mydb.user.set(mut user2) or { panic('Failed to save user2: ${err}') }
+	user1 = mydb.user.set(user1) or { panic('Failed to save user1: ${err}') }
+	user2 = mydb.user.set(user2) or { panic('Failed to save user2: ${err}') }
 
 	// List users
 	user_list := mydb.user.list() or { panic('Failed to list users: ${err}') }
@@ -335,7 +335,7 @@ fn test_user_edge_cases() {
 		comments:       []u32{}
 	) or { panic('Failed to create empty user: ${err}') }
 
-	mydb.user.set(mut empty_user) or { panic('Failed to save empty user: ${err}') }
+	empty_user = mydb.user.set(empty_user) or { panic('Failed to save empty user: ${err}') }
 
 	retrieved_empty := mydb.user.get(empty_user.id) or { panic('Failed to get empty user: ${err}') }
 	assert retrieved_empty.name == ''
@@ -361,7 +361,7 @@ fn test_user_edge_cases() {
 		comments:       []u32{}
 	) or { panic('Failed to create long user: ${err}') }
 
-	mydb.user.set(mut long_user) or { panic('Failed to save long user: ${err}') }
+	long_user = mydb.user.set(long_user) or { panic('Failed to save long user: ${err}') }
 
 	retrieved_long := mydb.user.get(long_user.id) or { panic('Failed to get long user: ${err}') }
 	assert retrieved_long.name == long_text

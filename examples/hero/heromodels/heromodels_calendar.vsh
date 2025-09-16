@@ -23,7 +23,7 @@ o.tags = mydb.calendar.db.tags_get(['work', 'important'])!
 // Add comments if needed
 // o.comments = mydb.calendar.db.comments_get([CommentArg{comment: 'This is a comment'}])!
 
-mydb.calendar.set(mut o)!
+mydb.calendar.set(o)!
 mut o2 := mydb.calendar.get(o.id)!
 
 println('Calendar ID: ${o.id}')

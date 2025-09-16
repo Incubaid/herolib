@@ -23,7 +23,7 @@ o.add_member(3, heromodels.GroupRole.reader)
 o.tags = mydb.group.db.tags_get(['team', 'marketing'])!
 
 // Save to database
-mydb.group.set(mut o)!
+mydb.group.set(o)!
 println('Created Group ID: ${o.id}')
 
 // Retrieve from database

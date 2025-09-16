@@ -22,7 +22,7 @@ mut o := mydb.user.new(
 )!
 
 // Save to database
-mydb.user.set(mut o)!
+mydb.user.set(o)!
 println('Created User ID: ${o.id}')
 
 // Check if the user exists

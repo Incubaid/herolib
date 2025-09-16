@@ -226,9 +226,9 @@ pub fn (mut self DBChatMessage) new(args ChatMessageArg) !ChatMessage {
 	return o
 }
 
-pub fn (mut self DBChatMessage) set(mut o ChatMessage) ! {
-	// Use db set function which now returns the ID
-	self.db.set[ChatMessage](mut o)!
+pub fn (mut self DBChatMessage) set(o ChatMessage) !ChatMessage {
+	// Use db set function which returns the object with assigned ID
+	return self.db.set[ChatMessage](o)!
 }
 
 pub fn (mut self DBChatMessage) delete(id u32) ! {

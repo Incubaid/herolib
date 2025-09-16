@@ -83,7 +83,7 @@ fn test_project_issue_new() {
 			},
 		]
 	) or { panic('Failed to create project: ${err}') }
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 	project_id := project.id
 
 	// Test creating a new project issue with all fields
@@ -211,7 +211,7 @@ fn test_project_issue_set_and_get() {
 			},
 		]
 	) or { panic('Failed to create project: ${err}') }
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 	project_id := project.id
 
 	// Create a project issue
@@ -239,7 +239,7 @@ fn test_project_issue_set_and_get() {
 	) or { panic('Failed to create project issue: ${err}') }
 
 	// Save the issue
-	mydb.project_issue.set(mut issue) or { panic('Failed to save project issue: ${err}') }
+	issue = mydb.project_issue.set(issue) or { panic('Failed to save project issue: ${err}') }
 
 	// Verify ID was assigned
 	assert issue.id > 0
@@ -354,7 +354,7 @@ fn test_project_issue_types_and_priorities() {
 			},
 		]
 	) or { panic('Failed to create project: ${err}') }
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 	project_id := project.id
 
 	// Test all issue types
@@ -386,7 +386,7 @@ fn test_project_issue_types_and_priorities() {
 			comments:       []
 		) or { panic('Failed to create issue with type ${issue_type}: ${err}') }
 
-		mydb.project_issue.set(mut issue) or {
+		issue = mydb.project_issue.set(issue) or {
 			panic('Failed to save issue with type ${issue_type}: ${err}')
 		}
 
@@ -475,7 +475,7 @@ fn test_project_issue_parent_child_relationship() {
 			},
 		]
 	) or { panic('Failed to create project: ${err}') }
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 	project_id := project.id
 
 	// Create parent epic
@@ -501,7 +501,7 @@ fn test_project_issue_parent_child_relationship() {
 		comments:       []
 	) or { panic('Failed to create parent epic: ${err}') }
 
-	mydb.project_issue.set(mut parent_epic) or { panic('Failed to save parent epic: ${err}') }
+	parent_epic = mydb.project_issue.set(parent_epic) or { panic('Failed to save parent epic: ${err}') }
 	parent_id := parent_epic.id
 
 	// Create child subtasks
@@ -549,12 +549,12 @@ fn test_project_issue_parent_child_relationship() {
 		comments:       []
 	) or { panic('Failed to create subtask2: ${err}') }
 
-	mydb.project_issue.set(mut subtask1) or { panic('Failed to save subtask1: ${err}') }
-	mydb.project_issue.set(mut subtask2) or { panic('Failed to save subtask2: ${err}') }
+	subtask1 = mydb.project_issue.set(subtask1) or { panic('Failed to save subtask1: ${err}') }
+	subtask2 = mydb.project_issue.set(subtask2) or { panic('Failed to save subtask2: ${err}') }
 
 	// Update parent with children
 	parent_epic.children = [subtask1.id, subtask2.id]
-	mydb.project_issue.set(mut parent_epic) or { panic('Failed to update parent epic: ${err}') }
+	parent_epic = mydb.project_issue.set(parent_epic) or { panic('Failed to update parent epic: ${err}') }
 
 	// Verify relationships
 	retrieved_parent := mydb.project_issue.get(parent_id) or {
@@ -653,7 +653,7 @@ fn test_project_issue_update() {
 			},
 		]
 	) or { panic('Failed to create project: ${err}') }
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 	project_id := project.id
 
 	// Create and save an issue
@@ -680,7 +680,7 @@ fn test_project_issue_update() {
 		comments:       []
 	) or { panic('Failed to create project issue: ${err}') }
 
-	mydb.project_issue.set(mut issue) or { panic('Failed to save project issue: ${err}') }
+	issue = mydb.project_issue.set(issue) or { panic('Failed to save project issue: ${err}') }
 	original_id := issue.id
 	original_created_at := issue.created_at
 	original_updated_at := issue.updated_at
@@ -701,7 +701,7 @@ fn test_project_issue_update() {
 	issue.estimate = 13
 	issue.fs_files = [u32(400), 500]
 
-	mydb.project_issue.set(mut issue) or { panic('Failed to update project issue: ${err}') }
+	issue = mydb.project_issue.set(issue) or { panic('Failed to update project issue: ${err}') }
 
 	// Verify ID remains the same and updated_at is set
 	assert issue.id == original_id

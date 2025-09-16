@@ -29,7 +29,7 @@ mut o := mydb.group.new(
 o.tags = mydb.group.db.tags_get(['team', 'development'])!
 
 // Save to database
-mydb.group.set(mut o)!
+mydb.group.set(o)!
 println('Created Group ID: ${o.id}')
 
 // Check if the group exists

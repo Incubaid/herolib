@@ -49,7 +49,7 @@ fn test_chat_group_set_and_get() {
 	) or { panic('Failed to create chat group: ${err}') }
 
 	// Save the chat group
-	mydb.chat_group.set(mut chat_group) or { panic('Failed to save chat group: ${err}') }
+	chat_group = mydb.chat_group.set(chat_group) or { panic('Failed to save chat group: ${err}') }
 
 	// Verify ID was assigned
 	assert chat_group.id > 0
@@ -90,7 +90,7 @@ fn test_chat_group_types() {
 			comments:       []
 		) or { panic('Failed to create chat group with type ${chat_type}: ${err}') }
 
-		mydb.chat_group.set(mut chat_group) or {
+		chat_group = mydb.chat_group.set(chat_group) or {
 			panic('Failed to save chat group with type ${chat_type}: ${err}')
 		}
 
@@ -117,7 +117,7 @@ fn test_chat_group_archive() {
 		comments:       []
 	) or { panic('Failed to create chat group: ${err}') }
 
-	mydb.chat_group.set(mut chat_group) or { panic('Failed to save chat group: ${err}') }
+	chat_group = mydb.chat_group.set(chat_group) or { panic('Failed to save chat group: ${err}') }
 
 	// Verify it's not archived initially
 	retrieved_group := mydb.chat_group.get(chat_group.id) or {
@@ -127,7 +127,7 @@ fn test_chat_group_archive() {
 
 	// Archive the chat group
 	chat_group.is_archived = true
-	mydb.chat_group.set(mut chat_group) or { panic('Failed to update chat group: ${err}') }
+	chat_group = mydb.chat_group.set(chat_group) or { panic('Failed to update chat group: ${err}') }
 
 	// Verify it's now archived
 	archived_group := mydb.chat_group.get(chat_group.id) or {
@@ -153,7 +153,7 @@ fn test_chat_group_update() {
 		comments:       []
 	) or { panic('Failed to create chat group: ${err}') }
 
-	mydb.chat_group.set(mut chat_group) or { panic('Failed to save chat group: ${err}') }
+	chat_group = mydb.chat_group.set(chat_group) or { panic('Failed to save chat group: ${err}') }
 	original_id := chat_group.id
 	original_created_at := chat_group.created_at
 	original_updated_at := chat_group.updated_at
@@ -165,7 +165,7 @@ fn test_chat_group_update() {
 	chat_group.last_activity = now
 	chat_group.is_archived = true
 
-	mydb.chat_group.set(mut chat_group) or { panic('Failed to update chat group: ${err}') }
+	chat_group = mydb.chat_group.set(chat_group) or { panic('Failed to update chat group: ${err}') }
 
 	// Verify ID remains the same and updated_at is set
 	assert chat_group.id == original_id
@@ -202,7 +202,7 @@ fn test_chat_group_exist() {
 		comments:       []
 	) or { panic('Failed to create chat group: ${err}') }
 
-	mydb.chat_group.set(mut chat_group) or { panic('Failed to save chat group: ${err}') }
+	chat_group = mydb.chat_group.set(chat_group) or { panic('Failed to save chat group: ${err}') }
 
 	// Test existing chat group
 	exists_after_save := mydb.chat_group.exist(chat_group.id) or {
@@ -226,7 +226,7 @@ fn test_chat_group_delete() {
 		comments:       []
 	) or { panic('Failed to create chat group: ${err}') }
 
-	mydb.chat_group.set(mut chat_group) or { panic('Failed to save chat group: ${err}') }
+	chat_group = mydb.chat_group.set(chat_group) or { panic('Failed to save chat group: ${err}') }
 	group_id := chat_group.id
 
 	// Verify it exists
@@ -285,8 +285,8 @@ fn test_chat_group_list() {
 	) or { panic('Failed to create group2: ${err}') }
 
 	// Save both chat groups
-	mydb.chat_group.set(mut group1) or { panic('Failed to save group1: ${err}') }
-	mydb.chat_group.set(mut group2) or { panic('Failed to save group2: ${err}') }
+	group1 = mydb.chat_group.set(group1) or { panic('Failed to save group1: ${err}') }
+	group2 = mydb.chat_group.set(group2) or { panic('Failed to save group2: ${err}') }
 
 	// List chat groups
 	group_list := mydb.chat_group.list() or { panic('Failed to list chat groups: ${err}') }
@@ -330,7 +330,7 @@ fn test_chat_group_edge_cases() {
 		comments:       []
 	) or { panic('Failed to create empty chat group: ${err}') }
 
-	mydb.chat_group.set(mut empty_group) or { panic('Failed to save empty chat group: ${err}') }
+	empty_group = mydb.chat_group.set(empty_group) or { panic('Failed to save empty chat group: ${err}') }
 
 	retrieved_empty := mydb.chat_group.get(empty_group.id) or {
 		panic('Failed to get empty chat group: ${err}')
@@ -353,7 +353,7 @@ fn test_chat_group_edge_cases() {
 		comments:       []
 	) or { panic('Failed to create DM group: ${err}') }
 
-	mydb.chat_group.set(mut dm_group) or { panic('Failed to save DM group: ${err}') }
+	dm_group = mydb.chat_group.set(dm_group) or { panic('Failed to save DM group: ${err}') }
 
 	retrieved_dm := mydb.chat_group.get(dm_group.id) or { panic('Failed to get DM group: ${err}') }
 	assert retrieved_dm.chat_type == .direct_message

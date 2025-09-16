@@ -34,7 +34,7 @@ fn test_comment_set_and_get() {
 	) or { panic('Failed to create comment: ${err}') }
 	
 	// Save the comment
-	mydb.comments.set(mut comment) or { panic('Failed to save comment: ${err}') }
+	comment = mydb.comments.set(comment) or { panic('Failed to save comment: ${err}') }
 	
 	// Verify ID was assigned
 	assert comment.id > 0
@@ -62,7 +62,7 @@ fn test_comment_reply() {
 		author: 100
 	) or { panic('Failed to create parent comment: ${err}') }
 	
-	mydb.comments.set(mut parent_comment) or { panic('Failed to save parent comment: ${err}') }
+	parent_comment = mydb.comments.set(parent_comment) or { panic('Failed to save parent comment: ${err}') }
 	parent_id := parent_comment.id
 	
 	// Create a reply comment
@@ -72,7 +72,7 @@ fn test_comment_reply() {
 		author: 200
 	) or { panic('Failed to create reply comment: ${err}') }
 	
-	mydb.comments.set(mut reply_comment) or { panic('Failed to save reply comment: ${err}') }
+	reply_comment = mydb.comments.set(reply_comment) or { panic('Failed to save reply comment: ${err}') }
 	
 	// Retrieve both comments
 	retrieved_parent := mydb.comments.get(parent_id) or { panic('Failed to get parent comment: ${err}') }
@@ -99,7 +99,7 @@ fn test_comment_update() {
 		author: 300
 	) or { panic('Failed to create comment: ${err}') }
 	
-	mydb.comments.set(mut comment) or { panic('Failed to save comment: ${err}') }
+	comment = mydb.comments.set(comment) or { panic('Failed to save comment: ${err}') }
 	original_id := comment.id
 	original_created_at := comment.created_at
 	original_updated_at := comment.updated_at
@@ -109,7 +109,7 @@ fn test_comment_update() {
 	comment.parent = 999
 	comment.author = 400
 	
-	mydb.comments.set(mut comment) or { panic('Failed to update comment: ${err}') }
+	comment = mydb.comments.set(comment) or { panic('Failed to update comment: ${err}') }
 	
 	// Verify ID remains the same and updated_at is set
 	assert comment.id == original_id
@@ -137,7 +137,7 @@ fn test_comment_exist() {
 		author: 500
 	) or { panic('Failed to create comment: ${err}') }
 	
-	mydb.comments.set(mut comment) or { panic('Failed to save comment: ${err}') }
+	comment = mydb.comments.set(comment) or { panic('Failed to save comment: ${err}') }
 	
 	// Test existing comment
 	exists_after_save := mydb.comments.exist(comment.id) or { panic('Failed to check existence: ${err}') }
@@ -154,7 +154,7 @@ fn test_comment_delete() {
 		author: 600
 	) or { panic('Failed to create comment: ${err}') }
 	
-	mydb.comments.set(mut comment) or { panic('Failed to save comment: ${err}') }
+	comment = mydb.comments.set(comment) or { panic('Failed to save comment: ${err}') }
 	comment_id := comment.id
 	
 	// Verify it exists
@@ -198,8 +198,8 @@ fn test_comment_list() {
 	) or { panic('Failed to create comment2: ${err}') }
 	
 	// Save both comments
-	mydb.comments.set(mut comment1) or { panic('Failed to save comment1: ${err}') }
-	mydb.comments.set(mut comment2) or { panic('Failed to save comment2: ${err}') }
+	comment1 = mydb.comments.set(comment1) or { panic('Failed to save comment1: ${err}') }
+	comment2 = mydb.comments.set(comment2) or { panic('Failed to save comment2: ${err}') }
 	
 	// List comments
 	comment_list := mydb.comments.list() or { panic('Failed to list comments: ${err}') }
@@ -238,7 +238,7 @@ fn test_comment_edge_cases() {
 		author: 0
 	) or { panic('Failed to create empty comment: ${err}') }
 	
-	mydb.comments.set(mut empty_comment) or { panic('Failed to save empty comment: ${err}') }
+	empty_comment = mydb.comments.set(empty_comment) or { panic('Failed to save empty comment: ${err}') }
 	
 	retrieved_empty := mydb.comments.get(empty_comment.id) or { panic('Failed to get empty comment: ${err}') }
 	assert retrieved_empty.comment == ''
@@ -253,7 +253,7 @@ fn test_comment_edge_cases() {
 		author: 99999
 	) or { panic('Failed to create long comment: ${err}') }
 	
-	mydb.comments.set(mut long_comment) or { panic('Failed to save long comment: ${err}') }
+	long_comment = mydb.comments.set(long_comment) or { panic('Failed to save long comment: ${err}') }
 	
 	retrieved_long := mydb.comments.get(long_comment.id) or { panic('Failed to get long comment: ${err}') }
 	assert retrieved_long.comment == long_text
@@ -268,7 +268,7 @@ fn test_comment_edge_cases() {
 		author: 1000
 	) or { panic('Failed to create special comment: ${err}') }
 	
-	mydb.comments.set(mut special_comment) or { panic('Failed to save special comment: ${err}') }
+	special_comment = mydb.comments.set(special_comment) or { panic('Failed to save special comment: ${err}') }
 	
 	retrieved_special := mydb.comments.get(special_comment.id) or { panic('Failed to get special comment: ${err}') }
 	assert retrieved_special.comment == special_text

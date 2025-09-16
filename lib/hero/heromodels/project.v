@@ -218,8 +218,8 @@ pub fn (mut self DBProject) new(args ProjectArg) !Project {
 	return o
 }
 
-pub fn (mut self DBProject) set(mut o Project) ! {
-	self.db.set[Project](mut o)!
+pub fn (mut self DBProject) set(o Project) !Project {
+	return self.db.set[Project](o)!
 }
 
 pub fn (mut self DBProject) delete(id u32) ! {

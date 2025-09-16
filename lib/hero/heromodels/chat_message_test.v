@@ -88,7 +88,7 @@ fn test_chat_message_set_and_get() {
 	) or { panic('Failed to create chat message: ${err}') }
 
 	// Save the message
-	mydb.chat_message.set(mut message) or { panic('Failed to save chat message: ${err}') }
+	message = mydb.chat_message.set(message) or { panic('Failed to save chat message: ${err}') }
 
 	// Verify ID was assigned
 	assert message.id > 0
@@ -143,7 +143,7 @@ fn test_chat_message_types_and_status() {
 			comments:        []
 		) or { panic('Failed to create message with type ${msg_type}: ${err}') }
 
-		mydb.chat_message.set(mut message) or {
+		message = mydb.chat_message.set(message) or {
 			panic('Failed to save message with type ${msg_type}: ${err}')
 		}
 
@@ -198,7 +198,7 @@ fn test_chat_message_reactions() {
 		comments:        []
 	) or { panic('Failed to create message with reactions: ${err}') }
 
-	mydb.chat_message.set(mut message) or { panic('Failed to save message with reactions: ${err}') }
+	message = mydb.chat_message.set(message) or { panic('Failed to save message with reactions: ${err}') }
 
 	retrieved_message := mydb.chat_message.get(message.id) or {
 		panic('Failed to get message with reactions: ${err}')
@@ -247,7 +247,7 @@ fn test_chat_message_thread() {
 		comments:        []
 	) or { panic('Failed to create original message: ${err}') }
 
-	mydb.chat_message.set(mut original_message) or {
+	original_message = mydb.chat_message.set(original_message) or {
 		panic('Failed to save original message: ${err}')
 	}
 	original_id := original_message.id
@@ -275,7 +275,7 @@ fn test_chat_message_thread() {
 		comments:        []
 	) or { panic('Failed to create reply message: ${err}') }
 
-	mydb.chat_message.set(mut reply_message) or { panic('Failed to save reply message: ${err}') }
+	reply_message = mydb.chat_message.set(reply_message) or { panic('Failed to save reply message: ${err}') }
 
 	// Create another reply
 	mut reply2_message := mydb.chat_message.new(
@@ -300,7 +300,7 @@ fn test_chat_message_thread() {
 		comments:        []
 	) or { panic('Failed to create second reply message: ${err}') }
 
-	mydb.chat_message.set(mut reply2_message) or {
+	reply2_message = mydb.chat_message.set(reply2_message) or {
 		panic('Failed to save second reply message: ${err}')
 	}
 
@@ -355,7 +355,7 @@ fn test_chat_message_update() {
 		comments:        []
 	) or { panic('Failed to create chat message: ${err}') }
 
-	mydb.chat_message.set(mut message) or { panic('Failed to save chat message: ${err}') }
+	message = mydb.chat_message.set(message) or { panic('Failed to save chat message: ${err}') }
 	original_id := message.id
 	original_created_at := message.created_at
 	original_updated_at := message.updated_at
@@ -374,7 +374,7 @@ fn test_chat_message_update() {
 	]
 	message.mentions = [u32(302)]
 
-	mydb.chat_message.set(mut message) or { panic('Failed to update chat message: ${err}') }
+	message = mydb.chat_message.set(message) or { panic('Failed to update chat message: ${err}') }
 
 	// Verify ID remains the same and updated_at is set
 	assert message.id == original_id

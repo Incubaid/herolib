@@ -147,8 +147,8 @@ pub fn (mut self DBGroup) new(args GroupArg) !Group {
 	return o
 }
 
-pub fn (mut self DBGroup) set(mut o Group) ! {
-	self.db.set[Group](mut o)!
+pub fn (mut self DBGroup) set(o Group) !Group {
+	return self.db.set[Group](o)!
 }
 
 pub fn (mut self DBGroup) delete(id u32) ! {

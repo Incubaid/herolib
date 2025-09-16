@@ -10,7 +10,7 @@ mut o := mydb.comments.new(comment: 'Hello, world!')!
 
 o.tags = mydb.comments.db.tags_get(['tag1', 'tag2'])!
 
-mydb.comments.set(mut o)!
+mydb.comments.set(o)!
 mut o2 := mydb.comments.get(o.id)!
 
 println('Comment ID: ${o.id}')

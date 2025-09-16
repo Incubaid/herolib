@@ -43,7 +43,7 @@ fn test_calendar_set_and_get() {
 	) or { panic('Failed to create calendar: ${err}') }
 
 	// Save the calendar
-	mydb.calendar.set(mut calendar) or { panic('Failed to save calendar: ${err}') }
+	calendar = mydb.calendar.set(calendar) or { panic('Failed to save calendar: ${err}') }
 
 	// Verify ID was assigned
 	assert calendar.id > 0
@@ -82,7 +82,7 @@ fn test_calendar_update() {
 		events:      []u32{}
 	) or { panic('Failed to create calendar: ${err}') }
 
-	mydb.calendar.set(mut calendar) or { panic('Failed to save calendar: ${err}') }
+	calendar = mydb.calendar.set(calendar) or { panic('Failed to save calendar: ${err}') }
 	original_id := calendar.id
 	original_created_at := calendar.created_at
 	original_updated_at := calendar.updated_at
@@ -95,7 +95,7 @@ fn test_calendar_update() {
 	calendar.is_public = false
 	calendar.events = [u32(10), 20]
 
-	mydb.calendar.set(mut calendar) or { panic('Failed to update calendar: ${err}') }
+	calendar = mydb.calendar.set(calendar) or { panic('Failed to update calendar: ${err}') }
 
 	// Verify ID remains the same and updated_at is set (may be same if very fast)
 	assert calendar.id == original_id
@@ -133,7 +133,7 @@ fn test_calendar_exist() {
 		events:      []u32{}
 	) or { panic('Failed to create calendar: ${err}') }
 
-	mydb.calendar.set(mut calendar) or { panic('Failed to save calendar: ${err}') }
+	calendar = mydb.calendar.set(calendar) or { panic('Failed to save calendar: ${err}') }
 
 	// Test existing calendar
 	exists_after_save := mydb.calendar.exist(calendar.id) or {
@@ -155,7 +155,7 @@ fn test_calendar_delete() {
 		events:      []u32{}
 	) or { panic('Failed to create calendar: ${err}') }
 
-	mydb.calendar.set(mut calendar) or { panic('Failed to save calendar: ${err}') }
+	calendar = mydb.calendar.set(calendar) or { panic('Failed to save calendar: ${err}') }
 	calendar_id := calendar.id
 
 	// Verify it exists
@@ -209,8 +209,8 @@ fn test_calendar_list() {
 	) or { panic('Failed to create calendar2: ${err}') }
 
 	// Save both calendars
-	mydb.calendar.set(mut calendar1) or { panic('Failed to save calendar1: ${err}') }
-	mydb.calendar.set(mut calendar2) or { panic('Failed to save calendar2: ${err}') }
+	calendar1 = mydb.calendar.set(calendar1) or { panic('Failed to save calendar1: ${err}') }
+	calendar2 = mydb.calendar.set(calendar2) or { panic('Failed to save calendar2: ${err}') }
 
 	// List calendars
 	calendar_list := mydb.calendar.list() or { panic('Failed to list calendars: ${err}') }
@@ -255,7 +255,7 @@ fn test_calendar_edge_cases() {
 		events:      []u32{}
 	) or { panic('Failed to create calendar with empty strings: ${err}') }
 
-	mydb.calendar.set(mut calendar) or {
+	calendar = mydb.calendar.set(calendar) or {
 		panic('Failed to save calendar with empty strings: ${err}')
 	}
 
@@ -278,7 +278,7 @@ fn test_calendar_edge_cases() {
 		events:      large_events
 	) or { panic('Failed to create large calendar: ${err}') }
 
-	mydb.calendar.set(mut large_calendar) or { panic('Failed to save large calendar: ${err}') }
+	large_calendar = mydb.calendar.set(large_calendar) or { panic('Failed to save large calendar: ${err}') }
 
 	large_retrieved := mydb.calendar.get(large_calendar.id) or {
 		panic('Failed to get large calendar: ${err}')

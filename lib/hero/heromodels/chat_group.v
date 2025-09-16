@@ -122,9 +122,9 @@ pub fn (mut self DBChatGroup) new(args ChatGroupArg) !ChatGroup {
 	return o
 }
 
-pub fn (mut self DBChatGroup) set(mut o ChatGroup) ! {
-	// Use db set function which now returns the ID
-	self.db.set[ChatGroup](mut o)!
+pub fn (mut self DBChatGroup) set(o ChatGroup) !ChatGroup {
+	// Use db set function which returns the object with assigned ID
+	return self.db.set[ChatGroup](o)!
 }
 
 pub fn (mut self DBChatGroup) delete(id u32) ! {

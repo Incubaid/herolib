@@ -80,7 +80,7 @@ fn test_group_set_and_get() {
 	) or { panic('Failed to create group: ${err}') }
 
 	// Save the group
-	mydb.group.set(mut group) or { panic('Failed to save group: ${err}') }
+	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
 
 	// Verify ID was assigned
 	assert group.id > 0
@@ -130,7 +130,7 @@ fn test_group_roles() {
 		is_public:    false
 	) or { panic('Failed to create group: ${err}') }
 
-	mydb.group.set(mut group) or { panic('Failed to save group: ${err}') }
+	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
 
 	retrieved_group := mydb.group.get(group.id) or { panic('Failed to get group: ${err}') }
 
@@ -166,7 +166,7 @@ fn test_group_hierarchy() {
 		is_public:    false
 	) or { panic('Failed to create parent group: ${err}') }
 
-	mydb.group.set(mut parent_group) or { panic('Failed to save parent group: ${err}') }
+	parent_group = mydb.group.set(parent_group) or { panic('Failed to save parent group: ${err}') }
 	parent_id := parent_group.id
 
 	// Create child groups
@@ -200,12 +200,12 @@ fn test_group_hierarchy() {
 		is_public:    false
 	) or { panic('Failed to create backend group: ${err}') }
 
-	mydb.group.set(mut frontend_group) or { panic('Failed to save frontend group: ${err}') }
-	mydb.group.set(mut backend_group) or { panic('Failed to save backend group: ${err}') }
+	frontend_group = mydb.group.set(frontend_group) or { panic('Failed to save frontend group: ${err}') }
+	backend_group = mydb.group.set(backend_group) or { panic('Failed to save backend group: ${err}') }
 
 	// Update parent group with subgroups
 	parent_group.subgroups = [frontend_group.id, backend_group.id]
-	mydb.group.set(mut parent_group) or { panic('Failed to update parent group: ${err}') }
+	parent_group = mydb.group.set(parent_group) or { panic('Failed to update parent group: ${err}') }
 
 	// Verify hierarchy
 	retrieved_parent := mydb.group.get(parent_id) or { panic('Failed to get parent group: ${err}') }
@@ -243,7 +243,7 @@ fn test_group_update() {
 		is_public:    false
 	) or { panic('Failed to create group: ${err}') }
 
-	mydb.group.set(mut group) or { panic('Failed to save group: ${err}') }
+	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
 	original_id := group.id
 	original_created_at := group.created_at
 	original_updated_at := group.updated_at
@@ -267,7 +267,7 @@ fn test_group_update() {
 	group.parent_group = 50
 	group.is_public = true
 
-	mydb.group.set(mut group) or { panic('Failed to update group: ${err}') }
+	group = mydb.group.set(group) or { panic('Failed to update group: ${err}') }
 
 	// Verify ID remains the same and updated_at is set
 	assert group.id == original_id
@@ -304,7 +304,7 @@ fn test_group_exist() {
 		is_public:    true
 	) or { panic('Failed to create group: ${err}') }
 
-	mydb.group.set(mut group) or { panic('Failed to save group: ${err}') }
+	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
 
 	// Test existing group
 	exists_after_save := mydb.group.exist(group.id) or {
@@ -326,7 +326,7 @@ fn test_group_delete() {
 		is_public:    false
 	) or { panic('Failed to create group: ${err}') }
 
-	mydb.group.set(mut group) or { panic('Failed to save group: ${err}') }
+	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
 	group_id := group.id
 
 	// Verify it exists
@@ -394,8 +394,8 @@ fn test_group_list() {
 	) or { panic('Failed to create group2: ${err}') }
 
 	// Save both groups
-	mydb.group.set(mut group1) or { panic('Failed to save group1: ${err}') }
-	mydb.group.set(mut group2) or { panic('Failed to save group2: ${err}') }
+	group1 = mydb.group.set(group1) or { panic('Failed to save group1: ${err}') }
+	group2 = mydb.group.set(group2) or { panic('Failed to save group2: ${err}') }
 
 	// List groups
 	group_list := mydb.group.list() or { panic('Failed to list groups: ${err}') }
@@ -439,7 +439,7 @@ fn test_group_edge_cases() {
 		is_public:    true
 	) or { panic('Failed to create empty group: ${err}') }
 
-	mydb.group.set(mut empty_group) or { panic('Failed to save empty group: ${err}') }
+	empty_group = mydb.group.set(empty_group) or { panic('Failed to save empty group: ${err}') }
 
 	retrieved_empty := mydb.group.get(empty_group.id) or {
 		panic('Failed to get empty group: ${err}')
@@ -476,7 +476,7 @@ fn test_group_edge_cases() {
 		is_public:    false
 	) or { panic('Failed to create large group: ${err}') }
 
-	mydb.group.set(mut large_group) or { panic('Failed to save large group: ${err}') }
+	large_group = mydb.group.set(large_group) or { panic('Failed to save large group: ${err}') }
 
 	retrieved_large := mydb.group.get(large_group.id) or {
 		panic('Failed to get large group: ${err}')
@@ -505,7 +505,7 @@ fn test_group_edge_cases() {
 		is_public:    false
 	) or { panic('Failed to create minimal group: ${err}') }
 
-	mydb.group.set(mut minimal_group) or { panic('Failed to save minimal group: ${err}') }
+	minimal_group = mydb.group.set(minimal_group) or { panic('Failed to save minimal group: ${err}') }
 
 	retrieved_minimal := mydb.group.get(minimal_group.id) or {
 		panic('Failed to get minimal group: ${err}')

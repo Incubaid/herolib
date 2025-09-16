@@ -90,7 +90,7 @@ fn test_calendar_event_set_and_get() {
 	) or { panic('Failed to create calendar event: ${err}') }
 
 	// Save the event
-	mydb.calendar_event.set(mut event) or { panic('Failed to save calendar event: ${err}') }
+	event = mydb.calendar_event.set(event) or { panic('Failed to save calendar event: ${err}') }
 
 	// Verify ID was assigned
 	assert event.id > 0
@@ -154,7 +154,7 @@ fn test_calendar_event_update() {
 		comments:       []
 	) or { panic('Failed to create calendar event: ${err}') }
 
-	mydb.calendar_event.set(mut event) or { panic('Failed to save calendar event: ${err}') }
+	event = mydb.calendar_event.set(event) or { panic('Failed to save calendar event: ${err}') }
 	original_id := event.id
 	original_created_at := event.created_at
 	original_updated_at := event.updated_at
@@ -184,7 +184,7 @@ fn test_calendar_event_update() {
 	event.color = '#FFFF00'
 	event.timezone = 'Europe/London'
 
-	mydb.calendar_event.set(mut event) or { panic('Failed to update calendar event: ${err}') }
+	event = mydb.calendar_event.set(event) or { panic('Failed to update calendar event: ${err}') }
 
 	// Verify ID remains the same and updated_at is set
 	assert event.id == original_id
@@ -243,7 +243,7 @@ fn test_calendar_event_exist() {
 		comments:       []
 	) or { panic('Failed to create calendar event: ${err}') }
 
-	mydb.calendar_event.set(mut event) or { panic('Failed to save calendar event: ${err}') }
+	event = mydb.calendar_event.set(event) or { panic('Failed to save calendar event: ${err}') }
 
 	// Test existing event
 	exists_after_save := mydb.calendar_event.exist(event.id) or {
@@ -278,7 +278,7 @@ fn test_calendar_event_delete() {
 		comments:       []
 	) or { panic('Failed to create calendar event: ${err}') }
 
-	mydb.calendar_event.set(mut event) or { panic('Failed to save calendar event: ${err}') }
+	event = mydb.calendar_event.set(event) or { panic('Failed to save calendar event: ${err}') }
 	event_id := event.id
 
 	// Verify it exists
@@ -369,8 +369,8 @@ fn test_calendar_event_list() {
 	) or { panic('Failed to create event2: ${err}') }
 
 	// Save both events
-	mydb.calendar_event.set(mut event1) or { panic('Failed to save event1: ${err}') }
-	mydb.calendar_event.set(mut event2) or { panic('Failed to save event2: ${err}') }
+	event1 = mydb.calendar_event.set(event1) or { panic('Failed to save event1: ${err}') }
+	event2 = mydb.calendar_event.set(event2) or { panic('Failed to save event2: ${err}') }
 
 	// List events
 	event_list := mydb.calendar_event.list() or { panic('Failed to list calendar events: ${err}') }
@@ -431,7 +431,7 @@ fn test_calendar_event_edge_cases() {
 		comments:       []
 	) or { panic('Failed to create event with empty strings: ${err}') }
 
-	mydb.calendar_event.set(mut event) or {
+	event = mydb.calendar_event.set(event) or {
 		panic('Failed to save event with empty strings: ${err}')
 	}
 
@@ -471,7 +471,7 @@ fn test_calendar_event_edge_cases() {
 		comments:       []
 	) or { panic('Failed to create all-day event: ${err}') }
 
-	mydb.calendar_event.set(mut all_day_event) or { panic('Failed to save all-day event: ${err}') }
+	all_day_event = mydb.calendar_event.set(all_day_event) or { panic('Failed to save all-day event: ${err}') }
 
 	all_day_retrieved := mydb.calendar_event.get(all_day_event.id) or {
 		panic('Failed to get all-day event: ${err}')
@@ -519,7 +519,7 @@ fn test_calendar_event_edge_cases() {
 		comments:       []
 	) or { panic('Failed to create complex event: ${err}') }
 
-	mydb.calendar_event.set(mut complex_event) or { panic('Failed to save complex event: ${err}') }
+	complex_event = mydb.calendar_event.set(complex_event) or { panic('Failed to save complex event: ${err}') }
 
 	complex_retrieved := mydb.calendar_event.get(complex_event.id) or {
 		panic('Failed to get complex event: ${err}')

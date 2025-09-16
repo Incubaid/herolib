@@ -147,8 +147,8 @@ pub fn (mut self DBUser) new(args UserArg) !User {
 	return o
 }
 
-pub fn (mut self DBUser) set(mut o User) ! {
-	self.db.set[User](mut o)!
+pub fn (mut self DBUser) set(o User) !User {
+	return self.db.set[User](o)!
 }
 
 pub fn (mut self DBUser) delete(id u32) ! {

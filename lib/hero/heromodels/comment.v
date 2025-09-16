@@ -105,9 +105,9 @@ pub fn (mut self DBComments) new(args CommentArg) !Comment {
 	return o
 }
 
-pub fn (mut self DBComments) set(mut o Comment) ! {
-	// Use openrpcserver set function which now returns the ID
-	self.db.set[Comment](mut o)!
+pub fn (mut self DBComments) set(o Comment) !Comment {
+	// Use db set function which returns the object with assigned ID
+	return self.db.set[Comment](o)!
 }
 
 pub fn (mut self DBComments) delete(id u32) ! {

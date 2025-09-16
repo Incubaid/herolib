@@ -132,7 +132,7 @@ fn test_project_set_and_get() {
 	) or { panic('Failed to create project: ${err}') }
 
 	// Save the project
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 
 	// Verify ID was assigned
 	assert project.id > 0
@@ -196,7 +196,7 @@ fn test_project_status_transitions() {
 			comments:       []
 		) or { panic('Failed to create project with status ${status}: ${err}') }
 
-		mydb.project.set(mut project) or {
+		project = mydb.project.set(project) or {
 			panic('Failed to save project with status ${status}: ${err}')
 		}
 
@@ -269,7 +269,7 @@ fn test_project_swimlanes() {
 		comments:       []
 	) or { panic('Failed to create project: ${err}') }
 
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 
 	retrieved_project := mydb.project.get(project.id) or { panic('Failed to get project: ${err}') }
 
@@ -334,7 +334,7 @@ fn test_project_milestones() {
 		comments:       []
 	) or { panic('Failed to create project: ${err}') }
 
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 
 	retrieved_project := mydb.project.get(project.id) or { panic('Failed to get project: ${err}') }
 
@@ -389,7 +389,7 @@ fn test_project_update() {
 		comments:       []
 	) or { panic('Failed to create project: ${err}') }
 
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 	original_id := project.id
 	original_created_at := project.created_at
 	original_updated_at := project.updated_at
@@ -427,7 +427,7 @@ fn test_project_update() {
 	project.status = .active
 	project.end_date = now + 86400 * 60
 
-	mydb.project.set(mut project) or { panic('Failed to update project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to update project: ${err}') }
 
 	// Verify ID remains the same and updated_at is set
 	assert project.id == original_id
@@ -475,7 +475,7 @@ fn test_project_exist() {
 		comments:       []
 	) or { panic('Failed to create project: ${err}') }
 
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 
 	// Test existing project
 	exists_after_save := mydb.project.exist(project.id) or {
@@ -503,7 +503,7 @@ fn test_project_delete() {
 		comments:       []
 	) or { panic('Failed to create project: ${err}') }
 
-	mydb.project.set(mut project) or { panic('Failed to save project: ${err}') }
+	project = mydb.project.set(project) or { panic('Failed to save project: ${err}') }
 	project_id := project.id
 
 	// Verify it exists
@@ -584,8 +584,8 @@ fn test_project_list() {
 	) or { panic('Failed to create project2: ${err}') }
 
 	// Save both projects
-	mydb.project.set(mut project1) or { panic('Failed to save project1: ${err}') }
-	mydb.project.set(mut project2) or { panic('Failed to save project2: ${err}') }
+	project1 = mydb.project.set(project1) or { panic('Failed to save project1: ${err}') }
+	project2 = mydb.project.set(project2) or { panic('Failed to save project2: ${err}') }
 
 	// List projects
 	project_list := mydb.project.list() or { panic('Failed to list projects: ${err}') }

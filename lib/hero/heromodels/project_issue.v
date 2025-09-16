@@ -236,8 +236,8 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	return o
 }
 
-pub fn (mut self DBProjectIssue) set(mut o ProjectIssue) ! {
-	self.db.set[ProjectIssue](mut o)!
+pub fn (mut self DBProjectIssue) set(o ProjectIssue) !ProjectIssue {
+	return self.db.set[ProjectIssue](o)!
 }
 
 pub fn (mut self DBProjectIssue) delete(id u32) ! {

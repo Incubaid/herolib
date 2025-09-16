@@ -253,9 +253,9 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 	return o
 }
 
-pub fn (mut self DBCalendarEvent) set(mut o CalendarEvent) ! {
-	// Use db set function which now returns the ID
-	self.db.set[CalendarEvent](mut o)!
+pub fn (mut self DBCalendarEvent) set(o CalendarEvent) !CalendarEvent {
+	// Use db set function which returns the object with assigned ID
+	return self.db.set[CalendarEvent](o)!
 }
 
 pub fn (mut self DBCalendarEvent) delete(id u32) ! {
