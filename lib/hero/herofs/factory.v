@@ -21,7 +21,7 @@ pub mut:
 }
 
 pub fn new(args DBArgs) !FsFactory {
-	mut mydb := db.new(redis:args.redis)!
+	mut mydb := db.new(redis: args.redis)!
 	mut f := FsFactory{
 		fs:                 DBFs{
 			db: &mydb
@@ -59,14 +59,13 @@ pub fn new_fs(args FsArg) !Fs {
 }
 
 pub fn new_fs_test() !Fs {
-	mut r:=redisclient.test_get()!
-	mut f := new(redis:r)!
+	mut r := redisclient.test_get()!
+	mut f := new(redis: r)!
 	mut fs := f.fs.new_get_set(name: 'test')!
 	return fs
 }
 
 pub fn delete_fs_test() ! {
-	mut r:=redisclient.test_get()!
-	r.flush()!
-	return fs
+	mut r := redisclient.test_get()!
+	r.flushdb()!
 }

@@ -74,6 +74,8 @@ pub fn (mut self DBFsBlob) set(mut o FsBlob) ! {
 
 	// Store the hash -> id mapping for lookup
 	self.db.redis.hset('fsblob:hashes', o.hash, o.id.str())!
+
+	// Note: Blob membership will be created when the blob is associated with a filesystem
 }
 
 pub fn (mut self DBFsBlob) delete(id u32) ! {
@@ -122,15 +124,20 @@ pub fn (mut self DBFsBlob) get_multi(id []u32) ![]FsBlob {
 }
 
 pub fn (mut self DBFsBlob) get_by_hash(hash string) !FsBlob {
-	if self.factory.fs_blob_membership.exist(hash)! {
-		o := self.factory.fs_blob_membership.get(hash) or { panic('bug') }
-		return self.get(o.blobid)!
+	// Get blob ID from Redis hash mapping
+	id_str := self.db.redis.hget('fsblob:hashes', hash)!
+	if id_str == '' {
+		return error('Blob with hash ${hash} not found')
 	}
-	return error('Blob with hash ${hash} not found')
+
+	id := id_str.u32()
+	return self.get(id)!
 }
 
 pub fn (mut self DBFsBlob) exists_by_hash(hash string) !bool {
-	return self.factory.fs_blob_membership.exist(hash)
+	// Check if hash exists in Redis mapping
+	id_str := self.db.redis.hget('fsblob:hashes', hash)!
+	return id_str != ''
 }
 
 pub fn (blob FsBlob) verify_integrity() bool {

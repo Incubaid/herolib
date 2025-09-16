@@ -46,13 +46,36 @@ pub mut:
 pub fn (mut self Fs) find(start_path string, opts FindOptions) ![]FindResult {
 	mut results := []FindResult{}
 
-	// Get the starting directory
-	start_dir := self.get_dir_by_absolute_path(start_path)!
-
-	// Start recursive search
-	self.find_recursive(start_dir.id, start_path, opts, mut results, 0)!
-
-	return results
+	// Try to get the path as a file first
+	if file := self.get_file_by_absolute_path(start_path) {
+		// Path points to a specific file
+		if should_include(file.name, opts.include_patterns, opts.exclude_patterns) {
+			results << FindResult{
+				result_type: .file
+				id:          file.id
+				path:        start_path
+			}
+		}
+		return results
+	} else {
+		// Try to get the path as a symlink
+		if symlink := self.get_symlink_by_absolute_path(start_path) {
+			// Path points to a specific symlink
+			if should_include(symlink.name, opts.include_patterns, opts.exclude_patterns) {
+				results << FindResult{
+					result_type: .symlink
+					id:          symlink.id
+					path:        start_path
+				}
+			}
+			return results
+		} else {
+			// Path should be a directory - proceed with recursive search
+			start_dir := self.get_dir_by_absolute_path(start_path)!
+			self.find_recursive(start_dir.id, start_path, opts, mut results, 0)!
+			return results
+		}
+	}
 }
 
 // find_recursive is an internal function that recursively searches for filesystem objects
@@ -82,20 +105,8 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 	println('DEBUG: Got directory "${current_dir.name}" with ${current_dir.files.len} files, ${current_dir.directories.len} directories, ${current_dir.symlinks.len} symlinks')
 
 	// Check if current directory matches search criteria
-	// Only include the directory if it's not the root directory
-	if current_path != '/'
-		&& should_include(current_dir.name, opts.include_patterns, opts.exclude_patterns) {
+	if should_include(current_dir.name, opts.include_patterns, opts.exclude_patterns) {
 		println('DEBUG: Including directory "${current_dir.name}" in results')
-		results << FindResult{
-			result_type: .directory
-			id:          dir_id
-			path:        current_path
-		}
-	}
-
-	// Always include the root directory
-	if current_path == '/' {
-		println('DEBUG: Including root directory "${current_dir.name}" in results')
 		results << FindResult{
 			result_type: .directory
 			id:          dir_id
@@ -153,7 +164,7 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 						}
 					} else {
 						// dangling symlink, just add the symlink itself
-						return error('Dangling symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.fs_id}')
+						return error('Dangling symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.id}')
 					}
 				}
 
@@ -182,7 +193,7 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 						}
 					} else {
 						// dangling symlink, just add the symlink itself
-						return error('Dangling dir symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.fs_id}')
+						return error('Dangling dir symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.id}')
 					}
 				}
 			}
@@ -192,10 +203,10 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 	for dir_id2 in current_dir.directories {
 		println('DEBUG: Found child directory ID ${dir_id2} in directory ${dir_id}')
 		subdir := self.factory.fs_dir.get(dir_id2)!
+		subdir_path := join_path(current_path, subdir.name)
+
+		// Include child directories in results if they match patterns
 		if should_include(subdir.name, opts.include_patterns, opts.exclude_patterns) {
-			subdir_path := join_path(current_path, subdir.name)
-			// Include child directories in results when not recursive
-			// When recursive, the directory will be included in the results when find_recursive is called on it
 			if !opts.recursive {
 				println('DEBUG: Including directory "${subdir.name}" in results')
 				results << FindResult{
@@ -203,10 +214,14 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 					id:          subdir.id
 					path:        subdir_path
 				}
-			} else {
-				println('DEBUG: Processing directory "${subdir.name}"')
-				self.find_recursive(dir_id2, subdir_path, opts, mut results, current_depth + 1)!
 			}
+		}
+
+		// Always recurse into directories when recursive is true, regardless of patterns
+		// The patterns apply to what gets included in results, not to traversal
+		if opts.recursive {
+			println('DEBUG: Processing directory "${subdir.name}"')
+			self.find_recursive(dir_id2, subdir_path, opts, mut results, current_depth + 1)!
 		}
 	}
 
@@ -233,7 +248,7 @@ pub fn (mut self Fs) get_dir_by_absolute_path(path string) !FsDir {
 	// Handle root directory case
 	if normalized_path_ == '/' {
 		println('DEBUG: Handling root directory case')
-		fs := self.factory.fs.get(self.fs_id)!
+		fs := self.factory.fs.get(self.id)!
 		println('DEBUG: fs.root_dir_id = ${fs.root_dir_id}')
 		return self.factory.fs_dir.get(fs.root_dir_id)!
 	}
@@ -242,7 +257,7 @@ pub fn (mut self Fs) get_dir_by_absolute_path(path string) !FsDir {
 	path_components := normalized_path_.trim_left('/').split('/').filter(it != '')
 
 	// Start from root directory
-	fs := self.factory.fs.get(self.fs_id)!
+	fs := self.factory.fs.get(self.id)!
 	mut current_dir_id := fs.root_dir_id
 
 	// Navigate through each path component
@@ -266,4 +281,88 @@ pub fn (mut self Fs) get_dir_by_absolute_path(path string) !FsDir {
 	}
 
 	return self.factory.fs_dir.get(current_dir_id)!
+}
+
+// get_file_by_absolute_path resolves an absolute path to a file
+//
+// Parameters:
+// - path: The absolute path to resolve (e.g., "/home/user/document.txt")
+//
+// Returns:
+// - FsFile: The file object at the specified path
+//
+// Example:
+// ```
+// file := tools.get_file_by_absolute_path('/home/user/document.txt')!
+// ```
+pub fn (mut self Fs) get_file_by_absolute_path(path string) !FsFile {
+	normalized_path := normalize_path(path)
+
+	// Split path into directory and filename
+	path_parts := normalized_path.trim_left('/').split('/')
+	if path_parts.len == 0 || path_parts[path_parts.len - 1] == '' {
+		return error('Invalid file path: "${path}"')
+	}
+
+	filename := path_parts[path_parts.len - 1]
+	dir_path := if path_parts.len == 1 {
+		'/'
+	} else {
+		'/' + path_parts[..path_parts.len - 1].join('/')
+	}
+
+	// Get the directory
+	dir := self.get_dir_by_absolute_path(dir_path)!
+
+	// Find the file in the directory
+	for file_id in dir.files {
+		file := self.factory.fs_file.get(file_id)!
+		if file.name == filename {
+			return file
+		}
+	}
+
+	return error('File "${filename}" not found in directory "${dir_path}"')
+}
+
+// get_symlink_by_absolute_path resolves an absolute path to a symlink
+//
+// Parameters:
+// - path: The absolute path to resolve (e.g., "/home/user/link.txt")
+//
+// Returns:
+// - FsSymlink: The symlink object at the specified path
+//
+// Example:
+// ```
+// symlink := tools.get_symlink_by_absolute_path('/home/user/link.txt')!
+// ```
+pub fn (mut self Fs) get_symlink_by_absolute_path(path string) !FsSymlink {
+	normalized_path := normalize_path(path)
+
+	// Split path into directory and symlink name
+	path_parts := normalized_path.trim_left('/').split('/')
+	if path_parts.len == 0 || path_parts[path_parts.len - 1] == '' {
+		return error('Invalid symlink path: "${path}"')
+	}
+
+	symlink_name := path_parts[path_parts.len - 1]
+	dir_path := if path_parts.len == 1 {
+		'/'
+	} else {
+		'/' + path_parts[..path_parts.len - 1].join('/')
+	}
+
+	// Get the directory
+	dir := self.get_dir_by_absolute_path(dir_path)!
+
+	// Find the symlink in the directory
+	for symlink_id in dir.symlinks {
+		symlink := self.factory.fs_symlink.get(symlink_id)!
+		if symlink.name == symlink_name {
+			return symlink
+		}
+	}
+
+	return error('Symlink "${symlink_name}" not found in directory "${dir_path}"')
 }

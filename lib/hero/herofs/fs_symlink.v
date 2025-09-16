@@ -1,8 +1,5 @@
 module herofs
 
-import time
-import crypto.blake3
-import json
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
@@ -108,6 +105,16 @@ pub fn (mut self DBFsSymlink) set(mut o FsSymlink) ! {
 }
 
 pub fn (mut self DBFsSymlink) delete(id u32) ! {
+	// Get the symlink info before deleting
+	symlink := self.get(id)!
+
+	// Remove from parent directory's symlinks list
+	if symlink.parent_id > 0 {
+		mut parent_dir := self.factory.fs_dir.get(symlink.parent_id)!
+		parent_dir.symlinks = parent_dir.symlinks.filter(it != id)
+		self.factory.fs_dir.set(mut parent_dir)!
+	}
+
 	self.db.delete[FsSymlink](id)!
 }
 
@@ -120,4 +127,33 @@ pub fn (mut self DBFsSymlink) get(id u32) !FsSymlink {
 	mut e_decoder := encoder.decoder_new(data)
 	self.load(mut o, mut e_decoder)!
 	return o
+}
+
+// List all symlinks
+pub fn (mut self DBFsSymlink) list() ![]FsSymlink {
+	ids := self.db.list[FsSymlink]()!
+	mut symlinks := []FsSymlink{}
+	for id in ids {
+		symlinks << self.get(id)!
+	}
+	return symlinks
+}
+
+// List symlinks in a filesystem
+pub fn (mut self DBFsSymlink) list_by_filesystem(fs_id u32) ![]FsSymlink {
+	all_symlinks := self.list()!
+	return all_symlinks.filter(it.fs_id == fs_id)
+}
+
+// Check if symlink is broken (target doesn't exist)
+pub fn (mut self DBFsSymlink) is_broken(id u32) !bool {
+	symlink := self.get(id)!
+
+	if symlink.target_type == .file {
+		return !self.db.exists[FsFile](symlink.target_id)!
+	} else if symlink.target_type == .directory {
+		return !self.db.exists[FsDir](symlink.target_id)!
+	}
+
+	return true // Unknown target type is considered broken
 }

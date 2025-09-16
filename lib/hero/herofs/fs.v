@@ -1,10 +1,6 @@
 module herofs
 
-import time
-import crypto.blake3
-import json
 import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 
 // Fs represents a filesystem, is the top level container for files and directories and symlinks, blobs are used over filesystems
@@ -16,6 +12,7 @@ pub mut:
 	root_dir_id u32 // ID of root directory
 	quota_bytes u64 // Storage quota in bytes
 	used_bytes  u64 // Current usage in bytes
+	factory     &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 // We only keep the root directory ID here, other directories can be found by querying parent_id in FsDir
@@ -56,13 +53,45 @@ pub mut:
 	comments    []db.CommentArg
 }
 
+// get new filesystem, not from the DB
+pub fn (mut self DBFs) new(args FsArg) !Fs {
+	mut o := Fs{
+		name:    args.name
+		factory: self.factory
+	}
+
+	if args.description != '' {
+		o.description = args.description
+	}
+	if args.root_dir_id != 0 {
+		o.root_dir_id = args.root_dir_id
+	}
+	if args.quota_bytes != 0 {
+		o.quota_bytes = args.quota_bytes
+	} else {
+		o.quota_bytes = 1024 * 1024 * 1024 * 100 // Default to 100GB
+	}
+	if args.used_bytes != 0 {
+		o.used_bytes = args.used_bytes
+	}
+	if args.tags.len > 0 {
+		o.tags = self.db.tags_get(args.tags)!
+	}
+	if args.comments.len > 0 {
+		o.comments = self.db.comments_get(args.comments)!
+	}
+
+	return o
+}
+
 // get new filesystem, if it exists then it will get it from the DB
 pub fn (mut self DBFs) new_get_set(args_ FsArg) !Fs {
 	mut args := args_
 	args.name = args.name.trim_space().to_lower()
 
 	mut o := Fs{
-		name: args.name
+		name:    args.name
+		factory: self.factory
 	}
 
 	myid := self.db.redis.hget('fs:names', args.name)!
@@ -128,16 +157,11 @@ pub fn (mut self DBFs) delete(id u32) ! {
 	// Get the filesystem to retrieve its name
 	fs := self.get(id)!
 
-	
-
 	// Remove name -> id mapping
 	self.db.redis.hdel('fs:names', fs.name)!
 
 	// Delete the filesystem
 	self.db.delete[Fs](id)!
-
-
-
 }
 
 pub fn (mut self DBFs) exist(id u32) !bool {
@@ -148,6 +172,7 @@ pub fn (mut self DBFs) get(id u32) !Fs {
 	mut o, data := self.db.get_data[Fs](id)!
 	mut e_decoder := encoder.decoder_new(data)
 	self.load(mut o, mut e_decoder)!
+	o.factory = self.factory
 	return o
 }
 
@@ -165,26 +190,9 @@ pub fn (mut self DBFs) get_by_name(name string) !Fs {
 	return self.get(id_str.u32())!
 }
 
-// TODO: need to redo, in separate struct in redis, like this will be too heavy
-// // Custom method to increase used_bytes
-// pub fn (mut self DBFs) increase_usage(id u32, bytes u64) !u64 {
-// 	mut fs := self.get(id)!
-// 	fs.used_bytes += bytes
-// 	self.set(mut fs)!
-// 	return fs.used_bytes
-// }
-
-// // Custom method to decrease used_bytes
-// pub fn (mut self DBFs) decrease_usage(id u32, bytes u64) !u64 {
-// 	mut fs := self.get(id)!
-// 	if bytes > fs.used_bytes {
-// 		fs.used_bytes = 0
-// 	} else {
-// 		fs.used_bytes -= bytes
-// 	}
-// 	self.set(mut fs)!
-// 	return fs.used_bytes
-// }
+// Note: Filesystem usage tracking methods are not implemented yet
+// These would be used for quota enforcement and storage monitoring
+// Future implementation should use separate Redis structures for performance
 
 // Check if quota is exceeded
 pub fn (mut self DBFs) check_quota(id u32, additional_bytes u64) !bool {

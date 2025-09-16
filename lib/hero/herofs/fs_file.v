@@ -1,8 +1,5 @@
 module herofs
 
-import time
-import crypto.blake3
-import json
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
@@ -102,7 +99,7 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 			}
 
 			// Get blob data
-			mut blob_obj, blob_data := self.db.get_data[FsBlob](blob_id)!
+			_, blob_data := self.db.get_data[FsBlob](blob_id)!
 			mut e_decoder := encoder.decoder_new(blob_data)
 
 			// Skip hash
@@ -134,14 +131,6 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 }
 
 pub fn (mut self DBFsFile) set(mut o FsFile) ! {
-	// Check that directories exist
-	for dir_id in o.directories {
-		dir_exists := self.db.exists[FsDir](dir_id)!
-		if !dir_exists {
-			return error('Directory with ID ${dir_id} does not exist')
-		}
-	}
-
 	// Check that blobs exist
 	for blob_id in o.blobs {
 		blob_exists := self.db.exists[FsBlob](blob_id)!
@@ -152,9 +141,25 @@ pub fn (mut self DBFsFile) set(mut o FsFile) ! {
 	self.db.set[FsFile](mut o)!
 }
 
+// add_to_directory adds a file to a directory's files list
+pub fn (mut self DBFsFile) add_to_directory(file_id u32, dir_id u32) ! {
+	mut dir := self.factory.fs_dir.get(dir_id)!
+	if file_id !in dir.files {
+		dir.files << file_id
+		self.factory.fs_dir.set(mut dir)!
+	}
+}
+
 pub fn (mut self DBFsFile) delete(id u32) ! {
-	// Get the file info before deleting
-	file := self.get(id)!
+	// Remove the file from all directories that contain it
+	directories := self.list_directories_for_file(id)!
+	for dir_id in directories {
+		mut dir := self.factory.fs_dir.get(dir_id)!
+		// Remove the file ID from the directory's files array
+		dir.files = dir.files.filter(it != id)
+		self.factory.fs_dir.set(mut dir)!
+	}
+
 	// Delete the file itself
 	self.db.delete[FsFile](id)!
 }
@@ -170,18 +175,132 @@ pub fn (mut self DBFsFile) get(id u32) !FsFile {
 	return o
 }
 
-// TODO: future, have separate redis struct for the updates, not in root obj
-// // Update file accessed timestamp
-// pub fn (mut self DBFsFile) update_accessed(id u32) !u32 {
-// 	mut file := self.get(id)!
-// 	file.accessed_at = ourtime.now().unix()
-// 	return self.set(file)!
-// }
+// Update file accessed timestamp
+pub fn (mut self DBFsFile) update_accessed(id u32) ! {
+	mut file := self.get(id)!
+	file.updated_at = ourtime.now().unix()
+	self.set(mut file)!
+}
 
-// // Update file metadata
-// pub fn (mut self DBFsFile) update_metadata(id u32, key string, value string) !u32 {
-// 	mut file := self.get(id)!
-// 	file.metadata[key] = value
-// 	file.updated_at = ourtime.now().unix()
-// 	return self.set(file)!
-// }
+// Update file metadata
+pub fn (mut self DBFsFile) update_metadata(id u32, key string, value string) ! {
+	mut file := self.get(id)!
+	file.metadata[key] = value
+	file.updated_at = ourtime.now().unix()
+	self.set(mut file)!
+}
+
+// Rename file (affects all directories)
+pub fn (mut self DBFsFile) rename(id u32, new_name string) ! {
+	mut file := self.get(id)!
+	file.name = new_name
+	file.updated_at = ourtime.now().unix()
+	self.set(mut file)!
+}
+
+// Move file to different directories
+pub fn (mut self DBFsFile) move(id u32, new_dir_ids []u32) ! {
+	// Verify all target directories exist
+	for dir_id in new_dir_ids {
+		if !self.db.exists[FsDir](dir_id)! {
+			return error('Directory with ID ${dir_id} does not exist')
+		}
+	}
+
+	// Remove file from all current directories
+	for dir_id in self.list_directories_for_file(id)! {
+		mut dir := self.factory.fs_dir.get(dir_id)!
+		dir.files = dir.files.filter(it != id)
+		self.factory.fs_dir.set(mut dir)!
+	}
+
+	// Add file to new directories
+	for dir_id in new_dir_ids {
+		self.add_to_directory(id, dir_id)!
+	}
+}
+
+// Append a blob to the file
+pub fn (mut self DBFsFile) append_blob(id u32, blob_id u32) ! {
+	// Verify blob exists
+	if !self.db.exists[FsBlob](blob_id)! {
+		return error('Blob with ID ${blob_id} does not exist')
+	}
+
+	mut file := self.get(id)!
+	file.blobs << blob_id
+
+	// Update file size
+	_, blob_data := self.db.get_data[FsBlob](blob_id)!
+	mut e_decoder := encoder.decoder_new(blob_data)
+
+	// Skip hash
+	e_decoder.get_string()!
+
+	// Skip data, get size directly
+	e_decoder.get_list_u8()!
+	blob_size := u64(e_decoder.get_int()!)
+	file.size_bytes += blob_size
+
+	file.updated_at = ourtime.now().unix()
+	self.set(mut file)!
+}
+
+// List all files
+pub fn (mut self DBFsFile) list() ![]FsFile {
+	ids := self.db.list[FsFile]()!
+	mut files := []FsFile{}
+	for id in ids {
+		// Skip files that no longer exist (might have been deleted)
+		if file := self.get(id) {
+			files << file
+		}
+	}
+	return files
+}
+
+// Get file by path (directory and name)
+pub fn (mut self DBFsFile) get_by_path(dir_id u32, name string) !FsFile {
+	dir := self.factory.fs_dir.get(dir_id)!
+	for file_id in dir.files {
+		file := self.get(file_id)!
+		if file.name == name {
+			return file
+		}
+	}
+	return error('File "${name}" not found in directory ${dir_id}')
+}
+
+// List files in a directory
+pub fn (mut self DBFsFile) list_by_directory(dir_id u32) ![]FsFile {
+	dir := self.factory.fs_dir.get(dir_id)!
+	mut files := []FsFile{}
+	for file_id in dir.files {
+		files << self.get(file_id)!
+	}
+	return files
+}
+
+// List files in a filesystem
+pub fn (mut self DBFsFile) list_by_filesystem(fs_id u32) ![]FsFile {
+	all_files := self.list()!
+	return all_files.filter(it.fs_id == fs_id)
+}
+
+// List files by MIME type
+pub fn (mut self DBFsFile) list_by_mime_type(mime_type MimeType) ![]FsFile {
+	all_files := self.list()!
+	return all_files.filter(it.mime_type == mime_type)
+}
+
+// Helper method to find which directories contain a file
+pub fn (mut self DBFsFile) list_directories_for_file(file_id u32) ![]u32 {
+	mut containing_dirs := []u32{}
+	all_dirs := self.factory.fs_dir.list()!
+	for dir in all_dirs {
+		if file_id in dir.files {
+			containing_dirs << dir.id
+		}
+	}
+	return containing_dirs
+}
