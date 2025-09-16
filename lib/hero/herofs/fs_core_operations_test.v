@@ -14,7 +14,7 @@ fn test_filesystem_crud() ! {
 	)!
 
 	original_id := test_fs.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Test filesystem retrieval
 	retrieved_fs := fs_factory.fs.get(test_fs.id)!
@@ -28,7 +28,7 @@ fn test_filesystem_crud() ! {
 
 	// Test filesystem update
 	test_fs.description = 'Updated description'
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	updated_fs := fs_factory.fs.get(test_fs.id)!
 	assert updated_fs.description == 'Updated description'
@@ -52,7 +52,7 @@ fn test_directory_operations() ! {
 		description: 'Test filesystem for directory operations'
 		quota_bytes: 1024 * 1024 * 50 // 50MB quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -60,9 +60,9 @@ fn test_directory_operations() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Test directory creation
 	mut sub_dir1 := fs_factory.fs_dir.new(
@@ -71,11 +71,11 @@ fn test_directory_operations() ! {
 		parent_id:   root_dir.id
 		description: 'Documents directory'
 	)!
-	fs_factory.fs_dir.set(mut sub_dir1)!
+	sub_dir1 = fs_factory.fs_dir.set(sub_dir1)!
 
 	// Add subdirectory to parent
 	root_dir.directories << sub_dir1.id
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Test directory retrieval
 	retrieved_dir := fs_factory.fs_dir.get(sub_dir1.id)!
@@ -119,21 +119,21 @@ fn test_file_operations() ! {
 		description: 'Test filesystem for file operations'
 		quota_bytes: 1024 * 1024 * 50 // 50MB quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	mut root_dir := fs_factory.fs_dir.new(
 		name:      'root'
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create test blob
 	test_content := 'Hello, HeroFS! This is test content.'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_content)!
-	fs_factory.fs_blob.set(mut test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 
 	// Test file creation
 	mut test_file := fs_factory.fs_file.new(
@@ -147,7 +147,7 @@ fn test_file_operations() ! {
 			'version': '1.0'
 		}
 	)!
-	fs_factory.fs_file.set(mut test_file)!
+	test_file = fs_factory.fs_file.set(test_file)!
 
 	// Add file to root directory
 	fs_factory.fs_file.add_to_directory(test_file.id, root_dir.id)!
@@ -166,7 +166,7 @@ fn test_file_operations() ! {
 	mut updated_file := fs_factory.fs_file.get(test_file.id)!
 	updated_file.metadata['author'] = 'updated_user'
 	updated_file.metadata['version'] = '2.0'
-	fs_factory.fs_file.set(mut updated_file)!
+	updated_file = fs_factory.fs_file.set(updated_file)!
 
 	// Verify metadata was updated
 	final_file := fs_factory.fs_file.get(test_file.id)!
@@ -190,7 +190,7 @@ fn test_file_operations() ! {
 	// Test file listing by MIME type - create a specific file for this test
 	mime_test_content := 'MIME type test content'.bytes()
 	mut mime_test_blob := fs_factory.fs_blob.new(data: mime_test_content)!
-	fs_factory.fs_blob.set(mut mime_test_blob)!
+	mime_test_blob = fs_factory.fs_blob.set(mime_test_blob)!
 
 	mut mime_test_file := fs_factory.fs_file.new(
 		name:      'mime_test.txt'
@@ -198,7 +198,7 @@ fn test_file_operations() ! {
 		blobs:     [mime_test_blob.id]
 		mime_type: .txt
 	)!
-	fs_factory.fs_file.set(mut mime_test_file)!
+	mime_test_file = fs_factory.fs_file.set(mime_test_file)!
 	fs_factory.fs_file.add_to_directory(mime_test_file.id, root_dir.id)!
 
 	txt_files := fs_factory.fs_file.list_by_mime_type(.txt)!
@@ -207,7 +207,7 @@ fn test_file_operations() ! {
 	// Test blob content appending
 	additional_content := '\nAppended content.'.bytes()
 	mut additional_blob := fs_factory.fs_blob.new(data: additional_content)!
-	fs_factory.fs_blob.set(mut additional_blob)!
+	additional_blob = fs_factory.fs_blob.set(additional_blob)!
 
 	fs_factory.fs_file.append_blob(test_file.id, additional_blob.id)!
 	updated_file_with_blob := fs_factory.fs_file.get(test_file.id)!
@@ -227,15 +227,15 @@ fn test_blob_operations() ! {
 
 	// Create first blob
 	mut blob1 := fs_factory.fs_blob.new(data: test_data1)!
-	fs_factory.fs_blob.set(mut blob1)!
+	blob1 = fs_factory.fs_blob.set(blob1)!
 
 	// Create second blob with different data
 	mut blob2 := fs_factory.fs_blob.new(data: test_data2)!
-	fs_factory.fs_blob.set(mut blob2)!
+	blob2 = fs_factory.fs_blob.set(blob2)!
 
 	// Create third blob with same data as first (should have same hash)
 	mut blob3 := fs_factory.fs_blob.new(data: test_data3)!
-	fs_factory.fs_blob.set(mut blob3)!
+	blob3 = fs_factory.fs_blob.set(blob3)!
 
 	// Test hash-based retrieval
 	assert blob1.hash == blob3.hash // Same content should have same hash
@@ -277,21 +277,21 @@ fn test_symlink_operations() ! {
 		description: 'Test filesystem for symlink operations'
 		quota_bytes: 1024 * 1024 * 10 // 10MB quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	mut root_dir := fs_factory.fs_dir.new(
 		name:      'root'
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create a target file
 	test_content := 'Target file content'.bytes()
 	mut target_blob := fs_factory.fs_blob.new(data: test_content)!
-	fs_factory.fs_blob.set(mut target_blob)!
+	target_blob = fs_factory.fs_blob.set(target_blob)!
 
 	mut target_file := fs_factory.fs_file.new(
 		name:      'target.txt'
@@ -299,7 +299,7 @@ fn test_symlink_operations() ! {
 		blobs:     [target_blob.id]
 		mime_type: .txt
 	)!
-	fs_factory.fs_file.set(mut target_file)!
+	target_file = fs_factory.fs_file.set(target_file)!
 	fs_factory.fs_file.add_to_directory(target_file.id, root_dir.id)!
 
 	// Create symlink
@@ -311,11 +311,11 @@ fn test_symlink_operations() ! {
 		target_type: .file
 		description: 'Symlink to target file'
 	)!
-	fs_factory.fs_symlink.set(mut test_symlink)!
+	test_symlink = fs_factory.fs_symlink.set(test_symlink)!
 
 	// Add symlink to directory
 	root_dir.symlinks << test_symlink.id
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Test symlink retrieval
 	retrieved_symlink := fs_factory.fs_symlink.get(test_symlink.id)!

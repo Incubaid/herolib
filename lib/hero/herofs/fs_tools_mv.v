@@ -115,13 +115,13 @@ fn (mut self Fs) move_file(file_id u32, dest_dir_id u32, new_name string, opts M
 	for dir_id in current_dirs {
 		mut dir := self.factory.fs_dir.get(dir_id)!
 		dir.files = dir.files.filter(it != file_id)
-		self.factory.fs_dir.set(mut dir)!
+		self.factory.fs_dir.set(dir)!
 	}
 
 	// Update file name if needed
 	if file.name != new_name {
 		file.name = new_name
-		self.factory.fs_file.set(mut file)!
+		self.factory.fs_file.set(file)!
 	}
 
 	// Add file to destination directory
@@ -149,7 +149,7 @@ fn (mut self Fs) move_directory(dir_id u32, dest_parent_id u32, new_name string,
 	if dir.parent_id > 0 {
 		mut old_parent := self.factory.fs_dir.get(dir.parent_id)!
 		old_parent.directories = old_parent.directories.filter(it != dir_id)
-		self.factory.fs_dir.set(mut old_parent)!
+		self.factory.fs_dir.set(old_parent)!
 	}
 
 	// Update directory name and parent
@@ -157,14 +157,14 @@ fn (mut self Fs) move_directory(dir_id u32, dest_parent_id u32, new_name string,
 		dir.name = new_name
 	}
 	dir.parent_id = dest_parent_id
-	self.factory.fs_dir.set(mut dir)!
+	self.factory.fs_dir.set(dir)!
 
 	// Add to new parent's directories list
 	mut new_parent := self.factory.fs_dir.get(dest_parent_id)!
 	if dir_id !in new_parent.directories {
 		new_parent.directories << dir_id
 	}
-	self.factory.fs_dir.set(mut new_parent)!
+	self.factory.fs_dir.set(new_parent)!
 }
 
 // move_symlink moves a symlink to a new directory and optionally renames it
@@ -189,7 +189,7 @@ fn (mut self Fs) move_symlink(symlink_id u32, dest_dir_id u32, new_name string, 
 	if symlink.parent_id > 0 {
 		mut old_parent := self.factory.fs_dir.get(symlink.parent_id)!
 		old_parent.symlinks = old_parent.symlinks.filter(it != symlink_id)
-		self.factory.fs_dir.set(mut old_parent)!
+		self.factory.fs_dir.set(old_parent)!
 	}
 
 	// Update symlink name and parent
@@ -197,12 +197,12 @@ fn (mut self Fs) move_symlink(symlink_id u32, dest_dir_id u32, new_name string, 
 		symlink.name = new_name
 	}
 	symlink.parent_id = dest_dir_id
-	self.factory.fs_symlink.set(mut symlink)!
+	self.factory.fs_symlink.set(symlink)!
 
 	// Add to new parent's symlinks list
 	mut new_parent := self.factory.fs_dir.get(dest_dir_id)!
 	if symlink_id !in new_parent.symlinks {
 		new_parent.symlinks << symlink_id
 	}
-	self.factory.fs_dir.set(mut new_parent)!
+	self.factory.fs_dir.set(new_parent)!
 }

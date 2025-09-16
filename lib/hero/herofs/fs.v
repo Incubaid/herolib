@@ -130,7 +130,7 @@ pub fn (mut self DBFs) new_get_set(args_ FsArg) !Fs {
 	}
 
 	if changes {
-		self.set(mut o)!
+		self.set(o)!
 	}
 
 	return o
@@ -149,10 +149,10 @@ pub fn (mut self DBFs) set(o Fs) !Fs {
 		o_mut.root_dir_id = root_dir.id
 		// Update the filesystem with the new root directory ID
 	}
-	self.db.redis.hset('fs:names', o_mut.name, o_mut.id.str())!
-	// Use db set function which now modifies the object in-place	
-	self.db.set[Fs](o_mut)!
-	return o_mut
+	// Use db set function which now modifies the object in-place
+	o_result := self.db.set[Fs](o_mut)!
+	self.db.redis.hset('fs:names', o_result.name, o_result.id.str())!
+	return o_result
 }
 
 pub fn (mut self DBFs) delete(id u32) ! {

@@ -131,7 +131,7 @@ fn (mut self Fs) copy_file(file_id u32, dest_dir_id u32, opts CopyOptions) ! {
 		for blob_id in original_file.blobs {
 			original_blob := self.factory.fs_blob.get(blob_id)!
 			mut new_blob := self.factory.fs_blob.new(data: original_blob.data)!
-			self.factory.fs_blob.set(mut new_blob)!
+			new_blob = self.factory.fs_blob.set(new_blob)!
 			new_blob_ids << new_blob.id
 		}
 	} else {
@@ -148,7 +148,7 @@ fn (mut self Fs) copy_file(file_id u32, dest_dir_id u32, opts CopyOptions) ! {
 		metadata:  original_file.metadata.clone()
 	)!
 
-	self.factory.fs_file.set(mut new_file)!
+	new_file = self.factory.fs_file.set(new_file)!
 	self.factory.fs_file.add_to_directory(new_file.id, dest_dir_id)!
 }
 
@@ -181,12 +181,12 @@ fn (mut self Fs) copy_directory(dir_id u32, dest_parent_id u32, opts CopyOptions
 		description: original_dir.description
 	)!
 
-	self.factory.fs_dir.set(mut new_dir)!
+	self.factory.fs_dir.set(new_dir)!
 
 	// Add to parent's directories list
 	mut parent := self.factory.fs_dir.get(dest_parent_id)!
 	parent.directories << new_dir.id
-	self.factory.fs_dir.set(mut parent)!
+	self.factory.fs_dir.set(parent)!
 
 	// Copy contents if recursive
 	if opts.recursive {
@@ -242,10 +242,10 @@ fn (mut self Fs) copy_symlink(symlink_id u32, dest_dir_id u32, opts CopyOptions)
 		description: original_symlink.description
 	)!
 
-	self.factory.fs_symlink.set(mut new_symlink)!
+	self.factory.fs_symlink.set(new_symlink)!
 
 	// Add to parent directory's symlinks list
 	mut parent := self.factory.fs_dir.get(dest_dir_id)!
 	parent.symlinks << new_symlink.id
-	self.factory.fs_dir.set(mut parent)!
+	self.factory.fs_dir.set(parent)!
 }

@@ -101,8 +101,8 @@ pub fn (mut self DBFsSymlink) set(o FsSymlink) !FsSymlink {
 		}
 	}
 
-	self.db.set[FsSymlink](o)!
-	return o
+	o_result := self.db.set[FsSymlink](o)!
+	return o_result
 }
 
 pub fn (mut self DBFsSymlink) delete(id u32) ! {
@@ -113,7 +113,7 @@ pub fn (mut self DBFsSymlink) delete(id u32) ! {
 	if symlink.parent_id > 0 {
 		mut parent_dir := self.factory.fs_dir.get(symlink.parent_id)!
 		parent_dir.symlinks = parent_dir.symlinks.filter(it != id)
-		self.factory.fs_dir.set(mut parent_dir)!
+		self.factory.fs_dir.set(parent_dir)!
 	}
 
 	self.db.delete[FsSymlink](id)!

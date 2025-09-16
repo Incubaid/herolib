@@ -10,7 +10,7 @@ fn test_basic_operations() ! {
 		description: 'Test filesystem for basic operations'
 		quota_bytes: 1024 * 1024 * 50 // 50MB quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -18,13 +18,13 @@ fn test_basic_operations() ! {
 		fs_id:     test_fs.id
 		parent_id: 0 // Root has no parent
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Test basic file creation and retrieval
 	mut test_blob := fs_factory.fs_blob.new(data: 'Hello, HeroFS!'.bytes())!
-	fs_factory.fs_blob.set(mut test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 
 	mut test_file := fs_factory.fs_file.new(
 		name:      'test.txt'
@@ -32,7 +32,7 @@ fn test_basic_operations() ! {
 		blobs:     [test_blob.id]
 		mime_type: .txt
 	)!
-	fs_factory.fs_file.set(mut test_file)!
+	test_file = fs_factory.fs_file.set(test_file)!
 	fs_factory.fs_file.add_to_directory(test_file.id, root_dir.id)!
 
 	// Verify file was created
@@ -51,7 +51,7 @@ fn test_directory_operations() ! {
 		description: 'Test filesystem for directory operations'
 		quota_bytes: 1024 * 1024 * 50 // 50MB quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -59,9 +59,9 @@ fn test_directory_operations() ! {
 		fs_id:     test_fs.id
 		parent_id: 0 // Root has no parent
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Test directory creation using create_path
 	src_dir_id := fs_factory.fs_dir.create_path(test_fs.id, '/src')!
@@ -88,7 +88,7 @@ fn test_blob_operations() ! {
 	// Test blob creation and hash-based retrieval
 	test_data := 'Test blob content'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
-	fs_factory.fs_blob.set(mut test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 
 	// Test hash-based retrieval
 	retrieved_blob := fs_factory.fs_blob.get_by_hash(test_blob.hash)!

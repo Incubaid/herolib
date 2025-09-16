@@ -12,7 +12,7 @@ fn test_import_export_file() ! {
 		description: 'Test filesystem for import/export'
 		quota_bytes: 1024 * 1024 * 10 // 10MB quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -20,9 +20,9 @@ fn test_import_export_file() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Get filesystem instance for operations
 	mut fs := fs_factory.fs.get(test_fs.id)!
@@ -130,7 +130,7 @@ fn test_import_export_overwrite() ! {
 		description: 'Test filesystem for overwrite behavior'
 		quota_bytes: 1024 * 1024 * 5 // 5MB quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -138,9 +138,9 @@ fn test_import_export_overwrite() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Get filesystem instance
 	mut fs := fs_factory.fs.get(test_fs.id)!

@@ -1,7 +1,6 @@
 module herofs
 
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.core.redisclient
 
 fn test_cleanup() ! {
 	delete_fs_test()!
@@ -12,8 +11,7 @@ fn test_basic() ! {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut r := redisclient.test_get()!
-	mut fs_factory := new(redis: r)!
+	mut fs_factory := new()!
 
 	// Create a new filesystem (required for FsBlobMembership validation)
 	mut test_fs := fs_factory.fs.new_get_set(
@@ -31,12 +29,12 @@ fn test_basic() ! {
 		parent_id:   0 // Root has no parent
 		description: 'Root directory for testing'
 	)!
-	fs_factory.fs_dir.set(root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	root_dir_id := root_dir.id
 
 	// Update the filesystem with the root directory ID
 	test_fs.root_dir_id = root_dir_id
-	fs_factory.fs.set(test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create test blob for membership
 	test_data := 'This is test content for blob membership'.bytes()
@@ -60,7 +58,7 @@ fn test_basic() ! {
 	// Add file to directory
 	mut dir := fs_factory.fs_dir.get(root_dir_id)!
 	dir.files << file_id
-	fs_factory.fs_dir.set(dir)!
+	dir = fs_factory.fs_dir.set(dir)!
 
 	// Create test blob membership
 	mut test_membership := fs_factory.fs_blob_membership.new(
@@ -111,8 +109,7 @@ fn test_filesystem_operations() ! {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut r := redisclient.test_get()!
-	mut fs_factory := new(redis: r)!
+	mut fs_factory := new()!
 
 	// Create filesystems for testing
 	mut fs1 := fs_factory.fs.new_get_set(
@@ -120,7 +117,7 @@ fn test_filesystem_operations() ! {
 		description: 'First filesystem for testing'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_factory.fs.set(fs1)!
+	fs1 = fs_factory.fs.set(fs1)!
 	fs1_id := fs1.id
 
 	mut fs2 := fs_factory.fs.new_get_set(
@@ -128,14 +125,14 @@ fn test_filesystem_operations() ! {
 		description: 'Second filesystem for testing'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	fs_factory.fs.set(fs2)!
+	fs2 = fs_factory.fs.set(fs2)!
 	fs1_root_dir_id := fs1.root_dir_id
 	fs2_id := fs2.id
 
 	// Create test blob
 	test_data := 'This is test content for filesystem operations'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
-	fs_factory.fs_blob.set(test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 	blob_id := test_blob.id
 
 	// Create test files to get valid fsid (file IDs) for membership
@@ -153,7 +150,7 @@ fn test_filesystem_operations() ! {
 	// Add file to directory
 	mut fs1_root_dir := fs_factory.fs_dir.get(fs1.root_dir_id)!
 	fs1_root_dir.files << file1_id
-	fs_factory.fs_dir.set(fs1_root_dir)!
+	fs1_root_dir = fs_factory.fs_dir.set(fs1_root_dir)!
 
 	mut test_file2 := fs_factory.fs_file.new(
 		name:        'test_file2.txt'
@@ -169,7 +166,7 @@ fn test_filesystem_operations() ! {
 	// Add file to directory
 	mut fs2_root_dir := fs_factory.fs_dir.get(fs2.root_dir_id)!
 	fs2_root_dir.files << file2_id
-	fs_factory.fs_dir.set(fs2_root_dir)!
+	fs2_root_dir = fs_factory.fs_dir.set(fs2_root_dir)!
 
 	// Create blob membership with first filesystem
 	mut membership := fs_factory.fs_blob_membership.new(
@@ -177,7 +174,7 @@ fn test_filesystem_operations() ! {
 		fsid:   [fs1_id]
 		blobid: blob_id
 	)!
-	fs_factory.fs_blob_membership.set(membership)!
+	membership = fs_factory.fs_blob_membership.set(membership)!
 	membership_hash := membership.hash
 	println('Created blob membership with filesystem 1: ${membership_hash}')
 
@@ -224,8 +221,7 @@ fn test_validation() ! {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut r := redisclient.test_get()!
-	mut fs_factory := new(redis: r)!
+	mut fs_factory := new()!
 
 	// Create a filesystem for validation tests
 	mut test_fs := fs_factory.fs.new_get_set(
@@ -259,7 +255,7 @@ fn test_validation() ! {
 	// Create a test blob
 	test_data := 'This is test content for validation'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
-	fs_factory.fs_blob.set(test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 	blob_id := test_blob.id
 
 	// Create a membership with a non-existent filesystem ID
@@ -287,8 +283,7 @@ Testing FsBlobMembership list by prefix...')
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut r := redisclient.test_get()!
-	mut fs_factory := new(redis: r)!
+	mut fs_factory := new()!
 
 	// Create a filesystem
 	mut test_fs := fs_factory.fs.new_get_set(
@@ -306,12 +301,12 @@ Testing FsBlobMembership list by prefix...')
 		parent_id:   0 // Root has no parent
 		description: 'Root directory for testing'
 	)!
-	fs_factory.fs_dir.set(root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	root_dir_id := root_dir.id
 
 	// Update the filesystem with the root directory ID
 	test_fs.root_dir_id = root_dir_id
-	fs_factory.fs.set(test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create multiple test blobs
 	test_data1 := 'This is test content 1'.bytes()
@@ -322,11 +317,11 @@ Testing FsBlobMembership list by prefix...')
 	mut blob2 := fs_factory.fs_blob.new(data: test_data2)!
 	mut blob3 := fs_factory.fs_blob.new(data: test_data3)!
 
-	fs_factory.fs_blob.set(blob1)!
+	blob1 = fs_factory.fs_blob.set(blob1)!
 	blob1_id := blob1.id
-	fs_factory.fs_blob.set(blob2)!
+	blob2 = fs_factory.fs_blob.set(blob2)!
 	blob2_id := blob2.id
-	fs_factory.fs_blob.set(blob3)!
+	blob3 = fs_factory.fs_blob.set(blob3)!
 	blob3_id := blob3.id
 
 	// Create test files to get valid fsid (file IDs) for membership
@@ -337,7 +332,7 @@ Testing FsBlobMembership list by prefix...')
 		description: 'Test file for blob membership'
 		mime_type:   .txt
 	)!
-	fs_factory.fs_file.set(test_file)!
+	test_file = fs_factory.fs_file.set(test_file)!
 	file_id := test_file.id
 	println('Created test file with ID: ${file_id}')
 
@@ -355,7 +350,7 @@ Testing FsBlobMembership list by prefix...')
 		fsid:   [test_fs.id]
 		blobid: blob2_id
 	)!
-	fs_factory.fs_blob_membership.set(membership2)!
+	membership2 = fs_factory.fs_blob_membership.set(membership2)!
 	membership2_hash := membership2.hash
 
 	mut membership3 := fs_factory.fs_blob_membership.new(

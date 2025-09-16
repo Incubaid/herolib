@@ -108,7 +108,7 @@ fn (mut self Fs) import_file(src_path string, dest_path string, opts ImportOptio
 
 	// Create blob for file content
 	mut blob := self.factory.fs_blob.new(data: file_data)!
-	self.factory.fs_blob.set(mut blob)!
+	blob = self.factory.fs_blob.set(blob)!
 
 	// Determine MIME type based on file extension
 	mime_type := extension_to_mime_type(os.file_ext(filename))
@@ -138,7 +138,7 @@ fn (mut self Fs) import_file(src_path string, dest_path string, opts ImportOptio
 		}
 	}
 
-	self.factory.fs_file.set(mut vfs_file)!
+	vfs_file = self.factory.fs_file.set(vfs_file)!
 	self.factory.fs_file.add_to_directory(vfs_file.id, dest_dir_id)!
 }
 

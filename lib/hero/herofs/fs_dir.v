@@ -111,21 +111,21 @@ pub fn (mut self DBFsDir) new(args FsDirArg) !FsDir {
 }
 
 pub fn (mut self DBFsDir) set(o FsDir) !FsDir {
-	self.db.set[FsDir](o)!
-	return o
+	o_result := self.db.set[FsDir](o)!
+	return o_result
 }
 
 pub fn (mut self DBFsDir) delete(id u32) ! {
 	// Get the directory info before deleting
 	dir := self.get(id)!
 
-	// If has parent, remove from parent's directories list	
+	// If has parent, remove from parent's directories list
 	if dir.parent_id > 0 {
 		mut parent_dir := self.factory.fs_dir.get(dir.parent_id) or {
 			return error('Parent directory with ID ${dir.parent_id} does not exist')
 		}
 		parent_dir.directories = parent_dir.directories.filter(it != id)
-		self.factory.fs_dir.set(mut parent_dir)!
+		parent_dir = self.factory.fs_dir.set(parent_dir)!
 	}
 	// Delete the directory itself
 	self.db.delete[FsDir](id)!
@@ -186,13 +186,13 @@ pub fn (mut self DBFsDir) create_path(fs_id u32, path string) !u32 {
 				fs_id:     fs_id
 				parent_id: current_parent_id
 			)!
-			self.set(mut new_dir)!
+			new_dir = self.set(new_dir)!
 
 			// Add to parent's directories list
 			if current_parent_id > 0 {
 				mut parent_dir := self.get(current_parent_id)!
 				parent_dir.directories << new_dir.id
-				self.set(mut parent_dir)!
+				parent_dir = self.set(parent_dir)!
 			}
 
 			current_parent_id = new_dir.id
@@ -239,7 +239,7 @@ pub fn (mut self DBFsDir) rename(id u32, new_name string) ! {
 	mut dir := self.get(id)!
 	dir.name = new_name
 	dir.updated_at = ourtime.now().unix()
-	self.set(mut dir)!
+	dir = self.set(dir)!
 }
 
 // Move directory to a new parent
@@ -256,7 +256,7 @@ pub fn (mut self DBFsDir) move(id u32, new_parent_id u32) ! {
 	if old_parent_id > 0 {
 		mut old_parent := self.get(old_parent_id)!
 		old_parent.directories = old_parent.directories.filter(it != id)
-		self.set(mut old_parent)!
+		old_parent = self.set(old_parent)!
 	}
 
 	// Add to new parent's directories list
@@ -265,11 +265,11 @@ pub fn (mut self DBFsDir) move(id u32, new_parent_id u32) ! {
 		if id !in new_parent.directories {
 			new_parent.directories << id
 		}
-		self.set(mut new_parent)!
+		new_parent = self.set(new_parent)!
 	}
 
 	// Update directory's parent_id
 	dir.parent_id = new_parent_id
 	dir.updated_at = ourtime.now().unix()
-	self.set(mut dir)!
+	dir = self.set(dir)!
 }

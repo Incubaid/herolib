@@ -59,13 +59,12 @@ pub fn new_fs(args FsArg) !Fs {
 }
 
 pub fn new_fs_test() !Fs {
-	mut r := redisclient.test_get()!
-	mut f := new(redis: r)!
+	mut f := new()!
 	mut fs := f.fs.new_get_set(name: 'test')!
 	return fs
 }
 
 pub fn delete_fs_test() ! {
-	mut r := redisclient.test_get()!
-	r.flushdb()!
+	mut fs_factory := new()!
+	fs_factory.fs.db.redis.flushdb()!
 }

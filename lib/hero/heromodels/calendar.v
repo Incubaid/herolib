@@ -116,7 +116,7 @@ pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
 
 pub fn (mut self DBCalendar) set(mut o Calendar) ! {
 	// Use db set function which now modifies the object in-place	
-	self.db.set[Calendar](mut o)!
+	self.db.set[Calendar](o)!
 }
 
 pub fn (mut self DBCalendar) delete(id u32) ! {

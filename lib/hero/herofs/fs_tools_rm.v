@@ -94,7 +94,7 @@ fn (mut self Fs) remove_file(file_id u32, opts RemoveOptions) ! {
 	for dir_id in containing_dirs {
 		mut dir := self.factory.fs_dir.get(dir_id)!
 		dir.files = dir.files.filter(it != file_id)
-		self.factory.fs_dir.set(mut dir)!
+		self.factory.fs_dir.set(dir)!
 	}
 
 	// Delete the file
@@ -109,7 +109,7 @@ fn (mut self Fs) remove_symlink(symlink_id u32) ! {
 	if symlink.parent_id > 0 {
 		mut parent_dir := self.factory.fs_dir.get(symlink.parent_id)!
 		parent_dir.symlinks = parent_dir.symlinks.filter(it != symlink_id)
-		self.factory.fs_dir.set(mut parent_dir)!
+		self.factory.fs_dir.set(parent_dir)!
 	}
 
 	// Delete the symlink
@@ -149,7 +149,7 @@ fn (mut self Fs) remove_directory(dir_id u32, opts RemoveOptions) ! {
 	if dir.parent_id > 0 {
 		mut parent_dir := self.factory.fs_dir.get(dir.parent_id)!
 		parent_dir.directories = parent_dir.directories.filter(it != dir_id)
-		self.factory.fs_dir.set(mut parent_dir)!
+		self.factory.fs_dir.set(parent_dir)!
 	}
 
 	// Delete the directory

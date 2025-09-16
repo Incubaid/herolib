@@ -140,7 +140,7 @@ pub fn (mut self DBFsFile) set(o_ FsFile) !FsFile {
 			return error('Blob with ID ${blob_id} does not exist')
 		}
 	}
-	self.db.set[FsFile](o)!
+	o = self.db.set[FsFile](o)!
 
 	return o
 }
@@ -150,7 +150,7 @@ pub fn (mut self DBFsFile) add_to_directory(file_id u32, dir_id u32) ! {
 	mut dir := self.factory.fs_dir.get(dir_id)!
 	if file_id !in dir.files {
 		dir.files << file_id
-		self.factory.fs_dir.set(mut dir)!
+		dir = self.factory.fs_dir.set(dir)!
 	}
 }
 
@@ -161,7 +161,7 @@ pub fn (mut self DBFsFile) delete(id u32) ! {
 		mut dir := self.factory.fs_dir.get(dir_id)!
 		// Remove the file ID from the directory's files array
 		dir.files = dir.files.filter(it != id)
-		self.factory.fs_dir.set(mut dir)!
+		dir = self.factory.fs_dir.set(dir)!
 	}
 
 	// Delete the file itself
@@ -183,7 +183,7 @@ pub fn (mut self DBFsFile) get(id u32) !FsFile {
 pub fn (mut self DBFsFile) update_accessed(id u32) ! {
 	mut file := self.get(id)!
 	file.updated_at = ourtime.now().unix()
-	self.set(mut file)!
+	self.set(file)!
 }
 
 // Update file metadata
@@ -191,7 +191,7 @@ pub fn (mut self DBFsFile) update_metadata(id u32, key string, value string) ! {
 	mut file := self.get(id)!
 	file.metadata[key] = value
 	file.updated_at = ourtime.now().unix()
-	self.set(mut file)!
+	self.set(file)!
 }
 
 // Rename file (affects all directories)
@@ -199,7 +199,7 @@ pub fn (mut self DBFsFile) rename(id u32, new_name string) ! {
 	mut file := self.get(id)!
 	file.name = new_name
 	file.updated_at = ourtime.now().unix()
-	self.set(mut file)!
+	self.set(file)!
 }
 
 // Move file to different directories
@@ -215,7 +215,7 @@ pub fn (mut self DBFsFile) move(id u32, new_dir_ids []u32) ! {
 	for dir_id in self.list_directories_for_file(id)! {
 		mut dir := self.factory.fs_dir.get(dir_id)!
 		dir.files = dir.files.filter(it != id)
-		self.factory.fs_dir.set(mut dir)!
+		dir = self.factory.fs_dir.set(dir)!
 	}
 
 	// Add file to new directories
@@ -247,7 +247,7 @@ pub fn (mut self DBFsFile) append_blob(id u32, blob_id u32) ! {
 	file.size_bytes += blob_size
 
 	file.updated_at = ourtime.now().unix()
-	self.set(mut file)!
+	file = self.set(file)!
 }
 
 // List all files

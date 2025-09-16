@@ -26,7 +26,7 @@ fn test_invalid_references() ! {
 		description: 'Test filesystem for error conditions'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Try to create file with invalid blob ID
 	fs_factory.fs_file.new(
@@ -51,7 +51,7 @@ fn test_directory_parent_validation() ! {
 		description: 'Test filesystem for parent validation'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Try to create directory with invalid parent
 	mut invalid_dir := fs_factory.fs_dir.new(
@@ -61,7 +61,7 @@ fn test_directory_parent_validation() ! {
 	)!
 
 	// Try to set it (this should fail with validation)
-	fs_factory.fs_dir.set(mut invalid_dir) or {
+	fs_factory.fs_dir.set(invalid_dir) or {
 		assert err.msg().contains('does not exist')
 		println('✓ Invalid parent directory correctly rejected')
 		return
@@ -80,7 +80,7 @@ fn test_symlink_validation() ! {
 		description: 'Test filesystem for symlink validation'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -88,7 +88,7 @@ fn test_symlink_validation() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Try to create symlink with invalid target
 	mut invalid_symlink := fs_factory.fs_symlink.new(
@@ -100,7 +100,7 @@ fn test_symlink_validation() ! {
 	)!
 
 	// Try to set it (this should fail with validation)
-	fs_factory.fs_symlink.set(mut invalid_symlink) or {
+	fs_factory.fs_symlink.set(invalid_symlink) or {
 		assert err.msg().contains('does not exist')
 		println('✓ Invalid symlink target correctly rejected')
 		return
@@ -139,7 +139,7 @@ fn test_empty_data_handling() ! {
 	// Test creating blob with empty data
 	empty_data := []u8{}
 	mut empty_blob := fs_factory.fs_blob.new(data: empty_data)!
-	fs_factory.fs_blob.set(mut empty_blob)!
+	empty_blob = fs_factory.fs_blob.set(empty_blob)!
 
 	// Verify empty blob was created correctly
 	retrieved_blob := fs_factory.fs_blob.get(empty_blob.id)!
@@ -158,7 +158,7 @@ fn test_path_edge_cases() ! {
 		description: 'Test filesystem for path edge cases'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -166,9 +166,9 @@ fn test_path_edge_cases() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Get filesystem instance
 	mut fs := fs_factory.fs.get(test_fs.id)!
@@ -194,7 +194,7 @@ fn test_circular_symlink_detection() ! {
 		description: 'Test filesystem for circular symlink detection'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -202,7 +202,7 @@ fn test_circular_symlink_detection() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Create directory A
 	mut dir_a := fs_factory.fs_dir.new(
@@ -210,7 +210,7 @@ fn test_circular_symlink_detection() ! {
 		fs_id:     test_fs.id
 		parent_id: root_dir.id
 	)!
-	fs_factory.fs_dir.set(mut dir_a)!
+	dir_a = fs_factory.fs_dir.set(dir_a)!
 
 	// Create directory B
 	mut dir_b := fs_factory.fs_dir.new(
@@ -218,7 +218,7 @@ fn test_circular_symlink_detection() ! {
 		fs_id:     test_fs.id
 		parent_id: root_dir.id
 	)!
-	fs_factory.fs_dir.set(mut dir_b)!
+	dir_b = fs_factory.fs_dir.set(dir_b)!
 
 	// Create symlink from A to B
 	mut symlink_a_to_b := fs_factory.fs_symlink.new(
@@ -228,7 +228,7 @@ fn test_circular_symlink_detection() ! {
 		target_id:   dir_b.id
 		target_type: .directory
 	)!
-	fs_factory.fs_symlink.set(mut symlink_a_to_b)!
+	symlink_a_to_b = fs_factory.fs_symlink.set(symlink_a_to_b)!
 
 	// Try to create symlink from B to A (would create circular reference)
 	mut symlink_b_to_a := fs_factory.fs_symlink.new(
@@ -241,7 +241,7 @@ fn test_circular_symlink_detection() ! {
 
 	// This should succeed for now (circular detection not implemented yet)
 	// But we can test that both symlinks exist
-	fs_factory.fs_symlink.set(mut symlink_b_to_a)!
+	symlink_b_to_a = fs_factory.fs_symlink.set(symlink_b_to_a)!
 
 	// Verify both symlinks were created
 	link_a_exists := fs_factory.fs_symlink.exist(symlink_a_to_b.id)!
@@ -262,7 +262,7 @@ fn test_quota_enforcement() ! {
 		description: 'Test filesystem for quota enforcement'
 		quota_bytes: 100 // Very small quota
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -270,12 +270,12 @@ fn test_quota_enforcement() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Try to create blob larger than quota
 	large_data := []u8{len: 200, init: u8(65)} // 200 bytes > 100 byte quota
 	mut large_blob := fs_factory.fs_blob.new(data: large_data)!
-	fs_factory.fs_blob.set(mut large_blob)!
+	large_blob = fs_factory.fs_blob.set(large_blob)!
 
 	// Note: Quota enforcement is not yet implemented
 	// This test documents the expected behavior for future implementation
@@ -291,7 +291,7 @@ fn test_concurrent_access_simulation() ! {
 		description: 'Test filesystem for concurrent access simulation'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -299,13 +299,13 @@ fn test_concurrent_access_simulation() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Simulate concurrent file creation
 	for i in 0 .. 10 {
 		content := 'Concurrent file ${i}'.bytes()
 		mut blob := fs_factory.fs_blob.new(data: content)!
-		fs_factory.fs_blob.set(mut blob)!
+		blob = fs_factory.fs_blob.set(blob)!
 
 		mut file := fs_factory.fs_file.new(
 			name:      'concurrent_${i}.txt'
@@ -313,7 +313,7 @@ fn test_concurrent_access_simulation() ! {
 			blobs:     [blob.id]
 			mime_type: .txt
 		)!
-		fs_factory.fs_file.set(mut file)!
+		file = fs_factory.fs_file.set(file)!
 		fs_factory.fs_file.add_to_directory(file.id, root_dir.id)!
 	}
 
@@ -332,7 +332,7 @@ fn test_invalid_path_operations() ! {
 		description: 'Test filesystem for invalid path operations'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -340,9 +340,9 @@ fn test_invalid_path_operations() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	test_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Get filesystem instance
 	mut fs := fs_factory.fs.get(test_fs.id)!
@@ -384,7 +384,7 @@ fn test_filesystem_name_conflicts() ! {
 		description: 'First filesystem'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut fs1)!
+	fs1 = fs_factory.fs.set(fs1)!
 
 	// Try to create second filesystem with same name
 	mut fs2 := fs_factory.fs.new(
@@ -392,7 +392,7 @@ fn test_filesystem_name_conflicts() ! {
 		description: 'Second filesystem'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut fs2)!
+	fs2 = fs_factory.fs.set(fs2)!
 
 	// Both should succeed (name conflicts not enforced at DB level)
 	// But we can test retrieval by name
@@ -414,7 +414,7 @@ fn test_blob_integrity_verification() ! {
 	// Create blob with known content
 	test_data := 'Test data for integrity check'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
-	fs_factory.fs_blob.set(mut test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 
 	// Verify integrity
 	is_valid := test_blob.verify_integrity()
@@ -440,7 +440,7 @@ fn test_directory_deletion_with_contents() ! {
 		description: 'Test filesystem for directory deletion'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	fs_factory.fs.set(mut test_fs)!
+	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create root directory
 	mut root_dir := fs_factory.fs_dir.new(
@@ -448,7 +448,7 @@ fn test_directory_deletion_with_contents() ! {
 		fs_id:     test_fs.id
 		parent_id: 0
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Create subdirectory with content
 	mut sub_dir := fs_factory.fs_dir.new(
@@ -456,12 +456,12 @@ fn test_directory_deletion_with_contents() ! {
 		fs_id:     test_fs.id
 		parent_id: root_dir.id
 	)!
-	fs_factory.fs_dir.set(mut sub_dir)!
+	sub_dir = fs_factory.fs_dir.set(sub_dir)!
 
 	// Add file to subdirectory
 	test_content := 'File in subdirectory'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_content)!
-	fs_factory.fs_blob.set(mut test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 
 	mut test_file := fs_factory.fs_file.new(
 		name:      'test.txt'
@@ -469,7 +469,7 @@ fn test_directory_deletion_with_contents() ! {
 		blobs:     [test_blob.id]
 		mime_type: .txt
 	)!
-	fs_factory.fs_file.set(mut test_file)!
+	test_file = fs_factory.fs_file.set(test_file)!
 	fs_factory.fs_file.add_to_directory(test_file.id, sub_dir.id)!
 
 	// Try to delete non-empty directory (should fail)
