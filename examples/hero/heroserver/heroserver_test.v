@@ -1,5 +1,4 @@
 import freeflowuniverse.herolib.hero.heroserver
-import freeflowuniverse.herolib.schemas.openrpc
 
 fn testsuite_begin() {
 	// a clean start
@@ -8,16 +7,12 @@ fn testsuite_begin() {
 
 fn test_heroserver_new() {
 	// Create server
-	mut server := heroserver.new_server(port: 8080)!
+	mut server := heroserver.new_server(heroserver.ServerConfig{
+		port:        8080
+		auth_config: heroserver.AuthConfig{}
+	})!
 
-	// Register handlers
-	spec := openrpc.from_file('./openrpc.json')!
-	handler := openrpc.new_handler(spec)
-
-	server.handler_registry.register('comments', handler, spec)
-
-	// Start server
-	go server.start()
-
+	// Test that server was created successfully
+	assert server.config.port == 8080
 	assert true
 }

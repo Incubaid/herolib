@@ -2,5 +2,8 @@
 
 import freeflowuniverse.herolib.hero.heroserver
 
-mut server := heroserver.new_server(port: 8080)!
+mut server := heroserver.new_server(heroserver.ServerConfig{
+	port:        8080
+	auth_config: heroserver.AuthConfig{}
+})!
 server.start()!

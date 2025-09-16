@@ -2,21 +2,19 @@ module heroserver
 
 import veb
 import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.crypt
-import freeflowuniverse.herolib.heroserver.auth
-import freeflowuniverse.herolib.heroserver.handlers
+import freeflowuniverse.herolib.hero.crypt
 
 pub struct ServerConfig {
 pub mut:
 	port        int = 8080
-	auth_config auth.AuthConfig
+	auth_config AuthConfig
 }
 
 pub struct HeroServer {
 pub mut:
 	config           ServerConfig
-	auth_manager     &auth.AuthManager
-	handler_registry &handlers.HandlerRegistry
+	auth_manager     &AuthManager
+	handler_registry &HandlerRegistry
 	age_client       &crypt.AGEClient
 }
 
@@ -83,8 +81,8 @@ pub fn (mut s HeroServer) doc(mut ctx Context, handler_type string) veb.Result {
 
 // new_server creates a new HeroServer instance
 pub fn new_server(config ServerConfig) !&HeroServer {
-	mut auth_manager := auth.new_auth_manager(config.auth_config)!
-	mut handler_registry := handlers.new_handler_registry()!
+	mut auth_manager := new_auth_manager(config.auth_config)
+	mut handler_registry := new_handler_registry()
 	mut age_client := crypt.new_age_client(crypt.AGEClientConfig{})!
 
 	return &HeroServer{
