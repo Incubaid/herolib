@@ -113,8 +113,9 @@ pub fn (mut self DBFsDir) new(args FsDirArg) !FsDir {
 	return o
 }
 
-pub fn (mut self DBFsDir) set(mut o FsDir) ! {
-	self.db.set[FsDir](mut o)!
+pub fn (mut self DBFsDir) set(o FsDir) !FsDir {
+	self.db.set[FsDir](o)!
+	return o
 }
 
 pub fn (mut self DBFsDir) delete(id u32) ! {

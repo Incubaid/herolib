@@ -133,14 +133,8 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 	return o
 }
 
-pub fn (mut self DBFsFile) set(mut o FsFile) ! {
-	// Check that directories exist
-	for dir_id in o.directories {
-		dir_exists := self.db.exists[FsDir](dir_id)!
-		if !dir_exists {
-			return error('Directory with ID ${dir_id} does not exist')
-		}
-	}
+pub fn (mut self DBFsFile) set(o_ FsFile) !FsFile {
+	mut o := o_
 
 	// Check that blobs exist
 	for blob_id in o.blobs {
@@ -149,7 +143,9 @@ pub fn (mut self DBFsFile) set(mut o FsFile) ! {
 			return error('Blob with ID ${blob_id} does not exist')
 		}
 	}
-	self.db.set[FsFile](mut o)!
+	self.db.set[FsFile](o)!
+
+	return o
 }
 
 pub fn (mut self DBFsFile) delete(id u32) ! {

@@ -38,63 +38,70 @@ mut fs_factory := herofs.new()!
 ### Creating a Filesystem
 
 ```v
-fs_id := fs_factory.fs.set(fs_factory.fs.new(
+mut fs := fs_factory.fs.new(
 	name: 'my_filesystem'
 	quota_bytes: 1000000000 // 1GB quota
-)!)!
+)!
+fs = fs_factory.fs.set(fs)!
+fs_id := fs.id
 ```
 
 ### Working with Directories
 
 ```v
 // Create root directory
-root_dir_id := fs_factory.fs_dir.set(fs_factory.fs_dir.new(
+mut root_dir := fs_factory.fs_dir.new(
 	name: 'root'
 	fs_id: fs_id
 	parent_id: 0
-)!)!
+)!
+root_dir_id := fs_factory.fs_dir.set(root_dir)!
 
 // Create subdirectory
-sub_dir_id := fs_factory.fs_dir.set(fs_factory.fs_dir.new(
+mut sub_dir := fs_factory.fs_dir.new(
 	name: 'documents'
 	fs_id: fs_id
 	parent_id: root_dir_id
-)!)!
+)!
+sub_dir_id := fs_factory.fs_dir.set(sub_dir)!
 ```
 
 ### Working with Blobs
 
 ```v
 // Create a blob with binary data
-blob_id := fs_factory.fs_blob.set(fs_factory.fs_blob.new(
+mut blob := fs_factory.fs_blob.new(
 	data: content_bytes
 	mime_type: 'text/plain'
-)!)!
+)!
+blob_id := fs_factory.fs_blob.set(blob)!
 ```
 
 ### Working with Files
 
 ```v
 // Create a file
-file_id := fs_factory.fs_file.set(fs_factory.fs_file.new(
+mut file := fs_factory.fs_file.new(
 	name: 'example.txt'
 	fs_id: fs_id
 	directories: [root_dir_id]
 	blobs: [blob_id]
-)!)!
+)!
+file_id := fs_factory.fs_file.set(file)!
 ```
 
 ### Working with Symbolic Links
 
 ```v
 // Create a symbolic link to a file
-symlink_id := fs_factory.fs_symlink.set(fs_factory.fs_symlink.new(
+mut symlink := fs_factory.fs_symlink.new(
 	name: 'example_link.txt'
 	fs_id: fs_id
 	parent_id: root_dir_id
 	target_id: file_id
 	target_type: .file
-)!)!
+)!
+symlink_id := fs_factory.fs_symlink.set(symlink)!
 ```
 
 ## API Reference
