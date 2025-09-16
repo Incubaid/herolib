@@ -79,7 +79,7 @@ pub fn (mut self DBFsSymlink) new(args FsSymlinkArg) !FsSymlink {
 	return o
 }
 
-pub fn (mut self DBFsSymlink) set(mut o FsSymlink) ! {
+pub fn (mut self DBFsSymlink) set(o FsSymlink) !FsSymlink {
 	// Check parent directory exists
 	if o.parent_id > 0 {
 		parent_exists := self.db.exists[FsDir](o.parent_id)!
@@ -101,7 +101,8 @@ pub fn (mut self DBFsSymlink) set(mut o FsSymlink) ! {
 		}
 	}
 
-	self.db.set[FsSymlink](mut o)!
+	self.db.set[FsSymlink](o)!
+	return o
 }
 
 pub fn (mut self DBFsSymlink) delete(id u32) ! {

@@ -68,14 +68,14 @@ pub fn (mut self DBFsBlob) new(args FsBlobArg) !FsBlob {
 	return o
 }
 
-pub fn (mut self DBFsBlob) set(mut o FsBlob) ! {
+pub fn (mut self DBFsBlob) set(o_ FsBlob) !FsBlob {
 	// Use db set function which now modifies the object in-place
-	self.db.set[FsBlob](mut o)!
+	o := self.db.set[FsBlob](o_)!
 
 	// Store the hash -> id mapping for lookup
 	self.db.redis.hset('fsblob:hashes', o.hash, o.id.str())!
 
-	// Note: Blob membership will be created when the blob is associated with a filesystem
+	return o
 }
 
 pub fn (mut self DBFsBlob) delete(id u32) ! {

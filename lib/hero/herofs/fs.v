@@ -136,21 +136,23 @@ pub fn (mut self DBFs) new_get_set(args_ FsArg) !Fs {
 	return o
 }
 
-pub fn (mut self DBFs) set(mut o Fs) ! {
-	if o.root_dir_id == 0 {
+pub fn (mut self DBFs) set(o Fs) !Fs {
+	mut o_mut := o
+	if o_mut.root_dir_id == 0 {
 		// If no root directory is set, create one
 		mut root_dir := self.factory.fs_dir.new(
 			name:      'root'
-			fs_id:     o.id
+			fs_id:     o_mut.id
 			parent_id: 0 // Root has no parent
 		)!
-		self.factory.fs_dir.set(mut root_dir)!
-		o.root_dir_id = root_dir.id
+		root_dir = self.factory.fs_dir.set(root_dir)!
+		o_mut.root_dir_id = root_dir.id
 		// Update the filesystem with the new root directory ID
 	}
-	self.db.redis.hset('fs:names', o.name, o.id.str())!
+	self.db.redis.hset('fs:names', o_mut.name, o_mut.id.str())!
 	// Use db set function which now modifies the object in-place	
-	self.db.set[Fs](mut o)!
+	self.db.set[Fs](o_mut)!
+	return o_mut
 }
 
 pub fn (mut self DBFs) delete(id u32) ! {

@@ -2,10 +2,10 @@ module db
 
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.data.encoder
-import time
 
-pub fn (mut self DB) set[T](mut obj T) !T {
+pub fn (mut self DB) set[T](obj_ T) !T {
 	// Get the next ID	
+	mut obj := obj_
 	if obj.id == 0 {
 		obj.id = self.new_id()!
 	}

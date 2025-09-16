@@ -22,13 +22,13 @@ pub fn (self FsBlobMembership) type_name() string {
 	return 'fs_blob_membership'
 }
 
-pub fn (self FsBlobMembership) dump(mut e encoder.Encoder) ! {
+pub fn (self FsBlobMembership) dump(e encoder.Encoder) ! {
 	e.add_string(self.hash)
 	e.add_list_u32(self.fsid)
 	e.add_u32(self.blobid)
 }
 
-fn (mut self DBFsBlobMembership) load(mut o FsBlobMembership, mut e encoder.Decoder) ! {
+fn (self DBFsBlobMembership) load(o FsBlobMembership, e encoder.Decoder) ! {
 	o.hash = e.get_string()!
 	o.fsid = e.get_list_u32()!
 	o.blobid = e.get_u32()!
@@ -42,8 +42,8 @@ pub mut:
 	blobid u32    @[required]
 }
 
-pub fn (mut self DBFsBlobMembership) new(args FsBlobMembershipArg) !FsBlobMembership {
-	mut o := FsBlobMembership{
+pub fn (self DBFsBlobMembership) new(args FsBlobMembershipArg) !FsBlobMembership {
+	o := FsBlobMembership{
 		hash:   args.hash
 		fsid:   args.fsid
 		blobid: args.blobid
@@ -52,7 +52,7 @@ pub fn (mut self DBFsBlobMembership) new(args FsBlobMembershipArg) !FsBlobMember
 	return o
 }
 
-pub fn (mut self DBFsBlobMembership) set(mut o FsBlobMembership) ! {
+pub fn (self DBFsBlobMembership) set(o FsBlobMembership) !FsBlobMembership {
 	// Validate that the blob exists
 	if o.blobid == 0 {
 		return error('Blob ID cannot be 0')
@@ -62,19 +62,21 @@ pub fn (mut self DBFsBlobMembership) set(mut o FsBlobMembership) ! {
 		return error('Blob with ID ${o.blobid} does not exist')
 	}
 
-	if o.hash == '' {
-		mut blob := self.factory.fs_blob.get(o.blobid) or {
-			return error('Failed to retrieve blob with ID ${o.blobid}: ${err.msg()}')
+	o_mut := o
+
+	if o_mut.hash == '' {
+		blob := self.factory.fs_blob.get(o_mut.blobid) or {
+			return error('Failed to retrieve blob with ID ${o_mut.blobid}: ${err.msg()}')
 		}
-		o.hash = blob.hash
+		o_mut.hash = blob.hash
 	}
 
-	if o.fsid.len == 0 {
+	if o_mut.fsid.len == 0 {
 		return error('Blob membership filesystem IDs cannot be empty')
 	}
 
 	// Validate that all filesystems exist
-	for fs_id in o.fsid {
+	for fs_id in o_mut.fsid {
 		fs_exists := self.factory.fs.exist(fs_id)!
 		if !fs_exists {
 			return error('Filesystem with ID ${fs_id} does not exist')
@@ -82,22 +84,24 @@ pub fn (mut self DBFsBlobMembership) set(mut o FsBlobMembership) ! {
 	}
 
 	// Encode the object
-	mut e_encoder := encoder.new()
-	o.dump(mut e_encoder)!
+	e_encoder := encoder.new()
+	o_mut.dump(e_encoder)!
 
 	// Store using hash as key in the blob_membership hset
-	self.db.redis.hset('fs_blob_membership', o.hash, e_encoder.data.bytestr())!
+	self.db.redis.hset('fs_blob_membership', o_mut.hash, e_encoder.data.bytestr())!
+
+	return o_mut
 }
 
-pub fn (mut self DBFsBlobMembership) delete(hash string) ! {
+pub fn (self DBFsBlobMembership) delete(hash string) ! {
 	self.db.redis.hdel('fs_blob_membership', hash)!
 }
 
-pub fn (mut self DBFsBlobMembership) exist(hash string) !bool {
+pub fn (self DBFsBlobMembership) exist(hash string) !bool {
 	return self.db.redis.hexists('fs_blob_membership', hash)!
 }
 
-pub fn (mut self DBFsBlobMembership) get(hash string) !FsBlobMembership {
+pub fn (self DBFsBlobMembership) get(hash string) !FsBlobMembership {
 	// Get the data from Redis
 	data := self.db.redis.hget('fs_blob_membership', hash)!
 	if data == '' {
@@ -105,34 +109,34 @@ pub fn (mut self DBFsBlobMembership) get(hash string) !FsBlobMembership {
 	}
 	data2 := data.bytes()
 	// Create object and decode
-	mut o := FsBlobMembership{}
-	mut e_decoder := encoder.decoder_new(data2)
-	self.load(mut o, mut e_decoder)!
+	o := FsBlobMembership{}
+	e_decoder := encoder.decoder_new(data2)
+	self.load(o, e_decoder)!
 
 	return o
 }
 
 // Add a filesystem to an existing blob membership
-pub fn (mut self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) ! {
+pub fn (self DBFsBlobMembership) add_filesystem(hash string, fs_id u32) ! {
 	// Validate filesystem exists
 	fs_exists := self.factory.fs.exist(fs_id)!
 	if !fs_exists {
 		return error('Filesystem with ID ${fs_id} does not exist')
 	}
 
-	mut membership := self.get(hash)!
+	membership := self.get(hash)!
 
 	// Check if filesystem is already in the list
 	if fs_id !in membership.fsid {
 		membership.fsid << fs_id
 	}
 
-	self.set(mut membership)!
+	self.set(membership)!
 }
 
 // Remove a filesystem from an existing blob membership
-pub fn (mut self DBFsBlobMembership) remove_filesystem(hash string, fs_id u32) ! {
-	mut membership := self.get(hash)!
+pub fn (self DBFsBlobMembership) remove_filesystem(hash string, fs_id u32) ! {
+	membership := self.get(hash)!
 
 	// Remove filesystem from the list
 	membership.fsid = membership.fsid.filter(it != fs_id)
@@ -143,7 +147,7 @@ pub fn (mut self DBFsBlobMembership) remove_filesystem(hash string, fs_id u32) !
 		return
 	}
 
-	self.set(mut membership)!
+	self.set(membership)!
 }
 
 // BlobList represents a simplified blob structure for listing purposes
@@ -156,10 +160,10 @@ pub mut:
 
 // list_by_hash_prefix lists blob memberships where hash starts with the given prefix
 // Returns maximum 10000 items as FsBlobMembership entries
-pub fn (mut self DBFsBlobMembership) list_prefix(prefix string) ![]FsBlobMembership {
-	mut result := []FsBlobMembership{}
-	mut cursor := 0
-	mut count := 0
+pub fn (self DBFsBlobMembership) list_prefix(prefix string) ![]FsBlobMembership {
+	result := []FsBlobMembership{}
+	cursor := 0
+	count := 0
 
 	for {
 		if count >= 10000 {
@@ -174,7 +178,7 @@ pub fn (mut self DBFsBlobMembership) list_prefix(prefix string) ![]FsBlobMembers
 
 		// Process the returned field-value pairs
 		// hscan returns alternating field-value pairs, so we iterate by 2
-		mut i := 0
+		i := 0
 		for i < values.len && count < 10000 {
 			hash := values[i]
 			// Skip the value (we don't need it since we'll get the object by hash)
