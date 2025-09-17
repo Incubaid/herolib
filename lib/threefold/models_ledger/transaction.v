@@ -5,6 +5,23 @@ import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 
+// Transaction represents a financial transaction
+@[heap]
+pub struct Transaction {
+	db.Base
+pub mut:
+	txid        u32
+	source      u32
+	destination u32
+	assetid     u32
+	amount      f64
+	timestamp   u64
+	status      string
+	memo        string
+	tx_type     TransactionType
+	signatures  []TransactionSignature
+}
+
 // TransactionType represents the type of transaction
 pub enum TransactionType {
 	transfer
@@ -21,23 +38,6 @@ pub mut:
 	signer_id u32
 	signature string
 	timestamp u64
-}
-
-// Transaction represents a financial transaction
-@[heap]
-pub struct Transaction {
-	db.Base
-pub mut:
-	txid        u32
-	source      u32
-	destination u32
-	assetid     u32
-	amount      f64
-	timestamp   u64
-	status      string
-	memo        string
-	tx_type     TransactionType
-	signatures  []TransactionSignature
 }
 
 pub struct DBTransaction {
@@ -105,7 +105,7 @@ pub fn (self Transaction) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.status)
 	e.add_string(self.memo)
 	e.add_int(int(self.tx_type))
-	
+
 	// signatures
 	e.add_int(self.signatures.len)
 	for sig in self.signatures {
@@ -124,8 +124,8 @@ fn (mut self DBTransaction) load(mut o Transaction, mut e encoder.Decoder) ! {
 	o.timestamp = e.get_u64()!
 	o.status = e.get_string()!
 	o.memo = e.get_string()!
-	o.tx_type = TransactionType(e.get_int()!)
-	
+	o.tx_type = unsafe { TransactionType(e.get_int()!) }
+
 	// signatures
 	sig_len := e.get_int()!
 	o.signatures = []TransactionSignature{cap: sig_len}

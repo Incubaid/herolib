@@ -99,7 +99,7 @@ pub fn (mut self DBSignature) new(args SignatureArg) !Signature {
 		signer_id: args.signer_id
 		tx_id:     args.tx_id
 		signature: args.signature
-		timestamp: ourtime.now().unix()
+		timestamp: u64(ourtime.now().unix())
 	}
 
 	o.name = args.name

@@ -135,13 +135,13 @@ pub mut:
 pub fn (self AccountAsset) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.assetid)
 	e.add_f64(self.balance)
-	e.add_map_string_string(self.metadata)
+	e.add_map_string(self.metadata)
 }
 
 fn (mut self AccountAsset) load(mut e encoder.Decoder) ! {
 	self.assetid = e.get_u32()!
 	self.balance = e.get_f64()!
-	self.metadata = e.get_map_string_string()!
+	self.metadata = e.get_map_string()!
 }
 
 pub struct DBAccount {
