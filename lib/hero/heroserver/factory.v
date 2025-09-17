@@ -22,6 +22,7 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 		sessions: map[string]Session{}
 		handlers: map[string]openrpc.OpenRPCHandler{}
 		app: app
+		challenges: map[string]AuthChallenge{}
 	}
 	
 	return server

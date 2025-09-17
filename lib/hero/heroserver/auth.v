@@ -27,7 +27,7 @@ pub fn (mut server HeroServer) auth_request(pubkey string) !AuthResponse {
 	challenge := md5.hexhash(challenge_data)
 	
 	// Store challenge with expiration
-	challenges[pubkey] = AuthChallenge{
+	server.challenges[pubkey] = AuthChallenge{
 		pubkey: pubkey
 		challenge: challenge
 		created_at: time.now()
@@ -42,13 +42,13 @@ pub fn (mut server HeroServer) auth_request(pubkey string) !AuthResponse {
 // Submit signed challenge for authentication
 pub fn (mut server HeroServer) auth_submit(pubkey string, signature string) !AuthSubmitResponse {
 	// Get stored challenge
-	challenge_data := challenges[pubkey] or {
+	challenge_data := server.challenges[pubkey] or {
 		return error('No active challenge for this public key')
 	}
 	
 	// Check if challenge expired
 	if time.now() > challenge_data.expires_at {
-		challenges.delete(pubkey)
+		server.challenges.delete(pubkey)
 		return error('Challenge expired')
 	}
 	
@@ -78,7 +78,7 @@ pub fn (mut server HeroServer) auth_submit(pubkey string, signature string) !Aut
 	server.sessions[session_key] = session
 	
 	// Clean up challenge
-	challenges.delete(pubkey)
+	server.challenges.delete(pubkey)
 	
 	return AuthSubmitResponse{
 		session_key: session_key
