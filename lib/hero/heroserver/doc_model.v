@@ -1,14 +1,15 @@
 module heroserver
 
 import freeflowuniverse.herolib.schemas.openrpc
+import freeflowuniverse.herolib.schemas.jsonschema
 
 // DocSpec is the main object passed to the documentation template.
 pub struct DocSpec {
 pub mut:
-	info          openrpc.Info
-	methods       []DocMethod
-	objects       []DocObject
-	auth_info     AuthDocInfo
+	info      openrpc.Info
+	methods   []DocMethod
+	objects   []DocObject
+	auth_info AuthDocInfo
 }
 
 // DocObject represents a logical grouping of methods.
@@ -58,27 +59,138 @@ pub mut:
 	example     string
 }
 
-// Converts an OpenRPC spec to a documentation-friendly spec
-pub fn doc_spec_from_openrpc(openrpc_spec openrpc.OpenRPC, handler_type string) DocSpec {
+// doc_spec_from_openrpc converts an OpenRPC specification to a documentation-friendly DocSpec.
+// Processes all methods, parameters, and results with proper type extraction and example generation.
+// Returns error if handler_type is empty or if OpenRPC spec is invalid.
+pub fn doc_spec_from_openrpc(openrpc_spec openrpc.OpenRPC, handler_type string) !DocSpec {
+	if handler_type.trim_space() == '' {
+		return error('handler_type cannot be empty')
+	}
 	mut doc_spec := DocSpec{
-		info: openrpc_spec.info
+		info:      openrpc_spec.info
 		auth_info: create_auth_info()
 	}
-	
-	// Simplified implementation for now
+
 	for method in openrpc_spec.methods {
+		// Convert parameters
+		mut doc_params := []DocParam{}
+		for param in method.params {
+			if param is openrpc.ContentDescriptor {
+				type_info := extract_type_from_schema(param.schema)
+				example := generate_example_from_schema(param.schema, param.name)
+
+				doc_param := DocParam{
+					name:        param.name
+					description: param.description
+					required:    param.required
+					type_info:   type_info
+					example:     example
+				}
+				doc_params << doc_param
+			}
+		}
+
+		// Convert result
+		mut doc_result := DocParam{}
+		if method.result is openrpc.ContentDescriptor {
+			result_cd := method.result as openrpc.ContentDescriptor
+			type_info := extract_type_from_schema(result_cd.schema)
+			example := generate_example_from_schema(result_cd.schema, result_cd.name)
+
+			doc_result = DocParam{
+				name:        result_cd.name
+				description: result_cd.description
+				required:    result_cd.required
+				type_info:   type_info
+				example:     example
+			}
+		}
+
+		// Generate example call and response
+		example_call := generate_example_call(doc_params)
+		example_response := generate_example_response(doc_result)
+
 		doc_method := DocMethod{
-			name: method.name
-			summary: method.summary
-			description: method.description
-			endpoint_url: '/api/${handler_type}/${method.name}'
-			example_call: '{}'
-			example_response: '{"result": "success"}'
+			name:             method.name
+			summary:          method.summary
+			description:      method.description
+			params:           doc_params
+			result:           doc_result
+			endpoint_url:     '/api/${handler_type}/${method.name}'
+			example_call:     example_call
+			example_response: example_response
 		}
 		doc_spec.methods << doc_method
 	}
-	
+
 	return doc_spec
+}
+
+// extract_type_from_schema extracts the JSON Schema type from a SchemaRef.
+// Returns the type string (e.g., 'string', 'object', 'array') or 'reference'/'unknown' for edge cases.
+fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
+	schema := match schema_ref {
+		jsonschema.Schema {
+			schema_ref
+		}
+		jsonschema.Reference {
+			return 'reference'
+		}
+	}
+
+	if schema.typ.len > 0 {
+		return schema.typ
+	}
+	return 'unknown'
+}
+
+// generate_example_from_schema creates an example value for a parameter or result.
+// Uses the jsonschema.Schema.example_value() method with parameter name customization for strings.
+// Returns properly formatted JSON values based on the schema type.
+fn generate_example_from_schema(schema_ref jsonschema.SchemaRef, param_name string) string {
+	schema := match schema_ref {
+		jsonschema.Schema {
+			schema_ref
+		}
+		jsonschema.Reference {
+			return '"reference_value"'
+		}
+	}
+
+	// Use the improved example_value() method from jsonschema module
+	example := schema.example_value()
+
+	// For string types without explicit examples, customize with parameter name
+	if example == '"example_value"' && schema.typ == 'string' && param_name != '' {
+		return '"example_${param_name}"'
+	}
+
+	return example
+}
+
+// generate_example_call creates a formatted JSON example for method calls.
+// Combines all parameter examples into a properly formatted JSON object.
+fn generate_example_call(params []DocParam) string {
+	if params.len == 0 {
+		return '{}'
+	}
+
+	mut call_parts := []string{}
+	for param in params {
+		call_parts << '"${param.name}": ${param.example}'
+	}
+
+	return '{\n  ${call_parts.join(',\n  ')}\n}'
+}
+
+// generate_example_response creates a formatted JSON example for method responses.
+// Wraps the result example in a standard {"result": ...} format.
+fn generate_example_response(result DocParam) string {
+	if result.name == '' {
+		return '{"result": "success"}'
+	}
+
+	return '{"result": ${result.example}}'
 }
 
 // Create authentication documentation info
@@ -86,37 +198,37 @@ fn create_auth_info() AuthDocInfo {
 	return AuthDocInfo{
 		steps: [
 			AuthStep{
-				number: 1
-				title: 'Register Public Key'
-				method: 'POST'
-				endpoint: '/auth/register'
+				number:      1
+				title:       'Register Public Key'
+				method:      'POST'
+				endpoint:    '/auth/register'
 				description: 'Register your public key with the server'
-				example: '{\n  "pubkey": "your_public_key_here"\n}'
+				example:     '{\n  "pubkey": "your_public_key_here"\n}'
 			},
 			AuthStep{
-				number: 2
-				title: 'Request Challenge'
-				method: 'POST'
-				endpoint: '/auth/authreq'
+				number:      2
+				title:       'Request Challenge'
+				method:      'POST'
+				endpoint:    '/auth/authreq'
 				description: 'Request an authentication challenge'
-				example: '{\n  "pubkey": "your_public_key_here"\n}'
+				example:     '{\n  "pubkey": "your_public_key_here"\n}'
 			},
 			AuthStep{
-				number: 3
-				title: 'Submit Signature'
-				method: 'POST'
-				endpoint: '/auth/auth'
+				number:      3
+				title:       'Submit Signature'
+				method:      'POST'
+				endpoint:    '/auth/auth'
 				description: 'Sign the challenge and submit for authentication'
-				example: '{\n  "pubkey": "your_public_key_here",\n  "signature": "signed_challenge"\n}'
+				example:     '{\n  "pubkey": "your_public_key_here",\n  "signature": "signed_challenge"\n}'
 			},
 			AuthStep{
-				number: 4
-				title: 'Use Session Key'
-				method: 'ALL'
-				endpoint: '/api/{handler}/{method}'
+				number:      4
+				title:       'Use Session Key'
+				method:      'ALL'
+				endpoint:    '/api/{handler}/{method}'
 				description: 'Include session key in Authorization header for all API calls'
-				example: 'Authorization: Bearer {session_key}'
-			}
+				example:     'Authorization: Bearer {session_key}'
+			},
 		]
 	}
 }

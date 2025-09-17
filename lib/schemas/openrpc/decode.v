@@ -30,19 +30,20 @@ pub fn decode(data string) !OpenRPC {
 	for i, method in methods_any.arr() {
 		method_map := method.as_map()
 
-		// TODO: I had to disable this because it was not working, need to check why !!!!!
+		// Decode result
+		if result_any := method_map['result'] {
+			object.methods[i].result = decode_content_descriptor_ref(result_any.as_map()) or {
+				return error('Failed to decode result\n${err}')
+			}
+		}
 
-		// if result_any := method_map['result'] {
-		// 	object.methods[i].result = decode_content_descriptor_ref(result_any.as_map()) or {
-		// 		return error('Failed to decode result\n${err}')
-		// 	}
-		// }
-		// 	if params_any := method_map['params'] {
-		// 		params_arr := params_any.arr()
-		// 		object.methods[i].params = params_arr.map(decode_content_descriptor_ref(it.as_map()) or {
-		// 			return error('Failed to decode params\n${err}')
-		// 		})
-		// 	}
+		// Decode params
+		if params_any := method_map['params'] {
+			params_arr := params_any.arr()
+			object.methods[i].params = params_arr.map(decode_content_descriptor_ref(it.as_map()) or {
+				return error('Failed to decode params\n${err}')
+			})
+		}
 	}
 	// object.methods = decode_method(data_map['methods'].as_array)!
 	return object
@@ -96,7 +97,16 @@ fn decode_content_descriptor_ref(data_map map[string]Any) !ContentDescriptorRef 
 			ref: ref_any.str()
 		}
 	}
-	mut descriptor := json2.decode[ContentDescriptor](data_map.str())!
+
+	// Create ContentDescriptor from map fields
+	mut descriptor := ContentDescriptor{
+		name:        data_map['name'] or { Any('') }.str()
+		summary:     data_map['summary'] or { Any('') }.str()
+		description: data_map['description'] or { Any('') }.str()
+		required:    data_map['required'] or { Any(false) }.bool()
+		deprecated:  data_map['deprecated'] or { Any(false) }.bool()
+	}
+
 	if schema_any := data_map['schema'] {
 		descriptor.schema = decode_schemaref(schema_any.as_map())!
 	}
