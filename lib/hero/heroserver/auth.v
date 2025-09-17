@@ -5,8 +5,6 @@ import crypto.rand
 import time
 import encoding.base64
 
-// Active challenges storage
-mut challenges := map[string]AuthChallenge{}
 
 // Register a public key (currently just validates format)
 pub fn (mut server HeroServer) register(pubkey string) ! {
