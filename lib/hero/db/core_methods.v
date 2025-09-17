@@ -91,5 +91,7 @@ fn (mut self DB) db_name[T]() string {
 }
 
 pub fn (mut self DB) new_id() !u32 {
-	return u32(self.redis.incr('db:id')!)
+	r:=u32(self.redis.incr('db:id')!)
+	assert r>0
+	return r
 }

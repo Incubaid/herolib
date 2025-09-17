@@ -10,6 +10,9 @@ fn test_basic() ! {
 	defer {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
+
+	test_cleanup()!
+
 	// Initialize the HeroFS factory for test purposes
 	mut fs_factory := new()!
 
@@ -19,23 +22,18 @@ fn test_basic() ! {
 		description: 'Filesystem for testing FsBlobMembership functionality'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	test_fs = fs_factory.fs.set(test_fs)!
 	println('Created test filesystem with ID: ${test_fs.id}')
 
-	// Create root directory for the filesystem
-	mut root_dir := fs_factory.fs_dir.new(
-		name:        'root'
-		fs_id:       test_fs.id
-		parent_id:   0 // Root has no parent
-		description: 'Root directory for testing'
-	)!
-	root_dir = fs_factory.fs_dir.set(root_dir)!
-	root_dir_id := root_dir.id
+	assert test_fs.id > 0
+	assert test_fs.root_dir_id > 0
 
-	// Update the filesystem with the root directory ID
-	test_fs.root_dir_id = root_dir_id
-	test_fs = fs_factory.fs.set(test_fs)!
+	mut root_dir := test_fs.root_dir()!
 
+	// this means root_dir is automatically there, no need to create
+
+	println(root_dir)
+
+	panic('sd')
 	// Create test blob for membership
 	test_data := 'This is test content for blob membership'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
@@ -56,7 +54,7 @@ fn test_basic() ! {
 	println('Created test file with ID: ${file_id}')
 
 	// Add file to directory
-	mut dir := fs_factory.fs_dir.get(root_dir_id)!
+	mut dir := fs_factory.fs_dir.get(test_fs.root_dir_id)!
 	dir.files << file_id
 	dir = fs_factory.fs_dir.set(dir)!
 
@@ -243,7 +241,7 @@ fn test_validation() ! {
 	)!
 
 	// Try to save it, which should fail
-	fs_factory.fs_blob_membership.set(test_membership) or {
+	test_membership=fs_factory.fs_blob_membership.set(test_membership) or {
 		println('✓ Membership set correctly failed with non-existent blob')
 		return
 	}
@@ -266,7 +264,7 @@ fn test_validation() ! {
 	)!
 
 	// Try to save it, which should fail
-	fs_factory.fs_blob_membership.set(test_membership2) or {
+	test_membership2=fs_factory.fs_blob_membership.set(test_membership2) or {
 		println('✓ Membership set correctly failed with non-existent filesystem')
 		return
 	}
