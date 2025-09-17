@@ -3,6 +3,7 @@ module heroserver
 import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
 import time
+import veb
 import net.http
 
 // Main server configuration

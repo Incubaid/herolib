@@ -1,6 +1,7 @@
 module heroserver
 
 import freeflowuniverse.herolib.crypt.herocrypt
+import freeflowuniverse.herolib.schemas.openrpc
 import veb
 
 // Create a new HeroServer instance
