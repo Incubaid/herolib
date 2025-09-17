@@ -31,44 +31,45 @@ pub enum DNSZoneStatus {
 	archived
 }
 
-// DNSRecord represents a DNS record configuration
+// DNSRecord represents a DNS record configuration.
 pub struct DNSRecord {
 pub mut:
-	subdomain   string
-	record_type NameType
-	value       string
-	priority    u32
-	ttl         u32
-	is_active   bool
-	cat         NameCat
-	is_wildcard bool
+	subdomain   string   @[required] // The subdomain for the record (e.g., 'www', '@' for the root).
+	record_type NameType @[required] // The type of the DNS record (e.g., A, AAAA, CNAME).
+	value       string   @[required] // The value of the DNS record (e.g., an IP address, a hostname).
+	priority    u32     // The priority of the record, used for MX records.
+	ttl         u32     // The Time To Live for the record in seconds.
+	is_active   bool    // Indicates if the record is currently active.
+	cat         NameCat // The category of the DNS record, for internal classification.
+	is_wildcard bool    // Indicates if this is a wildcard record (e.g., '*.example.com').
 }
 
-// SOARecord represents SOA (Start of Authority) record for a DNS zone
+// SOARecord represents the Start of Authority (SOA) record for a DNS zone.
 pub struct SOARecord {
 pub mut:
-	zone_id     u32
-	primary_ns  string
-	admin_email string
-	serial      u64
-	refresh     u32
-	retry       u32
-	expire      u32
-	minimum_ttl u32
-	is_active   bool
+	zone_id     u32 // The ID of the zone this SOA record belongs to.
+	primary_ns  string @[required] // The primary name server for the zone.
+	admin_email string @[required] // The email address of the zone administrator.
+	serial      u64    @[required] // The serial number of the zone, incremented on changes.
+	refresh     u32  // The time in seconds before the zone should be refreshed.
+	retry       u32  // The time in seconds before a failed refresh should be retried.
+	expire      u32  // The time in seconds before a secondary server should stop answering for the zone.
+	minimum_ttl u32  // The minimum TTL for records in the zone.
+	is_active   bool // Indicates if the SOA record is currently active.
 }
 
-// DNSZone represents a DNS zone with its configuration and records
+// DNSZone represents a domain name and its associated DNS records.
 @[heap]
 pub struct DNSZone {
 	db.Base
 pub mut:
-	domain         string @[index]
-	dnsrecords     []DNSRecord
-	administrators []u32
-	status         DNSZoneStatus
-	metadata       map[string]string
-	soarecord      []SOARecord
+	domain         string @[index; required] // The domain name of the zone (e.g., 'example.com').
+	dnsrecords     []DNSRecord       // A list of DNS records associated with this zone.
+	administrators []u32             // A list of user IDs that are administrators for this zone.
+	min_signatures u32               // The minimum number of signatures required for administrative actions.
+	status         DNSZoneStatus     // The current status of the DNS zone (e.g., active, suspended).
+	metadata       map[string]string // A map for storing arbitrary metadata as key-value pairs.
+	soarecord      []SOARecord       // The Start of Authority (SOA) record for this zone.
 }
 
 pub struct DBDNSZone {
@@ -81,54 +82,34 @@ pub fn (self DNSZone) type_name() string {
 }
 
 pub fn (self DNSZone) description(methodname string) string {
-	match methodname {
-		'set' {
-			return 'Create or update a DNS zone. Returns the ID of the DNS zone.'
-		}
-		'get' {
-			return 'Retrieve a DNS zone by ID. Returns the DNS zone object.'
-		}
-		'delete' {
-			return 'Delete a DNS zone by ID. Returns true if successful.'
-		}
-		'exist' {
-			return 'Check if a DNS zone exists by ID. Returns true or false.'
-		}
-		'list' {
-			return 'List all DNS zones. Returns an array of DNS zone objects.'
-		}
-		else {
-			return 'DNS zone management operations'
-		}
+	return match methodname {
+		'set' { 'Create or update a DNS zone. Returns the ID of the DNS zone.' }
+		'get' { 'Retrieve a DNS zone by its unique ID.' }
+		'delete' { 'Deletes a DNS zone by its unique ID.' }
+		'exist' { 'Checks if a DNS zone with the given ID exists.' }
+		'find' { 'Finds DNS zones based on a filter expression.' }
+		'count' { 'Counts the number of DNS zones that match a filter expression.' }
+		'list' { 'Lists all DNS zones, optionally filtered and sorted.' }
+		else { 'A DNS zone represents a domain name and its associated records.' }
 	}
 }
 
 pub fn (self DNSZone) example(methodname string) (string, string) {
-	match methodname {
-		'set' {
-			return '{"dnszone": {"domain": "example.com", "status": "active"}}', '1'
-		}
-		'get' {
-			return '{"id": 1}', '{"domain": "example.com", "status": "active"}'
-		}
-		'delete' {
-			return '{"id": 1}', 'true'
-		}
-		'exist' {
-			return '{"id": 1}', 'true'
-		}
-		'list' {
-			return '{}', '[{"domain": "example.com", "status": "active"}]'
-		}
-		else {
-			return '{}', '{}'
-		}
+	return match methodname {
+		'set' { '{"dnszone": {"id": 1, "domain": "example.com", "status": "active"}}', '1' }
+		'get' { '{"id": 1}', '{"id": 1, "domain": "example.com", "status": "active"}' }
+		'delete' { '{"id": 1}', 'true' }
+		'exist' { '{"id": 1}', 'true' }
+		'find' { '{"filter": "domain=\'example.com\'"}', '[{"id": 1, "domain": "example.com", "status": "active"}]' }
+		'count' { '{"filter": "domain=\'example.com\'"}', '1' }
+		'list' { '{}', '[{"id": 1, "domain": "example.com", "status": "active"}]' }
+		else { '{}', '{}' }
 	}
 }
 
 pub fn (self DNSZone) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.domain)
-	
+
 	// dnsrecords
 	e.add_int(self.dnsrecords.len)
 	for record in self.dnsrecords {
@@ -141,17 +122,18 @@ pub fn (self DNSZone) dump(mut e encoder.Encoder) ! {
 		e.add_int(int(record.cat))
 		e.add_bool(record.is_wildcard)
 	}
-	
+
 	e.add_list_u32(self.administrators)
 	e.add_int(int(self.status))
-	
+	e.add_u32(self.min_signatures)
+
 	// metadata map
 	e.add_int(self.metadata.len)
 	for key, value in self.metadata {
 		e.add_string(key)
 		e.add_string(value)
 	}
-	
+
 	// soarecords
 	e.add_int(self.soarecord.len)
 	for soa in self.soarecord {
@@ -169,27 +151,28 @@ pub fn (self DNSZone) dump(mut e encoder.Encoder) ! {
 
 fn (mut self DBDNSZone) load(mut o DNSZone, mut e encoder.Decoder) ! {
 	o.domain = e.get_string()!
-	
+
 	// dnsrecords
 	records_len := e.get_int()!
 	o.dnsrecords = []DNSRecord{cap: records_len}
 	for _ in 0 .. records_len {
 		record := DNSRecord{
 			subdomain:   e.get_string()!
-			record_type: NameType(e.get_int()!)
+			record_type: unsafe { NameType(e.get_int()!) }
 			value:       e.get_string()!
 			priority:    e.get_u32()!
 			ttl:         e.get_u32()!
 			is_active:   e.get_bool()!
-			cat:         NameCat(e.get_int()!)
+			cat:         unsafe { NameCat(e.get_int()!) }
 			is_wildcard: e.get_bool()!
 		}
 		o.dnsrecords << record
 	}
-	
+
 	o.administrators = e.get_list_u32()!
-	o.status = DNSZoneStatus(e.get_int()!)
-	
+	o.status = unsafe { DNSZoneStatus(e.get_int()!) }
+	o.min_signatures = e.get_u32()!
+
 	// metadata map
 	metadata_len := e.get_int()!
 	o.metadata = map[string]string{}
@@ -198,7 +181,7 @@ fn (mut self DBDNSZone) load(mut o DNSZone, mut e encoder.Decoder) ! {
 		value := e.get_string()!
 		o.metadata[key] = value
 	}
-	
+
 	// soarecords
 	soa_len := e.get_int()!
 	o.soarecord = []SOARecord{cap: soa_len}
@@ -227,6 +210,7 @@ pub mut:
 	dnsrecords     []DNSRecord
 	administrators []u32
 	status         DNSZoneStatus
+	min_signatures u32
 	metadata       map[string]string
 	soarecord      []SOARecord
 }
@@ -237,6 +221,7 @@ pub fn (mut self DBDNSZone) new(args DNSZoneArg) !DNSZone {
 		dnsrecords:     args.dnsrecords
 		administrators: args.administrators
 		status:         args.status
+		min_signatures: args.min_signatures
 		metadata:       args.metadata
 		soarecord:      args.soarecord
 	}

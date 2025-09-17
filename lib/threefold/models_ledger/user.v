@@ -5,6 +5,19 @@ import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 
+// User represents a user in the heroledger system
+@[heap]
+pub struct User {
+	db.Base
+pub mut:
+	username    string @[index]
+	pubkey      string @[index]
+	email       []string
+	status      UserStatus
+	userprofile []SecretBox
+	kyc         []SecretBox
+}
+
 // UserStatus represents the status of a user in the system
 pub enum UserStatus {
 	active
@@ -34,21 +47,21 @@ pub mut:
 // KYCInfo contains KYC information for a user
 pub struct KYCInfo {
 pub mut:
-	user_id              u32
-	full_name            string
-	date_of_birth        u64
-	address              string
-	phone_number         string
-	id_number            string
-	id_type              string
-	id_expiry            u64
-	kyc_status           KYCStatus
-	kyc_verified         bool
-	kyc_verified_by      u32
-	kyc_verified_at      u64
-	kyc_rejected_reason  string
-	kyc_signature        u32
-	metadata             map[string]string
+	user_id             u32
+	full_name           string
+	date_of_birth       u64
+	address             string
+	phone_number        string
+	id_number           string
+	id_type             string
+	id_expiry           u64
+	kyc_status          KYCStatus
+	kyc_verified        bool
+	kyc_verified_by     u32
+	kyc_verified_at     u64
+	kyc_rejected_reason string
+	kyc_signature       u32
+	metadata            map[string]string
 }
 
 // SecretBox represents encrypted data storage
@@ -56,19 +69,6 @@ pub struct SecretBox {
 pub mut:
 	data  []u8
 	nonce []u8
-}
-
-// User represents a user in the heroledger system
-@[heap]
-pub struct User {
-	db.Base
-pub mut:
-	username    string @[index]
-	pubkey      string @[index]
-	email       []string
-	status      UserStatus
-	userprofile []SecretBox
-	kyc         []SecretBox
 }
 
 pub struct DBUser {
@@ -147,23 +147,23 @@ fn (mut self DBUser) load(mut o User, mut e encoder.Decoder) ! {
 	o.username = e.get_string()!
 	o.pubkey = e.get_string()!
 	o.email = e.get_list_string()!
-	o.status = UserStatus(e.get_int()!)
-	
+	o.status = unsafe { UserStatus(e.get_int()!) }
+
 	profile_len := e.get_int()!
 	o.userprofile = []SecretBox{cap: profile_len}
 	for _ in 0 .. profile_len {
 		profile := SecretBox{
-			data: e.get_list_u8()!
+			data:  e.get_list_u8()!
 			nonce: e.get_list_u8()!
 		}
 		o.userprofile << profile
 	}
-	
+
 	kyc_len := e.get_int()!
 	o.kyc = []SecretBox{cap: kyc_len}
 	for _ in 0 .. kyc_len {
 		kyc_item := SecretBox{
-			data: e.get_list_u8()!
+			data:  e.get_list_u8()!
 			nonce: e.get_list_u8()!
 		}
 		o.kyc << kyc_item

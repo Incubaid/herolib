@@ -25,12 +25,12 @@ pub enum MemberStatus {
 pub struct Member {
 	db.Base
 pub mut:
-	group_id         u32 @[index]
-	user_id          u32 @[index]
-	role             MemberRole
-	status           MemberStatus
-	join_date        u64
-	last_activity    u64
+	group_id      u32 @[index]
+	user_id       u32 @[index]
+	role          MemberRole
+	status        MemberStatus
+	join_date     u64
+	last_activity u64
 }
 
 pub struct DBMember {
@@ -100,8 +100,8 @@ pub fn (self Member) dump(mut e encoder.Encoder) ! {
 fn (mut self DBMember) load(mut o Member, mut e encoder.Decoder) ! {
 	o.group_id = e.get_u32()!
 	o.user_id = e.get_u32()!
-	o.role = MemberRole(e.get_u8()!)
-	o.status = MemberStatus(e.get_u8()!)
+	o.role = unsafe { MemberRole(e.get_u8()!) }
+	o.status = unsafe { MemberStatus(e.get_u8()!) }
 	o.join_date = e.get_u64()!
 	o.last_activity = e.get_u64()!
 }
@@ -113,7 +113,7 @@ pub mut:
 	description string
 	group_id    u32
 	user_id     u32
-	role        MemberRole = .member
+	role        MemberRole   = .member
 	status      MemberStatus = .pending
 }
 
@@ -124,8 +124,8 @@ pub fn (mut self DBMember) new(args MemberArg) !Member {
 		user_id:       args.user_id
 		role:          args.role
 		status:        args.status
-		join_date:     now
-		last_activity: now
+		join_date:     u64(now)
+		last_activity: u64(now)
 	}
 
 	o.name = args.name
