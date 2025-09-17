@@ -8,6 +8,7 @@ import net.websocket
 
 // Handler is a JSON-RPC request handler that maps method names to their corresponding procedure handlers.
 // It can be used with a WebSocket server to handle incoming JSON-RPC requests.
+@[heap]
 pub struct Handler {
 pub mut:
 	// A map where keys are method names and values are the corresponding procedure handler functions
