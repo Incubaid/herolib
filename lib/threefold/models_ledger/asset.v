@@ -11,9 +11,8 @@ pub struct Asset {
 	db.Base
 pub mut:
 	address         string @[index]
-	assetid         u32
 	asset_type      string
-	issuer          u32
+	issuer          u32 //link to a user
 	supply          f64
 	decimals        u8
 	is_frozen       bool
