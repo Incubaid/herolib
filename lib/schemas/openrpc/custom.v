@@ -1,7 +1,6 @@
 module openrpc
 import json
 import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.schemas.openrpc
 
 
 // In the OpenRPC specification struct
