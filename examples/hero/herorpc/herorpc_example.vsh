@@ -26,9 +26,13 @@ if http_port == 0 {
 } else {
 	println('
     #to test the discover function:
-	curl -X POST -H "Content-Type: application/json" -d \'\{"jsonrpc":"2.0","method":"rpc.discover","id":1,"params":[]\}\' http://localhost:9933/
-    \'
-	')
+
+	curl -X POST -H "Content-Type: application/json" -d \'\{"jsonrpc":"2.0","method":"rpc.discover","id":1,"params":[]\}\' http://localhost:9933
+
+    curl -X POST -H "Content-Type: application/json" -d \'\{"jsonrpc":"2.0","method":"comment_set","params":{"comment":"Hello world!","parent":0,"author":42},"id":1\}\' http://localhost:9933
+	
+    '
+    )
 }
 
 rpc.start(http_port: http_port)!
