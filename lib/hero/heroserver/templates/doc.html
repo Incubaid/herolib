@@ -24,10 +24,19 @@
             border-radius: 0.375rem;
             padding: 1rem;
             overflow-x: auto;
+            font-family: 'Courier New', monospace;
         }
 
         .object-section {
-            margin-bottom: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .method-endpoint {
+            background-color: #e3f2fd;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9rem;
         }
     </style>
 </head>
@@ -38,7 +47,10 @@
         <div class="row">
             <div class="col-12">
                 <h1 class="display-4">@{spec.info.title}</h1>
-                <p class="lead">@{spec.info.description}</p>
+                @if spec.info.description {
+                    <p class="lead">@{spec.info.description}</p>
+                }
+                <p class="text-muted">Version: @{spec.info.version}</p>
                 <hr>
             </div>
         </div>
@@ -48,23 +60,102 @@
             <div class="col-12">
                 <div class="alert alert-info">
                     <h5>Authentication Required</h5>
-                    <p>All API endpoints require authentication using a session key obtained through the authentication
-                        flow:</p>
+                    <p>All API endpoints require authentication using a session key obtained through the authentication flow:</p>
                     <ol>
-                        <li>Register your public key: <code>POST /auth/register</code></li>
-                        <li>Request authentication challenge: <code>POST /auth/authreq</code></li>
-                        <li>Sign challenge and submit: <code>POST /auth/auth</code></li>
-                        <li>Use returned session key in <code>Authorization: Bearer {session_key}</code> header</li>
+                        @for step in spec.auth_info.steps {
+                            <li>
+                                <strong>@{step.title}</strong>: 
+                                <code>@{step.method} @{step.endpoint}</code>
+                                - @{step.description}
+                                <div class="code-block mt-2">@{step.example}</div>
+                            </li>
+                        }
                     </ol>
                 </div>
             </div>
         </div>
 
+        <!-- API Objects -->
+        @for object in spec.objects {
+            <div class="object-section">
+                <div class="row">
+                    <div class="col-12">
+                        <h1 id="@{object.name}">@{object.name.title()}</h1>
+                        @if object.description {
+                            <p>@{object.description}</p>
+                        }
+                        
+                        <!-- Methods for this object -->
+                        @for method in object.methods {
+                            <div class="card method-card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">@{method.name}</h5>
+                                    <div class="method-endpoint">POST @{method.endpoint_url}</div>
+                                </div>
+                                <div class="card-body">
+                                    @if method.summary {
+                                        <p class="card-text"><strong>@{method.summary}</strong></p>
+                                    }
+                                    @if method.description {
+                                        <p class="card-text">@{method.description}</p>
+                                    }
+
+                                    <!-- Parameters -->
+                                    @if method.params.len > 0 {
+                                        <h6>Parameters:</h6>
+                                        <table class="table table-sm param-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Type</th>
+                                                    <th>Required</th>
+                                                    <th>Description</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for param in method.params {
+                                                    <tr>
+                                                        <td><code>@{param.name}</code></td>
+                                                        <td>@{param.type_info}</td>
+                                                        <td>@if param.required { Yes } else { No }</td>
+                                                        <td>@{param.description}</td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    } else {
+                                        <p><em>No parameters required</em></p>
+                                    }
+
+                                    <!-- Return Value -->
+                                    @if method.result.name {
+                                        <h6>Returns:</h6>
+                                        <p><strong>@{method.result.type_info}</strong> - @{method.result.description}</p>
+                                    }
+
+                                    <!-- Examples -->
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <h6>Example Request:</h6>
+                                            <div class="code-block">@{method.example_call}</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6>Example Response:</h6>
+                                            <div class="code-block">@{method.example_response}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
 
         <!-- Footer -->
         <footer class="mt-5 py-4 bg-light">
             <div class="container text-center">
-                <p class="mb-0">Generated from OpenRPC specification</p>
+                <p class="mb-0">Generated from OpenRPC specification • @{spec.info.title} v@{spec.info.version}</p>
             </div>
         </footer>
     </div>
