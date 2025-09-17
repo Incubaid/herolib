@@ -7,53 +7,58 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_dnszone_new() {
 	mut mydb := setup_test_db()!
-	mut dns_db := DBDNSZone{db: &mydb}
+	mut dns_db := DBDNSZone{
+		db: &mydb
+	}
 
 	// Create test DNS zone with records and SOA
 	dns_record1 := DNSRecord{
-		subdomain: 'www'
+		subdomain:   'www'
 		record_type: .a
-		value: '192.168.1.1'
-		priority: 0
-		ttl: 3600
-		is_active: true
-		cat: .ipv4
+		value:       '192.168.1.1'
+		priority:    0
+		ttl:         3600
+		is_active:   true
+		cat:         .ipv4
 		is_wildcard: false
 	}
 
 	dns_record2 := DNSRecord{
-		subdomain: 'mail'
+		subdomain:   'mail'
 		record_type: .mx
-		value: 'mail.example.com'
-		priority: 10
-		ttl: 3600
-		is_active: true
-		cat: .ipv4
+		value:       'mail.example.com'
+		priority:    10
+		ttl:         3600
+		is_active:   true
+		cat:         .ipv4
 		is_wildcard: false
 	}
 
 	soa_record := SOARecord{
-		zone_id: 1
-		primary_ns: 'ns1.example.com'
+		zone_id:     1
+		primary_ns:  'ns1.example.com'
 		admin_email: 'admin@example.com'
-		serial: 2023120101
-		refresh: 3600
-		retry: 1800
-		expire: 604800
+		serial:      2023120101
+		refresh:     3600
+		retry:       1800
+		expire:      604800
 		minimum_ttl: 86400
-		is_active: true
+		is_active:   true
 	}
 
 	mut dnszone := dns_db.new(
-		name: 'Test DNS Zone'
-		description: 'A test DNS zone for unit testing'
-		domain: 'example.com'
-		dnsrecords: [dns_record1, dns_record2]
+		name:           'Test DNS Zone'
+		description:    'A test DNS zone for unit testing'
+		domain:         'example.com'
+		dnsrecords:     [dns_record1, dns_record2]
 		administrators: [u32(1), 2, 3]
-		status: .active
+		status:         .active
 		min_signatures: 2
-		metadata: {'zone_type': 'primary', 'provider': 'test'}
-		soarecord: [soa_record]
+		metadata:       {
+			'zone_type': 'primary'
+			'provider':  'test'
+		}
+		soarecord:      [soa_record]
 	)!
 
 	// Verify the DNS zone was created with correct values
@@ -75,102 +80,106 @@ fn test_dnszone_new() {
 
 fn test_dnszone_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut dns_db := DBDNSZone{db: &mydb}
+	mut dns_db := DBDNSZone{
+		db: &mydb
+	}
 
 	// Create a complex DNS zone with multiple record types
 	records := [
 		DNSRecord{
-			subdomain: '@'
+			subdomain:   '@'
 			record_type: .a
-			value: '203.0.113.1'
-			priority: 0
-			ttl: 300
-			is_active: true
-			cat: .ipv4
+			value:       '203.0.113.1'
+			priority:    0
+			ttl:         300
+			is_active:   true
+			cat:         .ipv4
 			is_wildcard: false
 		},
 		DNSRecord{
-			subdomain: 'www'
+			subdomain:   'www'
 			record_type: .cname
-			value: 'example.com'
-			priority: 0
-			ttl: 3600
-			is_active: true
-			cat: .ipv4
+			value:       'example.com'
+			priority:    0
+			ttl:         3600
+			is_active:   true
+			cat:         .ipv4
 			is_wildcard: false
 		},
 		DNSRecord{
-			subdomain: '*'
+			subdomain:   '*'
 			record_type: .a
-			value: '203.0.113.2'
-			priority: 0
-			ttl: 3600
-			is_active: false
-			cat: .ipv4
+			value:       '203.0.113.2'
+			priority:    0
+			ttl:         3600
+			is_active:   false
+			cat:         .ipv4
 			is_wildcard: true
 		},
 		DNSRecord{
-			subdomain: 'ipv6'
+			subdomain:   'ipv6'
 			record_type: .aaaa
-			value: '2001:db8::1'
-			priority: 0
-			ttl: 3600
-			is_active: true
-			cat: .ipv6
+			value:       '2001:db8::1'
+			priority:    0
+			ttl:         3600
+			is_active:   true
+			cat:         .ipv6
 			is_wildcard: false
-		}
+		},
 	]
 
 	soa_records := [
 		SOARecord{
-			zone_id: 1
-			primary_ns: 'ns1.test.com'
+			zone_id:     1
+			primary_ns:  'ns1.test.com'
 			admin_email: 'dns-admin@test.com'
-			serial: 2023120201
-			refresh: 7200
-			retry: 3600
-			expire: 1209600
+			serial:      2023120201
+			refresh:     7200
+			retry:       3600
+			expire:      1209600
 			minimum_ttl: 300
-			is_active: true
+			is_active:   true
 		},
 		SOARecord{
-			zone_id: 2
-			primary_ns: 'ns2.test.com'
+			zone_id:     2
+			primary_ns:  'ns2.test.com'
 			admin_email: 'backup-admin@test.com'
-			serial: 2023120202
-			refresh: 7200
-			retry: 3600
-			expire: 1209600
+			serial:      2023120202
+			refresh:     7200
+			retry:       3600
+			expire:      1209600
 			minimum_ttl: 300
-			is_active: false
-		}
+			is_active:   false
+		},
 	]
 
 	mut original_zone := dns_db.new(
-		name: 'Encoding Test Zone'
-		description: 'Testing encoding and decoding functionality'
-		domain: 'test.com'
-		dnsrecords: records
+		name:           'Encoding Test Zone'
+		description:    'Testing encoding and decoding functionality'
+		domain:         'test.com'
+		dnsrecords:     records
 		administrators: [u32(10), 20, 30]
-		status: .suspended
+		status:         .suspended
 		min_signatures: 3
-		metadata: {
-			'zone_type': 'secondary'
-			'provider': 'test_provider'
+		metadata:       {
+			'zone_type':   'secondary'
+			'provider':    'test_provider'
 			'environment': 'staging'
 			'auto_dnssec': 'true'
 		}
-		soarecord: soa_records
+		soarecord:      soa_records
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_zone.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
-	mut decoded_zone := DNSZone{}
+	mut decoder_obj := encoder.decoder_new(encoded_data)
+	mut decoded_zone := DNSZone{
+		domain: ''
+	}
 	dns_db.load(mut decoded_zone, mut decoder_obj)!
 
 	// Verify all fields match after encoding/decoding
@@ -222,30 +231,34 @@ fn test_dnszone_encoding_decoding() {
 
 fn test_dnszone_set_and_get() {
 	mut mydb := setup_test_db()!
-	mut dns_db := DBDNSZone{db: &mydb}
+	mut dns_db := DBDNSZone{
+		db: &mydb
+	}
 
 	// Create simple DNS zone
 	record := DNSRecord{
-		subdomain: 'api'
+		subdomain:   'api'
 		record_type: .a
-		value: '192.168.1.100'
-		priority: 0
-		ttl: 3600
-		is_active: true
-		cat: .ipv4
+		value:       '192.168.1.100'
+		priority:    0
+		ttl:         3600
+		is_active:   true
+		cat:         .ipv4
 		is_wildcard: false
 	}
 
 	mut dnszone := dns_db.new(
-		name: 'DB Test Zone'
-		description: 'Testing database operations'
-		domain: 'dbtest.com'
-		dnsrecords: [record]
+		name:           'DB Test Zone'
+		description:    'Testing database operations'
+		domain:         'dbtest.com'
+		dnsrecords:     [record]
 		administrators: [u32(5)]
-		status: .active
+		status:         .active
 		min_signatures: 1
-		metadata: {'test': 'true'}
-		soarecord: []SOARecord{}
+		metadata:       {
+			'test': 'true'
+		}
+		soarecord:      []SOARecord{}
 	)!
 
 	// Save the DNS zone
@@ -276,19 +289,23 @@ fn test_dnszone_set_and_get() {
 
 fn test_dnszone_update() {
 	mut mydb := setup_test_db()!
-	mut dns_db := DBDNSZone{db: &mydb}
+	mut dns_db := DBDNSZone{
+		db: &mydb
+	}
 
 	// Create and save a DNS zone
 	mut dnszone := dns_db.new(
-		name: 'Original Zone'
-		description: 'Original description'
-		domain: 'original.com'
-		dnsrecords: []DNSRecord{}
+		name:           'Original Zone'
+		description:    'Original description'
+		domain:         'original.com'
+		dnsrecords:     []DNSRecord{}
 		administrators: [u32(1)]
-		status: .active
+		status:         .active
 		min_signatures: 1
-		metadata: {'version': '1.0'}
-		soarecord: []SOARecord{}
+		metadata:       {
+			'version': '1.0'
+		}
+		soarecord:      []SOARecord{}
 	)!
 
 	dnszone = dns_db.set(dnszone)!
@@ -297,13 +314,13 @@ fn test_dnszone_update() {
 
 	// Update the DNS zone
 	new_record := DNSRecord{
-		subdomain: 'updated'
+		subdomain:   'updated'
 		record_type: .a
-		value: '10.0.0.1'
-		priority: 0
-		ttl: 300
-		is_active: true
-		cat: .ipv4
+		value:       '10.0.0.1'
+		priority:    0
+		ttl:         300
+		is_active:   true
+		cat:         .ipv4
 		is_wildcard: false
 	}
 
@@ -312,7 +329,10 @@ fn test_dnszone_update() {
 	dnszone.domain = 'updated.com'
 	dnszone.dnsrecords = [new_record]
 	dnszone.status = .suspended
-	dnszone.metadata = {'version': '2.0', 'updated': 'true'}
+	dnszone.metadata = {
+		'version': '2.0'
+		'updated': 'true'
+	}
 	dnszone.min_signatures = 2
 
 	dnszone = dns_db.set(dnszone)!
@@ -336,7 +356,9 @@ fn test_dnszone_update() {
 
 fn test_dnszone_exist_and_delete() {
 	mut mydb := setup_test_db()!
-	mut dns_db := DBDNSZone{db: &mydb}
+	mut dns_db := DBDNSZone{
+		db: &mydb
+	}
 
 	// Test non-existent DNS zone
 	exists := dns_db.exist(999)!
@@ -344,15 +366,15 @@ fn test_dnszone_exist_and_delete() {
 
 	// Create and save a DNS zone
 	mut dnszone := dns_db.new(
-		name: 'To Be Deleted'
-		description: 'This DNS zone will be deleted'
-		domain: 'delete.com'
-		dnsrecords: []DNSRecord{}
+		name:           'To Be Deleted'
+		description:    'This DNS zone will be deleted'
+		domain:         'delete.com'
+		dnsrecords:     []DNSRecord{}
 		administrators: []u32{}
-		status: .archived
+		status:         .archived
 		min_signatures: 0
-		metadata: map[string]string{}
-		soarecord: []SOARecord{}
+		metadata:       map[string]string{}
+		soarecord:      []SOARecord{}
 	)!
 
 	dnszone = dns_db.set(dnszone)!
@@ -377,7 +399,9 @@ fn test_dnszone_exist_and_delete() {
 
 fn test_dnszone_list() {
 	mut mydb := setup_test_db()!
-	mut dns_db := DBDNSZone{db: &mydb}
+	mut dns_db := DBDNSZone{
+		db: &mydb
+	}
 
 	// Initially should be empty
 	initial_list := dns_db.list()!
@@ -385,27 +409,31 @@ fn test_dnszone_list() {
 
 	// Create multiple DNS zones
 	mut zone1 := dns_db.new(
-		name: 'Zone 1'
-		description: 'First zone'
-		domain: 'zone1.com'
-		dnsrecords: []DNSRecord{}
+		name:           'Zone 1'
+		description:    'First zone'
+		domain:         'zone1.com'
+		dnsrecords:     []DNSRecord{}
 		administrators: [u32(1)]
-		status: .active
+		status:         .active
 		min_signatures: 1
-		metadata: {'type': 'primary'}
-		soarecord: []SOARecord{}
+		metadata:       {
+			'type': 'primary'
+		}
+		soarecord:      []SOARecord{}
 	)!
 
 	mut zone2 := dns_db.new(
-		name: 'Zone 2'
-		description: 'Second zone'
-		domain: 'zone2.net'
-		dnsrecords: []DNSRecord{}
+		name:           'Zone 2'
+		description:    'Second zone'
+		domain:         'zone2.net'
+		dnsrecords:     []DNSRecord{}
 		administrators: [u32(1), 2]
-		status: .suspended
+		status:         .suspended
 		min_signatures: 2
-		metadata: {'type': 'secondary'}
-		soarecord: []SOARecord{}
+		metadata:       {
+			'type': 'secondary'
+		}
+		soarecord:      []SOARecord{}
 	)!
 
 	// Save both zones
@@ -441,7 +469,9 @@ fn test_dnszone_list() {
 
 fn test_dnszone_record_types() {
 	mut mydb := setup_test_db()!
-	mut dns_db := DBDNSZone{db: &mydb}
+	mut dns_db := DBDNSZone{
+		db: &mydb
+	}
 
 	// Test all DNS record types
 	record_types := [NameType.a, .aaaa, .cname, .mx, .txt, .srv, .ptr, .ns]
@@ -451,27 +481,27 @@ fn test_dnszone_record_types() {
 	for i, rtype in record_types {
 		cat := record_cats[i % record_cats.len]
 		records << DNSRecord{
-			subdomain: 'test${i}'
+			subdomain:   'test${i}'
 			record_type: rtype
-			value: 'value${i}'
-			priority: u32(i)
-			ttl: u32(300 + i * 100)
-			is_active: i % 2 == 0
-			cat: cat
+			value:       'value${i}'
+			priority:    u32(i)
+			ttl:         u32(300 + i * 100)
+			is_active:   i % 2 == 0
+			cat:         cat
 			is_wildcard: i > 4
 		}
 	}
 
 	mut zone := dns_db.new(
-		name: 'Record Types Test'
-		description: 'Testing all record types'
-		domain: 'recordtest.com'
-		dnsrecords: records
+		name:           'Record Types Test'
+		description:    'Testing all record types'
+		domain:         'recordtest.com'
+		dnsrecords:     records
 		administrators: []u32{}
-		status: .active
+		status:         .active
 		min_signatures: 0
-		metadata: map[string]string{}
-		soarecord: []SOARecord{}
+		metadata:       map[string]string{}
+		soarecord:      []SOARecord{}
 	)!
 
 	zone = dns_db.set(zone)!

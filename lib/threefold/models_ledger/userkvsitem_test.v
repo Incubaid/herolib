@@ -7,14 +7,16 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_userkvsitem_new() {
 	mut mydb := setup_test_db()!
-	mut item_db := DBUserKVSItem{db: &mydb}
+	mut item_db := DBUserKVSItem{
+		db: &mydb
+	}
 
 	mut item := item_db.new(
-		name: 'Test KVS Item'
+		name:        'Test KVS Item'
 		description: 'A test KVS item for unit testing'
-		kvs_id: 1
-		key: 'test_key'
-		value: 'test_value'
+		kvs_id:      1
+		key:         'test_key'
+		value:       'test_value'
 	)!
 
 	assert item.name == 'Test KVS Item'
@@ -29,23 +31,25 @@ fn test_userkvsitem_new() {
 
 fn test_userkvsitem_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut item_db := DBUserKVSItem{db: &mydb}
+	mut item_db := DBUserKVSItem{
+		db: &mydb
+	}
 
 	mut original_item := item_db.new(
-		name: 'Encoding Test Item'
+		name:        'Encoding Test Item'
 		description: 'Testing encoding and decoding'
-		kvs_id: 999
-		key: 'encoding_key'
-		value: 'encoding_value_with_special_chars_!@#$%^&*()'
+		kvs_id:      999
+		key:         'encoding_key'
+		value:       'encoding_value_with_special_chars_!@#$%^&*()'
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_item.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
+	mut decoder_obj := encoder.decoder_new(encoded_data)
 	mut decoded_item := UserKVSItem{}
 	item_db.load(mut decoded_item, mut decoder_obj)!
 
@@ -58,15 +62,17 @@ fn test_userkvsitem_encoding_decoding() {
 
 fn test_userkvsitem_crud_operations() {
 	mut mydb := setup_test_db()!
-	mut item_db := DBUserKVSItem{db: &mydb}
+	mut item_db := DBUserKVSItem{
+		db: &mydb
+	}
 
 	// Create and save
 	mut item := item_db.new(
-		name: 'CRUD Test Item'
+		name:        'CRUD Test Item'
 		description: 'Testing CRUD operations'
-		kvs_id: 5
-		key: 'crud_key'
-		value: 'crud_value'
+		kvs_id:      5
+		key:         'crud_key'
+		value:       'crud_value'
 	)!
 
 	item = item_db.set(item)!
@@ -100,26 +106,28 @@ fn test_userkvsitem_crud_operations() {
 
 fn test_userkvsitem_list() {
 	mut mydb := setup_test_db()!
-	mut item_db := DBUserKVSItem{db: &mydb}
+	mut item_db := DBUserKVSItem{
+		db: &mydb
+	}
 
 	initial_list := item_db.list()!
 	initial_count := initial_list.len
 
 	// Create multiple items
 	mut item1 := item_db.new(
-		name: 'Item 1'
+		name:        'Item 1'
 		description: 'First item'
-		kvs_id: 1
-		key: 'key1'
-		value: 'value1'
+		kvs_id:      1
+		key:         'key1'
+		value:       'value1'
 	)!
 
 	mut item2 := item_db.new(
-		name: 'Item 2'
+		name:        'Item 2'
 		description: 'Second item'
-		kvs_id: 2
-		key: 'key2'
-		value: 'value2'
+		kvs_id:      2
+		key:         'key2'
+		value:       'value2'
 	)!
 
 	item1 = item_db.set(item1)!
@@ -147,15 +155,17 @@ fn test_userkvsitem_list() {
 
 fn test_userkvsitem_edge_cases() {
 	mut mydb := setup_test_db()!
-	mut item_db := DBUserKVSItem{db: &mydb}
+	mut item_db := DBUserKVSItem{
+		db: &mydb
+	}
 
 	// Test empty strings
 	mut minimal_item := item_db.new(
-		name: ''
+		name:        ''
 		description: ''
-		kvs_id: 0
-		key: ''
-		value: ''
+		kvs_id:      0
+		key:         ''
+		value:       ''
 	)!
 
 	minimal_item = item_db.set(minimal_item)!
@@ -172,11 +182,11 @@ fn test_userkvsitem_edge_cases() {
 	large_value := 'large_value_' + 'V'.repeat(10000)
 
 	mut large_item := item_db.new(
-		name: 'Large Item'
+		name:        'Large Item'
 		description: 'Testing with large strings'
-		kvs_id: 999999
-		key: large_key
-		value: large_value
+		kvs_id:      999999
+		key:         large_key
+		value:       large_value
 	)!
 
 	large_item = item_db.set(large_item)!
@@ -191,11 +201,11 @@ fn test_userkvsitem_edge_cases() {
 	special_value := 'value_with_unicode_💎_and_newlines\n\r\t'
 
 	mut special_item := item_db.new(
-		name: 'Special Characters Item'
+		name:        'Special Characters Item'
 		description: 'Testing special characters'
-		kvs_id: 1
-		key: special_key
-		value: special_value
+		kvs_id:      1
+		key:         special_key
+		value:       special_value
 	)!
 
 	special_item = item_db.set(special_item)!

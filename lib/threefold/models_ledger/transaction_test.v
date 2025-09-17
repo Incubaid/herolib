@@ -7,7 +7,9 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_transaction_new() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Create test transaction with signatures
 	sig1 := TransactionSignature{
@@ -23,18 +25,18 @@ fn test_transaction_new() {
 	}
 
 	mut transaction := tx_db.new(
-		name: 'Test Transaction'
+		name:        'Test Transaction'
 		description: 'A test transaction for unit testing'
-		txid: 12345
-		source: 100
+		txid:        12345
+		source:      100
 		destination: 200
-		assetid: 1
-		amount: 500.75
-		timestamp: 1234567890
-		status: 'pending'
-		memo: 'Test transfer'
-		tx_type: .transfer
-		signatures: [sig1, sig2]
+		assetid:     1
+		amount:      500.75
+		timestamp:   1234567890
+		status:      'pending'
+		memo:        'Test transfer'
+		tx_type:     .transfer
+		signatures:  [sig1, sig2]
 	)!
 
 	// Verify the transaction was created with correct values
@@ -58,7 +60,9 @@ fn test_transaction_new() {
 
 fn test_transaction_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Create a complex transaction with multiple signatures
 	sigs := [
@@ -76,31 +80,31 @@ fn test_transaction_encoding_decoding() {
 			signer_id: 30
 			signature: 'complex_sig_3_mnopqr345678'
 			timestamp: 1234567802
-		}
+		},
 	]
 
 	mut original_tx := tx_db.new(
-		name: 'Encoding Test Transaction'
+		name:        'Encoding Test Transaction'
 		description: 'Testing encoding and decoding functionality'
-		txid: 99999
-		source: 999
+		txid:        99999
+		source:      999
 		destination: 888
-		assetid: 5
-		amount: 12345.6789
-		timestamp: 1234567890
-		status: 'completed'
-		memo: 'Complex transaction for encoding test with special chars: !@#$%^&*()'
-		tx_type: .clawback
-		signatures: sigs
+		assetid:     5
+		amount:      12345.6789
+		timestamp:   1234567890
+		status:      'completed'
+		memo:        'Complex transaction for encoding test with special chars: !@#$%^&*()'
+		tx_type:     .clawback
+		signatures:  sigs
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_tx.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
+	mut decoder_obj := encoder.decoder_new(encoded_data)
 	mut decoded_tx := Transaction{}
 	tx_db.load(mut decoded_tx, mut decoder_obj)!
 
@@ -126,7 +130,9 @@ fn test_transaction_encoding_decoding() {
 
 fn test_transaction_set_and_get() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Create transaction
 	sig := TransactionSignature{
@@ -136,18 +142,18 @@ fn test_transaction_set_and_get() {
 	}
 
 	mut transaction := tx_db.new(
-		name: 'DB Test Transaction'
+		name:        'DB Test Transaction'
 		description: 'Testing database operations'
-		txid: 555
-		source: 111
+		txid:        555
+		source:      111
 		destination: 222
-		assetid: 3
-		amount: 100.50
-		timestamp: 1234567890
-		status: 'confirmed'
-		memo: 'Database test transfer'
-		tx_type: .transfer
-		signatures: [sig]
+		assetid:     3
+		amount:      100.50
+		timestamp:   1234567890
+		status:      'confirmed'
+		memo:        'Database test transfer'
+		tx_type:     .transfer
+		signatures:  [sig]
 	)!
 
 	// Save the transaction
@@ -180,22 +186,24 @@ fn test_transaction_set_and_get() {
 
 fn test_transaction_update() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Create and save a transaction
 	mut transaction := tx_db.new(
-		name: 'Original Transaction'
+		name:        'Original Transaction'
 		description: 'Original description'
-		txid: 777
-		source: 100
+		txid:        777
+		source:      100
 		destination: 200
-		assetid: 1
-		amount: 50.0
-		timestamp: 1234567890
-		status: 'pending'
-		memo: 'Original memo'
-		tx_type: .transfer
-		signatures: []TransactionSignature{}
+		assetid:     1
+		amount:      50.0
+		timestamp:   1234567890
+		status:      'pending'
+		memo:        'Original memo'
+		tx_type:     .transfer
+		signatures:  []TransactionSignature{}
 	)!
 
 	transaction = tx_db.set(transaction)!
@@ -235,7 +243,9 @@ fn test_transaction_update() {
 
 fn test_transaction_exist_and_delete() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Test non-existent transaction
 	exists := tx_db.exist(999)!
@@ -243,18 +253,18 @@ fn test_transaction_exist_and_delete() {
 
 	// Create and save a transaction
 	mut transaction := tx_db.new(
-		name: 'To Be Deleted'
+		name:        'To Be Deleted'
 		description: 'This transaction will be deleted'
-		txid: 666
-		source: 100
+		txid:        666
+		source:      100
 		destination: 200
-		assetid: 1
-		amount: 1.0
-		timestamp: 1234567890
-		status: 'failed'
-		memo: 'Delete me'
-		tx_type: .burn
-		signatures: []TransactionSignature{}
+		assetid:     1
+		amount:      1.0
+		timestamp:   1234567890
+		status:      'failed'
+		memo:        'Delete me'
+		tx_type:     .burn
+		signatures:  []TransactionSignature{}
 	)!
 
 	transaction = tx_db.set(transaction)!
@@ -279,7 +289,9 @@ fn test_transaction_exist_and_delete() {
 
 fn test_transaction_list() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Initially should be empty
 	initial_list := tx_db.list()!
@@ -287,33 +299,33 @@ fn test_transaction_list() {
 
 	// Create multiple transactions
 	mut tx1 := tx_db.new(
-		name: 'Transaction 1'
+		name:        'Transaction 1'
 		description: 'First transaction'
-		txid: 1001
-		source: 1
+		txid:        1001
+		source:      1
 		destination: 2
-		assetid: 1
-		amount: 100.0
-		timestamp: 1234567890
-		status: 'completed'
-		memo: 'First'
-		tx_type: .transfer
-		signatures: []TransactionSignature{}
+		assetid:     1
+		amount:      100.0
+		timestamp:   1234567890
+		status:      'completed'
+		memo:        'First'
+		tx_type:     .transfer
+		signatures:  []TransactionSignature{}
 	)!
 
 	mut tx2 := tx_db.new(
-		name: 'Transaction 2'
+		name:        'Transaction 2'
 		description: 'Second transaction'
-		txid: 1002
-		source: 2
+		txid:        1002
+		source:      2
 		destination: 3
-		assetid: 2
-		amount: 200.0
-		timestamp: 1234567891
-		status: 'pending'
-		memo: 'Second'
-		tx_type: .freeze
-		signatures: []TransactionSignature{}
+		assetid:     2
+		amount:      200.0
+		timestamp:   1234567891
+		status:      'pending'
+		memo:        'Second'
+		tx_type:     .freeze
+		signatures:  []TransactionSignature{}
 	)!
 
 	// Save both transactions
@@ -349,25 +361,27 @@ fn test_transaction_list() {
 
 fn test_transaction_types() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Test all transaction types
 	tx_types := [TransactionType.transfer, .clawback, .freeze, .unfreeze, .issue, .burn]
 
 	for i, tx_type in tx_types {
 		mut tx := tx_db.new(
-			name: 'Transaction Type Test ${i}'
+			name:        'Transaction Type Test ${i}'
 			description: 'Testing ${tx_type}'
-			txid: u32(2000 + i)
-			source: 100
+			txid:        u32(2000 + i)
+			source:      100
 			destination: 200
-			assetid: 1
-			amount: f64(i + 1) * 10.0
-			timestamp: 1234567890
-			status: 'completed'
-			memo: 'Type test for ${tx_type}'
-			tx_type: tx_type
-			signatures: []TransactionSignature{}
+			assetid:     1
+			amount:      f64(i + 1) * 10.0
+			timestamp:   1234567890
+			status:      'completed'
+			memo:        'Type test for ${tx_type}'
+			tx_type:     tx_type
+			signatures:  []TransactionSignature{}
 		)!
 
 		tx = tx_db.set(tx)!
@@ -378,22 +392,24 @@ fn test_transaction_types() {
 
 fn test_transaction_edge_cases() {
 	mut mydb := setup_test_db()!
-	mut tx_db := DBTransaction{db: &mydb}
+	mut tx_db := DBTransaction{
+		db: &mydb
+	}
 
 	// Test minimal transaction
 	mut minimal_tx := tx_db.new(
-		name: ''
+		name:        ''
 		description: ''
-		txid: 0
-		source: 0
+		txid:        0
+		source:      0
 		destination: 0
-		assetid: 0
-		amount: 0.0
-		timestamp: 0
-		status: ''
-		memo: ''
-		tx_type: .transfer
-		signatures: []TransactionSignature{}
+		assetid:     0
+		amount:      0.0
+		timestamp:   0
+		status:      ''
+		memo:        ''
+		tx_type:     .transfer
+		signatures:  []TransactionSignature{}
 	)!
 
 	minimal_tx = tx_db.set(minimal_tx)!
@@ -415,18 +431,18 @@ fn test_transaction_edge_cases() {
 	}}
 
 	mut large_tx := tx_db.new(
-		name: 'Large Signature Transaction'
+		name:        'Large Signature Transaction'
 		description: 'Transaction with many signatures'
-		txid: 9999
-		source: 100
+		txid:        9999
+		source:      100
 		destination: 200
-		assetid: 1
-		amount: 1000.0
-		timestamp: 1234567890
-		status: 'multisig'
-		memo: 'Many signatures test'
-		tx_type: .transfer
-		signatures: many_sigs
+		assetid:     1
+		amount:      1000.0
+		timestamp:   1234567890
+		status:      'multisig'
+		memo:        'Many signatures test'
+		tx_type:     .transfer
+		signatures:  many_sigs
 	)!
 
 	large_tx = tx_db.set(large_tx)!

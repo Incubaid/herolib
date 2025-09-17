@@ -7,28 +7,30 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_user_new() {
 	mut mydb := setup_test_db()!
-	mut user_db := DBUser{db: &mydb}
+	mut user_db := DBUser{
+		db: &mydb
+	}
 
 	// Create test user with encrypted data
 	secret_profile := SecretBox{
-		data: [u8(1), 2, 3, 4, 5]
+		data:  [u8(1), 2, 3, 4, 5]
 		nonce: [u8(10), 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
 	}
 
 	secret_kyc := SecretBox{
-		data: [u8(100), 101, 102, 103]
+		data:  [u8(100), 101, 102, 103]
 		nonce: [u8(200), 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211]
 	}
 
 	mut user := user_db.new(
-		name: 'Test User'
+		name:        'Test User'
 		description: 'A test user for unit testing'
-		username: 'testuser123'
-		pubkey: 'ed25519_ABCD...XYZ'
-		email: ['test@example.com', 'test2@example.com']
-		status: .active
+		username:    'testuser123'
+		pubkey:      'ed25519_ABCD...XYZ'
+		email:       ['test@example.com', 'test2@example.com']
+		status:      .active
 		userprofile: [secret_profile]
-		kyc: [secret_kyc]
+		kyc:         [secret_kyc]
 	)!
 
 	// Verify the user was created with correct values
@@ -48,42 +50,44 @@ fn test_user_new() {
 
 fn test_user_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut user_db := DBUser{db: &mydb}
+	mut user_db := DBUser{
+		db: &mydb
+	}
 
 	// Create a complex user with multiple encrypted boxes
 	profile1 := SecretBox{
-		data: [u8(1), 2, 3, 4, 5, 6, 7, 8, 9, 10]
+		data:  [u8(1), 2, 3, 4, 5, 6, 7, 8, 9, 10]
 		nonce: [u8(10), 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
 	}
 
 	profile2 := SecretBox{
-		data: [u8(50), 51, 52, 53, 54]
+		data:  [u8(50), 51, 52, 53, 54]
 		nonce: [u8(60), 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71]
 	}
 
 	kyc1 := SecretBox{
-		data: [u8(100), 101, 102, 103, 104, 105, 106]
+		data:  [u8(100), 101, 102, 103, 104, 105, 106]
 		nonce: [u8(200), 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211]
 	}
 
 	mut original_user := user_db.new(
-		name: 'Encoding Test User'
+		name:        'Encoding Test User'
 		description: 'Testing encoding and decoding functionality'
-		username: 'encodeuser'
-		pubkey: 'ed25519_ENCODE...TEST'
-		email: ['encode@test.com', 'encode2@test.com', 'encode3@test.com']
-		status: .suspended
+		username:    'encodeuser'
+		pubkey:      'ed25519_ENCODE...TEST'
+		email:       ['encode@test.com', 'encode2@test.com', 'encode3@test.com']
+		status:      .suspended
 		userprofile: [profile1, profile2]
-		kyc: [kyc1]
+		kyc:         [kyc1]
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_user.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
+	mut decoder_obj := encoder.decoder_new(encoded_data)
 	mut decoded_user := User{}
 	user_db.load(mut decoded_user, mut decoder_obj)!
 
@@ -127,18 +131,20 @@ fn test_user_encoding_decoding() {
 
 fn test_user_set_and_get() {
 	mut mydb := setup_test_db()!
-	mut user_db := DBUser{db: &mydb}
+	mut user_db := DBUser{
+		db: &mydb
+	}
 
 	// Create user
 	mut user := user_db.new(
-		name: 'DB Test User'
+		name:        'DB Test User'
 		description: 'Testing database operations'
-		username: 'dbuser'
-		pubkey: 'ed25519_DB...TEST'
-		email: ['db@test.com']
-		status: .active
+		username:    'dbuser'
+		pubkey:      'ed25519_DB...TEST'
+		email:       ['db@test.com']
+		status:      .active
 		userprofile: []SecretBox{}
-		kyc: []SecretBox{}
+		kyc:         []SecretBox{}
 	)!
 
 	// Save the user
@@ -166,18 +172,20 @@ fn test_user_set_and_get() {
 
 fn test_user_update() {
 	mut mydb := setup_test_db()!
-	mut user_db := DBUser{db: &mydb}
+	mut user_db := DBUser{
+		db: &mydb
+	}
 
 	// Create and save a user
 	mut user := user_db.new(
-		name: 'Original User'
+		name:        'Original User'
 		description: 'Original description'
-		username: 'original'
-		pubkey: 'ed25519_ORIG...123'
-		email: ['orig@test.com']
-		status: .active
+		username:    'original'
+		pubkey:      'ed25519_ORIG...123'
+		email:       ['orig@test.com']
+		status:      .active
 		userprofile: []SecretBox{}
-		kyc: []SecretBox{}
+		kyc:         []SecretBox{}
 	)!
 
 	user = user_db.set(user)!
@@ -186,7 +194,7 @@ fn test_user_update() {
 
 	// Update the user
 	new_profile := SecretBox{
-		data: [u8(99), 98, 97]
+		data:  [u8(99), 98, 97]
 		nonce: [u8(10), 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
 	}
 
@@ -216,7 +224,9 @@ fn test_user_update() {
 
 fn test_user_exist_and_delete() {
 	mut mydb := setup_test_db()!
-	mut user_db := DBUser{db: &mydb}
+	mut user_db := DBUser{
+		db: &mydb
+	}
 
 	// Test non-existent user
 	exists := user_db.exist(999)!
@@ -224,14 +234,14 @@ fn test_user_exist_and_delete() {
 
 	// Create and save a user
 	mut user := user_db.new(
-		name: 'To Be Deleted'
+		name:        'To Be Deleted'
 		description: 'This user will be deleted'
-		username: 'deleteme'
-		pubkey: 'ed25519_DEL...123'
-		email: ['delete@test.com']
-		status: .archived
+		username:    'deleteme'
+		pubkey:      'ed25519_DEL...123'
+		email:       ['delete@test.com']
+		status:      .archived
 		userprofile: []SecretBox{}
-		kyc: []SecretBox{}
+		kyc:         []SecretBox{}
 	)!
 
 	user = user_db.set(user)!
@@ -256,7 +266,9 @@ fn test_user_exist_and_delete() {
 
 fn test_user_list() {
 	mut mydb := setup_test_db()!
-	mut user_db := DBUser{db: &mydb}
+	mut user_db := DBUser{
+		db: &mydb
+	}
 
 	// Initially should be empty
 	initial_list := user_db.list()!
@@ -264,25 +276,25 @@ fn test_user_list() {
 
 	// Create multiple users
 	mut user1 := user_db.new(
-		name: 'User 1'
+		name:        'User 1'
 		description: 'First user'
-		username: 'user1'
-		pubkey: 'ed25519_USER1...123'
-		email: ['user1@test.com']
-		status: .active
+		username:    'user1'
+		pubkey:      'ed25519_USER1...123'
+		email:       ['user1@test.com']
+		status:      .active
 		userprofile: []SecretBox{}
-		kyc: []SecretBox{}
+		kyc:         []SecretBox{}
 	)!
 
 	mut user2 := user_db.new(
-		name: 'User 2'
+		name:        'User 2'
 		description: 'Second user'
-		username: 'user2'
-		pubkey: 'ed25519_USER2...456'
-		email: ['user2@test.com', 'user2alt@test.com']
-		status: .suspended
+		username:    'user2'
+		pubkey:      'ed25519_USER2...456'
+		email:       ['user2@test.com', 'user2alt@test.com']
+		status:      .suspended
 		userprofile: []SecretBox{}
-		kyc: []SecretBox{}
+		kyc:         []SecretBox{}
 	)!
 
 	// Save both users
@@ -318,18 +330,20 @@ fn test_user_list() {
 
 fn test_user_edge_cases() {
 	mut mydb := setup_test_db()!
-	mut user_db := DBUser{db: &mydb}
+	mut user_db := DBUser{
+		db: &mydb
+	}
 
 	// Test empty/minimal user
 	mut minimal_user := user_db.new(
-		name: ''
+		name:        ''
 		description: ''
-		username: ''
-		pubkey: ''
-		email: []string{}
-		status: .active
+		username:    ''
+		pubkey:      ''
+		email:       []string{}
+		status:      .active
 		userprofile: []SecretBox{}
-		kyc: []SecretBox{}
+		kyc:         []SecretBox{}
 	)!
 
 	minimal_user = user_db.set(minimal_user)!
@@ -348,19 +362,19 @@ fn test_user_edge_cases() {
 	large_nonce := []u8{len: 12, init: u8(index + 100)}
 
 	large_secret := SecretBox{
-		data: large_data
+		data:  large_data
 		nonce: large_nonce
 	}
 
 	mut large_user := user_db.new(
-		name: 'Large Data User'
+		name:        'Large Data User'
 		description: 'User with large encrypted data'
-		username: 'largeuser'
-		pubkey: 'ed25519_LARGE...123'
-		email: ['large@test.com']
-		status: .active
+		username:    'largeuser'
+		pubkey:      'ed25519_LARGE...123'
+		email:       ['large@test.com']
+		status:      .active
 		userprofile: [large_secret, large_secret] // Duplicate for testing
-		kyc: [large_secret]
+		kyc:         [large_secret]
 	)!
 
 	large_user = user_db.set(large_user)!

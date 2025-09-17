@@ -11,8 +11,8 @@ pub struct Project {
 pub mut:
 	swimlanes  []Swimlane
 	milestones []Milestone
-	issues     []string // IDs of project issues
-	fs_files   []u32    // IDs of linked files or dirs
+	issues     []u32 // IDs of project issues
+	fs_files   []u32 // IDs of linked files or dirs
 	status     ProjectStatus
 	start_date i64
 	end_date   i64

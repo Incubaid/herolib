@@ -7,28 +7,30 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_group_new() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Create test group with configuration
 	config := GroupConfig{
-		max_members: 100
-		allow_guests: true
-		auto_approve: false
+		max_members:    100
+		allow_guests:   true
+		auto_approve:   false
 		require_invite: true
 	}
 
 	mut group := group_db.new(
-		name: 'Test Group'
-		description: 'A test group for unit testing'
-		group_name: 'developers'
-		dnsrecords: [u32(1), 2, 3]
+		name:           'Test Group'
+		description:    'A test group for unit testing'
+		group_name:     'developers'
+		dnsrecords:     [u32(1), 2, 3]
 		administrators: [u32(10), 20]
 		min_signatures: 2
-		config: config
-		status: .active
-		visibility: .private
-		created: 1234567890
-		updated: 1234567891
+		config:         config
+		status:         .active
+		visibility:     .private
+		created:        1234567890
+		updated:        1234567891
 	)!
 
 	// Verify the group was created with correct values
@@ -54,38 +56,42 @@ fn test_group_new() {
 
 fn test_group_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Create a complex group
 	config := GroupConfig{
-		max_members: 500
-		allow_guests: false
-		auto_approve: true
+		max_members:    500
+		allow_guests:   false
+		auto_approve:   true
 		require_invite: false
 	}
 
 	mut original_group := group_db.new(
-		name: 'Encoding Test Group'
-		description: 'Testing encoding and decoding functionality'
-		group_name: 'encoding_test_group'
-		dnsrecords: [u32(100), 200, 300, 400, 500]
+		name:           'Encoding Test Group'
+		description:    'Testing encoding and decoding functionality'
+		group_name:     'encoding_test_group'
+		dnsrecords:     [u32(100), 200, 300, 400, 500]
 		administrators: [u32(1), 5, 10, 15, 20, 25]
 		min_signatures: 3
-		config: config
-		status: .suspended
-		visibility: .unlisted
-		created: 1700000000
-		updated: 1700000001
+		config:         config
+		status:         .suspended
+		visibility:     .unlisted
+		created:        1700000000
+		updated:        1700000001
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_group.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
-	mut decoded_group := Group{}
+	mut decoder_obj := encoder.decoder_new(encoded_data)
+	mut decoded_group := Group{
+		group_name: ''
+	}
 	group_db.load(mut decoded_group, mut decoder_obj)!
 
 	// Verify all fields match after encoding/decoding
@@ -117,28 +123,30 @@ fn test_group_encoding_decoding() {
 
 fn test_group_set_and_get() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Create group
 	config := GroupConfig{
-		max_members: 50
-		allow_guests: true
-		auto_approve: true
+		max_members:    50
+		allow_guests:   true
+		auto_approve:   true
 		require_invite: false
 	}
 
 	mut group := group_db.new(
-		name: 'DB Test Group'
-		description: 'Testing database operations'
-		group_name: 'db_test'
-		dnsrecords: [u32(1)]
+		name:           'DB Test Group'
+		description:    'Testing database operations'
+		group_name:     'db_test'
+		dnsrecords:     [u32(1)]
 		administrators: [u32(5), 10]
 		min_signatures: 1
-		config: config
-		status: .active
-		visibility: .public
-		created: 1234567890
-		updated: 1234567890
+		config:         config
+		status:         .active
+		visibility:     .public
+		created:        1234567890
+		updated:        1234567890
 	)!
 
 	// Save the group
@@ -172,28 +180,30 @@ fn test_group_set_and_get() {
 
 fn test_group_update() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Create and save a group
 	config := GroupConfig{
-		max_members: 25
-		allow_guests: false
-		auto_approve: false
+		max_members:    25
+		allow_guests:   false
+		auto_approve:   false
 		require_invite: true
 	}
 
 	mut group := group_db.new(
-		name: 'Original Group'
-		description: 'Original description'
-		group_name: 'original'
-		dnsrecords: []u32{}
+		name:           'Original Group'
+		description:    'Original description'
+		group_name:     'original'
+		dnsrecords:     []u32{}
 		administrators: [u32(1)]
 		min_signatures: 1
-		config: config
-		status: .active
-		visibility: .private
-		created: 1234567890
-		updated: 1234567890
+		config:         config
+		status:         .active
+		visibility:     .private
+		created:        1234567890
+		updated:        1234567890
 	)!
 
 	group = group_db.set(group)!
@@ -202,9 +212,9 @@ fn test_group_update() {
 
 	// Update the group
 	new_config := GroupConfig{
-		max_members: 200
-		allow_guests: true
-		auto_approve: true
+		max_members:    200
+		allow_guests:   true
+		auto_approve:   true
 		require_invite: false
 	}
 
@@ -242,7 +252,9 @@ fn test_group_update() {
 
 fn test_group_exist_and_delete() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Test non-existent group
 	exists := group_db.exist(999)!
@@ -250,24 +262,24 @@ fn test_group_exist_and_delete() {
 
 	// Create and save a group
 	config := GroupConfig{
-		max_members: 10
-		allow_guests: false
-		auto_approve: false
+		max_members:    10
+		allow_guests:   false
+		auto_approve:   false
 		require_invite: true
 	}
 
 	mut group := group_db.new(
-		name: 'To Be Deleted'
-		description: 'This group will be deleted'
-		group_name: 'delete_me'
-		dnsrecords: []u32{}
+		name:           'To Be Deleted'
+		description:    'This group will be deleted'
+		group_name:     'delete_me'
+		dnsrecords:     []u32{}
 		administrators: []u32{}
 		min_signatures: 0
-		config: config
-		status: .archived
-		visibility: .private
-		created: 1234567890
-		updated: 1234567890
+		config:         config
+		status:         .archived
+		visibility:     .private
+		created:        1234567890
+		updated:        1234567890
 	)!
 
 	group = group_db.set(group)!
@@ -292,7 +304,9 @@ fn test_group_exist_and_delete() {
 
 fn test_group_list() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Initially should be empty
 	initial_list := group_db.list()!
@@ -300,45 +314,45 @@ fn test_group_list() {
 
 	// Create multiple groups
 	config1 := GroupConfig{
-		max_members: 100
-		allow_guests: true
-		auto_approve: true
+		max_members:    100
+		allow_guests:   true
+		auto_approve:   true
 		require_invite: false
 	}
 
 	config2 := GroupConfig{
-		max_members: 50
-		allow_guests: false
-		auto_approve: false
+		max_members:    50
+		allow_guests:   false
+		auto_approve:   false
 		require_invite: true
 	}
 
 	mut group1 := group_db.new(
-		name: 'Group 1'
-		description: 'First group'
-		group_name: 'group1'
-		dnsrecords: [u32(1)]
+		name:           'Group 1'
+		description:    'First group'
+		group_name:     'group1'
+		dnsrecords:     [u32(1)]
 		administrators: [u32(1)]
 		min_signatures: 1
-		config: config1
-		status: .active
-		visibility: .public
-		created: 1234567890
-		updated: 1234567890
+		config:         config1
+		status:         .active
+		visibility:     .public
+		created:        1234567890
+		updated:        1234567890
 	)!
 
 	mut group2 := group_db.new(
-		name: 'Group 2'
-		description: 'Second group'
-		group_name: 'group2'
-		dnsrecords: [u32(1), 2]
+		name:           'Group 2'
+		description:    'Second group'
+		group_name:     'group2'
+		dnsrecords:     [u32(1), 2]
 		administrators: [u32(1), 2]
 		min_signatures: 2
-		config: config2
-		status: .inactive
-		visibility: .private
-		created: 1234567891
-		updated: 1234567891
+		config:         config2
+		status:         .inactive
+		visibility:     .private
+		created:        1234567891
+		updated:        1234567891
 	)!
 
 	// Save both groups
@@ -376,7 +390,9 @@ fn test_group_list() {
 
 fn test_group_status_and_visibility() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Test all status values
 	statuses := [GroupStatus.active, .inactive, .suspended, .archived]
@@ -386,24 +402,24 @@ fn test_group_status_and_visibility() {
 		visibility := visibilities[i % visibilities.len]
 
 		config := GroupConfig{
-			max_members: u32(10 + i)
-			allow_guests: i % 2 == 0
-			auto_approve: i % 2 == 1
+			max_members:    u32(10 + i)
+			allow_guests:   i % 2 == 0
+			auto_approve:   i % 2 == 1
 			require_invite: i % 3 == 0
 		}
 
 		mut group := group_db.new(
-			name: 'Status Test Group ${i}'
-			description: 'Testing ${status} and ${visibility}'
-			group_name: 'status_test_${i}'
-			dnsrecords: []u32{}
+			name:           'Status Test Group ${i}'
+			description:    'Testing ${status} and ${visibility}'
+			group_name:     'status_test_${i}'
+			dnsrecords:     []u32{}
 			administrators: []u32{}
 			min_signatures: 0
-			config: config
-			status: status
-			visibility: visibility
-			created: u64(1234567890 + i)
-			updated: u64(1234567890 + i)
+			config:         config
+			status:         status
+			visibility:     visibility
+			created:        u64(1234567890 + i)
+			updated:        u64(1234567890 + i)
 		)!
 
 		group = group_db.set(group)!
@@ -417,28 +433,30 @@ fn test_group_status_and_visibility() {
 
 fn test_group_edge_cases() {
 	mut mydb := setup_test_db()!
-	mut group_db := DBGroup{db: &mydb}
+	mut group_db := DBGroup{
+		db: &mydb
+	}
 
 	// Test minimal group
 	minimal_config := GroupConfig{
-		max_members: 0
-		allow_guests: false
-		auto_approve: false
+		max_members:    0
+		allow_guests:   false
+		auto_approve:   false
 		require_invite: false
 	}
 
 	mut minimal_group := group_db.new(
-		name: ''
-		description: ''
-		group_name: ''
-		dnsrecords: []u32{}
+		name:           ''
+		description:    ''
+		group_name:     ''
+		dnsrecords:     []u32{}
 		administrators: []u32{}
 		min_signatures: 0
-		config: minimal_config
-		status: .active
-		visibility: .public
-		created: 0
-		updated: 0
+		config:         minimal_config
+		status:         .active
+		visibility:     .public
+		created:        0
+		updated:        0
 	)!
 
 	minimal_group = group_db.set(minimal_group)!
@@ -456,24 +474,24 @@ fn test_group_edge_cases() {
 	large_administrators := []u32{len: 100, init: u32(index + 1000)}
 
 	large_config := GroupConfig{
-		max_members: 99999
-		allow_guests: true
-		auto_approve: true
+		max_members:    99999
+		allow_guests:   true
+		auto_approve:   true
 		require_invite: true
 	}
 
 	mut large_group := group_db.new(
-		name: 'Large Group'
-		description: 'Group with large arrays'
-		group_name: 'large_group'
-		dnsrecords: large_dns_records
+		name:           'Large Group'
+		description:    'Group with large arrays'
+		group_name:     'large_group'
+		dnsrecords:     large_dns_records
 		administrators: large_administrators
 		min_signatures: 50
-		config: large_config
-		status: .active
-		visibility: .public
-		created: 1234567890
-		updated: 1234567890
+		config:         large_config
+		status:         .active
+		visibility:     .public
+		created:        1234567890
+		updated:        1234567890
 	)!
 
 	large_group = group_db.set(large_group)!

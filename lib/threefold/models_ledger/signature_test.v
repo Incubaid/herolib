@@ -7,14 +7,16 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_signature_new() {
 	mut mydb := setup_test_db()!
-	mut sig_db := DBSignature{db: &mydb}
+	mut sig_db := DBSignature{
+		db: &mydb
+	}
 
 	mut signature := sig_db.new(
-		name: 'Test Signature'
+		name:        'Test Signature'
 		description: 'A test signature for unit testing'
-		signer_id: 1
-		tx_id: 123
-		signature: 'abcd1234567890efgh'
+		signer_id:   1
+		tx_id:       123
+		signature:   'abcd1234567890efgh'
 	)!
 
 	assert signature.name == 'Test Signature'
@@ -29,23 +31,25 @@ fn test_signature_new() {
 
 fn test_signature_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut sig_db := DBSignature{db: &mydb}
+	mut sig_db := DBSignature{
+		db: &mydb
+	}
 
 	mut original_sig := sig_db.new(
-		name: 'Encoding Test Signature'
+		name:        'Encoding Test Signature'
 		description: 'Testing encoding and decoding'
-		signer_id: 999
-		tx_id: 888
-		signature: 'hex_encoded_signature_123456789abcdef'
+		signer_id:   999
+		tx_id:       888
+		signature:   'hex_encoded_signature_123456789abcdef'
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_sig.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
+	mut decoder_obj := encoder.decoder_new(encoded_data)
 	mut decoded_sig := Signature{}
 	sig_db.load(mut decoded_sig, mut decoder_obj)!
 
@@ -58,15 +62,17 @@ fn test_signature_encoding_decoding() {
 
 fn test_signature_crud_operations() {
 	mut mydb := setup_test_db()!
-	mut sig_db := DBSignature{db: &mydb}
+	mut sig_db := DBSignature{
+		db: &mydb
+	}
 
 	// Create and save
 	mut signature := sig_db.new(
-		name: 'CRUD Test Signature'
+		name:        'CRUD Test Signature'
 		description: 'Testing CRUD operations'
-		signer_id: 5
-		tx_id: 15
-		signature: 'crud_test_signature_hex'
+		signer_id:   5
+		tx_id:       15
+		signature:   'crud_test_signature_hex'
 	)!
 
 	signature = sig_db.set(signature)!
@@ -98,26 +104,28 @@ fn test_signature_crud_operations() {
 
 fn test_signature_list() {
 	mut mydb := setup_test_db()!
-	mut sig_db := DBSignature{db: &mydb}
+	mut sig_db := DBSignature{
+		db: &mydb
+	}
 
 	initial_list := sig_db.list()!
 	initial_count := initial_list.len
 
 	// Create multiple signatures
 	mut sig1 := sig_db.new(
-		name: 'Signature 1'
+		name:        'Signature 1'
 		description: 'First signature'
-		signer_id: 1
-		tx_id: 101
-		signature: 'signature1_hex'
+		signer_id:   1
+		tx_id:       101
+		signature:   'signature1_hex'
 	)!
 
 	mut sig2 := sig_db.new(
-		name: 'Signature 2'
+		name:        'Signature 2'
 		description: 'Second signature'
-		signer_id: 2
-		tx_id: 102
-		signature: 'signature2_hex'
+		signer_id:   2
+		tx_id:       102
+		signature:   'signature2_hex'
 	)!
 
 	sig1 = sig_db.set(sig1)!
@@ -143,15 +151,17 @@ fn test_signature_list() {
 
 fn test_signature_edge_cases() {
 	mut mydb := setup_test_db()!
-	mut sig_db := DBSignature{db: &mydb}
+	mut sig_db := DBSignature{
+		db: &mydb
+	}
 
 	// Test minimal signature
 	mut minimal_sig := sig_db.new(
-		name: ''
+		name:        ''
 		description: ''
-		signer_id: 0
-		tx_id: 0
-		signature: ''
+		signer_id:   0
+		tx_id:       0
+		signature:   ''
 	)!
 
 	minimal_sig = sig_db.set(minimal_sig)!
@@ -167,11 +177,11 @@ fn test_signature_edge_cases() {
 	long_signature := 'A'.repeat(10000)
 
 	mut long_sig := sig_db.new(
-		name: 'Long Signature'
+		name:        'Long Signature'
 		description: 'Testing with very long signature'
-		signer_id: 999999
-		tx_id: 888888
-		signature: long_signature
+		signer_id:   999999
+		tx_id:       888888
+		signature:   long_signature
 	)!
 
 	long_sig = sig_db.set(long_sig)!

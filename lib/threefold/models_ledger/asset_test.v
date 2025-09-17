@@ -7,19 +7,24 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_asset_new() {
 	mut mydb := setup_test_db()!
-	mut asset_db := DBAsset{db: &mydb}
+	mut asset_db := DBAsset{
+		db: &mydb
+	}
 
 	// Test creating a new asset with all fields
 	mut asset := asset_db.new(
-		name: 'Test Token'
-		description: 'A test token for unit testing'
-		address: 'GBTC...XYZ123'
-		asset_type: 'token'
-		issuer: 1
-		supply: 1000000.0
-		decimals: 8
-		is_frozen: false
-		metadata: {'symbol': 'TEST', 'website': 'https://test.com'}
+		name:           'Test Token'
+		description:    'A test token for unit testing'
+		address:        'GBTC...XYZ123'
+		asset_type:     'token'
+		issuer:         1
+		supply:         1000000.0
+		decimals:       8
+		is_frozen:      false
+		metadata:       {
+			'symbol':  'TEST'
+			'website': 'https://test.com'
+		}
 		administrators: [u32(1), 2, 3]
 		min_signatures: 2
 	)!
@@ -44,37 +49,43 @@ fn test_asset_new() {
 
 fn test_asset_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut asset_db := DBAsset{db: &mydb}
+	mut asset_db := DBAsset{
+		db: &mydb
+	}
 
 	// Create a complex asset with all field types
 	mut original_asset := asset_db.new(
-		name: 'Encoding Test Asset'
-		description: 'Testing encoding and decoding functionality'
-		address: 'GABCD...XYZ789'
-		asset_type: 'nft'
-		issuer: 999
-		supply: 5000000.0
-		decimals: 6
-		is_frozen: true
-		metadata: {
-			'symbol': 'ETA'
-			'website': 'https://example.com'
+		name:           'Encoding Test Asset'
+		description:    'Testing encoding and decoding functionality'
+		address:        'GABCD...XYZ789'
+		asset_type:     'nft'
+		issuer:         999
+		supply:         5000000.0
+		decimals:       6
+		is_frozen:      true
+		metadata:       {
+			'symbol':      'ETA'
+			'website':     'https://example.com'
 			'description': 'Extended test asset'
-			'category': 'utility'
-			'version': '1.0'
+			'category':    'utility'
+			'version':     '1.0'
 		}
 		administrators: [u32(10), 20, 30, 40]
 		min_signatures: 3
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_asset.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
-	mut decoded_asset := Asset{}
+	mut decoder_obj := encoder.decoder_new(encoded_data)
+	mut decoded_asset := Asset{
+		address:    ''
+		asset_type: ''
+		issuer:     0
+	}
 	asset_db.load(mut decoded_asset, mut decoder_obj)!
 
 	// Verify all fields match after encoding/decoding
@@ -101,19 +112,24 @@ fn test_asset_encoding_decoding() {
 
 fn test_asset_set_and_get() {
 	mut mydb := setup_test_db()!
-	mut asset_db := DBAsset{db: &mydb}
+	mut asset_db := DBAsset{
+		db: &mydb
+	}
 
 	// Create asset
 	mut asset := asset_db.new(
-		name: 'DB Test Asset'
-		description: 'Testing database operations'
-		address: 'GTEST...DB123'
-		asset_type: 'token'
-		issuer: 42
-		supply: 100000.0
-		decimals: 2
-		is_frozen: false
-		metadata: {'currency': 'EUR', 'region': 'EU'}
+		name:           'DB Test Asset'
+		description:    'Testing database operations'
+		address:        'GTEST...DB123'
+		asset_type:     'token'
+		issuer:         42
+		supply:         100000.0
+		decimals:       2
+		is_frozen:      false
+		metadata:       {
+			'currency': 'EUR'
+			'region':   'EU'
+		}
 		administrators: [u32(5), 10]
 		min_signatures: 1
 	)!
@@ -149,19 +165,23 @@ fn test_asset_set_and_get() {
 
 fn test_asset_update() {
 	mut mydb := setup_test_db()!
-	mut asset_db := DBAsset{db: &mydb}
+	mut asset_db := DBAsset{
+		db: &mydb
+	}
 
 	// Create and save an asset
 	mut asset := asset_db.new(
-		name: 'Original Asset'
-		description: 'Original description'
-		address: 'GORIG...123'
-		asset_type: 'token'
-		issuer: 1
-		supply: 1000.0
-		decimals: 8
-		is_frozen: false
-		metadata: {'version': '1.0'}
+		name:           'Original Asset'
+		description:    'Original description'
+		address:        'GORIG...123'
+		asset_type:     'token'
+		issuer:         1
+		supply:         1000.0
+		decimals:       8
+		is_frozen:      false
+		metadata:       {
+			'version': '1.0'
+		}
 		administrators: [u32(1)]
 		min_signatures: 1
 	)!
@@ -175,7 +195,10 @@ fn test_asset_update() {
 	asset.description = 'Updated description'
 	asset.supply = 2000.0
 	asset.is_frozen = true
-	asset.metadata = {'version': '2.0', 'status': 'updated'}
+	asset.metadata = {
+		'version': '2.0'
+		'status':  'updated'
+	}
 	asset.administrators = [u32(1), 2, 3]
 	asset.min_signatures = 2
 
@@ -200,7 +223,9 @@ fn test_asset_update() {
 
 fn test_asset_exist_and_delete() {
 	mut mydb := setup_test_db()!
-	mut asset_db := DBAsset{db: &mydb}
+	mut asset_db := DBAsset{
+		db: &mydb
+	}
 
 	// Test non-existent asset
 	exists := asset_db.exist(999)!
@@ -208,15 +233,15 @@ fn test_asset_exist_and_delete() {
 
 	// Create and save an asset
 	mut asset := asset_db.new(
-		name: 'To Be Deleted'
-		description: 'This asset will be deleted'
-		address: 'GDEL...123'
-		asset_type: 'token'
-		issuer: 1
-		supply: 1.0
-		decimals: 0
-		is_frozen: false
-		metadata: map[string]string{}
+		name:           'To Be Deleted'
+		description:    'This asset will be deleted'
+		address:        'GDEL...123'
+		asset_type:     'token'
+		issuer:         1
+		supply:         1.0
+		decimals:       0
+		is_frozen:      false
+		metadata:       map[string]string{}
 		administrators: []u32{}
 		min_signatures: 0
 	)!
@@ -243,7 +268,9 @@ fn test_asset_exist_and_delete() {
 
 fn test_asset_list() {
 	mut mydb := setup_test_db()!
-	mut asset_db := DBAsset{db: &mydb}
+	mut asset_db := DBAsset{
+		db: &mydb
+	}
 
 	// Initially should be empty
 	initial_list := asset_db.list()!
@@ -251,29 +278,34 @@ fn test_asset_list() {
 
 	// Create multiple assets
 	mut asset1 := asset_db.new(
-		name: 'Asset 1'
-		description: 'First asset'
-		address: 'GFIRST...123'
-		asset_type: 'token'
-		issuer: 1
-		supply: 1000.0
-		decimals: 8
-		is_frozen: false
-		metadata: {'type': 'utility'}
+		name:           'Asset 1'
+		description:    'First asset'
+		address:        'GFIRST...123'
+		asset_type:     'token'
+		issuer:         1
+		supply:         1000.0
+		decimals:       8
+		is_frozen:      false
+		metadata:       {
+			'type': 'utility'
+		}
 		administrators: [u32(1)]
 		min_signatures: 1
 	)!
 
 	mut asset2 := asset_db.new(
-		name: 'Asset 2'
-		description: 'Second asset'
-		address: 'GSECOND...456'
-		asset_type: 'nft'
-		issuer: 2
-		supply: 100.0
-		decimals: 0
-		is_frozen: true
-		metadata: {'type': 'collectible', 'rarity': 'rare'}
+		name:           'Asset 2'
+		description:    'Second asset'
+		address:        'GSECOND...456'
+		asset_type:     'nft'
+		issuer:         2
+		supply:         100.0
+		decimals:       0
+		is_frozen:      true
+		metadata:       {
+			'type':   'collectible'
+			'rarity': 'rare'
+		}
 		administrators: [u32(1), 2]
 		min_signatures: 2
 	)!
@@ -313,19 +345,21 @@ fn test_asset_list() {
 
 fn test_asset_edge_cases() {
 	mut mydb := setup_test_db()!
-	mut asset_db := DBAsset{db: &mydb}
+	mut asset_db := DBAsset{
+		db: &mydb
+	}
 
 	// Test empty/minimal asset
 	mut minimal_asset := asset_db.new(
-		name: ''
-		description: ''
-		address: ''
-		asset_type: ''
-		issuer: 0
-		supply: 0.0
-		decimals: 0
-		is_frozen: false
-		metadata: map[string]string{}
+		name:           ''
+		description:    ''
+		address:        ''
+		asset_type:     ''
+		issuer:         0
+		supply:         0.0
+		decimals:       0
+		is_frozen:      false
+		metadata:       map[string]string{}
 		administrators: []u32{}
 		min_signatures: 0
 	)!
@@ -349,15 +383,15 @@ fn test_asset_edge_cases() {
 	}
 
 	mut large_asset := asset_db.new(
-		name: 'Large Metadata Asset'
-		description: 'Asset with large metadata'
-		address: 'GLARGE...123'
-		asset_type: 'token'
-		issuer: 1
-		supply: 1000.0
-		decimals: 8
-		is_frozen: false
-		metadata: large_metadata
+		name:           'Large Metadata Asset'
+		description:    'Asset with large metadata'
+		address:        'GLARGE...123'
+		asset_type:     'token'
+		issuer:         1
+		supply:         1000.0
+		decimals:       8
+		is_frozen:      false
+		metadata:       large_metadata
 		administrators: []u32{}
 		min_signatures: 0
 	)!

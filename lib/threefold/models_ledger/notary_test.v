@@ -7,15 +7,17 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_notary_new() {
 	mut mydb := setup_test_db()!
-	mut notary_db := DBNotary{db: &mydb}
+	mut notary_db := DBNotary{
+		db: &mydb
+	}
 
 	mut notary := notary_db.new(
-		name: 'Test Notary'
+		name:        'Test Notary'
 		description: 'A test notary for unit testing'
-		notary_id: 1
-		pubkey: 'ed25519_ABCD1234567890EFGH'
-		address: 'TFT_ADDRESS_XYZ123'
-		is_active: true
+		notary_id:   1
+		pubkey:      'ed25519_ABCD1234567890EFGH'
+		address:     'TFT_ADDRESS_XYZ123'
+		is_active:   true
 	)!
 
 	assert notary.name == 'Test Notary'
@@ -30,24 +32,26 @@ fn test_notary_new() {
 
 fn test_notary_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut notary_db := DBNotary{db: &mydb}
+	mut notary_db := DBNotary{
+		db: &mydb
+	}
 
 	mut original_notary := notary_db.new(
-		name: 'Encoding Test Notary'
+		name:        'Encoding Test Notary'
 		description: 'Testing encoding and decoding'
-		notary_id: 999
-		pubkey: 'ed25519_ENCODING_TEST_PUBKEY_123456789'
-		address: 'TFT_ENCODING_ADDRESS_ABCDEF'
-		is_active: false
+		notary_id:   999
+		pubkey:      'ed25519_ENCODING_TEST_PUBKEY_123456789'
+		address:     'TFT_ENCODING_ADDRESS_ABCDEF'
+		is_active:   false
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_notary.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
+	mut decoder_obj := encoder.decoder_new(encoded_data)
 	mut decoded_notary := Notary{}
 	notary_db.load(mut decoded_notary, mut decoder_obj)!
 
@@ -60,16 +64,18 @@ fn test_notary_encoding_decoding() {
 
 fn test_notary_crud_operations() {
 	mut mydb := setup_test_db()!
-	mut notary_db := DBNotary{db: &mydb}
+	mut notary_db := DBNotary{
+		db: &mydb
+	}
 
 	// Create and save
 	mut notary := notary_db.new(
-		name: 'CRUD Test Notary'
+		name:        'CRUD Test Notary'
 		description: 'Testing CRUD operations'
-		notary_id: 5
-		pubkey: 'ed25519_CRUD_TEST_PUBKEY'
-		address: 'TFT_CRUD_ADDRESS'
-		is_active: true
+		notary_id:   5
+		pubkey:      'ed25519_CRUD_TEST_PUBKEY'
+		address:     'TFT_CRUD_ADDRESS'
+		is_active:   true
 	)!
 
 	notary = notary_db.set(notary)!
@@ -104,28 +110,30 @@ fn test_notary_crud_operations() {
 
 fn test_notary_list() {
 	mut mydb := setup_test_db()!
-	mut notary_db := DBNotary{db: &mydb}
+	mut notary_db := DBNotary{
+		db: &mydb
+	}
 
 	initial_list := notary_db.list()!
 	initial_count := initial_list.len
 
 	// Create multiple notaries
 	mut notary1 := notary_db.new(
-		name: 'Notary 1'
+		name:        'Notary 1'
 		description: 'First notary'
-		notary_id: 1
-		pubkey: 'ed25519_NOTARY1_PUBKEY'
-		address: 'TFT_NOTARY1_ADDRESS'
-		is_active: true
+		notary_id:   1
+		pubkey:      'ed25519_NOTARY1_PUBKEY'
+		address:     'TFT_NOTARY1_ADDRESS'
+		is_active:   true
 	)!
 
 	mut notary2 := notary_db.new(
-		name: 'Notary 2'
+		name:        'Notary 2'
 		description: 'Second notary'
-		notary_id: 2
-		pubkey: 'ed25519_NOTARY2_PUBKEY'
-		address: 'TFT_NOTARY2_ADDRESS'
-		is_active: false
+		notary_id:   2
+		pubkey:      'ed25519_NOTARY2_PUBKEY'
+		address:     'TFT_NOTARY2_ADDRESS'
+		is_active:   false
 	)!
 
 	notary1 = notary_db.set(notary1)!
@@ -151,16 +159,18 @@ fn test_notary_list() {
 
 fn test_notary_edge_cases() {
 	mut mydb := setup_test_db()!
-	mut notary_db := DBNotary{db: &mydb}
+	mut notary_db := DBNotary{
+		db: &mydb
+	}
 
 	// Test empty strings
 	mut minimal_notary := notary_db.new(
-		name: ''
+		name:        ''
 		description: ''
-		notary_id: 0
-		pubkey: ''
-		address: ''
-		is_active: false
+		notary_id:   0
+		pubkey:      ''
+		address:     ''
+		is_active:   false
 	)!
 
 	minimal_notary = notary_db.set(minimal_notary)!
@@ -178,12 +188,12 @@ fn test_notary_edge_cases() {
 	long_address := 'TFT_' + 'B'.repeat(1000)
 
 	mut long_notary := notary_db.new(
-		name: 'Long String Notary'
+		name:        'Long String Notary'
 		description: 'Testing with very long strings'
-		notary_id: 999999
-		pubkey: long_pubkey
-		address: long_address
-		is_active: true
+		notary_id:   999999
+		pubkey:      long_pubkey
+		address:     long_address
+		is_active:   true
 	)!
 
 	long_notary = notary_db.set(long_notary)!

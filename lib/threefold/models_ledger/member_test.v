@@ -7,15 +7,17 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_member_new() {
 	mut mydb := setup_test_db()!
-	mut member_db := DBMember{db: &mydb}
+	mut member_db := DBMember{
+		db: &mydb
+	}
 
 	mut member := member_db.new(
-		name: 'Test Member'
+		name:        'Test Member'
 		description: 'A test member for unit testing'
-		group_id: 1
-		user_id: 10
-		role: .admin
-		status: .active
+		group_id:    1
+		user_id:     10
+		role:        .admin
+		status:      .active
 	)!
 
 	assert member.name == 'Test Member'
@@ -32,24 +34,26 @@ fn test_member_new() {
 
 fn test_member_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut member_db := DBMember{db: &mydb}
+	mut member_db := DBMember{
+		db: &mydb
+	}
 
 	mut original_member := member_db.new(
-		name: 'Encoding Test Member'
+		name:        'Encoding Test Member'
 		description: 'Testing encoding and decoding'
-		group_id: 999
-		user_id: 888
-		role: .moderator
-		status: .suspended
+		group_id:    999
+		user_id:     888
+		role:        .moderator
+		status:      .suspended
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_member.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
+	mut decoder_obj := encoder.decoder_new(encoded_data)
 	mut decoded_member := Member{}
 	member_db.load(mut decoded_member, mut decoder_obj)!
 
@@ -64,16 +68,18 @@ fn test_member_encoding_decoding() {
 
 fn test_member_crud_operations() {
 	mut mydb := setup_test_db()!
-	mut member_db := DBMember{db: &mydb}
+	mut member_db := DBMember{
+		db: &mydb
+	}
 
 	// Create and save
 	mut member := member_db.new(
-		name: 'CRUD Test Member'
+		name:        'CRUD Test Member'
 		description: 'Testing CRUD operations'
-		group_id: 5
-		user_id: 15
-		role: .member
-		status: .pending
+		group_id:    5
+		user_id:     15
+		role:        .member
+		status:      .pending
 	)!
 
 	member = member_db.set(member)!
@@ -108,28 +114,30 @@ fn test_member_crud_operations() {
 
 fn test_member_list() {
 	mut mydb := setup_test_db()!
-	mut member_db := DBMember{db: &mydb}
+	mut member_db := DBMember{
+		db: &mydb
+	}
 
 	initial_list := member_db.list()!
 	initial_count := initial_list.len
 
 	// Create multiple members
 	mut member1 := member_db.new(
-		name: 'Member 1'
+		name:        'Member 1'
 		description: 'First member'
-		group_id: 1
-		user_id: 1
-		role: .admin
-		status: .active
+		group_id:    1
+		user_id:     1
+		role:        .admin
+		status:      .active
 	)!
 
 	mut member2 := member_db.new(
-		name: 'Member 2'
+		name:        'Member 2'
 		description: 'Second member'
-		group_id: 2
-		user_id: 2
-		role: .member
-		status: .pending
+		group_id:    2
+		user_id:     2
+		role:        .member
+		status:      .pending
 	)!
 
 	member1 = member_db.set(member1)!
@@ -155,7 +163,9 @@ fn test_member_list() {
 
 fn test_member_roles_and_statuses() {
 	mut mydb := setup_test_db()!
-	mut member_db := DBMember{db: &mydb}
+	mut member_db := DBMember{
+		db: &mydb
+	}
 
 	roles := [MemberRole.member, .moderator, .admin, .owner]
 	statuses := [MemberStatus.pending, .active, .suspended, .archived]
@@ -163,12 +173,12 @@ fn test_member_roles_and_statuses() {
 	for i, role in roles {
 		status := statuses[i % statuses.len]
 		mut member := member_db.new(
-			name: 'Role Test ${i}'
+			name:        'Role Test ${i}'
 			description: 'Testing ${role} with ${status}'
-			group_id: u32(i + 1)
-			user_id: u32(i + 100)
-			role: role
-			status: status
+			group_id:    u32(i + 1)
+			user_id:     u32(i + 100)
+			role:        role
+			status:      status
 		)!
 
 		member = member_db.set(member)!

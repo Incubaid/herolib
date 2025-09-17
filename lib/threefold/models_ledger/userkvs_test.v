@@ -7,12 +7,14 @@ import freeflowuniverse.herolib.data.encoder
 
 fn test_userkvs_new() {
 	mut mydb := setup_test_db()!
-	mut kvs_db := DBUserKVS{db: &mydb}
+	mut kvs_db := DBUserKVS{
+		db: &mydb
+	}
 
 	mut userkvs := kvs_db.new(
-		name: 'Test User KVS'
+		name:        'Test User KVS'
 		description: 'A test user KVS for unit testing'
-		user_id: 1
+		user_id:     1
 	)!
 
 	assert userkvs.name == 'Test User KVS'
@@ -24,21 +26,23 @@ fn test_userkvs_new() {
 
 fn test_userkvs_encoding_decoding() {
 	mut mydb := setup_test_db()!
-	mut kvs_db := DBUserKVS{db: &mydb}
+	mut kvs_db := DBUserKVS{
+		db: &mydb
+	}
 
 	mut original_kvs := kvs_db.new(
-		name: 'Encoding Test KVS'
+		name:        'Encoding Test KVS'
 		description: 'Testing encoding and decoding'
-		user_id: 999
+		user_id:     999
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.new()
+	mut encoder_obj := encoder.encoder_new()
 	original_kvs.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.bytes()
+	encoded_data := encoder_obj.data
 
 	// Test decoding
-	mut decoder_obj := encoder.new_decoder(encoded_data)
+	mut decoder_obj := encoder.decoder_new(encoded_data)
 	mut decoded_kvs := UserKVS{}
 	kvs_db.load(mut decoded_kvs, mut decoder_obj)!
 
@@ -48,13 +52,15 @@ fn test_userkvs_encoding_decoding() {
 
 fn test_userkvs_crud_operations() {
 	mut mydb := setup_test_db()!
-	mut kvs_db := DBUserKVS{db: &mydb}
+	mut kvs_db := DBUserKVS{
+		db: &mydb
+	}
 
 	// Create and save
 	mut userkvs := kvs_db.new(
-		name: 'CRUD Test KVS'
+		name:        'CRUD Test KVS'
 		description: 'Testing CRUD operations'
-		user_id: 5
+		user_id:     5
 	)!
 
 	userkvs = kvs_db.set(userkvs)!
@@ -87,22 +93,24 @@ fn test_userkvs_crud_operations() {
 
 fn test_userkvs_list() {
 	mut mydb := setup_test_db()!
-	mut kvs_db := DBUserKVS{db: &mydb}
+	mut kvs_db := DBUserKVS{
+		db: &mydb
+	}
 
 	initial_list := kvs_db.list()!
 	initial_count := initial_list.len
 
 	// Create multiple KVS
 	mut kvs1 := kvs_db.new(
-		name: 'KVS 1'
+		name:        'KVS 1'
 		description: 'First KVS'
-		user_id: 1
+		user_id:     1
 	)!
 
 	mut kvs2 := kvs_db.new(
-		name: 'KVS 2'
+		name:        'KVS 2'
 		description: 'Second KVS'
-		user_id: 2
+		user_id:     2
 	)!
 
 	kvs1 = kvs_db.set(kvs1)!
