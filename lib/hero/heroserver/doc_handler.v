@@ -1,23 +1,9 @@
 module heroserver
 
 import veb
-import freeflowuniverse.herolib.schemas.openrpc
 
-// Documentation controller
-pub struct DocController {
-mut:
-	server &HeroServer
-	handler_type string
-}
-
-// Setup documentation routes
-pub fn (mut server HeroServer) setup_doc_routes() ! {
-	for handler_type, _ in server.handlers {
-		server.app.mount('/doc/${handler_type}', doc_handler)
-	}
-}
-
-fn doc_handler(mut ctx Context) veb.Result {
+@['/doc/:handler_type']
+pub fn (mut server HeroServer) doc_handler(mut ctx Context, handler_type string) veb.Result {
 	// Simplified documentation response
 	html_content := '
 	<!DOCTYPE html>

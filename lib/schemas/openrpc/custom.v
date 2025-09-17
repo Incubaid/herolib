@@ -1,6 +1,8 @@
 module openrpc
-
 import json
+import freeflowuniverse.herolib.schemas.jsonschema
+import freeflowuniverse.herolib.schemas.openrpc
+
 
 // In the OpenRPC specification struct
 pub fn (spec OpenRPC) methods_by_object() map[string][]Method {
@@ -37,12 +39,42 @@ pub fn (method Method) example() (string, string) {
 	
 	mut example_params := map[string]string{}
 	for param in method.params {
-		example_params[param.name] = param.schema.example_value()
+		param_schema_ref := param.schema
+		example_params[param.name] = match param_schema_ref {
+			openrpc.ContentDescriptor {
+				match param_schema_ref.schema {
+					jsonschema.Schema {
+						param_schema_ref.schema.example_value()
+					}
+					jsonschema.Reference {
+						''
+					}
+				}
+			}
+			jsonschema.Reference {
+				''
+			}
+		}
 	}
 	
 	example_call := json.encode(example_params)
-	example_response := if method.result {
-		method.result.schema.example_value()
+	example_response := if method.result is openrpc.ContentDescriptor {
+		result_schema_ref := method.result
+		match result_schema_ref {
+			openrpc.ContentDescriptor {
+				match result_schema_ref.schema {
+					jsonschema.Schema {
+						result_schema_ref.schema.example_value()
+					}
+					jsonschema.Reference {
+						'{"result": "success"}'
+					}
+				}
+			}
+			jsonschema.Reference {
+				'{"result": "success"}'
+			}
+		}
 	} else {
 		'{"result": "success"}'
 	}

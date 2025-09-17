@@ -3,8 +3,6 @@ module heroserver
 import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
 import time
-import veb
-import net.http
 
 // Main server configuration
 @[params]
@@ -24,9 +22,7 @@ mut:
 	crypto_client &herocrypt.HeroCrypt
 	sessions map[string]Session // sessionkey -> Session
 	handlers map[string]&openrpc.Handler // handlertype -> handler
-	challenges map[string]AuthChallenge	
-pub mut:
-	app &veb.App
+	challenges map[string]AuthChallenge
 }
 
 // Authentication challenge data

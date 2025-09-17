@@ -3,7 +3,6 @@ module heroserver
 import crypto.md5
 import crypto.rand
 import time
-import encoding.base64
 
 // Register a public key (currently just validates format)
 pub fn (mut server HeroServer) register(pubkey string) ! {
@@ -20,7 +19,7 @@ pub fn (mut server HeroServer) register(pubkey string) ! {
 pub fn (mut server HeroServer) auth_request(pubkey string) !AuthResponse {
 	// Generate random challenge data
 	random_bytes := rand.bytes(32)!
-	challenge_data := '${pubkey}:${random_bytes.hex()}:${time.now().unix_time()}'
+	challenge_data := '${pubkey}:${random_bytes.hex()}:${time.now().unix()}'
 	
 	// Create MD5 hash of challenge
 	challenge := md5.hexhash(challenge_data)
@@ -61,7 +60,7 @@ pub fn (mut server HeroServer) auth_submit(pubkey string, signature string) !Aut
 	}
 	
 	// Generate session key
-	session_data := '${pubkey}:${time.now().unix_time()}:${rand.bytes(16)!.hex()}'
+	session_data := '${pubkey}:${time.now().unix()}:${rand.bytes(16)!.hex()}'
 	session_key := md5.hexhash(session_data)
 	
 	// Create session
