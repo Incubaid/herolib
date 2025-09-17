@@ -95,12 +95,12 @@ fn test_transaction_encoding_decoding() {
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.encoder_new()
+	mut encoder_obj := encoder.new()
 	original_tx.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.data
+	encoded_data := encoder_obj.bytes()
 
 	// Test decoding
-	mut decoder_obj := encoder.decoder_new(encoded_data)
+	mut decoder_obj := encoder.new_decoder(encoded_data)
 	mut decoded_tx := Transaction{}
 	tx_db.load(mut decoded_tx, mut decoder_obj)!
 

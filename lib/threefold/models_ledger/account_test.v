@@ -5,9 +5,6 @@ module models_ledger
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.data.encoder
 
-fn setup_test_db() !db.DB {
-	return db.new(path: ':memory:')!
-}
 
 // Test Account model CRUD operations with focus on encoding/decoding
 fn test_account_new() {

@@ -40,12 +40,12 @@ fn test_userkvsitem_encoding_decoding() {
 	)!
 
 	// Test encoding
-	mut encoder_obj := encoder.encoder_new()
+	mut encoder_obj := encoder.new()
 	original_item.dump(mut encoder_obj)!
-	encoded_data := encoder_obj.data
+	encoded_data := encoder_obj.bytes()
 
 	// Test decoding
-	mut decoder_obj := encoder.decoder_new(encoded_data)
+	mut decoder_obj := encoder.new_decoder(encoded_data)
 	mut decoded_item := UserKVSItem{}
 	item_db.load(mut decoded_item, mut decoder_obj)!
 

@@ -99,7 +99,7 @@ pub fn (mut self DBUserKVSItem) new(args UserKVSItemArg) !UserKVSItem {
 		kvs_id:    args.kvs_id
 		key:       args.key
 		value:     args.value
-		timestamp: ourtime.now().unix()
+		timestamp: u64(ourtime.now().unix())
 	}
 
 	o.name = args.name
