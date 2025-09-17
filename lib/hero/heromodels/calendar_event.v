@@ -103,7 +103,7 @@ pub fn (self CalendarEvent) description(methodname string) string {
 	}
 }
 
-// return example rpc call and result for each methodname
+// return example rpc call and result for each methodname, so example for call and the result
 pub fn (self CalendarEvent) example(methodname string) (string, string) {
 	match methodname {
 		'set' {

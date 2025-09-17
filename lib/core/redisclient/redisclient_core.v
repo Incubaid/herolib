@@ -2,6 +2,7 @@ module redisclient
 
 @[params]
 pub struct RedisURL {
+pub mut:
 	address string = '127.0.0.1'
 	port    int    = 6379
 	db      int

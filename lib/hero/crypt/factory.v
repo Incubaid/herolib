@@ -11,7 +11,10 @@ pub mut:
 @[params]
 pub struct AGEClientConfig {
 pub mut:
-	redis_url redisclient.RedisURL = redisclient.RedisURL{}
+	redis_url redisclient.RedisURL = redisclient.RedisURL{
+		address: '127.0.0.1'
+		port:    6381
+	}
 	redis     ?&redisclient.Redis
 }
 
