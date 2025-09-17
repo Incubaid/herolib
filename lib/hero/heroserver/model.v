@@ -14,7 +14,6 @@ pub mut:
 	host string = 'localhost'
 	// Optional crypto client, will create default if not provided
 	crypto_client ?&herocrypt.HeroCrypt
-
 }
 
 // Main server struct
@@ -24,11 +23,10 @@ mut:
 	host string
 	crypto_client &herocrypt.HeroCrypt
 	sessions map[string]Session // sessionkey -> Session
-	handlers map[string]openrpc.OpenRPCHandler // handlertype -> handler
+	handlers map[string]&openrpc.Handler // handlertype -> handler
 	challenges map[string]AuthChallenge	
 pub mut:
-	app &veb.StaticHandler
-	challenges map[string]AuthChallenge
+	app &veb.App
 }
 
 // Authentication challenge data

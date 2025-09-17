@@ -66,157 +66,20 @@ pub fn doc_spec_from_openrpc(openrpc_spec openrpc.OpenRPC, handler_type string) 
 		auth_info: create_auth_info()
 	}
 	
-	mut methods_by_obj := map[string][]DocMethod{}
-	
+	// Simplified implementation for now
 	for method in openrpc_spec.methods {
-		mut doc_method := DocMethod{
-			name:        method.name
-			summary:     method.summary
+		doc_method := DocMethod{
+			name: method.name
+			summary: method.summary
 			description: method.description
 			endpoint_url: '/api/${handler_type}/${method.name}'
+			example_call: '{}'
+			example_response: '{"result": "success"}'
 		}
-		
-		// Process parameters
-		for param_ref in method.params {
-			if param_ref is openrpc.ContentDescriptor {
-				param := param_ref as openrpc.ContentDescriptor
-				doc_param := DocParam{
-					name: param.name
-					description: param.description
-					type_info: schema_to_type_string(param.schema)
-					required: param.required
-					example: generate_example_for_schema(param.schema)
-				}
-				doc_method.params << doc_param
-			}
-		}
-		
-		// Process result
-		if method.result is openrpc.ContentDescriptor {
-			result := method.result as openrpc.ContentDescriptor
-			doc_method.result = DocParam{
-				name: result.name
-				description: result.description
-				type_info: schema_to_type_string(result.schema)
-				example: generate_example_for_schema(result.schema)
-			}
-		}
-		
-		// Generate examples
-		if method.examples.len > 0 {
-			example := method.examples[0]
-			doc_method.example_call = generate_call_example(doc_method)
-			doc_method.example_response = generate_response_example(doc_method)
-		} else {
-			doc_method.example_call = generate_call_example(doc_method)
-			doc_method.example_response = generate_response_example(doc_method)
-		}
-		
 		doc_spec.methods << doc_method
-		
-		// Group by object
-		parts := method.name.split('.')
-		if parts.len > 1 {
-			obj_name := parts[0]
-			if obj_name !in methods_by_obj {
-				methods_by_obj[obj_name] = []DocMethod{}
-			}
-			methods_by_obj[obj_name] << doc_method
-		}
-	}
-	
-	// Create doc objects
-	for obj_name, methods in methods_by_obj {
-		mut description := 'Operations for ${obj_name}'
-		
-		// Try to get description from tags
-		for tag_ref in openrpc_spec.methods[0].tags {
-			if tag_ref is openrpc.Tag {
-				tag := tag_ref as openrpc.Tag
-				if tag.name == obj_name {
-					description = tag.description
-					break
-				}
-			}
-		}
-		
-		doc_spec.objects << DocObject{
-			name: obj_name
-			description: description
-			methods: methods
-		}
 	}
 	
 	return doc_spec
-}
-
-// Convert schema to human-readable type string
-fn schema_to_type_string(schema_ref openrpc.SchemaRef) string {
-	if schema_ref is jsonschema.Schema {
-		schema := schema_ref as jsonschema.Schema
-		match schema.typ {
-			'string' { return 'string' }
-			'integer' { return 'integer' }
-			'number' { return 'number' }
-			'boolean' { return 'boolean' }
-			'array' { 
-				if items := schema.items {
-					item_type := if items is jsonschema.SchemaRef {
-						schema_to_type_string(items as jsonschema.SchemaRef)
-					} else {
-						'mixed'
-					}
-					return 'array of ${item_type}'
-				}
-				return 'array'
-			}
-			'object' { return 'object' }
-			else { return schema.typ }
-		}
-	} else if schema_ref is jsonschema.Reference {
-		ref := schema_ref as jsonschema.Reference
-		return ref.ref.all_after_last('/')
-	}
-	return 'unknown'
-}
-
-// Generate example value for schema
-fn generate_example_for_schema(schema_ref openrpc.SchemaRef) string {
-	if schema_ref is jsonschema.Schema {
-		schema := schema_ref as jsonschema.Schema
-		match schema.typ {
-			'string' { return '"example_string"' }
-			'integer' { return '42' }
-			'number' { return '3.14' }
-			'boolean' { return 'true' }
-			'array' { return '[]' }
-			'object' { return '{}' }
-			else { return '""' }
-		}
-	}
-	return '""'
-}
-
-// Generate call example
-fn generate_call_example(method DocMethod) string {
-	mut params := []string{}
-	for param in method.params {
-		params << '"${param.name}": ${param.example}'
-	}
-	
-	if params.len == 0 {
-		return '{}'
-	}
-	
-	return '{\n  ${params.join(',\n  ')}\n}'
-}
-
-// Generate response example
-fn generate_response_example(method DocMethod) string {
-	if method.result.name != '' {
-		return '{\n  "result": ${method.result.example}\n}'
-	}
-	return '{\n  "result": "success"\n}'
 }
 
 // Create authentication documentation info

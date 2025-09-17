@@ -14,14 +14,14 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 	}
 	
 	// Create VEB app
-	mut app := &veb.StaticHandler{}
+	mut app := veb.new[HeroServer, Context]()
 	
 	mut server := &HeroServer{
 		port: config.port
 		host: config.host
 		crypto_client: crypto_client
 		sessions: map[string]Session{}
-		handlers: map[string]openrpc.OpenRPCHandler{}
+		handlers: map[string]&openrpc.Handler{}
 		app: app
 		challenges: map[string]AuthChallenge{}
 	}
@@ -30,7 +30,7 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 }
 
 // Register an OpenRPC handler
-pub fn (mut server HeroServer) register_handler(handler_type string, handler openrpc.OpenRPCHandler) ! {
+pub fn (mut server HeroServer) register_handler(handler_type string, handler &openrpc.Handler) ! {
 	server.handlers[handler_type] = handler
 }
 
@@ -40,7 +40,7 @@ pub fn (mut server HeroServer) start() ! {
 	server.setup_routes()!
 	
 	// Start VEB server
-	veb.run_at[HeroServer, Context](mut server, 
+	veb.run[HeroServer, Context](mut server, 
 		host: server.host, 
 		port: server.port
 	)!

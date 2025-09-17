@@ -10,32 +10,30 @@ mut:
 	handler_type string
 }
 
-@[get; '/']
-pub fn (mut controller DocController) show_docs(mut ctx Context) veb.Result {
-	// Get handler
-	handler := controller.server.handlers[controller.handler_type] or {
-		return ctx.not_found()
-	}
-	
-	// Get OpenRPC specification
-	openrpc_spec := handler.get_openrpc_spec()
-	
-	// Build the documentation spec from the OpenRPC spec with preprocessing
-	spec := doc_spec_from_openrpc(openrpc_spec, controller.handler_type)
-	
-	// Render template
-	html_content := $tmpl('templates/doc.html')
-	
-	return ctx.html(html_content)
-}
-
 // Setup documentation routes
 pub fn (mut server HeroServer) setup_doc_routes() ! {
 	for handler_type, _ in server.handlers {
-		controller := &DocController{
-			server: server
-			handler_type: handler_type
-		}
-		server.app.register_controller[DocController, Context]('/doc/${handler_type}', mut controller)!
+		server.app.mount('/doc/${handler_type}', doc_handler)
 	}
+}
+
+fn doc_handler(mut ctx Context) veb.Result {
+	// Simplified documentation response
+	html_content := '
+	<!DOCTYPE html>
+	<html>
+	<head>
+		<title>API Documentation</title>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="container mt-4">
+			<h1>API Documentation</h1>
+			<p>Documentation will be generated here.</p>
+		</div>
+	</body>
+	</html>
+	'
+	
+	return ctx.html(html_content)
 }

@@ -47,7 +47,7 @@
         <div class="row">
             <div class="col-12">
                 <h1 class="display-4">${spec.info.title}</h1>
-                @if spec.info.description
+                @if spec.info.description.len > 0
                 <p class="lead">${spec.info.description}</p>
                 @end
                 <p class="text-muted">Version: ${spec.info.version}</p>
@@ -82,7 +82,7 @@
             <div class="row">
                 <div class="col-12">
                     <h1 id="${object.name}">${object.name.title()}</h1>
-                    @if object.description
+                    @if object.description.len > 0
                     <p>${object.description}</p>
                     @end
 
@@ -94,10 +94,10 @@
                             <div class="method-endpoint">POST ${method.endpoint_url}</div>
                         </div>
                         <div class="card-body">
-                            @if method.summary
+                            @if method.summary.len > 0
                             <p class="card-text"><strong>${method.summary}</strong></p>
                             @end
-                            @if method.description
+                            @if method.description.len > 0
                             <p class="card-text">${method.description}</p>
                             @end
 
@@ -131,7 +131,7 @@
                             @end
 
                             <!-- Return Value -->
-                            @if method.result.name
+                            @if method.result.name.len > 0
                             <h6>Returns:</h6>
                             <p><strong>${method.result.type_info}</strong> - ${method.result.description}</p>
                             @end
