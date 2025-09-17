@@ -15,7 +15,6 @@ fn test_calendar_new() {
 		color:       '#FF0000'
 		timezone:    'UTC'
 		is_public:   true
-		events:      []u32{}
 	) or { panic('Failed to create calendar: ${err}') }
 
 	// Verify the calendar was created with correct values
@@ -24,7 +23,6 @@ fn test_calendar_new() {
 	assert calendar.color == '#FF0000'
 	assert calendar.timezone == 'UTC'
 	assert calendar.is_public == true
-	assert calendar.events.len == 0
 	assert calendar.id == 0 // Should be 0 before saving
 	assert calendar.updated_at > 0 // Should have timestamp
 }
@@ -39,7 +37,6 @@ fn test_calendar_set_and_get() {
 		color:       '#0000FF'
 		timezone:    'America/New_York'
 		is_public:   false
-		events:      [u32(1), 2, 3]
 	) or { panic('Failed to create calendar: ${err}') }
 
 	// Save the calendar
@@ -61,10 +58,6 @@ fn test_calendar_set_and_get() {
 	assert retrieved_calendar.color == '#0000FF'
 	assert retrieved_calendar.timezone == 'America/New_York'
 	assert retrieved_calendar.is_public == false
-	assert retrieved_calendar.events.len == 3
-	assert retrieved_calendar.events[0] == 1
-	assert retrieved_calendar.events[1] == 2
-	assert retrieved_calendar.events[2] == 3
 	assert retrieved_calendar.created_at > 0
 	assert retrieved_calendar.updated_at > 0
 }
@@ -79,7 +72,6 @@ fn test_calendar_update() {
 		color:       '#00FF00'
 		timezone:    'UTC'
 		is_public:   true
-		events:      []u32{}
 	) or { panic('Failed to create calendar: ${err}') }
 
 	calendar = mydb.calendar.set(calendar) or { panic('Failed to save calendar: ${err}') }
@@ -93,7 +85,6 @@ fn test_calendar_update() {
 	calendar.color = '#FFFF00'
 	calendar.timezone = 'Europe/London'
 	calendar.is_public = false
-	calendar.events = [u32(10), 20]
 
 	calendar = mydb.calendar.set(calendar) or { panic('Failed to update calendar: ${err}') }
 
@@ -111,9 +102,6 @@ fn test_calendar_update() {
 	assert updated_calendar.color == '#FFFF00'
 	assert updated_calendar.timezone == 'Europe/London'
 	assert updated_calendar.is_public == false
-	assert updated_calendar.events.len == 2
-	assert updated_calendar.events[0] == 10
-	assert updated_calendar.events[1] == 20
 }
 
 fn test_calendar_exist() {
@@ -130,7 +118,6 @@ fn test_calendar_exist() {
 		color:       '#FF00FF'
 		timezone:    'UTC'
 		is_public:   true
-		events:      []u32{}
 	) or { panic('Failed to create calendar: ${err}') }
 
 	calendar = mydb.calendar.set(calendar) or { panic('Failed to save calendar: ${err}') }
@@ -152,7 +139,6 @@ fn test_calendar_delete() {
 		color:       '#000000'
 		timezone:    'UTC'
 		is_public:   false
-		events:      []u32{}
 	) or { panic('Failed to create calendar: ${err}') }
 
 	calendar = mydb.calendar.set(calendar) or { panic('Failed to save calendar: ${err}') }
@@ -196,7 +182,6 @@ fn test_calendar_list() {
 		color:       '#FF0000'
 		timezone:    'UTC'
 		is_public:   true
-		events:      []u32{}
 	) or { panic('Failed to create calendar1: ${err}') }
 
 	mut calendar2 := mydb.calendar.new(
@@ -205,7 +190,6 @@ fn test_calendar_list() {
 		color:       '#00FF00'
 		timezone:    'America/New_York'
 		is_public:   false
-		events:      [u32(1), 2]
 	) or { panic('Failed to create calendar2: ${err}') }
 
 	// Save both calendars
@@ -234,7 +218,6 @@ fn test_calendar_list() {
 			assert cal.description == 'Second calendar'
 			assert cal.color == '#00FF00'
 			assert cal.is_public == false
-			assert cal.events.len == 2
 		}
 	}
 
@@ -252,7 +235,6 @@ fn test_calendar_edge_cases() {
 		color:       ''
 		timezone:    ''
 		is_public:   false
-		events:      []u32{}
 	) or { panic('Failed to create calendar with empty strings: ${err}') }
 
 	calendar = mydb.calendar.set(calendar) or {
@@ -268,22 +250,19 @@ fn test_calendar_edge_cases() {
 	assert retrieved.timezone == ''
 
 	// Test large events array
-	large_events := []u32{len: 1000, init: u32(index)}
 	mut large_calendar := mydb.calendar.new(
 		name:        'Large Calendar'
 		description: 'Calendar with many events'
 		color:       '#123456'
 		timezone:    'UTC'
 		is_public:   true
-		events:      large_events
 	) or { panic('Failed to create large calendar: ${err}') }
 
-	large_calendar = mydb.calendar.set(large_calendar) or { panic('Failed to save large calendar: ${err}') }
+	large_calendar = mydb.calendar.set(large_calendar) or {
+		panic('Failed to save large calendar: ${err}')
+	}
 
 	large_retrieved := mydb.calendar.get(large_calendar.id) or {
 		panic('Failed to get large calendar: ${err}')
 	}
-	assert large_retrieved.events.len == 1000
-	assert large_retrieved.events[0] == 0
-	assert large_retrieved.events[999] == 999
 }

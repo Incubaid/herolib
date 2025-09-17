@@ -11,7 +11,6 @@ pub struct Project {
 pub mut:
 	swimlanes  []Swimlane
 	milestones []Milestone
-	issues     []u32 // IDs of project issues
 	fs_files   []u32 // IDs of linked files or dirs
 	status     ProjectStatus
 	start_date i64
@@ -53,7 +52,7 @@ pub fn (self Project) type_name() string {
 	return 'project'
 }
 
-// return example rpc call and result for each methodname
+// return description for each methodname
 pub fn (self Project) description(methodname string) string {
 	match methodname {
 		'set' {
@@ -72,7 +71,7 @@ pub fn (self Project) description(methodname string) string {
 			return 'List all projects. Returns an array of project objects.'
 		}
 		else {
-			return 'This is generic method for the root object, TODO fill in, ...'
+			return 'Unknown method.'
 		}
 	}
 }
@@ -120,7 +119,6 @@ pub fn (self Project) dump(mut e encoder.Encoder) ! {
 		e.add_list_u32(milestone.issues)
 	}
 
-	e.add_list_string(self.issues)
 	e.add_list_u32(self.fs_files)
 	e.add_u8(u8(self.status))
 	e.add_i64(self.start_date)
@@ -166,7 +164,6 @@ fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
 	}
 	o.milestones = milestones
 
-	o.issues = e.get_list_string()!
 	o.fs_files = e.get_list_u32()!
 	o.status = unsafe { ProjectStatus(e.get_u8()!) }
 	o.start_date = e.get_i64()!
@@ -195,7 +192,6 @@ pub fn (mut self DBProject) new(args ProjectArg) !Project {
 	mut o := Project{
 		swimlanes:  args.swimlanes
 		milestones: args.milestones
-		issues:     args.issues
 		fs_files:   args.fs_files
 		status:     args.status
 	}
