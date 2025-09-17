@@ -145,5 +145,8 @@ pub fn (handler Handler) handle(request Request) !Response {
 	}
 
 	// Execute the procedure handler with the request payload
-	return procedure_func(request) or { panic(err) }
+	return procedure_func(request) or {
+		// Return proper JSON-RPC error instead of panicking
+		return new_error(request.id, internal_error)
+	}
 }

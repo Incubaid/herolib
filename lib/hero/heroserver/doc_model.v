@@ -31,6 +31,7 @@ pub mut:
 	example_call     string
 	example_response string
 	endpoint_url     string
+	curl_example     string // New field for curl command
 }
 
 // DocParam represents a parameter or result in the documentation
@@ -110,16 +111,24 @@ pub fn doc_spec_from_openrpc(openrpc_spec openrpc.OpenRPC, handler_type string) 
 		example_call := generate_example_call(doc_params)
 		example_response := generate_example_response(doc_result)
 
-		doc_method := DocMethod{
+		// Generate JSON-RPC example call
+		jsonrpc_call := generate_jsonrpc_example_call(method.name, doc_params)
+
+		mut doc_method := DocMethod{
 			name:             method.name
 			summary:          method.summary
 			description:      method.description
 			params:           doc_params
 			result:           doc_result
-			endpoint_url:     '/api/${handler_type}/${method.name}'
+			endpoint_url:     '/api/${handler_type}'
 			example_call:     example_call
 			example_response: example_response
+			curl_example:     '' // Will be set later with proper base URL
 		}
+
+		// Generate curl example with localhost as default using JSON-RPC format
+		doc_method.curl_example = generate_curl_example_jsonrpc(method.name, doc_params,
+			'http://localhost:8080', handler_type)
 		doc_spec.methods << doc_method
 	}
 
@@ -231,4 +240,42 @@ fn create_auth_info() AuthDocInfo {
 			},
 		]
 	}
+}
+
+// generate_jsonrpc_example_call creates a complete JSON-RPC request example
+fn generate_jsonrpc_example_call(method_name string, params []DocParam) string {
+	params_obj := if params.len == 0 {
+		'{}'
+	} else {
+		mut call_parts := []string{}
+		for param in params {
+			call_parts << '"${param.name}": ${param.example}'
+		}
+		'{\n    ${call_parts.join(',\n    ')}\n  }'
+	}
+
+	return '{\n  "jsonrpc": "2.0",\n  "method": "${method_name}",\n  "params": ${params_obj},\n  "id": 1\n}'
+}
+
+// generate_curl_example_jsonrpc creates a curl command with proper JSON-RPC format
+fn generate_curl_example_jsonrpc(method_name string, params []DocParam, base_url string, handler_name string) string {
+	endpoint := '${base_url}/api/${handler_name}'
+	jsonrpc_request := generate_jsonrpc_example_call(method_name, params)
+
+	mut curl_cmd := 'curl -X POST ${endpoint} \\\n'
+	curl_cmd += '  -H "Content-Type: application/json" \\\n'
+	curl_cmd += '  -d \'${jsonrpc_request}\''
+
+	return curl_cmd
+}
+
+// generate_curl_example creates a curl command for the given method (legacy)
+pub fn generate_curl_example(method DocMethod, base_url string, handler_name string) string {
+	endpoint := '${base_url}/api/${handler_name}'
+
+	mut curl_cmd := 'curl -X POST ${endpoint} \\\n'
+	curl_cmd += '  -H "Content-Type: application/json" \\\n'
+	curl_cmd += '  -d \'${method.example_call}\''
+
+	return curl_cmd
 }

@@ -31,7 +31,14 @@ pub fn comment_get(request Request) !Response {
 	}
 
 	mut mydb := heromodels.new()!
-	comment := mydb.comments.get(payload.id)!
+	comment := mydb.comments.get(payload.id) or {
+		// Return proper JSON-RPC error instead of panicking
+		return jsonrpc.new_error(request.id, jsonrpc.RPCError{
+			code:    -32000 // Server error
+			message: 'Comment not found'
+			data:    'Comment with ID ${payload.id} does not exist'
+		})
+	}
 
 	return jsonrpc.new_response(request.id, json.encode(comment))
 }
@@ -48,7 +55,7 @@ pub fn comment_set(request Request) !Response {
 		author:  payload.author
 	)!
 
-	comment_obj=mydb.comments.set( comment_obj)!
+	comment_obj = mydb.comments.set(comment_obj)!
 
 	return new_response_u32(request.id, comment_obj.id)
 }
@@ -59,14 +66,28 @@ pub fn comment_delete(request Request) !Response {
 	}
 
 	mut mydb := heromodels.new()!
-	mydb.comments.delete(payload.id)!
+	mydb.comments.delete(payload.id) or {
+		// Return proper JSON-RPC error instead of panicking
+		return jsonrpc.new_error(request.id, jsonrpc.RPCError{
+			code:    -32000 // Server error
+			message: 'Comment not found'
+			data:    'Comment with ID ${payload.id} does not exist or could not be deleted'
+		})
+	}
 
 	return new_response_true(request.id) // return true as jsonrpc (bool)
 }
 
 pub fn comment_list(request Request) !Response {
 	mut mydb := heromodels.new()!
-	comments := mydb.comments.list()!
+	comments := mydb.comments.list() or {
+		// Return proper JSON-RPC error instead of panicking
+		return jsonrpc.new_error(request.id, jsonrpc.RPCError{
+			code:    -32000 // Server error
+			message: 'Failed to list comments'
+			data:    'Error occurred while retrieving comments: ${err}'
+		})
+	}
 
 	return jsonrpc.new_response(request.id, json.encode(comments))
 }
