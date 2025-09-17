@@ -59,7 +59,7 @@ pub fn chat_group_set(request Request) !Response {
 		comments:       payload.comments
 	)!
 
-	mydb.chat_group.set(mut chat_group_obj)!
+	chat_group_obj=mydb.chat_group.set( chat_group_obj)!
 
 	return new_response_u32(request.id, chat_group_obj.id)
 }

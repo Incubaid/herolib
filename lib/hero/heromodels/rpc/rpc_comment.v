@@ -48,7 +48,7 @@ pub fn comment_set(request Request) !Response {
 		author:  payload.author
 	)!
 
-	mydb.comments.set(mut comment_obj)!
+	comment_obj=mydb.comments.set( comment_obj)!
 
 	return new_response_u32(request.id, comment_obj.id)
 }

@@ -71,7 +71,7 @@ pub fn chat_message_set(request Request) !Response {
 		comments:        payload.comments
 	)!
 
-	mydb.chat_message.set(mut chat_message_obj)!
+	chat_message_obj=mydb.chat_message.set( chat_message_obj)!
 
 	return new_response_u32(request.id, chat_message_obj.id)
 }

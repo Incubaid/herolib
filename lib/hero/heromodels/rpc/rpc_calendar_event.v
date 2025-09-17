@@ -81,7 +81,7 @@ pub fn calendar_event_set(request Request) !Response {
 		comments:       payload.comments
 	)!
 
-	mydb.calendar_event.set(mut calendar_event_obj)!
+	calendar_event_obj = mydb.calendar_event.set(calendar_event_obj)!
 
 	return new_response_u32(request.id, calendar_event_obj.id)
 }

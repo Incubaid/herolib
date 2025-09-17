@@ -68,7 +68,7 @@ pub fn user_set(request Request) !Response {
 		comments:       payload.comments
 	)!
 
-	mydb.user.set(mut user_obj)!
+	user_obj=mydb.user.set( user_obj)!
 
 	return new_response_u32(request.id, user_obj.id)
 }

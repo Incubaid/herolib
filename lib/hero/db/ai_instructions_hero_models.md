@@ -201,7 +201,7 @@ pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
 
 ### Save to Database
 ```v
-pub fn (mut self DBCalendar) set(o Calendar) !u32 {
+pub fn (mut self DBCalendar) set(o Calendar) !Calendar {
 	return self.db.set[Calendar](o)!
 }
 ```
