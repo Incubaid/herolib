@@ -64,13 +64,7 @@ pub fn (self Asset) dump(mut e encoder.Encoder) ! {
 	e.add_u8(self.decimals)
 	e.add_bool(self.is_frozen)
 	
-	// metadata map
-	e.add_int(self.metadata.len)
-	for key, value in self.metadata {
-		e.add_string(key)
-		e.add_string(value)
-	}
-	
+	e.add_map_string(self.metadata)
 	e.add_list_u32(self.administrators)
 	e.add_u32(self.min_signatures)
 }
@@ -83,15 +77,7 @@ fn (mut self DBAsset) load(mut o Asset, mut e encoder.Decoder) ! {
 	o.decimals = e.get_u8()!
 	o.is_frozen = e.get_bool()!
 	
-	// metadata map
-	metadata_len := e.get_int()!
-	o.metadata = map[string]string{}
-	for _ in 0 .. metadata_len {
-		key := e.get_string()!
-		value := e.get_string()!
-		o.metadata[key] = value
-	}
-	
+	o.metadata = e.get_map_string()!
 	o.administrators = e.get_list_u32()!
 	o.min_signatures = e.get_u32()!
 }
