@@ -9,7 +9,7 @@ pub mut:
 	updated_at     i64
 	securitypolicy u32
 	tags           u32 // when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
-	comments       []u32
+	messages       []u32
 }
 
 @[heap]

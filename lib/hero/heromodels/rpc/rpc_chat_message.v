@@ -28,7 +28,7 @@ pub mut:
 	mentions        []u32
 	securitypolicy  u32
 	tags            []string
-	comments        []db.CommentArg
+	messages        []db.MessageArg
 }
 
 @[params]
@@ -68,7 +68,7 @@ pub fn chat_message_set(request Request) !Response {
 		mentions:        payload.mentions
 		securitypolicy:  payload.securitypolicy
 		tags:            payload.tags
-		comments:        payload.comments
+		messages:        payload.messages
 	)!
 
 	chat_message_obj=mydb.chat_message.set( chat_message_obj)!

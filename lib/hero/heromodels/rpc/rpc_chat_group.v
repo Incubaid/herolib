@@ -22,7 +22,7 @@ pub mut:
 	is_archived    bool
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 @[params]
@@ -56,7 +56,7 @@ pub fn chat_group_set(request Request) !Response {
 		is_archived:    payload.is_archived
 		securitypolicy: payload.securitypolicy
 		tags:           payload.tags
-		comments:       payload.comments
+		messages:       payload.messages
 	)!
 
 	chat_group_obj=mydb.chat_group.set( chat_group_obj)!

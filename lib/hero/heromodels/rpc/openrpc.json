@@ -6,12 +6,12 @@
     },
     "methods": [
         {
-            "name": "comment_get",
-            "summary": "Get a comment by ID",
+            "name": "message_get",
+            "summary": "Get a message by ID",
             "params": [
                 {
                     "name": "id",
-                    "description": "ID of comment to fetch",
+                    "description": "ID of message to fetch",
                     "required": true,
                     "schema": {
                         "type": "integer",
@@ -20,20 +20,20 @@
                 }
             ],
             "result": {
-                "name": "comment",
-                "description": "Comment object",
+                "name": "message",
+                "description": "Message object",
                 "schema": {
-                    "$ref": "#/components/schemas/Comment"
+                    "$ref": "#/components/schemas/Message"
                 }
             }
         },
         {
-            "name": "comment_set",
-            "summary": "Create or update a comment",
+            "name": "message_set",
+            "summary": "Create or update a message",
             "params": [
                 {
-                    "name": "comment",
-                    "description": "Comment text",
+                    "name": "message",
+                    "description": "Message text",
                     "required": true,
                     "schema": {
                         "type": "string"
@@ -41,7 +41,7 @@
                 },
                 {
                     "name": "parent",
-                    "description": "ID of parent comment if any, 0 means none",
+                    "description": "ID of parent message if any, 0 means none",
                     "schema": {
                         "type": "integer",
                         "minimum": 0
@@ -58,7 +58,7 @@
             ],
             "result": {
                 "name": "id",
-                "description": "ID of the created/updated comment",
+                "description": "ID of the created/updated message",
                 "schema": {
                     "type": "integer",
                     "minimum": 0
@@ -66,12 +66,12 @@
             }
         },
         {
-            "name": "comment_delete",
-            "summary": "Delete a comment by ID",
+            "name": "message_delete",
+            "summary": "Delete a message by ID",
             "params": [
                 {
                     "name": "id",
-                    "description": "ID of comment to delete",
+                    "description": "ID of message to delete",
                     "required": true,
                     "schema": {
                         "type": "integer",
@@ -88,16 +88,16 @@
             }
         },
         {
-            "name": "comment_list",
-            "summary": "List all comments",
+            "name": "message_list",
+            "summary": "List all messages",
             "params": [],
             "result": {
-                "name": "comments",
-                "description": "List of all comment objects",
+                "name": "messages",
+                "description": "List of all message objects",
                 "schema": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/components/schemas/Comment"
+                        "$ref": "#/components/schemas/Message"
                     }
                 }
             }
@@ -400,12 +400,12 @@
                     }
                 },
                 {
-                    "name": "comments",
-                    "description": "Comments for the calendar event",
+                    "name": "messages",
+                    "description": "Messages for the calendar event",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CommentArg"
+                            "$ref": "#/components/schemas/MessageArg"
                         }
                     }
                 }
@@ -542,12 +542,12 @@
                     }
                 },
                 {
-                    "name": "comments",
-                    "description": "Comments for the chat group",
+                    "name": "messages",
+                    "description": "Messages for the chat group",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CommentArg"
+                            "$ref": "#/components/schemas/MessageArg"
                         }
                     }
                 }
@@ -752,12 +752,12 @@
                     }
                 },
                 {
-                    "name": "comments",
-                    "description": "Comments for the chat message",
+                    "name": "messages",
+                    "description": "Messages for the chat message",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CommentArg"
+                            "$ref": "#/components/schemas/MessageArg"
                         }
                     }
                 }
@@ -1128,12 +1128,12 @@
                     }
                 },
                 {
-                    "name": "comments",
-                    "description": "Comments for the project issue",
+                    "name": "messages",
+                    "description": "Messages for the project issue",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CommentArg"
+                            "$ref": "#/components/schemas/MessageArg"
                         }
                     }
                 }
@@ -1312,12 +1312,12 @@
                     }
                 },
                 {
-                    "name": "comments",
-                    "description": "Comments for the project",
+                    "name": "messages",
+                    "description": "Messages for the project",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/CommentArg"
+                            "$ref": "#/components/schemas/MessageArg"
                         }
                     }
                 }
@@ -1488,8 +1488,8 @@
                     }
                 },
                 {
-                    "name": "comments",
-                    "description": "Comments for the user",
+                    "name": "messages",
+                    "description": "Messages for the user",
                     "schema": {
                         "type": "array",
                         "items": {
@@ -1575,7 +1575,7 @@
                         "type": "integer",
                         "minimum": 0
                     },
-                    "comments": {
+                    "messages": {
                         "type": "array",
                         "items": {
                             "type": "integer",
@@ -1584,16 +1584,16 @@
                     }
                 }
             },
-            "Comment": {
-                "title": "Comment",
-                "description": "A comment object",
+            "Message": {
+                "title": "Message",
+                "description": "A message object",
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/Base"
                     }
                 ],
                 "properties": {
-                    "comment": {
+                    "message": {
                         "type": "string"
                     },
                     "parent": {
@@ -2166,12 +2166,12 @@
                     }
                 }
             },
-            "CommentArg": {
-                "title": "CommentArg",
-                "description": "A comment argument",
+            "MessageArg": {
+                "title": "MessageArg",
+                "description": "A message argument",
                 "type": "object",
                 "properties": {
-                    "comment": {
+                    "message": {
                         "type": "string"
                     },
                     "parent": {

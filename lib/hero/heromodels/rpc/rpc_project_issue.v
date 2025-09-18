@@ -33,7 +33,7 @@ pub mut:
 	children       []u32
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 @[params]
@@ -78,7 +78,7 @@ pub fn project_issue_set(request Request) !Response {
 		children:       payload.children
 		securitypolicy: payload.securitypolicy
 		tags:           payload.tags
-		comments:       payload.comments
+		messages:       payload.messages
 	)!
 
 	project_issue_obj=mydb.project_issue.set( project_issue_obj)!

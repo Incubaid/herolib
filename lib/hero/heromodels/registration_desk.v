@@ -187,7 +187,7 @@ pub mut:
 	acceptance_required bool  // if set then admins need to approve
 	securitypolicy     u32
 	tags               []string
-	comments           []db.CommentArg
+	messages           []db.MessageArg
 }
 
 pub fn (mut self DBRegistrationDesk) new(args RegistrationDeskArg) !RegistrationDesk {
@@ -215,7 +215,7 @@ pub fn (mut self DBRegistrationDesk) new(args RegistrationDeskArg) !Registration
 	// Set base fields
 	o.securitypolicy = args.securitypolicy
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	// Convert string times to Unix timestamps

@@ -25,7 +25,7 @@ fn test_planning_new() ! {
 		attendees_optional:   []u32{}
 		securitypolicy:       0
 		tags:                 []string{}
-		comments:             []db.CommentArg{}
+		messages:             []db.MessageArg{}
 	}
 
 	planning := db_planning.new(args)!
@@ -68,7 +68,7 @@ fn test_planning_crud_operations() ! {
 		attendees_optional:   [200]
 		securitypolicy:       0
 		tags:                 []string{}
-		comments:             []db.CommentArg{}
+		messages:             []db.MessageArg{}
 	}
 
 	mut planning := db_planning.new(args)!
@@ -153,7 +153,7 @@ fn test_planning_crud_operations() ! {
 		attendees_optional:   []u32{}
 		securitypolicy:       0
 		tags:                 []string{}
-		comments:             []db.CommentArg{}
+		messages:             []db.MessageArg{}
 	}
 
 	mut updated_planning := db_planning.new(updated_args)!
@@ -249,7 +249,7 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 		attendees_optional:   []u32{}
 		securitypolicy:       0
 		tags:                 []string{}
-		comments:             []db.CommentArg{}
+		messages:             []db.MessageArg{}
 	}
 
 	mut planning := db_planning.new(args)!

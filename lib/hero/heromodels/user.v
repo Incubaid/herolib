@@ -115,7 +115,7 @@ pub mut:
 	status         UserStatus
 	securitypolicy u32
 	tags           u32
-	comments       []u32
+	messages       []u32
 }
 
 pub struct DBUser {
@@ -148,7 +148,7 @@ pub fn (mut self DBUser) new(args UserArg) !User {
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
 	o.tags = args.tags
-	o.comments = args.comments
+	o.messages = args.messages
 	o.updated_at = ourtime.now().unix()
 
 	return o

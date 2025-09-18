@@ -33,7 +33,7 @@ pub mut:
 	timezone       string
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 @[params]
@@ -78,7 +78,7 @@ pub fn calendar_event_set(request Request) !Response {
 		timezone:       payload.timezone
 		securitypolicy: payload.securitypolicy
 		tags:           payload.tags
-		comments:       payload.comments
+		messages:       payload.messages
 	)!
 
 	calendar_event_obj = mydb.calendar_event.set(calendar_event_obj)!

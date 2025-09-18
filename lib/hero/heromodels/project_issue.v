@@ -176,7 +176,7 @@ pub mut:
 	children       []u32
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 // get new project issue, not from the DB
@@ -237,7 +237,7 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	// Convert deadline string to Unix timestamp

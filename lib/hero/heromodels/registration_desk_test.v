@@ -23,7 +23,7 @@ fn test_registration_desk_new() ! {
 		acceptance_required: true
 		securitypolicy:     0
 		tags:               ["test", "registration"]
-		comments:           []
+		messages:           []
 	}
 
 	registration_desk := db_registration_desk.new(args)!
@@ -66,7 +66,7 @@ fn test_registration_desk_crud_operations() ! {
 		acceptance_required: false
 		securitypolicy:     0
 		tags:               ["crud", "test"]
-		comments:           []
+		messages:           []
 	}
 
 	mut registration_desk := db_registration_desk.new(args)!
@@ -109,7 +109,7 @@ fn test_registration_desk_crud_operations() ! {
 		acceptance_required: true
 		securitypolicy:     0
 		tags:               ["updated", "test"]
-		comments:           []
+		messages:           []
 	}
 
 	mut updated_desk := db_registration_desk.new(updated_args)!
@@ -160,7 +160,7 @@ fn test_registration_desk_registrations_encoding_decoding() ! {
 		acceptance_required: true
 		securitypolicy:     0
 		tags:               []
-		comments:           []
+		messages:           []
 	}
 
 	mut registration_desk := db_registration_desk.new(args)!
@@ -230,7 +230,7 @@ fn test_registration_desk_type_name() ! {
 		acceptance_required: false
 		securitypolicy:     0
 		tags:               []
-		comments:           []
+		messages:           []
 	}
 
 	registration_desk := db_registration_desk.new(args)!
@@ -262,7 +262,7 @@ fn test_registration_desk_description() ! {
 		acceptance_required: false
 		securitypolicy:     0
 		tags:               []
-		comments:           []
+		messages:           []
 	}
 
 	registration_desk := db_registration_desk.new(args)!
@@ -298,7 +298,7 @@ fn test_registration_desk_example() ! {
 		acceptance_required: false
 		securitypolicy:     0
 		tags:               []
-		comments:           []
+		messages:           []
 	}
 
 	registration_desk := db_registration_desk.new(args)!
@@ -355,7 +355,7 @@ fn test_registration_desk_list() ! {
 		acceptance_required: false
 		securitypolicy:     0
 		tags:               []
-		comments:           []
+		messages:           []
 	}
 
 	mut args2 := RegistrationDeskArg{
@@ -370,7 +370,7 @@ fn test_registration_desk_list() ! {
 		acceptance_required: true
 		securitypolicy:     0
 		tags:               []
-		comments:           []
+		messages:           []
 	}
 
 	mut desk1 := db_registration_desk.new(args1)!
@@ -426,7 +426,7 @@ fn test_registration_desk_fs_items_encoding_decoding() ! {
 		acceptance_required: false
 		securitypolicy:     0
 		tags:               []
-		comments:           []
+		messages:           []
 	}
 
 	mut registration_desk := db_registration_desk.new(args)!

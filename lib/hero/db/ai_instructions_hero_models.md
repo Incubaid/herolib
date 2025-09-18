@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides clear instructions for AI agents to create new HeroDB models similar to `comment.v`. These models are used to store structured data in Redis using the HeroDB system.
+This document provides clear instructions for AI agents to create new HeroDB models similar to `message.v`. These models are used to store structured data in Redis using the HeroDB system.
 
 ## Key Concepts
 
@@ -107,7 +107,7 @@ Add your model to the ModelsFactory struct in `factory.v`:
 ```v
 pub struct ModelsFactory {
 pub mut:
-	comments DBCalendar
+	messages DBCalendar
 	// ... other models
 }
 ```
@@ -118,7 +118,7 @@ And initialize it in the `new()` function:
 pub fn new() !ModelsFactory {
 	mut mydb := db.new()!
 	return ModelsFactory{
-		comments: DBCalendar{
+		messages: DBCalendar{
 			db: &mydb
 		}
 		// ... initialize other models

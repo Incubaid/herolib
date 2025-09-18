@@ -29,7 +29,7 @@ fn test_calendar_event_new() ! {
 		is_template:    false // Added missing is_template field
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	calendar_event := db_calendar_event.new(args)!
@@ -81,7 +81,7 @@ fn test_calendar_event_crud_operations() ! {
 		is_template:    false // Added missing is_template field
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	mut calendar_event := db_calendar_event.new(args)!
@@ -143,7 +143,7 @@ fn test_calendar_event_crud_operations() ! {
 		timezone:       'EST'
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	mut updated_event := db_calendar_event.new(updated_args)!
@@ -217,7 +217,7 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		is_template:    false // Added missing is_template field
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	mut calendar_event := db_calendar_event.new(args)!
@@ -314,7 +314,7 @@ fn test_calendar_event_registration_desks_encoding_decoding() ! {
 		is_template:    false
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	mut calendar_event := db_calendar_event.new(args)!
@@ -363,7 +363,7 @@ fn test_calendar_event_docs_encoding_decoding() ! {
 		is_template:    false
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	mut calendar_event := db_calendar_event.new(args)!
@@ -429,7 +429,7 @@ fn test_calendar_event_type_name() ! {
 		timezone:       'UTC'
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	calendar_event := db_calendar_event.new(args)!
@@ -465,7 +465,7 @@ fn test_calendar_event_description() ! {
 		timezone:       'UTC'
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	calendar_event := db_calendar_event.new(args)!
@@ -505,7 +505,7 @@ fn test_calendar_event_example() ! {
 		timezone:       'UTC'
 		securitypolicy: 0
 		tags:           []string{}
-		comments:       []db.CommentArg{}
+		messages:       []db.MessageArg{}
 	}
 
 	calendar_event := db_calendar_event.new(args)!

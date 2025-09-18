@@ -26,7 +26,7 @@ pub mut:
 	end_date       string // Use ourtime module to convert to epoch
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 @[params]
@@ -64,7 +64,7 @@ pub fn project_set(request Request) !Response {
 		end_date:       payload.end_date
 		securitypolicy: payload.securitypolicy
 		tags:           payload.tags
-		comments:       payload.comments
+		messages:       payload.messages
 	)!
 
 	project_obj = mydb.project.set(project_obj)!

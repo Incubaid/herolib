@@ -26,7 +26,7 @@ pub mut:
 	status         heromodels.UserStatus
 	securitypolicy u32
 	tags           u32
-	comments       []u32
+	messages       []u32
 }
 
 @[params]
@@ -65,7 +65,7 @@ pub fn user_set(request Request) !Response {
 		status:         payload.status
 		securitypolicy: payload.securitypolicy
 		tags:           payload.tags
-		comments:       payload.comments
+		messages:       payload.messages
 	)!
 
 	user_obj=mydb.user.set( user_obj)!
