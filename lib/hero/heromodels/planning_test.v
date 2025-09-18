@@ -64,8 +64,8 @@ fn test_planning_crud_operations() ! {
 		registration_desk_id: 10
 		autoschedule_rules:   []RecurrenceRule{}
 		invite_rules:         []RecurrenceRule{}
-		attendees_required:   [100, 101]
-		attendees_optional:   [200]
+		attendees_required:   [u32(100), u32(101)]
+		attendees_optional:   [u32(200)]
 		securitypolicy:       0
 		tags:                 []string{}
 		messages:             []db.MessageArg{}
@@ -76,7 +76,7 @@ fn test_planning_crud_operations() ! {
 	// Create some recurrence rules
 	mut rule1 := RecurrenceRule{
 		until:       1893456000 // 2030-01-01
-		by_weekday:  [1, 3, 5]  // Monday, Wednesday, Friday
+		by_weekday:  [u8(1), u8(3), u8(5)]  // Monday, Wednesday, Friday
 		by_monthday: []u8{}
 		hour_from:   9
 		hour_to:     17
@@ -87,7 +87,7 @@ fn test_planning_crud_operations() ! {
 	mut rule2 := RecurrenceRule{
 		until:       0
 		by_weekday:  []u8{}
-		by_monthday: [1, 15] // 1st and 15th of each month
+		by_monthday: [u8(1), u8(15)] // 1st and 15th of each month
 		hour_from:   10
 		hour_to:     12
 		duration:    60
@@ -110,14 +110,14 @@ fn test_planning_crud_operations() ! {
 	assert retrieved_planning.is_public == false
 	assert retrieved_planning.calendar_template_id == 1
 	assert retrieved_planning.registration_desk_id == 10
-	assert retrieved_planning.attendees_required == [100, 101]
-	assert retrieved_planning.attendees_optional == [200]
+	assert retrieved_planning.attendees_required == [u32(100), u32(101)]
+	assert retrieved_planning.attendees_optional == [u32(200)]
 	assert retrieved_planning.id == original_id
 
 	// Verify autoschedule_rules
 	assert retrieved_planning.autoschedule_rules.len == 1
 	assert retrieved_planning.autoschedule_rules[0].until == 1893456000
-	assert retrieved_planning.autoschedule_rules[0].by_weekday == [1, 3, 5]
+	assert retrieved_planning.autoschedule_rules[0].by_weekday == [u8(1), u8(3), u8(5)]
 	assert retrieved_planning.autoschedule_rules[0].by_monthday.len == 0
 	assert retrieved_planning.autoschedule_rules[0].hour_from == 9
 	assert retrieved_planning.autoschedule_rules[0].hour_to == 17
@@ -128,7 +128,7 @@ fn test_planning_crud_operations() ! {
 	assert retrieved_planning.invite_rules.len == 1
 	assert retrieved_planning.invite_rules[0].until == 0
 	assert retrieved_planning.invite_rules[0].by_weekday.len == 0
-	assert retrieved_planning.invite_rules[0].by_monthday == [1, 15]
+	assert retrieved_planning.invite_rules[0].by_monthday == [u8(1), u8(15)]
 	assert retrieved_planning.invite_rules[0].hour_from == 10
 	assert retrieved_planning.invite_rules[0].hour_to == 12
 	assert retrieved_planning.invite_rules[0].duration == 60
@@ -149,7 +149,7 @@ fn test_planning_crud_operations() ! {
 		registration_desk_id: 20
 		autoschedule_rules:   []RecurrenceRule{}
 		invite_rules:         []RecurrenceRule{}
-		attendees_required:   [102]
+		attendees_required:   [u32(102)]
 		attendees_optional:   []u32{}
 		securitypolicy:       0
 		tags:                 []string{}
@@ -162,7 +162,7 @@ fn test_planning_crud_operations() ! {
 	// Update rules
 	mut updated_rule1 := RecurrenceRule{
 		until:       1924992000 // 2031-01-01
-		by_weekday:  [2, 4]     // Tuesday, Thursday
+		by_weekday:  [u8(2), u8(4)]     // Tuesday, Thursday
 		by_monthday: []u8{}
 		hour_from:   8
 		hour_to:     16
@@ -173,7 +173,7 @@ fn test_planning_crud_operations() ! {
 	mut updated_rule2 := RecurrenceRule{
 		until:       1956528000 // 2032-01-01
 		by_weekday:  []u8{}
-		by_monthday: [5, 20] // 5th and 20th of each month
+		by_monthday: [u8(5), u8(20)] // 5th and 20th of each month
 		hour_from:   11
 		hour_to:     13
 		duration:    90
@@ -194,13 +194,13 @@ fn test_planning_crud_operations() ! {
 	assert final_planning.is_public == true
 	assert final_planning.calendar_template_id == 2
 	assert final_planning.registration_desk_id == 20
-	assert final_planning.attendees_required == [102]
+	assert final_planning.attendees_required == [u32(102)]
 	assert final_planning.attendees_optional.len == 0
 
 	// Verify updated autoschedule_rules
 	assert final_planning.autoschedule_rules.len == 1
 	assert final_planning.autoschedule_rules[0].until == 1924992000
-	assert final_planning.autoschedule_rules[0].by_weekday == [2, 4]
+	assert final_planning.autoschedule_rules[0].by_weekday == [u8(2), u8(4)]
 	assert final_planning.autoschedule_rules[0].by_monthday.len == 0
 	assert final_planning.autoschedule_rules[0].hour_from == 8
 	assert final_planning.autoschedule_rules[0].hour_to == 16
@@ -211,7 +211,7 @@ fn test_planning_crud_operations() ! {
 	assert final_planning.invite_rules.len == 1
 	assert final_planning.invite_rules[0].until == 1956528000
 	assert final_planning.invite_rules[0].by_weekday.len == 0
-	assert final_planning.invite_rules[0].by_monthday == [5, 20]
+	assert final_planning.invite_rules[0].by_monthday == [u8(5), u8(20)]
 	assert final_planning.invite_rules[0].hour_from == 11
 	assert final_planning.invite_rules[0].hour_to == 13
 	assert final_planning.invite_rules[0].duration == 90
@@ -253,13 +253,13 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 	}
 
 	mut planning := db_planning.new(args)!
-	planning.calendar_id = 1
+	planning.calendar_template_id = 1
 
 	// Add complex recurrence rules
 	mut rule1 := RecurrenceRule{
 		until:       1893456000 // 2030-01-01
-		by_weekday:  [0, 1, 2, 3, 4, 5, 6] // All days of week
-		by_monthday: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] // All days of month
+		by_weekday:  [u8(0), u8(1), u8(2), u8(3), u8(4), u8(5), u8(6)] // All days of week
+		by_monthday: [u8(1), u8(2), u8(3), u8(4), u8(5), u8(6), u8(7), u8(8), u8(9), u8(10), u8(11), u8(12), u8(13), u8(14), u8(15), u8(16), u8(17), u8(18), u8(19), u8(20), u8(21), u8(22), u8(23), u8(24), u8(25), u8(26), u8(27), u8(28), u8(29), u8(30), u8(31)] // All days of month
 		hour_from:   0
 		hour_to:     23
 		duration:    15
@@ -291,7 +291,7 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 
 	// Verify first autoschedule rule details
 	assert retrieved_planning.autoschedule_rules[0].until == 1893456000
-	assert retrieved_planning.autoschedule_rules[0].by_weekday == [0, 1, 2, 3, 4, 5, 6]
+	assert retrieved_planning.autoschedule_rules[0].by_weekday == [u8(0), u8(1), u8(2), u8(3), u8(4), u8(5), u8(6)]
 	assert retrieved_planning.autoschedule_rules[0].by_monthday.len == 31
 	assert retrieved_planning.autoschedule_rules[0].hour_from == 0
 	assert retrieved_planning.autoschedule_rules[0].hour_to == 23
@@ -309,7 +309,7 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 
 	// Verify invite rule details
 	assert retrieved_planning.invite_rules[0].until == 1893456000
-	assert retrieved_planning.invite_rules[0].by_weekday == [0, 1, 2, 3, 4, 5, 6]
+	assert retrieved_planning.invite_rules[0].by_weekday == [u8(0), u8(1), u8(2), u8(3), u8(4), u8(5), u8(6)]
 	assert retrieved_planning.invite_rules[0].by_monthday.len == 31
 	assert retrieved_planning.invite_rules[0].hour_from == 0
 	assert retrieved_planning.invite_rules[0].hour_to == 23
@@ -333,7 +333,6 @@ fn test_planning_type_name() ! {
 		color:       '#FF00FF'
 		timezone:    'UTC'
 		is_public:   true
-		events:      []u32{}
 	}
 
 	planning := db_planning.new(args)!
@@ -359,7 +358,6 @@ fn test_planning_description() ! {
 		color:       '#00FFFF'
 		timezone:    'UTC'
 		is_public:   true
-		events:      []u32{}
 	}
 
 	planning := db_planning.new(args)!
@@ -389,7 +387,6 @@ fn test_planning_example() ! {
 		color:       '#AAAAAA'
 		timezone:    'UTC'
 		is_public:   true
-		events:      []u32{}
 	}
 
 	planning := db_planning.new(args)!
