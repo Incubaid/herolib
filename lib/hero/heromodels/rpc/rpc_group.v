@@ -71,10 +71,26 @@ pub fn group_delete(request Request) !Response {
 }
 
 pub fn group_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[GroupListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
-	groups := mydb.group.list()!
+	groups := mydb.group.list(
+		is_public: payload.is_public
+		parent_group: payload.parent_group
+		limit: payload.limit
+	)!
 
 	return jsonrpc.new_response(request.id, json.encode(groups))
+}
+
+@[params]
+pub struct GroupListArgs {
+pub mut:
+	is_public    bool
+	parent_group u32
+	limit        int = 100
 }
 
 
