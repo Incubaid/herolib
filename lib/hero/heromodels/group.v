@@ -155,11 +155,36 @@ pub fn (mut self DBGroup) new(args GroupArg) !Group {
 	return o
 }
 
-pub fn (mut self DBGroup) set(o Group) !Group {
-	return self.db.set[Group](o)!
+pub fn (mut self DBGroup) set(mut o Group) !Group {
+	// Save the group first to get its ID if it's new
+	o = self.db.set[Group](o)!
+
+	// If this group has a parent, add it to the parent's subgroups
+	if o.parent_group != 0 {
+		mut parent_group := self.get(o.parent_group)!
+		if !parent_group.subgroups.contains(o.id) {
+			parent_group.subgroups << o.id
+			self.db.set[Group](parent_group)!
+		}
+	}
+	return o
 }
 
 pub fn (mut self DBGroup) delete(id u32) ! {
+	mut group := self.get(id)!
+
+	// If this group has a parent, remove it from the parent's subgroups
+	if group.parent_group != 0 {
+		mut parent_group := self.get(group.parent_group)!
+		parent_group.subgroups = parent_group.subgroups.filter(it != id)
+		self.db.set[Group](parent_group)!
+	}
+
+	// Recursively delete all subgroups
+	for subgroup_id in group.subgroups {
+		self.delete(subgroup_id)!
+	}
+
 	self.db.delete[Group](id)!
 }
 

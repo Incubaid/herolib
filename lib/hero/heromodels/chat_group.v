@@ -67,10 +67,10 @@ pub fn (self ChatGroup) description(methodname string) string {
 pub fn (self ChatGroup) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"chat_group": {"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false}}', '1'
+			return '{"chat_group": {"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false, "group_id": 1}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false}'
+			return '{"id": 1}', '{"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false, "group_id": 1}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -79,7 +79,7 @@ pub fn (self ChatGroup) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false}]'
+			return '{}', '[{"name": "General Chat", "description": "A general chat group", "chat_type": "public_channel", "last_activity": 1678886400, "is_archived": false, "group_id": 1}]'
 		}
 		else {
 			return '{}', '{}'
@@ -91,12 +91,14 @@ pub fn (self ChatGroup) dump(mut e encoder.Encoder) ! {
 	e.add_u8(u8(self.chat_type))
 	e.add_i64(self.last_activity)
 	e.add_bool(self.is_archived)
+	e.add_u32(self.group_id)
 }
 
 pub fn (mut self DBChatGroup) load(mut o ChatGroup, mut e encoder.Decoder) ! {
 	o.chat_type = unsafe { ChatType(e.get_u8()!) }
 	o.last_activity = e.get_i64()!
 	o.is_archived = e.get_bool()!
+	o.group_id = e.get_u32()!
 }
 
 @[params]
@@ -107,6 +109,7 @@ pub mut:
 	chat_type      ChatType
 	last_activity  i64
 	is_archived    bool
+	group_id       u32
 	securitypolicy u32
 	tags           []string
 	messages       []db.MessageArg
@@ -118,6 +121,7 @@ pub fn (mut self DBChatGroup) new(args ChatGroupArg) !ChatGroup {
 		chat_type:     args.chat_type
 		last_activity: args.last_activity
 		is_archived:   args.is_archived
+		group_id:      args.group_id
 	}
 
 	// Set base fields
