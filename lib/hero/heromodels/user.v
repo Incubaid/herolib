@@ -78,7 +78,7 @@ pub fn (self User) example(methodname string) (string, string) {
 	}
 }
 
-fn (self User) dump(mut e encoder.Encoder) ! {
+pub fn (self User) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.email)
 	e.add_string(self.public_key)
 	e.add_string(self.phone)

@@ -34,7 +34,7 @@ pub mut:
 	attendance_required bool
 	admin               bool // if set can manage the main elements of the event = description, ...
 	organizer           bool // if set means others can ask for support, doesn't mean is admin
-	log                 AttendeeLog
+	log                 []AttendeeLog
 }
 
 pub enum EventPriority {
@@ -153,7 +153,7 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_i64(self.start_time)
 	e.add_i64(self.end_time)
 	e.add_string(self.location)
-	
+
 	// Encode attendees array
 	e.add_u16(u16(self.attendees.len))
 	for attendee in self.attendees {
@@ -162,13 +162,16 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 		e.add_bool(attendee.attendance_required)
 		e.add_bool(attendee.admin)
 		e.add_bool(attendee.organizer)
-		
-		// Encode AttendeeLog
-		e.add_u64(attendee.log.timestamp)
-		e.add_u8(u8(attendee.log.status))
-		e.add_string(attendee.log.remark)
+
+		// Encode AttendeeLog array
+		e.add_u16(u16(attendee.log.len))
+		for log_entry in attendee.log {
+			e.add_u64(log_entry.timestamp)
+			e.add_u8(u8(log_entry.status))
+			e.add_string(log_entry.remark)
+		}
 	}
-	
+
 	e.add_list_u32(self.fs_items)
 	e.add_u32(self.calendar_id)
 	e.add_u8(u8(self.status))
@@ -198,7 +201,7 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 	o.start_time = e.get_i64()!
 	o.end_time = e.get_i64()!
 	o.location = e.get_string()!
-	
+
 	// Decode attendees array
 	attendees_len := e.get_u16()!
 	mut attendees := []Attendee{}
@@ -208,27 +211,33 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 		attendance_required := e.get_bool()!
 		admin := e.get_bool()!
 		organizer := e.get_bool()!
-		
-		// Decode AttendeeLog
-		timestamp := e.get_u64()!
-		status := unsafe { AttendanceStatus(e.get_u8()!) }
-		remark := e.get_string()!
-		
+
+		// Decode AttendeeLog array
+		log_len := e.get_u16()!
+		mut log_entries := []AttendeeLog{}
+		for _ in 0 .. log_len {
+			timestamp := e.get_u64()!
+			status := unsafe { AttendanceStatus(e.get_u8()!) }
+			remark := e.get_string()!
+
+			log_entries << AttendeeLog{
+				timestamp: timestamp
+				status:    status
+				remark:    remark
+			}
+		}
+
 		attendees << Attendee{
 			user_id:             user_id
 			status_latest:       status_latest
 			attendance_required: attendance_required
 			admin:               admin
 			organizer:           organizer
-			log:                 AttendeeLog{
-				timestamp: timestamp
-				status:    status
-				remark:    remark
-			}
+			log:                 log_entries
 		}
 	}
 	o.attendees = attendees
-	
+
 	o.fs_items = e.get_list_u32()!
 	o.calendar_id = e.get_u32()!
 	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
@@ -283,6 +292,7 @@ pub mut:
 	reminder_mins  []int  // Minutes before event for reminders
 	color          string // Hex color code
 	timezone       string
+	priority       EventPriority // Added missing priority field
 	securitypolicy u32
 	tags           []string
 	comments       []db.CommentArg
@@ -303,6 +313,7 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 		reminder_mins: args.reminder_mins
 		color:         args.color
 		timezone:      args.timezone
+		priority:      args.priority // Added missing priority field
 	}
 
 	// Set base fields

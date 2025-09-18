@@ -34,7 +34,7 @@ pub fn test_get(url_ RedisURL) !&Redis {
 		url = RedisURL{
 			address: url_.address
 			port:    url_.port
-			db:      31
+			db:      15
 		}
 	}
 	return core_get(url)!

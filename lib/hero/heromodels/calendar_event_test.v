@@ -15,8 +15,8 @@ fn test_calendar_event_new() ! {
 		name:           'test_event'
 		description:    'Test calendar event for unit testing'
 		title:          'Team Meeting'
-		start_time:     '2025-01-01T10:00:00Z'
-		end_time:       '2025-01-01T11:00:00Z'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
 		location:       'Office'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -28,13 +28,14 @@ fn test_calendar_event_new() ! {
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
+		priority:       .normal // Added missing priority field
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
 	}
 
 	calendar_event := db_calendar_event.new(args)!
-	
+
 	assert calendar_event.name == 'test_event'
 	assert calendar_event.description == 'Test calendar event for unit testing'
 	assert calendar_event.title == 'Team Meeting'
@@ -51,7 +52,7 @@ fn test_calendar_event_new() ! {
 	assert calendar_event.priority == .normal
 	assert calendar_event.public == false
 	assert calendar_event.updated_at > 0
-	
+
 	println('✓ CalendarEvent new test passed!')
 }
 
@@ -67,8 +68,8 @@ fn test_calendar_event_crud_operations() ! {
 		name:           'crud_test_event'
 		description:    'Test calendar event for CRUD operations'
 		title:          'Team Meeting'
-		start_time:     '2025-01-01T10:00:00Z'
-		end_time:       '2025-01-01T11:00:00Z'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
 		location:       'Office'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -80,6 +81,7 @@ fn test_calendar_event_crud_operations() ! {
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
+		priority:       .normal // Added missing priority field
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
@@ -115,8 +117,8 @@ fn test_calendar_event_crud_operations() ! {
 		name:           'updated_event'
 		description:    'Updated test calendar event'
 		title:          'Updated Team Meeting'
-		start_time:     '2025-01-01T12:00:00Z'
-		end_time:       '2025-01-01T13:00:00Z'
+		start_time:     '2025-01-01 12:00:00'
+		end_time:       '2025-01-01 13:00:00'
 		location:       'Conference Room'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -153,11 +155,11 @@ fn test_calendar_event_crud_operations() ! {
 
 	// Test delete operation
 	db_calendar_event.delete(original_id)!
-	
+
 	// Verify deletion
 	exists_after_delete := db_calendar_event.exist(original_id)!
 	assert exists_after_delete == false
-	
+
 	println('✓ CalendarEvent CRUD operations test passed!')
 }
 
@@ -173,8 +175,8 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		name:           'attendees_test_event'
 		description:    'Test calendar event for attendees encoding/decoding'
 		title:          'Team Meeting'
-		start_time:     '2025-01-01T10:00:00Z'
-		end_time:       '2025-01-01T11:00:00Z'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
 		location:       'Office'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -186,13 +188,14 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
+		priority:       .normal // Added missing priority field
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
 	}
 
 	mut calendar_event := db_calendar_event.new(args)!
-	
+
 	// Add some attendees manually since the new method doesn't populate them
 	mut attendee1 := Attendee{
 		user_id:             100
@@ -200,57 +203,61 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		attendance_required: true
 		admin:               true
 		organizer:           false
-		log:                 AttendeeLog{
-			timestamp: 1234567890
-			status:    .accepted
-			remark:    'User accepted the invitation'
-		}
+		log:                 [
+			AttendeeLog{
+				timestamp: 1234567890
+				status:    .accepted
+				remark:    'User accepted the invitation'
+			},
+		]
 	}
-	
+
 	mut attendee2 := Attendee{
 		user_id:             101
 		status_latest:       .tentative
 		attendance_required: false
 		admin:               false
 		organizer:           true
-		log:                 AttendeeLog{
-			timestamp: 1234567891
-			status:    .tentative
-			remark:    'User is tentative'
-		}
+		log:                 [
+			AttendeeLog{
+				timestamp: 1234567891
+				status:    .tentative
+				remark:    'User is tentative'
+			},
+		]
 	}
-	
+
 	calendar_event.attendees = [attendee1, attendee2]
-	
+
 	// Save the calendar event
 	calendar_event = db_calendar_event.set(calendar_event)!
 	calendar_event_id := calendar_event.id
 
 	// Retrieve and verify all fields were properly encoded/decoded
 	retrieved_event := db_calendar_event.get(calendar_event_id)!
-	
+
 	assert retrieved_event.attendees.len == 2
-	
+
 	// Verify first attendee details
 	assert retrieved_event.attendees[0].user_id == 100
 	assert retrieved_event.attendees[0].status_latest == .accepted
 	assert retrieved_event.attendees[0].attendance_required == true
 	assert retrieved_event.attendees[0].admin == true
 	assert retrieved_event.attendees[0].organizer == false
-	assert retrieved_event.attendees[0].log.timestamp == 1234567890
-	assert retrieved_event.attendees[0].log.status == .accepted
-	assert retrieved_event.attendees[0].log.remark == 'User accepted the invitation'
-	
+	assert retrieved_event.attendees[0].log[0].timestamp == 1234567890
+	assert retrieved_event.attendees[0].log[0].status == .accepted
+	assert retrieved_event.attendees[0].log[0].remark == 'User accepted the invitation'
+
 	// Verify second attendee details
 	assert retrieved_event.attendees[1].user_id == 101
 	assert retrieved_event.attendees[1].status_latest == .tentative
 	assert retrieved_event.attendees[1].attendance_required == false
 	assert retrieved_event.attendees[1].admin == false
 	assert retrieved_event.attendees[1].organizer == true
-	assert retrieved_event.attendees[1].log.timestamp == 1234567891
-	assert retrieved_event.attendees[1].log.status == .tentative
-	assert retrieved_event.attendees[1].log.remark == 'User is tentative'
-	
+	assert retrieved_event.attendees[1].log[0].timestamp == 1234567891
+	assert retrieved_event.attendees[1].log[0].status == .tentative
+	assert retrieved_event.attendees[1].log[0].remark == 'User is tentative'
+
 	println('✓ CalendarEvent attendees encoding/decoding test passed!')
 }
 
@@ -266,8 +273,8 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 		name:           'recurrence_test_event'
 		description:    'Test calendar event for recurrence encoding/decoding'
 		title:          'Weekly Team Meeting'
-		start_time:     '2025-01-01T10:00:00Z'
-		end_time:       '2025-01-01T11:00:00Z'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
 		location:       'Office'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -285,7 +292,7 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 	}
 
 	mut calendar_event := db_calendar_event.new(args)!
-	
+
 	// Add recurrence rules manually
 	mut rule1 := RecurrenceRule{
 		frequency:   .weekly
@@ -295,7 +302,7 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 		by_weekday:  [1, 3, 5] // Monday, Wednesday, Friday
 		by_monthday: []int{}
 	}
-	
+
 	mut rule2 := RecurrenceRule{
 		frequency:   .monthly
 		interval:    2
@@ -304,19 +311,19 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 		by_weekday:  []int{}
 		by_monthday: [1, 15] // 1st and 15th of each month
 	}
-	
+
 	calendar_event.recurrence = [rule1, rule2]
-	
+
 	// Save the calendar event
 	calendar_event = db_calendar_event.set(calendar_event)!
 	calendar_event_id := calendar_event.id
 
 	// Retrieve and verify all fields were properly encoded/decoded
 	retrieved_event := db_calendar_event.get(calendar_event_id)!
-	
+
 	assert retrieved_event.recurrence.len == 2
 	assert retrieved_event.is_recurring == true
-	
+
 	// Verify first recurrence rule details
 	assert retrieved_event.recurrence[0].frequency == .weekly
 	assert retrieved_event.recurrence[0].interval == 1
@@ -324,7 +331,7 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 	assert retrieved_event.recurrence[0].count == 0
 	assert retrieved_event.recurrence[0].by_weekday == [1, 3, 5]
 	assert retrieved_event.recurrence[0].by_monthday.len == 0
-	
+
 	// Verify second recurrence rule details
 	assert retrieved_event.recurrence[1].frequency == .monthly
 	assert retrieved_event.recurrence[1].interval == 2
@@ -332,7 +339,7 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 	assert retrieved_event.recurrence[1].count == 12
 	assert retrieved_event.recurrence[1].by_weekday.len == 0
 	assert retrieved_event.recurrence[1].by_monthday == [1, 15]
-	
+
 	println('✓ CalendarEvent recurrence encoding/decoding test passed!')
 }
 
@@ -348,8 +355,8 @@ fn test_calendar_event_type_name() ! {
 		name:           'type_test_event'
 		description:    'Test calendar event for type name'
 		title:          'Team Meeting'
-		start_time:     '2025-01-01T10:00:00Z'
-		end_time:       '2025-01-01T11:00:00Z'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
 		location:       'Office'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -367,11 +374,11 @@ fn test_calendar_event_type_name() ! {
 	}
 
 	calendar_event := db_calendar_event.new(args)!
-	
+
 	// Test type_name method
 	type_name := calendar_event.type_name()
 	assert type_name == 'calendar_event'
-	
+
 	println('✓ CalendarEvent type_name test passed!')
 }
 
@@ -387,8 +394,8 @@ fn test_calendar_event_description() ! {
 		name:           'description_test_event'
 		description:    'Test calendar event for description'
 		title:          'Team Meeting'
-		start_time:     '2025-01-01T10:00:00Z'
-		end_time:       '2025-01-01T11:00:00Z'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
 		location:       'Office'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -406,7 +413,7 @@ fn test_calendar_event_description() ! {
 	}
 
 	calendar_event := db_calendar_event.new(args)!
-	
+
 	// Test description method for each methodname
 	assert calendar_event.description('set') == 'Create or update a calendar event. Returns the ID of the event.'
 	assert calendar_event.description('get') == 'Retrieve a calendar event by ID. Returns the event object.'
@@ -414,7 +421,7 @@ fn test_calendar_event_description() ! {
 	assert calendar_event.description('exist') == 'Check if a calendar event exists by ID. Returns true or false.'
 	assert calendar_event.description('list') == 'List all calendar events. Returns an array of event objects.'
 	assert calendar_event.description('unknown') == 'This is generic method for the root object, TODO fill in, ...'
-	
+
 	println('✓ CalendarEvent description test passed!')
 }
 
@@ -430,8 +437,8 @@ fn test_calendar_event_example() ! {
 		name:           'example_test_event'
 		description:    'Test calendar event for example'
 		title:          'Team Meeting'
-		start_time:     '2025-01-01T10:00:00Z'
-		end_time:       '2025-01-01T11:00:00Z'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
 		location:       'Office'
 		attendees:      []u32{}
 		fs_items:       []u32{}
@@ -449,7 +456,7 @@ fn test_calendar_event_example() ! {
 	}
 
 	calendar_event := db_calendar_event.new(args)!
-	
+
 	// Test example method for each methodname
 	set_call, set_result := calendar_event.example('set')
 	assert set_call == '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}'
@@ -474,6 +481,6 @@ fn test_calendar_event_example() ! {
 	unknown_call, unknown_result := calendar_event.example('unknown')
 	assert unknown_call == '{}'
 	assert unknown_result == '{}'
-	
+
 	println('✓ CalendarEvent example test passed!')
 }
