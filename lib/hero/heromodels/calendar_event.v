@@ -12,8 +12,7 @@ pub mut:
 	title              string
 	start_time         i64 // Unix timestamp
 	end_time           i64 // Unix timestamp
-	location           string
-	registration_desks []u32 //link to object for registration, is where we track invitees, are not attendee unless accepted
+	registration_desks []u32 //link to registration mechanism, is where we track invitees, are not attendee unless accepted
 	attendees          []Attendee
 	docs           []EventDoc // link to docs
 	calendar_id        u32              // Associated calendar
@@ -68,24 +67,6 @@ pub enum AttendanceStatus {
 	tentative
 }
 
-pub struct RecurrenceRule {
-pub mut:
-	frequency   RecurrenceFreq
-	interval    int   // Every N frequencies
-	until       i64   // End date (Unix timestamp)
-	count       int   // Number of occurrences
-	by_weekday  []int // Days of week (0=Sunday)
-	by_monthday []int // Days of month
-}
-
-pub enum RecurrenceFreq {
-	none
-	daily
-	weekly
-	monthly
-	yearly
-}
-
 pub struct EventDoc {
 pub mut:
 	fs_item u32
@@ -93,14 +74,6 @@ pub mut:
 	public  bool   // everyone can see the file, otherwise only the organizers, attendees
 }
 
-@[params]
-pub struct CalendarEventListArg {
-pub mut:
-	calendar_id u32
-	status      EventStatus
-	public      bool
-	limit       int = 100 // Default limit is 100
-}
 
 
 pub struct EventLocation {
@@ -116,8 +89,6 @@ pub enum EventLocationCat {
 	physical
 	hybrid
 }
-
-
 
 pub struct DBCalendarEvent {
 pub mut:
@@ -156,10 +127,10 @@ pub fn (self CalendarEvent) description(methodname string) string {
 pub fn (self CalendarEvent) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}', '1'
+			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
+			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -168,7 +139,7 @@ pub fn (self CalendarEvent) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
+			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}]'
 		}
 		else {
 			return '{}', '{}'
@@ -180,7 +151,6 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_i64(self.start_time)
 	e.add_i64(self.end_time)
-	e.add_string(self.location)
 
 	// Encode registration_desks array
 	e.add_list_u32(self.registration_desks)
@@ -193,6 +163,7 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 		e.add_bool(attendee.attendance_required)
 		e.add_bool(attendee.admin)
 		e.add_bool(attendee.organizer)
+		e.add_string(attendee.location) // Added missing location field
 
 		// Encode AttendeeLog array
 		e.add_u16(u16(attendee.log.len))
@@ -215,8 +186,8 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_u8(u8(self.status))
 	e.add_bool(self.is_all_day)
 	e.add_bool(self.is_recurring)
-	e.add_bool(self.public) // Added missing public field
-	e.add_u8(u8(self.priority)) // Added missing priority field
+	e.add_bool(self.public)
+	e.add_u8(u8(self.priority))
 
 	// Encode recurrence array
 	e.add_u16(u16(self.recurrence.len))
@@ -229,6 +200,22 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 		e.add_list_int(rule.by_monthday)
 	}
 
+	// Encode locations array
+	e.add_u16(u16(self.locations.len))
+	for location in self.locations {
+		e.add_string(location.name)
+		e.add_string(location.description)
+		e.add_u8(u8(location.cat))
+
+		// Encode location docs array
+		e.add_u16(u16(location.docs.len))
+		for fs_item in location.docs {
+			e.add_u32(fs_item.fs_item)
+			e.add_string(fs_item.cat)
+			e.add_bool(fs_item.public)
+		}
+	}
+
 	e.add_list_int(self.reminder_mins)
 	e.add_string(self.color)
 	e.add_string(self.timezone)
@@ -238,7 +225,6 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 	o.title = e.get_string()!
 	o.start_time = e.get_i64()!
 	o.end_time = e.get_i64()!
-	o.location = e.get_string()!
 
 	// Decode registration_desks array
 	o.registration_desks = e.get_list_u32()!
@@ -252,6 +238,7 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 		attendance_required := e.get_bool()!
 		admin := e.get_bool()!
 		organizer := e.get_bool()!
+		location := e.get_string()! // Added missing location field
 
 		// Decode AttendeeLog array
 		log_len := e.get_u16()!
@@ -275,6 +262,7 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 			admin:               admin
 			organizer:           organizer
 			log:                 log_entries
+			location:            location // Added missing location field
 		}
 	}
 	o.attendees = attendees
@@ -324,6 +312,38 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 	}
 	o.recurrence = recurrence
 
+	// Decode locations array
+	locations_len := e.get_u16()!
+	mut locations := []EventLocation{}
+	for _ in 0 .. locations_len {
+		name := e.get_string()!
+		description := e.get_string()!
+		cat := unsafe { EventLocationCat(e.get_u8()!) }
+
+		// Decode location docs array
+		location_docs_len := e.get_u16()!
+		mut location_docs := []EventDoc{}
+		for _ in 0 .. location_docs_len {
+			fs_item := e.get_u32()!
+			doc_cat := e.get_string()!
+			public := e.get_bool()!
+
+			location_docs << EventDoc{
+				fs_item: fs_item
+				cat:     doc_cat
+				public:  public
+			}
+		}
+
+		locations << EventLocation{
+			name:        name
+			description: description
+			cat:         cat
+			docs:        location_docs
+		}
+	}
+	o.locations = locations
+
 	o.reminder_mins = e.get_list_int()!
 	o.color = e.get_string()!
 	o.timezone = e.get_string()!
@@ -337,7 +357,6 @@ pub mut:
 	title          string
 	start_time     string // use ourtime module to go from string to epoch
 	end_time       string // use ourtime module to go from string to epoch
-	location       string
 	attendees      []u32 // IDs of user groups
 	docs       []u32 // IDs of linked files or dirs
 	calendar_id    u32   // Associated calendar
@@ -368,7 +387,6 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 
 	mut o := CalendarEvent{
 		title:         args.title
-		location:      args.location
 		attendees:     []Attendee{}
 		docs:      fs_attachments
 		calendar_id:   args.calendar_id
@@ -419,6 +437,15 @@ pub fn (mut self DBCalendarEvent) get(id u32) !CalendarEvent {
 	mut e_decoder := encoder.decoder_new(data)
 	self.load(mut o, mut e_decoder)!
 	return o
+}
+
+@[params]
+pub struct CalendarEventListArg {
+pub mut:
+	calendar_id u32
+	status      EventStatus
+	public      bool
+	limit       int = 100 // Default limit is 100
 }
 
 pub fn (mut self DBCalendarEvent) list(args CalendarEventListArg) ![]CalendarEvent {

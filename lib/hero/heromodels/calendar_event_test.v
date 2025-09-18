@@ -17,9 +17,8 @@ fn test_calendar_event_new() ! {
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -39,8 +38,9 @@ fn test_calendar_event_new() ! {
 	assert calendar_event.name == 'test_event'
 	assert calendar_event.description == 'Test calendar event for unit testing'
 	assert calendar_event.title == 'Team Meeting'
-	assert calendar_event.location == 'Office'
-	assert calendar_event.fs_items.len == 0
+	// Check that locations array is empty (since we didn't add any locations)
+	assert calendar_event.locations.len == 0
+	assert calendar_event.docs.len == 0
 	assert calendar_event.registration_desks.len == 0
 	assert calendar_event.calendar_id == 1
 	assert calendar_event.status == .published
@@ -71,9 +71,8 @@ fn test_calendar_event_crud_operations() ! {
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -90,15 +89,15 @@ fn test_calendar_event_crud_operations() ! {
 
 	mut calendar_event := db_calendar_event.new(args)!
 
-	// Add some data for registration_desks and fs_items
+	// Add some data for registration_desks and docs
 	calendar_event.registration_desks = [u32(1001), u32(1002)]
 	
-	mut fs_item := FileAttachment{
+	mut fs_item := EventDoc{
 		fs_item: 2001
 		cat:     'agenda'
 		public:  true
 	}
-	calendar_event.fs_items = [fs_item]
+	calendar_event.docs = [fs_item]
 
 	// Test set operation
 	calendar_event = db_calendar_event.set(calendar_event)!
@@ -109,7 +108,8 @@ fn test_calendar_event_crud_operations() ! {
 	assert retrieved_event.name == 'crud_test_event'
 	assert retrieved_event.description == 'Test calendar event for CRUD operations'
 	assert retrieved_event.title == 'Team Meeting'
-	assert retrieved_event.location == 'Office'
+	// Check that locations array is empty (since we didn't add any locations)
+	assert retrieved_event.locations.len == 0
 	assert retrieved_event.calendar_id == 1
 	assert retrieved_event.status == .published
 	assert retrieved_event.is_all_day == false
@@ -121,10 +121,10 @@ fn test_calendar_event_crud_operations() ! {
 	assert retrieved_event.registration_desks.len == 2
 	assert retrieved_event.registration_desks[0] == 1001
 	assert retrieved_event.registration_desks[1] == 1002
-	assert retrieved_event.fs_items.len == 1
-	assert retrieved_event.fs_items[0].fs_item == 2001
-	assert retrieved_event.fs_items[0].cat == 'agenda'
-	assert retrieved_event.fs_items[0].public == true
+	assert retrieved_event.docs.len == 1
+	assert retrieved_event.docs[0].fs_item == 2001
+	assert retrieved_event.docs[0].cat == 'agenda'
+	assert retrieved_event.docs[0].public == true
 
 	// Test exist operation
 	exists := db_calendar_event.exist(original_id)!
@@ -137,9 +137,8 @@ fn test_calendar_event_crud_operations() ! {
 		title:          'Updated Team Meeting'
 		start_time:     '2025-01-01 12:00:00'
 		end_time:       '2025-01-01 13:00:00'
-		location:       'Conference Room'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    2
 		status:         .draft
 		is_all_day:     true
@@ -156,15 +155,15 @@ fn test_calendar_event_crud_operations() ! {
 	mut updated_event := db_calendar_event.new(updated_args)!
 	updated_event.id = original_id
 	
-	// Update registration_desks and fs_items
+	// Update registration_desks and docs
 	updated_event.registration_desks = [u32(1003)]
 	
-	mut updated_fs_item := FileAttachment{
+	mut updated_fs_item := EventDoc{
 		fs_item: 2002
 		cat:     'minutes'
 		public:  false
 	}
-	updated_event.fs_items = [updated_fs_item]
+	updated_event.docs = [updated_fs_item]
 
 	updated_event = db_calendar_event.set(updated_event)!
 
@@ -173,7 +172,8 @@ fn test_calendar_event_crud_operations() ! {
 	assert final_event.name == 'updated_event'
 	assert final_event.description == 'Updated test calendar event'
 	assert final_event.title == 'Updated Team Meeting'
-	assert final_event.location == 'Conference Room'
+	// Check that locations array is empty (since we didn't add any locations)
+	assert final_event.locations.len == 0
 	assert final_event.calendar_id == 2
 	assert final_event.status == .draft
 	assert final_event.is_all_day == true
@@ -183,10 +183,10 @@ fn test_calendar_event_crud_operations() ! {
 	assert final_event.timezone == 'EST'
 	assert final_event.registration_desks.len == 1
 	assert final_event.registration_desks[0] == 1003
-	assert final_event.fs_items.len == 1
-	assert final_event.fs_items[0].fs_item == 2002
-	assert final_event.fs_items[0].cat == 'minutes'
-	assert final_event.fs_items[0].public == false
+	assert final_event.docs.len == 1
+	assert final_event.docs[0].fs_item == 2002
+	assert final_event.docs[0].cat == 'minutes'
+	assert final_event.docs[0].public == false
 
 	// Test delete operation
 	db_calendar_event.delete(original_id)!
@@ -212,9 +212,8 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -310,9 +309,8 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 		title:          'Weekly Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -392,9 +390,8 @@ fn test_calendar_event_registration_desks_encoding_decoding() ! {
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -429,7 +426,7 @@ fn test_calendar_event_registration_desks_encoding_decoding() ! {
 	println('✓ CalendarEvent registration_desks encoding/decoding test passed!')
 }
 
-fn test_calendar_event_fs_items_encoding_decoding() ! {
+fn test_calendar_event_docs_encoding_decoding() ! {
 	// Initialize DBCalendarEvent for testing
 	mut mydb := db.new_test()!
 	mut db_calendar_event := DBCalendarEvent{
@@ -438,14 +435,13 @@ fn test_calendar_event_fs_items_encoding_decoding() ! {
 
 	// Create a new calendar event with file attachments
 	mut args := CalendarEventArg{
-		name:           'fs_items_test_event'
-		description:    'Test calendar event for fs_items encoding/decoding'
+		name:           'docs_test_event'
+		description:    'Test calendar event for docs encoding/decoding'
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -463,19 +459,19 @@ fn test_calendar_event_fs_items_encoding_decoding() ! {
 	mut calendar_event := db_calendar_event.new(args)!
 
 	// Add file attachments manually
-	mut fs_item1 := FileAttachment{
+	mut fs_item1 := EventDoc{
 		fs_item: 2001
 		cat:     'agenda'
 		public:  true
 	}
 
-	mut fs_item2 := FileAttachment{
+	mut fs_item2 := EventDoc{
 		fs_item: 2002
 		cat:     'minutes'
 		public:  false
 	}
 
-	calendar_event.fs_items = [fs_item1, fs_item2]
+	calendar_event.docs = [fs_item1, fs_item2]
 
 	// Save the calendar event
 	calendar_event = db_calendar_event.set(calendar_event)!
@@ -484,19 +480,19 @@ fn test_calendar_event_fs_items_encoding_decoding() ! {
 	// Retrieve and verify all fields were properly encoded/decoded
 	retrieved_event := db_calendar_event.get(calendar_event_id)!
 
-	assert retrieved_event.fs_items.len == 2
+	assert retrieved_event.docs.len == 2
 
 	// Verify first file attachment details
-	assert retrieved_event.fs_items[0].fs_item == 2001
-	assert retrieved_event.fs_items[0].cat == 'agenda'
-	assert retrieved_event.fs_items[0].public == true
+	assert retrieved_event.docs[0].fs_item == 2001
+	assert retrieved_event.docs[0].cat == 'agenda'
+	assert retrieved_event.docs[0].public == true
 
 	// Verify second file attachment details
-	assert retrieved_event.fs_items[1].fs_item == 2002
-	assert retrieved_event.fs_items[1].cat == 'minutes'
-	assert retrieved_event.fs_items[1].public == false
+	assert retrieved_event.docs[1].fs_item == 2002
+	assert retrieved_event.docs[1].cat == 'minutes'
+	assert retrieved_event.docs[1].public == false
 
-	println('✓ CalendarEvent fs_items encoding/decoding test passed!')
+	println('✓ CalendarEvent docs encoding/decoding test passed!')
 }
 
 fn test_calendar_event_type_name() ! {
@@ -513,9 +509,8 @@ fn test_calendar_event_type_name() ! {
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -552,9 +547,8 @@ fn test_calendar_event_description() ! {
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -595,9 +589,8 @@ fn test_calendar_event_example() ! {
 		title:          'Team Meeting'
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
-		location:       'Office'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -615,12 +608,12 @@ fn test_calendar_event_example() ! {
 
 	// Test example method for each methodname
 	set_call, set_result := calendar_event.example('set')
-	assert set_call == '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}'
+	assert set_call == '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}}'
 	assert set_result == '1'
 
 	get_call, get_result := calendar_event.example('get')
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
+	assert get_result == '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}'
 
 	delete_call, delete_result := calendar_event.example('delete')
 	assert delete_call == '{"id": 1}'
@@ -632,7 +625,7 @@ fn test_calendar_event_example() ! {
 
 	list_call, list_result := calendar_event.example('list')
 	assert list_call == '{}'
-	assert list_result == '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
+	assert list_result == '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}]'
 
 	unknown_call, unknown_result := calendar_event.example('unknown')
 	assert unknown_call == '{}'
