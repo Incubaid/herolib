@@ -98,8 +98,30 @@ pub fn project_issue_delete(request Request) !Response {
 }
 
 pub fn project_issue_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[ProjectIssueListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
-	project_issues := mydb.project_issue.list()!
+	project_issues := mydb.project_issue.list(
+		project_id: payload.project_id
+		issue_type: payload.issue_type
+		status: payload.status
+		swimlane: payload.swimlane
+		milestone: payload.milestone
+		limit: payload.limit
+	)!
 
 	return jsonrpc.new_response(request.id, json.encode(project_issues))
+}
+
+@[params]
+pub struct ProjectIssueListArgs {
+pub mut:
+	project_id u32
+	issue_type heromodels.IssueType
+	status     heromodels.IssueStatus
+	swimlane   string
+	milestone  string
+	limit      int = 100
 }

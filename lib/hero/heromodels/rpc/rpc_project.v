@@ -84,8 +84,22 @@ pub fn project_delete(request Request) !Response {
 }
 
 pub fn project_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[ProjectListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
-	projects := mydb.project.list()!
+	projects := mydb.project.list(
+		status: payload.status
+		limit: payload.limit
+	)!
 
 	return jsonrpc.new_response(request.id, json.encode(projects))
+}
+
+@[params]
+pub struct ProjectListArgs {
+pub mut:
+	status heromodels.ProjectStatus
+	limit  int = 100
 }

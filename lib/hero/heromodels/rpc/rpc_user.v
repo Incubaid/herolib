@@ -85,8 +85,22 @@ pub fn user_delete(request Request) !Response {
 }
 
 pub fn user_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[UserListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
-	users := mydb.user.list()!
+	users := mydb.user.list(
+		status: payload.status
+		limit: payload.limit
+	)!
 
 	return jsonrpc.new_response(request.id, json.encode(users))
+}
+
+@[params]
+pub struct UserListArgs {
+pub mut:
+	status heromodels.UserStatus
+	limit  int = 100
 }

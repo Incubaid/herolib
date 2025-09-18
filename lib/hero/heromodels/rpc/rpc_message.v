@@ -65,8 +65,24 @@ pub fn message_delete(request Request) !Response {
 }
 
 pub fn message_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[MessageListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
-	messages := mydb.messages.list()!
+	messages := mydb.messages.list(
+		parent: payload.parent
+		author: payload.author
+		limit: payload.limit
+	)!
 
 	return jsonrpc.new_response(request.id, json.encode(messages))
+}
+
+@[params]
+pub struct MessageListArgs {
+pub mut:
+	parent u32
+	author u32
+	limit  int = 100
 }

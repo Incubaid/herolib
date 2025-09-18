@@ -72,8 +72,22 @@ pub fn calendar_delete(request Request) !Response {
 }
 
 pub fn calendar_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[CalendarListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
-	calendars := mydb.calendar.list()!
+	calendars := mydb.calendar.list(
+		is_public: payload.is_public
+		limit: payload.limit
+	)!
 
 	return jsonrpc.new_response(request.id, json.encode(calendars))
+}
+
+@[params]
+pub struct CalendarListArgs {
+pub mut:
+	is_public bool
+	limit     int = 100
 }

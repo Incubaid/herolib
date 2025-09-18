@@ -88,8 +88,24 @@ pub fn chat_message_delete(request Request) !Response {
 }
 
 pub fn chat_message_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[ChatMessageListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
 	mut mydb := heromodels.new()!
-	chat_messages := mydb.chat_message.list()!
+	chat_messages := mydb.chat_message.list(
+		parent: payload.parent
+		author: payload.author
+		limit: payload.limit
+	)!
 
 	return jsonrpc.new_response(request.id, json.encode(chat_messages))
+}
+
+@[params]
+pub struct ChatMessageListArgs {
+pub mut:
+	parent u32
+	author u32
+	limit  int = 100
 }
