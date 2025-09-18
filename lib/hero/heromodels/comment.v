@@ -86,32 +86,44 @@ pub fn (self Comment) example(methodname string) (string, string) {
 }
 
 pub fn (self Comment) dump(mut e encoder.Encoder) ! {
+	e.add_string(self.subject)
 	e.add_string(self.comment)
 	e.add_u32(self.parent)
 	e.add_u32(self.author)
+	e.add_list_u32(self.to)
+	e.add_list_u32(self.cc)
 }
 
 pub fn (mut self DBComments) load(mut o Comment, mut e encoder.Decoder) ! {
+	o.subject = e.get_string()!
 	o.comment = e.get_string()!
 	o.parent = e.get_u32()!
 	o.author = e.get_u32()!
+	o.to = e.get_list_u32()!
+	o.cc = e.get_list_u32()!
 }
 
 @[params]
 pub struct CommentArg {
 pub mut:
+	subject string
 	comment string @[required]
 	parent  u32
 	author  u32
+	to      []u32
+	cc      []u32
 }
 
 // get new comment, not from the DB
 pub fn (mut self DBComments) new(args CommentArg) !Comment {
 	mut o := Comment{
+		subject:    args.subject
 		comment:    args.comment
 		parent:     args.parent
-		updated_at: ourtime.now().unix()
 		author:     args.author
+		to:         args.to
+		cc:         args.cc
+		updated_at: ourtime.now().unix()
 	}
 	return o
 }

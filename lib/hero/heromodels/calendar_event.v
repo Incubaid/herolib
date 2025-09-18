@@ -18,8 +18,6 @@ pub mut:
 	calendar_id        u32              // Associated calendar
 	status             EventStatus
 	is_all_day         bool
-	is_recurring       bool
-	recurrence         []RecurrenceRule
 	reminder_mins      []int            // Minutes before event for reminders
 	color              string           // Hex color code
 	timezone           string
@@ -220,6 +218,7 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_list_int(self.reminder_mins)
 	e.add_string(self.color)
 	e.add_string(self.timezone)
+	e.add_bool(self.is_template) // Added missing is_template field
 }
 
 pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) ! {
@@ -348,6 +347,7 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 	o.reminder_mins = e.get_list_int()!
 	o.color = e.get_string()!
 	o.timezone = e.get_string()!
+	o.is_template = e.get_bool()! // Added missing is_template field
 }
 
 @[params]
@@ -369,6 +369,7 @@ pub mut:
 	color          string // Hex color code
 	timezone       string
 	priority       EventPriority // Added missing priority field
+	is_template    bool // Added missing is_template field
 	securitypolicy u32
 	tags           []string
 	comments       []db.CommentArg
@@ -399,6 +400,7 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 		color:         args.color
 		timezone:      args.timezone
 		priority:      args.priority // Added missing priority field
+		is_template:   args.is_template // Added missing is_template field
 		public:        false
 	}
 

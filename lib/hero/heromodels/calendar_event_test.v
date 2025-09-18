@@ -28,6 +28,7 @@ fn test_calendar_event_new() ! {
 		color:          '#0000FF'
 		timezone:       'UTC'
 		priority:       .normal // Added missing priority field
+		is_template:    false // Added missing is_template field
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
@@ -51,6 +52,7 @@ fn test_calendar_event_new() ! {
 	assert calendar_event.color == '#0000FF'
 	assert calendar_event.timezone == 'UTC'
 	assert calendar_event.priority == .normal
+	assert calendar_event.is_template == false // Added missing is_template field
 	assert calendar_event.public == false
 	assert calendar_event.updated_at > 0
 
@@ -82,6 +84,7 @@ fn test_calendar_event_crud_operations() ! {
 		color:          '#0000FF'
 		timezone:       'UTC'
 		priority:       .normal // Added missing priority field
+		is_template:    false // Added missing is_template field
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
