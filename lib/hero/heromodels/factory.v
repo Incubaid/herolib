@@ -13,6 +13,8 @@ pub mut:
 	project_issue  DBProjectIssue
 	chat_group     DBChatGroup
 	chat_message   DBChatMessage
+	planning       DBPlanning
+	registration_desk DBRegistrationDesk
 }
 
 pub fn new() !ModelsFactory {
@@ -43,6 +45,12 @@ pub fn new() !ModelsFactory {
 			db: &mydb
 		}
 		chat_message:   DBChatMessage{
+			db: &mydb
+		}
+		planning:       DBPlanning{
+			db: &mydb
+		}
+		registration_desk: DBRegistrationDesk{
 			db: &mydb
 		}
 	}

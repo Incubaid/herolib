@@ -2,6 +2,8 @@ module rpc
 
 import freeflowuniverse.herolib.schemas.openrpc
 import os
+import freeflowuniverse.herolib.hero.heromodels.rpc.rpc_planning
+import freeflowuniverse.herolib.hero.heromodels.rpc.rpc_registration_desk
 
 const openrpc_path = os.join_path(os.dir(@FILE), 'openrpc.json')
 
@@ -59,6 +61,18 @@ pub fn start(args ServerArgs) ! {
 	openrpc_handler.register_procedure_handle('user_set', user_set)
 	openrpc_handler.register_procedure_handle('user_delete', user_delete)
 	openrpc_handler.register_procedure_handle('user_list', user_list)
+
+	openrpc_handler.register_procedure_handle('planning_get', rpc_planning.planning_get)
+	openrpc_handler.register_procedure_handle('planning_set', rpc_planning.planning_set)
+	openrpc_handler.register_procedure_handle('planning_delete', rpc_planning.planning_delete)
+	openrpc_handler.register_procedure_handle('planning_exist', rpc_planning.planning_exist)
+	openrpc_handler.register_procedure_handle('planning_list', rpc_planning.planning_list)
+
+	openrpc_handler.register_procedure_handle('registration_desk_get', rpc_registration_desk.registration_desk_get)
+	openrpc_handler.register_procedure_handle('registration_desk_set', rpc_registration_desk.registration_desk_set)
+	openrpc_handler.register_procedure_handle('registration_desk_delete', rpc_registration_desk.registration_desk_delete)
+	openrpc_handler.register_procedure_handle('registration_desk_exist', rpc_registration_desk.registration_desk_exist)
+	openrpc_handler.register_procedure_handle('registration_desk_list', rpc_registration_desk.registration_desk_list)
 
 	if args.http_port != 0 {
 		openrpc.start_http_server(openrpc_handler, port: args.http_port)!
