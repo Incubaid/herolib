@@ -512,12 +512,12 @@ fn test_calendar_event_example() ! {
 
 	// Test example method for each methodname
 	set_call, set_result := calendar_event.example('set')
-	assert set_call == '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}}'
+	assert set_call == '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}}'
 	assert set_result == '1'
 
 	get_call, get_result := calendar_event.example('get')
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}'
+	assert get_result == '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}'
 
 	delete_call, delete_result := calendar_event.example('delete')
 	assert delete_call == '{"id": 1}'
@@ -529,7 +529,7 @@ fn test_calendar_event_example() ! {
 
 	list_call, list_result := calendar_event.example('list')
 	assert list_call == '{}'
-	assert list_result == '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}]'
+	assert list_result == '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}]'
 
 	unknown_call, unknown_result := calendar_event.example('unknown')
 	assert unknown_call == '{}'
