@@ -148,17 +148,34 @@ pub fn (self CalendarEvent) example(methodname string) (string, string) {
 	}
 }
 
-fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
+pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_i64(self.start_time)
 	e.add_i64(self.end_time)
 	e.add_string(self.location)
-	e.add_list_u32(self.attendees)
+	
+	// Encode attendees array
+	e.add_u16(u16(self.attendees.len))
+	for attendee in self.attendees {
+		e.add_u32(attendee.user_id)
+		e.add_u8(u8(attendee.status_latest))
+		e.add_bool(attendee.attendance_required)
+		e.add_bool(attendee.admin)
+		e.add_bool(attendee.organizer)
+		
+		// Encode AttendeeLog
+		e.add_u64(attendee.log.timestamp)
+		e.add_u8(u8(attendee.log.status))
+		e.add_string(attendee.log.remark)
+	}
+	
 	e.add_list_u32(self.fs_items)
 	e.add_u32(self.calendar_id)
 	e.add_u8(u8(self.status))
 	e.add_bool(self.is_all_day)
 	e.add_bool(self.is_recurring)
+	e.add_bool(self.public) // Added missing public field
+	e.add_u8(u8(self.priority)) // Added missing priority field
 
 	// Encode recurrence array
 	e.add_u16(u16(self.recurrence.len))
@@ -176,17 +193,49 @@ fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.timezone)
 }
 
-fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) ! {
+pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) ! {
 	o.title = e.get_string()!
 	o.start_time = e.get_i64()!
 	o.end_time = e.get_i64()!
 	o.location = e.get_string()!
-	// o.attendees = e.get_list_u32()!  // This line is incorrect, attendees is []Attendee not []u32
+	
+	// Decode attendees array
+	attendees_len := e.get_u16()!
+	mut attendees := []Attendee{}
+	for _ in 0 .. attendees_len {
+		user_id := e.get_u32()!
+		status_latest := unsafe { AttendanceStatus(e.get_u8()!) }
+		attendance_required := e.get_bool()!
+		admin := e.get_bool()!
+		organizer := e.get_bool()!
+		
+		// Decode AttendeeLog
+		timestamp := e.get_u64()!
+		status := unsafe { AttendanceStatus(e.get_u8()!) }
+		remark := e.get_string()!
+		
+		attendees << Attendee{
+			user_id:             user_id
+			status_latest:       status_latest
+			attendance_required: attendance_required
+			admin:               admin
+			organizer:           organizer
+			log:                 AttendeeLog{
+				timestamp: timestamp
+				status:    status
+				remark:    remark
+			}
+		}
+	}
+	o.attendees = attendees
+	
 	o.fs_items = e.get_list_u32()!
 	o.calendar_id = e.get_u32()!
 	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
 	o.is_all_day = e.get_bool()!
 	o.is_recurring = e.get_bool()!
+	o.public = e.get_bool()! // Added missing public field
+	o.priority = unsafe { EventPriority(e.get_u8()!) } // Added missing priority field
 
 	// Decode recurrence array
 	recurrence_len := e.get_u16()!
@@ -325,7 +374,7 @@ pub fn (mut self DBCalendarEvent) list(args CalendarEventListArg) ![]CalendarEve
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}

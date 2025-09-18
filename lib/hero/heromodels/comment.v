@@ -82,13 +82,13 @@ pub fn (self Comment) example(methodname string) (string, string) {
 	}
 }
 
-fn (self Comment) dump(mut e encoder.Encoder) ! {
+pub fn (self Comment) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.comment)
 	e.add_u32(self.parent)
 	e.add_u32(self.author)
 }
 
-fn (mut self DBComments) load(mut o Comment, mut e encoder.Decoder) ! {
+pub fn (mut self DBComments) load(mut o Comment, mut e encoder.Decoder) ! {
 	o.comment = e.get_string()!
 	o.parent = e.get_u32()!
 	o.author = e.get_u32()!
@@ -159,7 +159,7 @@ pub fn (mut self DBComments) list(args CommentListArg) ![]Comment {
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}

@@ -86,13 +86,13 @@ pub fn (self ChatGroup) example(methodname string) (string, string) {
 	}
 }
 
-fn (self ChatGroup) dump(mut e encoder.Encoder) ! {
+pub fn (self ChatGroup) dump(mut e encoder.Encoder) ! {
 	e.add_u8(u8(self.chat_type))
 	e.add_i64(self.last_activity)
 	e.add_bool(self.is_archived)
 }
 
-fn (mut self DBChatGroup) load(mut o ChatGroup, mut e encoder.Decoder) ! {
+pub fn (mut self DBChatGroup) load(mut o ChatGroup, mut e encoder.Decoder) ! {
 	o.chat_type = unsafe { ChatType(e.get_u8()!) }
 	o.last_activity = e.get_i64()!
 	o.is_archived = e.get_bool()!
@@ -176,7 +176,7 @@ pub fn (mut self DBChatGroup) list(args ChatGroupListArg) ![]ChatGroup {
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}

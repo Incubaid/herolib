@@ -107,7 +107,7 @@ pub fn (self Project) example(methodname string) (string, string) {
 	}
 }
 
-fn (self Project) dump(mut e encoder.Encoder) ! {
+pub fn (self Project) dump(mut e encoder.Encoder) ! {
 	e.add_u16(u16(self.swimlanes.len))
 	for swimlane in self.swimlanes {
 		e.add_string(swimlane.name)
@@ -132,7 +132,7 @@ fn (self Project) dump(mut e encoder.Encoder) ! {
 	e.add_i64(self.end_date)
 }
 
-fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
+pub fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
 	swimlanes_len := e.get_u16()!
 	mut swimlanes := []Swimlane{}
 	for _ in 0 .. swimlanes_len {
@@ -261,7 +261,7 @@ pub fn (mut self DBProject) list(args ProjectListArg) ![]Project {
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}

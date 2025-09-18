@@ -124,7 +124,7 @@ pub fn (self ChatMessage) example(methodname string) (string, string) {
 	}
 }
 
-fn (self ChatMessage) dump(mut e encoder.Encoder) ! {
+pub fn (self ChatMessage) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.content)
 	e.add_u32(self.chat_group_id)
 	e.add_u32(self.sender_id)
@@ -151,7 +151,7 @@ fn (self ChatMessage) dump(mut e encoder.Encoder) ! {
 	e.add_list_u32(self.mentions)
 }
 
-fn (mut self DBChatMessage) load(mut o ChatMessage, mut e encoder.Decoder) ! {
+pub fn (mut self DBChatMessage) load(mut o ChatMessage, mut e encoder.Decoder) ! {
 	o.content = e.get_string()!
 	o.chat_group_id = e.get_u32()!
 	o.sender_id = e.get_u32()!
@@ -286,7 +286,7 @@ pub fn (mut self DBChatMessage) list(args ChatMessageListArg) ![]ChatMessage {
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}

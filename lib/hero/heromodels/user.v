@@ -194,7 +194,7 @@ pub fn (mut self DBUser) list(args UserListArg) ![]User {
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}

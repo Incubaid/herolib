@@ -81,7 +81,7 @@ pub fn (self Group) example(methodname string) (string, string) {
 	}
 }
 
-fn (self Group) dump(mut e encoder.Encoder) ! {
+pub fn (self Group) dump(mut e encoder.Encoder) ! {
 	e.add_u16(u16(self.members.len))
 	for member in self.members {
 		e.add_u32(member.user_id)
@@ -93,7 +93,7 @@ fn (self Group) dump(mut e encoder.Encoder) ! {
 	e.add_bool(self.is_public)
 }
 
-fn (mut o Group) load(mut e encoder.Decoder) ! {
+pub fn (mut o Group) load(mut e encoder.Decoder) ! {
 	members_len := e.get_u16()!
 	mut members := []GroupMember{}
 	for _ in 0 .. members_len {

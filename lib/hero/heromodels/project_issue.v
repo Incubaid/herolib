@@ -121,7 +121,7 @@ pub fn (self ProjectIssue) example(methodname string) (string, string) {
 	}
 }
 
-fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
+pub fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_u32(self.project_id)
 	e.add_u8(u8(self.issue_type))
@@ -138,7 +138,7 @@ fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
 	e.add_list_u32(self.children)
 }
 
-fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder) ! {
+pub fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder) ! {
 	o.title = e.get_string()!
 	o.project_id = e.get_u32()!
 	o.issue_type = unsafe { IssueType(e.get_u8()!) }
@@ -268,7 +268,8 @@ pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
 
 pub fn (mut self DBProjectIssue) list(args ProjectIssueListArg) ![]ProjectIssue {
 	// Require at least one parameter to be provided
-	if args.project_id == 0 && args.issue_type == .task && args.status == .open && args.swimlane == '' && args.milestone == '' {
+	if args.project_id == 0 && args.issue_type == .task && args.status == .open
+		&& args.swimlane == '' && args.milestone == '' {
 		return error('At least one filter parameter must be provided')
 	}
 
@@ -307,7 +308,7 @@ pub fn (mut self DBProjectIssue) list(args ProjectIssueListArg) ![]ProjectIssue 
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}

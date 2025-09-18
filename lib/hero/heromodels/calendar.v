@@ -78,7 +78,7 @@ pub fn (self Calendar) example(methodname string) (string, string) {
 	}
 }
 
-fn (self Calendar) dump(mut e encoder.Encoder) ! {
+pub fn (self Calendar) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.color)
 	e.add_string(self.timezone)
 	e.add_bool(self.is_public)
@@ -158,7 +158,7 @@ pub fn (mut self DBCalendar) list(args CalendarListArg) ![]Calendar {
 	}
 
 	// Limit results to 100 or the specified limit
-	limit := args.limit
+	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}
