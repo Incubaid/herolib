@@ -3,6 +3,7 @@ module heroserver
 import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
 import time
+import veb
 
 // Main server configuration
 @[params]
@@ -11,19 +12,25 @@ pub mut:
 	port         int    = 9977
 	host         string = 'localhost'
 	auth_enabled bool   = true // Whether to enable authentication
+	// CORS configuration
+	cors_enabled    bool     = true  // Whether to enable CORS
+	allowed_origins []string = ['*'] // Allowed origins for CORS, default allows all
 	// Optional crypto client, will create default if not provided
 	crypto_client ?&herocrypt.HeroCrypt
 }
 
 // Main server struct
 pub struct HeroServer {
+	veb.Middleware[Context]
 mut:
-	port          int
-	host          string
-	crypto_client &herocrypt.HeroCrypt
-	sessions      map[string]Session          // sessionkey -> Session
-	handlers      map[string]&openrpc.Handler // handlertype -> handler
-	challenges    map[string]AuthChallenge
+	port            int
+	host            string
+	crypto_client   &herocrypt.HeroCrypt
+	sessions        map[string]Session          // sessionkey -> Session
+	handlers        map[string]&openrpc.Handler // handlertype -> handler
+	challenges      map[string]AuthChallenge
+	cors_enabled    bool
+	allowed_origins []string
 pub mut:
 	auth_enabled bool = true // Whether authentication is required
 }
@@ -156,4 +163,9 @@ pub:
 	headers     map[string]string
 	body        string
 	description string
+}
+
+// Context struct for VEB
+pub struct Context {
+	veb.Context
 }

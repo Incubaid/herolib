@@ -71,14 +71,22 @@ pub fn new_heromodels_handler() !&openrpc.Handler {
 @[params]
 pub struct ServerArgs {
 pub mut:
-	port         int    = 8080
-	host         string = 'localhost'
-	auth_enabled bool   = true
+	port            int      = 8080
+	host            string   = 'localhost'
+	auth_enabled    bool     = true
+	cors_enabled    bool     = true
+	allowed_origins []string = ['*'] // Default allows all origins
 }
 
 pub fn start(args ServerArgs) ! {
 	// Create a new heroserver instance
-	mut server := heroserver.new(port: args.port, host: args.host, auth_enabled: args.auth_enabled)!
+	mut server := heroserver.new(
+		port:            args.port
+		host:            args.host
+		auth_enabled:    args.auth_enabled
+		cors_enabled:    args.cors_enabled
+		allowed_origins: args.allowed_origins
+	)!
 
 	// Create and register the heromodels handler
 	handler := new_heromodels_handler()!

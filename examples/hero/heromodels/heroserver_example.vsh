@@ -7,9 +7,14 @@ import time
 fn main() {
 	// Start the server in a background thread with authentication disabled for testing
 	spawn fn () {
-		rpc.start(port: 8080, auth_enabled: false) or {
-			panic('Failed to start HeroModels server: ${err}')
-		}
+		rpc.start(
+			port:            8080
+			auth_enabled:    false // Disable auth for testing
+			cors_enabled:    true
+			allowed_origins: [
+				'http://localhost:5173',
+			]
+		) or { panic('Failed to start HeroModels server: ${err}') }
 	}()
 
 	// Keep the main thread alive
