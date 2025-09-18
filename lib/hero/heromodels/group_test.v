@@ -259,7 +259,7 @@ fn test_group_list_operations() ! {
 	public_groups := db_group.list(public_list_args)!
 	assert public_groups.len >= 1
 	
-	found_public := false
+	mut found_public := false
 	for group in public_groups {
 		if group.id == public_group.id {
 			found_public = true

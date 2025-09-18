@@ -9,30 +9,32 @@ import freeflowuniverse.herolib.hero.db
 pub struct CalendarEvent {
 	db.Base
 pub mut:
-	title         string
-	start_time    i64 // Unix timestamp
-	end_time      i64 // Unix timestamp
-	location      string
-	attendees     []Attendee
-	fs_items      []u32 // IDs of linked files or dirs
-	calendar_id   u32   // Associated calendar
-	status        EventStatus
-	is_all_day    bool
-	is_recurring  bool
-	recurrence    []RecurrenceRule // normally empty
-	reminder_mins []int            // Minutes before event for reminders
-	color         string           // Hex color code
-	timezone      string
-	priority      EventPriority
-	public        bool
+	title              string
+	start_time         i64 // Unix timestamp
+	end_time           i64 // Unix timestamp
+	location           string
+	registration_desks []u32 //link to object for registration, is where we track invitees, are not attendee unless accepted
+	attendees          []Attendee
+	fs_items           []FileAttachment // link to docs
+	calendar_id        u32              // Associated calendar
+	status             EventStatus
+	is_all_day         bool
+	is_recurring       bool
+	recurrence         []RecurrenceRule // normally empty
+	reminder_mins      []int            // Minutes before event for reminders
+	color              string           // Hex color code
+	timezone           string
+	priority           EventPriority
+	public             bool
 }
+
 
 pub struct Attendee {
 pub mut:
 	user_id             u32
 	status_latest       AttendanceStatus
 	attendance_required bool
-	admin               bool // if set can manage the main elements of the event = description, ...
+	admin               bool // if set can manage the main elements of the event = description, can accept invitee...
 	organizer           bool // if set means others can ask for support, doesn't mean is admin
 	log                 []AttendeeLog
 }
@@ -80,6 +82,13 @@ pub enum RecurrenceFreq {
 	weekly
 	monthly
 	yearly
+}
+
+pub struct FileAttachment {
+pub mut:
+	fs_item u32
+	cat     string // can be freely chosen, will always be made lowercase e.g. agenda
+	public  bool   // everyone can see the file, otherwise only the organizers, attendees
 }
 
 @[params]
@@ -154,6 +163,9 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_i64(self.end_time)
 	e.add_string(self.location)
 
+	// Encode registration_desks array
+	e.add_list_u32(self.registration_desks)
+
 	// Encode attendees array
 	e.add_u16(u16(self.attendees.len))
 	for attendee in self.attendees {
@@ -172,7 +184,14 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 		}
 	}
 
-	e.add_list_u32(self.fs_items)
+	// Encode fs_items array
+	e.add_u16(u16(self.fs_items.len))
+	for fs_item in self.fs_items {
+		e.add_u32(fs_item.fs_item)
+		e.add_string(fs_item.cat)
+		e.add_bool(fs_item.public)
+	}
+
 	e.add_u32(self.calendar_id)
 	e.add_u8(u8(self.status))
 	e.add_bool(self.is_all_day)
@@ -201,6 +220,9 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 	o.start_time = e.get_i64()!
 	o.end_time = e.get_i64()!
 	o.location = e.get_string()!
+
+	// Decode registration_desks array
+	o.registration_desks = e.get_list_u32()!
 
 	// Decode attendees array
 	attendees_len := e.get_u16()!
@@ -238,7 +260,22 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 	}
 	o.attendees = attendees
 
-	o.fs_items = e.get_list_u32()!
+	// Decode fs_items array
+	fs_items_len := e.get_u16()!
+	mut fs_items := []FileAttachment{}
+	for _ in 0 .. fs_items_len {
+		fs_item := e.get_u32()!
+		cat := e.get_string()!
+		public := e.get_bool()!
+
+		fs_items << FileAttachment{
+			fs_item: fs_item
+			cat:     cat
+			public:  public
+		}
+	}
+	o.fs_items = fs_items
+
 	o.calendar_id = e.get_u32()!
 	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
 	o.is_all_day = e.get_bool()!
@@ -300,11 +337,21 @@ pub mut:
 
 // get new calendar event, not from the DB
 pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
+	// Convert fs_items from []u32 to []FileAttachment
+	mut fs_attachments := []FileAttachment{}
+	for fs_item_id in args.fs_items {
+		fs_attachments << FileAttachment{
+			fs_item: fs_item_id
+			cat:     ''
+			public:  false
+		}
+	}
+
 	mut o := CalendarEvent{
 		title:         args.title
 		location:      args.location
 		attendees:     []Attendee{}
-		fs_items:      args.fs_items
+		fs_items:      fs_attachments
 		calendar_id:   args.calendar_id
 		status:        args.status
 		is_all_day:    args.is_all_day
@@ -314,6 +361,7 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 		color:         args.color
 		timezone:      args.timezone
 		priority:      args.priority // Added missing priority field
+		public:        false
 	}
 
 	// Set base fields

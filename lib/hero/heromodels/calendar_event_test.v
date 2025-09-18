@@ -41,6 +41,7 @@ fn test_calendar_event_new() ! {
 	assert calendar_event.title == 'Team Meeting'
 	assert calendar_event.location == 'Office'
 	assert calendar_event.fs_items.len == 0
+	assert calendar_event.registration_desks.len == 0
 	assert calendar_event.calendar_id == 1
 	assert calendar_event.status == .published
 	assert calendar_event.is_all_day == false
@@ -89,6 +90,16 @@ fn test_calendar_event_crud_operations() ! {
 
 	mut calendar_event := db_calendar_event.new(args)!
 
+	// Add some data for registration_desks and fs_items
+	calendar_event.registration_desks = [u32(1001), u32(1002)]
+	
+	mut fs_item := FileAttachment{
+		fs_item: 2001
+		cat:     'agenda'
+		public:  true
+	}
+	calendar_event.fs_items = [fs_item]
+
 	// Test set operation
 	calendar_event = db_calendar_event.set(calendar_event)!
 	original_id := calendar_event.id
@@ -107,6 +118,13 @@ fn test_calendar_event_crud_operations() ! {
 	assert retrieved_event.color == '#0000FF'
 	assert retrieved_event.timezone == 'UTC'
 	assert retrieved_event.id == original_id
+	assert retrieved_event.registration_desks.len == 2
+	assert retrieved_event.registration_desks[0] == 1001
+	assert retrieved_event.registration_desks[1] == 1002
+	assert retrieved_event.fs_items.len == 1
+	assert retrieved_event.fs_items[0].fs_item == 2001
+	assert retrieved_event.fs_items[0].cat == 'agenda'
+	assert retrieved_event.fs_items[0].public == true
 
 	// Test exist operation
 	exists := db_calendar_event.exist(original_id)!
@@ -137,6 +155,17 @@ fn test_calendar_event_crud_operations() ! {
 
 	mut updated_event := db_calendar_event.new(updated_args)!
 	updated_event.id = original_id
+	
+	// Update registration_desks and fs_items
+	updated_event.registration_desks = [u32(1003)]
+	
+	mut updated_fs_item := FileAttachment{
+		fs_item: 2002
+		cat:     'minutes'
+		public:  false
+	}
+	updated_event.fs_items = [updated_fs_item]
+
 	updated_event = db_calendar_event.set(updated_event)!
 
 	// Verify update
@@ -152,6 +181,12 @@ fn test_calendar_event_crud_operations() ! {
 	assert final_event.reminder_mins == [30]
 	assert final_event.color == '#FF0000'
 	assert final_event.timezone == 'EST'
+	assert final_event.registration_desks.len == 1
+	assert final_event.registration_desks[0] == 1003
+	assert final_event.fs_items.len == 1
+	assert final_event.fs_items[0].fs_item == 2002
+	assert final_event.fs_items[0].cat == 'minutes'
+	assert final_event.fs_items[0].public == false
 
 	// Test delete operation
 	db_calendar_event.delete(original_id)!
@@ -341,6 +376,127 @@ fn test_calendar_event_recurrence_encoding_decoding() ! {
 	assert retrieved_event.recurrence[1].by_monthday == [1, 15]
 
 	println('✓ CalendarEvent recurrence encoding/decoding test passed!')
+}
+
+fn test_calendar_event_registration_desks_encoding_decoding() ! {
+	// Initialize DBCalendarEvent for testing
+	mut mydb := db.new_test()!
+	mut db_calendar_event := DBCalendarEvent{
+		db: &mydb
+	}
+
+	// Create a new calendar event with registration desks
+	mut args := CalendarEventArg{
+		name:           'registration_desks_test_event'
+		description:    'Test calendar event for registration desks encoding/decoding'
+		title:          'Team Meeting'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
+		location:       'Office'
+		attendees:      []u32{}
+		fs_items:       []u32{}
+		calendar_id:    1
+		status:         .published
+		is_all_day:     false
+		is_recurring:   false
+		recurrence:     []RecurrenceRule{}
+		reminder_mins:  [15]
+		color:          '#0000FF'
+		timezone:       'UTC'
+		priority:       .normal
+		securitypolicy: 0
+		tags:           []string{}
+		comments:       []db.CommentArg{}
+	}
+
+	mut calendar_event := db_calendar_event.new(args)!
+
+	// Add registration desks manually
+	calendar_event.registration_desks = [u32(1001), u32(1002), u32(1003)]
+
+	// Save the calendar event
+	calendar_event = db_calendar_event.set(calendar_event)!
+	calendar_event_id := calendar_event.id
+
+	// Retrieve and verify all fields were properly encoded/decoded
+	retrieved_event := db_calendar_event.get(calendar_event_id)!
+
+	assert retrieved_event.registration_desks.len == 3
+	assert retrieved_event.registration_desks[0] == 1001
+	assert retrieved_event.registration_desks[1] == 1002
+	assert retrieved_event.registration_desks[2] == 1003
+
+	println('✓ CalendarEvent registration_desks encoding/decoding test passed!')
+}
+
+fn test_calendar_event_fs_items_encoding_decoding() ! {
+	// Initialize DBCalendarEvent for testing
+	mut mydb := db.new_test()!
+	mut db_calendar_event := DBCalendarEvent{
+		db: &mydb
+	}
+
+	// Create a new calendar event with file attachments
+	mut args := CalendarEventArg{
+		name:           'fs_items_test_event'
+		description:    'Test calendar event for fs_items encoding/decoding'
+		title:          'Team Meeting'
+		start_time:     '2025-01-01 10:00:00'
+		end_time:       '2025-01-01 11:00:00'
+		location:       'Office'
+		attendees:      []u32{}
+		fs_items:       []u32{}
+		calendar_id:    1
+		status:         .published
+		is_all_day:     false
+		is_recurring:   false
+		recurrence:     []RecurrenceRule{}
+		reminder_mins:  [15]
+		color:          '#0000FF'
+		timezone:       'UTC'
+		priority:       .normal
+		securitypolicy: 0
+		tags:           []string{}
+		comments:       []db.CommentArg{}
+	}
+
+	mut calendar_event := db_calendar_event.new(args)!
+
+	// Add file attachments manually
+	mut fs_item1 := FileAttachment{
+		fs_item: 2001
+		cat:     'agenda'
+		public:  true
+	}
+
+	mut fs_item2 := FileAttachment{
+		fs_item: 2002
+		cat:     'minutes'
+		public:  false
+	}
+
+	calendar_event.fs_items = [fs_item1, fs_item2]
+
+	// Save the calendar event
+	calendar_event = db_calendar_event.set(calendar_event)!
+	calendar_event_id := calendar_event.id
+
+	// Retrieve and verify all fields were properly encoded/decoded
+	retrieved_event := db_calendar_event.get(calendar_event_id)!
+
+	assert retrieved_event.fs_items.len == 2
+
+	// Verify first file attachment details
+	assert retrieved_event.fs_items[0].fs_item == 2001
+	assert retrieved_event.fs_items[0].cat == 'agenda'
+	assert retrieved_event.fs_items[0].public == true
+
+	// Verify second file attachment details
+	assert retrieved_event.fs_items[1].fs_item == 2002
+	assert retrieved_event.fs_items[1].cat == 'minutes'
+	assert retrieved_event.fs_items[1].public == false
+
+	println('✓ CalendarEvent fs_items encoding/decoding test passed!')
 }
 
 fn test_calendar_event_type_name() ! {
