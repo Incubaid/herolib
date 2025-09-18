@@ -12,12 +12,20 @@ fn test_planning_new() ! {
 
 	// Test creating a new planning
 	mut args := PlanningArg{
-		name:        'test_planning'
-		description: 'Test planning for unit testing'
-		color:       '#FF0000'
-		timezone:    'UTC'
-		is_public:   true
-		events:      []u32{}
+		name:                 'test_planning'
+		description:          'Test planning for unit testing'
+		color:                '#FF0000'
+		timezone:             'UTC'
+		is_public:            true
+		calendar_template_id: 0
+		registration_desk_id: 0
+		autoschedule_rules:   []RecurrenceRule{}
+		invite_rules:         []RecurrenceRule{}
+		attendees_required:   []u32{}
+		attendees_optional:   []u32{}
+		securitypolicy:       0
+		tags:                 []string{}
+		comments:             []db.CommentArg{}
 	}
 
 	planning := db_planning.new(args)!
@@ -27,9 +35,12 @@ fn test_planning_new() ! {
 	assert planning.color == '#FF0000'
 	assert planning.timezone == 'UTC'
 	assert planning.is_public == true
-	assert planning.calendar_id == 0
+	assert planning.calendar_template_id == 0
+	assert planning.registration_desk_id == 0
 	assert planning.autoschedule_rules.len == 0
 	assert planning.invite_rules.len == 0
+	assert planning.attendees_required.len == 0
+	assert planning.attendees_optional.len == 0
 	assert planning.updated_at > 0
 
 	println('✓ Planning new test passed!')
@@ -44,18 +55,23 @@ fn test_planning_crud_operations() ! {
 
 	// Create a new planning
 	mut args := PlanningArg{
-		name:        'crud_test_planning'
-		description: 'Test planning for CRUD operations'
-		color:       '#00FF00'
-		timezone:    'EST'
-		is_public:   false
-		events:      []u32{}
+		name:                 'crud_test_planning'
+		description:          'Test planning for CRUD operations'
+		color:                '#00FF00'
+		timezone:             'EST'
+		is_public:            false
+		calendar_template_id: 1
+		registration_desk_id: 10
+		autoschedule_rules:   []RecurrenceRule{}
+		invite_rules:         []RecurrenceRule{}
+		attendees_required:   [100, 101]
+		attendees_optional:   [200]
+		securitypolicy:       0
+		tags:                 []string{}
+		comments:             []db.CommentArg{}
 	}
 
 	mut planning := db_planning.new(args)!
-
-	// Add some data for calendar_id, autoschedule_rules, and invite_rules
-	planning.calendar_id = 1
 
 	// Create some recurrence rules
 	mut rule1 := RecurrenceRule{
@@ -92,7 +108,10 @@ fn test_planning_crud_operations() ! {
 	assert retrieved_planning.color == '#00FF00'
 	assert retrieved_planning.timezone == 'EST'
 	assert retrieved_planning.is_public == false
-	assert retrieved_planning.calendar_id == 1
+	assert retrieved_planning.calendar_template_id == 1
+	assert retrieved_planning.registration_desk_id == 10
+	assert retrieved_planning.attendees_required == [100, 101]
+	assert retrieved_planning.attendees_optional == [200]
 	assert retrieved_planning.id == original_id
 
 	// Verify autoschedule_rules
@@ -121,17 +140,24 @@ fn test_planning_crud_operations() ! {
 
 	// Test update
 	mut updated_args := PlanningArg{
-		name:        'updated_planning'
-		description: 'Updated test planning'
-		color:       '#0000FF'
-		timezone:    'PST'
-		is_public:   true
-		events:      []u32{}
+		name:                 'updated_planning'
+		description:          'Updated test planning'
+		color:                '#0000FF'
+		timezone:             'PST'
+		is_public:            true
+		calendar_template_id: 2
+		registration_desk_id: 20
+		autoschedule_rules:   []RecurrenceRule{}
+		invite_rules:         []RecurrenceRule{}
+		attendees_required:   [102]
+		attendees_optional:   []u32{}
+		securitypolicy:       0
+		tags:                 []string{}
+		comments:             []db.CommentArg{}
 	}
 
 	mut updated_planning := db_planning.new(updated_args)!
 	updated_planning.id = original_id
-	updated_planning.calendar_id = 2
 
 	// Update rules
 	mut updated_rule1 := RecurrenceRule{
@@ -166,7 +192,10 @@ fn test_planning_crud_operations() ! {
 	assert final_planning.color == '#0000FF'
 	assert final_planning.timezone == 'PST'
 	assert final_planning.is_public == true
-	assert final_planning.calendar_id == 2
+	assert final_planning.calendar_template_id == 2
+	assert final_planning.registration_desk_id == 20
+	assert final_planning.attendees_required == [102]
+	assert final_planning.attendees_optional.len == 0
 
 	// Verify updated autoschedule_rules
 	assert final_planning.autoschedule_rules.len == 1
@@ -207,12 +236,20 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 
 	// Create a new planning with recurrence rules
 	mut args := PlanningArg{
-		name:        'recurrence_test_planning'
-		description: 'Test planning for recurrence rules encoding/decoding'
-		color:       '#FFFF00'
-		timezone:    'UTC'
-		is_public:   true
-		events:      []u32{}
+		name:                 'recurrence_test_planning'
+		description:          'Test planning for recurrence rules encoding/decoding'
+		color:                '#FFFF00'
+		timezone:             'UTC'
+		is_public:            true
+		calendar_template_id: 1
+		registration_desk_id: 0
+		autoschedule_rules:   []RecurrenceRule{}
+		invite_rules:         []RecurrenceRule{}
+		attendees_required:   []u32{}
+		attendees_optional:   []u32{}
+		securitypolicy:       0
+		tags:                 []string{}
+		comments:             []db.CommentArg{}
 	}
 
 	mut planning := db_planning.new(args)!
@@ -303,7 +340,7 @@ fn test_planning_type_name() ! {
 
 	// Test type_name method
 	type_name := planning.type_name()
-	assert type_name == 'calendar'
+	assert type_name == 'planning'
 
 	println('✓ Planning type_name test passed!')
 }
@@ -328,11 +365,11 @@ fn test_planning_description() ! {
 	planning := db_planning.new(args)!
 
 	// Test description method for each methodname
-	assert planning.description('set') == 'Create or update a calendar. Returns the ID of the calendar.'
-	assert planning.description('get') == 'Retrieve a calendar by ID. Returns the calendar object.'
-	assert planning.description('delete') == 'Delete a calendar by ID. Returns true if successful.'
-	assert planning.description('exist') == 'Check if a calendar exists by ID. Returns true or false.'
-	assert planning.description('list') == 'List all calendars. Returns an array of calendar objects.'
+	assert planning.description('set') == 'Create or update a planning. Returns the ID of the planning.'
+	assert planning.description('get') == 'Retrieve a planning by ID. Returns the planning object.'
+	assert planning.description('delete') == 'Delete a planning by ID. Returns true if successful.'
+	assert planning.description('exist') == 'Check if a planning exists by ID. Returns true or false.'
+	assert planning.description('list') == 'List all plannings. Returns an array of planning objects.'
 	assert planning.description('unknown') == 'This is generic method for the root object, TODO fill in, ...'
 
 	println('✓ Planning description test passed!')
@@ -359,12 +396,12 @@ fn test_planning_example() ! {
 
 	// Test example method for each methodname
 	set_call, set_result := planning.example('set')
-	assert set_call == '{"calendar": {"name": "My Planning", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}}'
+	assert set_call == '{"planning": {"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}}'
 	assert set_result == '1'
 
 	get_call, get_result := planning.example('get')
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"name": "My Planning", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}'
+	assert get_result == '{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}'
 
 	delete_call, delete_result := planning.example('delete')
 	assert delete_call == '{"id": 1}'
@@ -376,7 +413,7 @@ fn test_planning_example() ! {
 
 	list_call, list_result := planning.example('list')
 	assert list_call == '{}'
-	assert list_result == '[{"name": "My Planning", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}]'
+	assert list_result == '[{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}]'
 
 	unknown_call, unknown_result := planning.example('unknown')
 	assert unknown_call == '{}'

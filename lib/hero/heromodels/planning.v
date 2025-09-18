@@ -63,31 +63,33 @@ pub mut:
 @[params]
 pub struct PlanningListArg {
 pub mut:
-	is_public bool
-	limit     int = 100 // Default limit is 100
+	is_public            bool
+	calendar_template_id u32
+	registration_desk_id u32
+	limit                int = 100 // Default limit is 100
 }
 
 pub fn (self Planning) type_name() string {
-	return 'calendar'
+	return 'planning'
 }
 
 // return example rpc call and result for each methodname
 pub fn (self Planning) description(methodname string) string {
 	match methodname {
 		'set' {
-			return 'Create or update a calendar. Returns the ID of the calendar.'
+			return 'Create or update a planning. Returns the ID of the planning.'
 		}
 		'get' {
-			return 'Retrieve a calendar by ID. Returns the calendar object.'
+			return 'Retrieve a planning by ID. Returns the planning object.'
 		}
 		'delete' {
-			return 'Delete a calendar by ID. Returns true if successful.'
+			return 'Delete a planning by ID. Returns true if successful.'
 		}
 		'exist' {
-			return 'Check if a calendar exists by ID. Returns true or false.'
+			return 'Check if a planning exists by ID. Returns true or false.'
 		}
 		'list' {
-			return 'List all calendars. Returns an array of calendar objects.'
+			return 'List all plannings. Returns an array of planning objects.'
 		}
 		else {
 			return 'This is generic method for the root object, TODO fill in, ...'
@@ -99,10 +101,10 @@ pub fn (self Planning) description(methodname string) string {
 pub fn (self Planning) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"calendar": {"name": "My Planning", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}}', '1'
+			return '{"planning": {"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"name": "My Planning", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}'
+			return '{"id": 1}', '{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -111,7 +113,7 @@ pub fn (self Planning) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"name": "My Planning", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}]'
+			return '{}', '[{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}]'
 		}
 		else {
 			return '{}', '{}'
@@ -123,7 +125,8 @@ pub fn (self Planning) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.color)
 	e.add_string(self.timezone)
 	e.add_bool(self.is_public)
-	e.add_u32(self.calendar_id)
+	e.add_u32(self.calendar_template_id)
+	e.add_u32(self.registration_desk_id)
 	
 	// Encode autoschedule_rules array
 	e.add_u16(u16(self.autoschedule_rules.len))
@@ -136,13 +139,20 @@ pub fn (self Planning) dump(mut e encoder.Encoder) ! {
 	for rule in self.invite_rules {
 		rule.dump(mut e)!
 	}
+
+	// Encode attendees_required array
+	e.add_list_u32(self.attendees_required)
+
+	// Encode attendees_optional array
+	e.add_list_u32(self.attendees_optional)
 }
 
 fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 	o.color = e.get_string()!
 	o.timezone = e.get_string()!
 	o.is_public = e.get_bool()!
-	o.calendar_id = e.get_u32()!
+	o.calendar_template_id = e.get_u32()!
+	o.registration_desk_id = e.get_u32()!
 	
 	// Decode autoschedule_rules array
 	autoschedule_rules_len := e.get_u16()!
@@ -163,30 +173,53 @@ fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 		invite_rules << rule
 	}
 	o.invite_rules = invite_rules
+
+	// Decode attendees_required array
+	o.attendees_required = e.get_list_u32()!
+
+	// Decode attendees_optional array
+	o.attendees_optional = e.get_list_u32()!
 }
 
 @[params]
 pub struct PlanningArg {
 pub mut:
-	name        string
-	description string
-	color       string
-	timezone    string
-	is_public   bool
-	events      []u32
+	name                 string
+	description          string
+	color                string
+	timezone             string
+	is_public            bool
+	calendar_template_id u32
+	registration_desk_id u32
+	autoschedule_rules   []RecurrenceRule
+	invite_rules         []RecurrenceRule
+	attendees_required   []u32
+	attendees_optional   []u32
+	securitypolicy       u32
+	tags                 []string
+	comments             []db.CommentArg
 }
 
 // get new calendar, not from the DB
 pub fn (mut self DBPlanning) new(args PlanningArg) !Planning {
 	mut o := Planning{
-		color:     args.color
-		timezone:  args.timezone
-		is_public: args.is_public
+		color:                args.color
+		timezone:             args.timezone
+		is_public:            args.is_public
+		calendar_template_id: args.calendar_template_id
+		registration_desk_id: args.registration_desk_id
+		autoschedule_rules:   args.autoschedule_rules
+		invite_rules:         args.invite_rules
+		attendees_required:   args.attendees_required
+		attendees_optional:   args.attendees_optional
 	}
 
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
@@ -214,22 +247,33 @@ pub fn (mut self DBPlanning) get(id u32) !Planning {
 
 pub fn (mut self DBPlanning) list(args PlanningListArg) ![]Planning {
 	// Require at least one parameter to be provided
-	if !args.is_public {
+	// Require at least one parameter to be provided
+	if !args.is_public && args.calendar_template_id == 0 && args.registration_desk_id == 0 {
 		return error('At least one filter parameter must be provided')
 	}
 
-	// Get all calendars from the database
-	all_calendars := self.db.list[Planning]()!.map(self.get(it)!)
+	// Get all plannings from the database
+	all_plannings := self.db.list[Planning]()!.map(self.get(it)!)
 
 	// Apply filters
-	mut filtered_calendars := []Planning{}
-	for calendar in all_calendars {
-		// Filter by is_public if provided (is_public is true)
-		if args.is_public && !calendar.is_public {
+	mut filtered_plannings := []Planning{}
+	for planning in all_plannings {
+		// Filter by is_public if provided
+		if args.is_public && !planning.is_public {
 			continue
 		}
 
-		filtered_calendars << calendar
+		// Filter by calendar_template_id if provided
+		if args.calendar_template_id != 0 && planning.calendar_template_id != args.calendar_template_id {
+			continue
+		}
+
+		// Filter by registration_desk_id if provided
+		if args.registration_desk_id != 0 && planning.registration_desk_id != args.registration_desk_id {
+			continue
+		}
+
+		filtered_plannings << planning
 	}
 
 	// Limit results to 100 or the specified limit
@@ -237,9 +281,9 @@ pub fn (mut self DBPlanning) list(args PlanningListArg) ![]Planning {
 	if limit > 100 {
 		limit = 100
 	}
-	if filtered_calendars.len > limit {
-		return filtered_calendars[..limit]
+	if filtered_plannings.len > limit {
+		return filtered_plannings[..limit]
 	}
 
-	return filtered_calendars
+	return filtered_plannings
 }

@@ -22,8 +22,6 @@ fn test_calendar_event_new() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
@@ -46,8 +44,6 @@ fn test_calendar_event_new() ! {
 	assert calendar_event.calendar_id == 1
 	assert calendar_event.status == .published
 	assert calendar_event.is_all_day == false
-	assert calendar_event.is_recurring == false
-	assert calendar_event.recurrence.len == 0
 	assert calendar_event.reminder_mins == [15]
 	assert calendar_event.color == '#0000FF'
 	assert calendar_event.timezone == 'UTC'
@@ -78,8 +74,6 @@ fn test_calendar_event_crud_operations() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
@@ -116,7 +110,6 @@ fn test_calendar_event_crud_operations() ! {
 	assert retrieved_event.calendar_id == 1
 	assert retrieved_event.status == .published
 	assert retrieved_event.is_all_day == false
-	assert retrieved_event.is_recurring == false
 	assert retrieved_event.reminder_mins == [15]
 	assert retrieved_event.color == '#0000FF'
 	assert retrieved_event.timezone == 'UTC'
@@ -145,8 +138,6 @@ fn test_calendar_event_crud_operations() ! {
 		calendar_id:    2
 		status:         .draft
 		is_all_day:     true
-		is_recurring:   true
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [30]
 		color:          '#FF0000'
 		timezone:       'EST'
@@ -180,7 +171,6 @@ fn test_calendar_event_crud_operations() ! {
 	assert final_event.calendar_id == 2
 	assert final_event.status == .draft
 	assert final_event.is_all_day == true
-	assert final_event.is_recurring == true
 	assert final_event.reminder_mins == [30]
 	assert final_event.color == '#FF0000'
 	assert final_event.timezone == 'EST'
@@ -220,12 +210,11 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
 		priority:       .normal // Added missing priority field
+		is_template:    false // Added missing is_template field
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
@@ -298,86 +287,6 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 	println('✓ CalendarEvent attendees encoding/decoding test passed!')
 }
 
-fn test_calendar_event_recurrence_encoding_decoding() ! {
-	// Initialize DBCalendarEvent for testing
-	mut mydb := db.new_test()!
-	mut db_calendar_event := DBCalendarEvent{
-		db: &mydb
-	}
-
-	// Create a new calendar event with recurrence rules
-	mut args := CalendarEventArg{
-		name:           'recurrence_test_event'
-		description:    'Test calendar event for recurrence encoding/decoding'
-		title:          'Weekly Team Meeting'
-		start_time:     '2025-01-01 10:00:00'
-		end_time:       '2025-01-01 11:00:00'
-		attendees:      []u32{}
-		docs:       []u32{}
-		calendar_id:    1
-		status:         .published
-		is_all_day:     false
-		is_recurring:   true
-		recurrence:     []RecurrenceRule{}
-		reminder_mins:  [15]
-		color:          '#0000FF'
-		timezone:       'UTC'
-		securitypolicy: 0
-		tags:           []string{}
-		comments:       []db.CommentArg{}
-	}
-
-	mut calendar_event := db_calendar_event.new(args)!
-
-	// Add recurrence rules manually
-	mut rule1 := RecurrenceRule{
-		frequency:   .weekly
-		interval:    1
-		until:       1893456000 // 2030-01-01
-		count:       0
-		by_weekday:  [1, 3, 5] // Monday, Wednesday, Friday
-		by_monthday: []int{}
-	}
-
-	mut rule2 := RecurrenceRule{
-		frequency:   .monthly
-		interval:    2
-		until:       0
-		count:       12
-		by_weekday:  []int{}
-		by_monthday: [1, 15] // 1st and 15th of each month
-	}
-
-	calendar_event.recurrence = [rule1, rule2]
-
-	// Save the calendar event
-	calendar_event = db_calendar_event.set(calendar_event)!
-	calendar_event_id := calendar_event.id
-
-	// Retrieve and verify all fields were properly encoded/decoded
-	retrieved_event := db_calendar_event.get(calendar_event_id)!
-
-	assert retrieved_event.recurrence.len == 2
-	assert retrieved_event.is_recurring == true
-
-	// Verify first recurrence rule details
-	assert retrieved_event.recurrence[0].frequency == .weekly
-	assert retrieved_event.recurrence[0].interval == 1
-	assert retrieved_event.recurrence[0].until == 1893456000
-	assert retrieved_event.recurrence[0].count == 0
-	assert retrieved_event.recurrence[0].by_weekday == [1, 3, 5]
-	assert retrieved_event.recurrence[0].by_monthday.len == 0
-
-	// Verify second recurrence rule details
-	assert retrieved_event.recurrence[1].frequency == .monthly
-	assert retrieved_event.recurrence[1].interval == 2
-	assert retrieved_event.recurrence[1].until == 0
-	assert retrieved_event.recurrence[1].count == 12
-	assert retrieved_event.recurrence[1].by_weekday.len == 0
-	assert retrieved_event.recurrence[1].by_monthday == [1, 15]
-
-	println('✓ CalendarEvent recurrence encoding/decoding test passed!')
-}
 
 fn test_calendar_event_registration_desks_encoding_decoding() ! {
 	// Initialize DBCalendarEvent for testing
@@ -398,12 +307,11 @@ fn test_calendar_event_registration_desks_encoding_decoding() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
 		priority:       .normal
+		is_template:    false
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
@@ -448,12 +356,11 @@ fn test_calendar_event_docs_encoding_decoding() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
 		priority:       .normal
+		is_template:    false
 		securitypolicy: 0
 		tags:           []string{}
 		comments:       []db.CommentArg{}
@@ -517,8 +424,6 @@ fn test_calendar_event_type_name() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
@@ -555,8 +460,6 @@ fn test_calendar_event_description() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
@@ -597,8 +500,6 @@ fn test_calendar_event_example() ! {
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
-		is_recurring:   false
-		recurrence:     []RecurrenceRule{}
 		reminder_mins:  [15]
 		color:          '#0000FF'
 		timezone:       'UTC'
