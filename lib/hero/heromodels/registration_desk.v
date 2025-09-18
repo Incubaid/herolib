@@ -11,7 +11,7 @@ pub struct RegistrationDesk {
 pub mut:
 	name                string
 	description         string //probably in markdown
-	fs_items            []u32 // link to docs
+	fs_items            []RegistrationFileAttachment // link to docs
 	white_list          []u32 // users who can enter, if 1 specified then people need to be in this list
 	white_list_accepted []u32 // if in this list automatically accepted
 	black_list          []u32 // users not allowed
@@ -24,10 +24,17 @@ pub mut:
 pub struct Registration {
 pub mut:
 	user_id               u32
-	accepted              bool // an administrator needs to accept this person, now becomes an attendee
+	accepted              bool // an administrator has accepted
 	accepted_by           u32  // the user who did the acceptance
 	timestamp             u64  // time when registration happened
 	timestamp_acceptation u64  // when acceptation was done
+}
+
+pub struct RegistrationFileAttachment {
+pub mut:
+	fs_item u32
+	cat     string // can be freely chosen, will always be made lowercase e.g. agenda
+	public  bool   // everyone can see the file, otherwise only the organizers, attendees
 }
 
 pub struct DBRegistrationDesk {
@@ -90,7 +97,15 @@ pub fn (self RegistrationDesk) example(methodname string) (string, string) {
 pub fn (self RegistrationDesk) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.name)
 	e.add_string(self.description)
-	e.add_list_u32(self.fs_items)
+	
+	// Encode fs_items array (RegistrationFileAttachment objects)
+	e.add_u16(u16(self.fs_items.len))
+	for fs_item in self.fs_items {
+		e.add_u32(fs_item.fs_item)
+		e.add_string(fs_item.cat)
+		e.add_bool(fs_item.public)
+	}
+	
 	e.add_list_u32(self.white_list)
 	e.add_list_u32(self.white_list_accepted)
 	e.add_list_u32(self.black_list)
@@ -112,7 +127,23 @@ pub fn (self RegistrationDesk) dump(mut e encoder.Encoder) ! {
 pub fn (mut self DBRegistrationDesk) load(mut o RegistrationDesk, mut e encoder.Decoder) ! {
 	o.name = e.get_string()!
 	o.description = e.get_string()!
-	o.fs_items = e.get_list_u32()!
+	
+	// Decode fs_items array (RegistrationFileAttachment objects)
+	fs_items_len := e.get_u16()!
+	mut fs_items := []RegistrationFileAttachment{}
+	for _ in 0 .. fs_items_len {
+		fs_item := e.get_u32()!
+		cat := e.get_string()!
+		public := e.get_bool()!
+
+		fs_items << RegistrationFileAttachment{
+			fs_item: fs_item
+			cat:     cat
+			public:  public
+		}
+	}
+	o.fs_items = fs_items
+	
 	o.white_list = e.get_list_u32()!
 	o.white_list_accepted = e.get_list_u32()!
 	o.black_list = e.get_list_u32()!
@@ -159,15 +190,25 @@ pub mut:
 }
 
 pub fn (mut self DBRegistrationDesk) new(args RegistrationDeskArg) !RegistrationDesk {
+	// Convert fs_items from []u32 to []RegistrationFileAttachment
+	mut fs_attachments := []RegistrationFileAttachment{}
+	for fs_item_id in args.fs_items {
+		fs_attachments << RegistrationFileAttachment{
+			fs_item: fs_item_id
+			cat:     ""
+			public:  false
+		}
+	}
+
 	mut o := RegistrationDesk{
-		name:               args.name
-		description:        args.description
-		fs_items:           args.fs_items
-		white_list:         args.white_list
+		name:                args.name
+		description:         args.description
+		fs_items:            fs_attachments
+		white_list:          args.white_list
 		white_list_accepted: args.white_list_accepted
-		black_list:         args.black_list
+		black_list:          args.black_list
 		acceptance_required: args.acceptance_required
-		registrations:      []Registration{}
+		registrations:       []Registration{}
 	}
 
 	// Set base fields

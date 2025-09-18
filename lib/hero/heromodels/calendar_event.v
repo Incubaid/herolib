@@ -15,7 +15,7 @@ pub mut:
 	location           string
 	registration_desks []u32 //link to object for registration, is where we track invitees, are not attendee unless accepted
 	attendees          []Attendee
-	fs_items           []FileAttachment // link to docs
+	docs           []EventDoc // link to docs
 	calendar_id        u32              // Associated calendar
 	status             EventStatus
 	is_all_day         bool
@@ -26,6 +26,7 @@ pub mut:
 	timezone           string
 	priority           EventPriority
 	public             bool
+	locations []EventLocation
 }
 
 
@@ -37,6 +38,7 @@ pub mut:
 	admin               bool // if set can manage the main elements of the event = description, can accept invitee...
 	organizer           bool // if set means others can ask for support, doesn't mean is admin
 	log                 []AttendeeLog
+	location string //optional if user wants to select a location
 }
 
 pub enum EventPriority {
@@ -84,7 +86,7 @@ pub enum RecurrenceFreq {
 	yearly
 }
 
-pub struct FileAttachment {
+pub struct EventDoc {
 pub mut:
 	fs_item u32
 	cat     string // can be freely chosen, will always be made lowercase e.g. agenda
@@ -99,6 +101,23 @@ pub mut:
 	public      bool
 	limit       int = 100 // Default limit is 100
 }
+
+
+pub struct EventLocation {
+pub mut:
+	name string
+	description string
+	cat       EventLocationCat
+	docs           []EventDoc 
+}
+
+pub enum EventLocationCat {
+	online
+	physical
+	hybrid
+}
+
+
 
 pub struct DBCalendarEvent {
 pub mut:
@@ -137,10 +156,10 @@ pub fn (self CalendarEvent) description(methodname string) string {
 pub fn (self CalendarEvent) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}', '1'
+			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
+			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -149,7 +168,7 @@ pub fn (self CalendarEvent) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
+			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
 		}
 		else {
 			return '{}', '{}'
@@ -184,9 +203,9 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 		}
 	}
 
-	// Encode fs_items array
-	e.add_u16(u16(self.fs_items.len))
-	for fs_item in self.fs_items {
+	// Encode docs array
+	e.add_u16(u16(self.docs.len))
+	for fs_item in self.docs {
 		e.add_u32(fs_item.fs_item)
 		e.add_string(fs_item.cat)
 		e.add_bool(fs_item.public)
@@ -260,21 +279,21 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 	}
 	o.attendees = attendees
 
-	// Decode fs_items array
-	fs_items_len := e.get_u16()!
-	mut fs_items := []FileAttachment{}
-	for _ in 0 .. fs_items_len {
+	// Decode docs array
+	docs_len := e.get_u16()!
+	mut docs := []EventDoc{}
+	for _ in 0 .. docs_len {
 		fs_item := e.get_u32()!
 		cat := e.get_string()!
 		public := e.get_bool()!
 
-		fs_items << FileAttachment{
+		docs << EventDoc{
 			fs_item: fs_item
 			cat:     cat
 			public:  public
 		}
 	}
-	o.fs_items = fs_items
+	o.docs = docs
 
 	o.calendar_id = e.get_u32()!
 	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
@@ -320,7 +339,7 @@ pub mut:
 	end_time       string // use ourtime module to go from string to epoch
 	location       string
 	attendees      []u32 // IDs of user groups
-	fs_items       []u32 // IDs of linked files or dirs
+	docs       []u32 // IDs of linked files or dirs
 	calendar_id    u32   // Associated calendar
 	status         EventStatus
 	is_all_day     bool
@@ -337,10 +356,10 @@ pub mut:
 
 // get new calendar event, not from the DB
 pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
-	// Convert fs_items from []u32 to []FileAttachment
-	mut fs_attachments := []FileAttachment{}
-	for fs_item_id in args.fs_items {
-		fs_attachments << FileAttachment{
+	// Convert docs from []u32 to []EventDoc
+	mut fs_attachments := []EventDoc{}
+	for fs_item_id in args.docs {
+		fs_attachments << EventDoc{
 			fs_item: fs_item_id
 			cat:     ''
 			public:  false
@@ -351,7 +370,7 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 		title:         args.title
 		location:      args.location
 		attendees:     []Attendee{}
-		fs_items:      fs_attachments
+		docs:      fs_attachments
 		calendar_id:   args.calendar_id
 		status:        args.status
 		is_all_day:    args.is_all_day

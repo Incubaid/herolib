@@ -30,7 +30,13 @@ fn test_registration_desk_new() ! {
 
 	assert registration_desk.name == "test_registration_desk"
 	assert registration_desk.description == "Test registration desk for unit testing"
-	assert registration_desk.fs_items == [u32(1001), u32(1002)]
+	assert registration_desk.fs_items.len == 2
+	assert registration_desk.fs_items[0].fs_item == 1001
+	assert registration_desk.fs_items[0].cat == ""
+	assert registration_desk.fs_items[0].public == false
+	assert registration_desk.fs_items[1].fs_item == 1002
+	assert registration_desk.fs_items[1].cat == ""
+	assert registration_desk.fs_items[1].public == false
 	assert registration_desk.white_list == [u32(2001), u32(2002), u32(2003)]
 	assert registration_desk.white_list_accepted == [u32(3001)]
 	assert registration_desk.black_list == [u32(4001), u32(4002)]
@@ -73,7 +79,13 @@ fn test_registration_desk_crud_operations() ! {
 	retrieved_desk := db_registration_desk.get(original_id)!
 	assert retrieved_desk.name == "crud_test_registration_desk"
 	assert retrieved_desk.description == "Test registration desk for CRUD operations"
-	assert retrieved_desk.fs_items == [u32(1001), u32(1002)]
+	assert retrieved_desk.fs_items.len == 2
+	assert retrieved_desk.fs_items[0].fs_item == 1001
+	assert retrieved_desk.fs_items[0].cat == ""
+	assert retrieved_desk.fs_items[0].public == false
+	assert retrieved_desk.fs_items[1].fs_item == 1002
+	assert retrieved_desk.fs_items[1].cat == ""
+	assert retrieved_desk.fs_items[1].public == false
 	assert retrieved_desk.white_list == [u32(2001), u32(2002)]
 	assert retrieved_desk.white_list_accepted == [u32(3001)]
 	assert retrieved_desk.black_list == [u32(4001)]
@@ -109,7 +121,10 @@ fn test_registration_desk_crud_operations() ! {
 	final_desk := db_registration_desk.get(original_id)!
 	assert final_desk.name == "updated_registration_desk"
 	assert final_desk.description == "Updated test registration desk"
-	assert final_desk.fs_items == [u32(1003)]
+	assert final_desk.fs_items.len == 1
+	assert final_desk.fs_items[0].fs_item == 1003
+	assert final_desk.fs_items[0].cat == ""
+	assert final_desk.fs_items[0].public == false
 	assert final_desk.white_list == [u32(2003), u32(2004)]
 	assert final_desk.white_list_accepted == [u32(3002)]
 	assert final_desk.black_list == [u32(4002), u32(4003)]
@@ -317,6 +332,10 @@ fn test_registration_desk_example() ! {
 }
 
 fn test_registration_desk_list() ! {
+	// Clear the test database first
+	mut mydb_clear := db.new_test()!
+	mydb_clear.redis.flushdb()!
+
 	// Initialize DBRegistrationDesk for testing
 	mut mydb := db.new_test()!
 	mut db_registration_desk := DBRegistrationDesk{
@@ -385,4 +404,66 @@ fn test_registration_desk_list() ! {
 	assert listed_desks.len == 1
 
 	println("✓ RegistrationDesk list test passed!")
+}
+
+fn test_registration_desk_fs_items_encoding_decoding() ! {
+	// Initialize DBRegistrationDesk for testing
+	mut mydb := db.new_test()!
+	mut db_registration_desk := DBRegistrationDesk{
+		db: &mydb
+	}
+
+	// Create a new registration desk
+	mut args := RegistrationDeskArg{
+		name:               "fs_items_test_desk"
+		description:        "Test registration desk for fs_items encoding/decoding"
+		fs_items:           [u32(1001), u32(1002)]
+		white_list:         []
+		white_list_accepted: []
+		black_list:         []
+		start_time:         "2025-01-01 10:00:00"
+		end_time:           "2025-01-01 11:00:00"
+		acceptance_required: false
+		securitypolicy:     0
+		tags:               []
+		comments:           []
+	}
+
+	mut registration_desk := db_registration_desk.new(args)!
+
+	// Add file attachments manually with custom values
+	mut fs_item1 := RegistrationFileAttachment{
+		fs_item: 1001
+		cat:     "agenda"
+		public:  true
+	}
+
+	mut fs_item2 := RegistrationFileAttachment{
+		fs_item: 2002
+		cat:     "minutes"
+		public:  false
+	}
+
+	registration_desk.fs_items = [fs_item1, fs_item2]
+
+	// Save the registration desk
+	registration_desk = db_registration_desk.set(registration_desk)!
+	registration_desk_id := registration_desk.id
+
+	// Retrieve and verify all fields were properly encoded/decoded
+	retrieved_desk := db_registration_desk.get(registration_desk_id)!
+
+	assert retrieved_desk.fs_items.len == 2
+
+	// Verify first file attachment details
+	assert retrieved_desk.fs_items[0].fs_item == 1001
+	assert retrieved_desk.fs_items[0].cat == "agenda"
+	assert retrieved_desk.fs_items[0].public == true
+
+	// Verify second file attachment details
+	assert retrieved_desk.fs_items[1].fs_item == 2002
+	assert retrieved_desk.fs_items[1].cat == "minutes"
+	assert retrieved_desk.fs_items[1].public == false
+
+	println("✓ RegistrationDesk fs_items encoding/decoding test passed!")
 }
