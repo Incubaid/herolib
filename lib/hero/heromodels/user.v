@@ -78,7 +78,7 @@ pub fn (self User) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self User) dump(mut e encoder.Encoder) ! {
+fn (self User) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.email)
 	e.add_string(self.public_key)
 	e.add_string(self.phone)
@@ -121,6 +121,13 @@ pub mut:
 pub struct DBUser {
 pub mut:
 	db &db.DB @[skip; str: skip]
+}
+
+@[params]
+pub struct UserListArg {
+pub mut:
+	status UserStatus
+	limit  int = 100 // Default limit is 100
 }
 
 // get new user, not from the DB
@@ -166,6 +173,34 @@ pub fn (mut self DBUser) get(id u32) !User {
 	return o
 }
 
-pub fn (mut self DBUser) list() ![]User {
-	return self.db.list[User]()!.map(self.get(it)!)
+pub fn (mut self DBUser) list(args UserListArg) ![]User {
+	// Require at least one parameter to be provided
+	if args.status == .active {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all users from the database
+	all_users := self.db.list[User]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_users := []User{}
+	for user in all_users {
+		// Filter by status if provided (status is not active)
+		if args.status != .active && user.status != args.status {
+			continue
+		}
+
+		filtered_users << user
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_users.len > limit {
+		return filtered_users[..limit]
+	}
+
+	return filtered_users
 }

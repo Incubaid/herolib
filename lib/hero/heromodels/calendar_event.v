@@ -13,7 +13,7 @@ pub mut:
 	start_time    i64 // Unix timestamp
 	end_time      i64 // Unix timestamp
 	location      string
-	attendees     []u32 // IDs of user groups
+	attendees     []Attendee
 	fs_items      []u32 // IDs of linked files or dirs
 	calendar_id   u32   // Associated calendar
 	status        EventStatus
@@ -23,26 +23,24 @@ pub mut:
 	reminder_mins []int            // Minutes before event for reminders
 	color         string           // Hex color code
 	timezone      string
+	priority      EventPriority
+	public        bool
 }
 
 pub struct Attendee {
 pub mut:
-	user_id u32
-	status  AttendanceStatus
-	role    AttendeeRole
+	user_id             u32
+	status_latest       AttendanceStatus
+	attendance_required bool
+	admin               bool // if set can manage the main elements of the event = description, ...
+	organizer           bool // if set means others can ask for support, doesn't mean is admin
+	log                 AttendeeLog
 }
 
-pub enum AttendanceStatus {
-	no_response
-	accepted
-	declined
-	tentative
-}
-
-pub enum AttendeeRole {
-	required
-	optional
-	organizer
+pub enum EventPriority {
+	low
+	normal
+	urgent
 }
 
 pub enum EventStatus {
@@ -50,6 +48,20 @@ pub enum EventStatus {
 	published
 	cancelled
 	completed
+}
+
+pub struct AttendeeLog {
+pub mut:
+	timestamp u64
+	status    AttendanceStatus
+	remark    string
+}
+
+pub enum AttendanceStatus {
+	invited
+	accepted
+	declined
+	tentative
 }
 
 pub struct RecurrenceRule {
@@ -68,6 +80,15 @@ pub enum RecurrenceFreq {
 	weekly
 	monthly
 	yearly
+}
+
+@[params]
+pub struct CalendarEventListArg {
+pub mut:
+	calendar_id u32
+	status      EventStatus
+	public      bool
+	limit       int = 100 // Default limit is 100
 }
 
 pub struct DBCalendarEvent {
@@ -127,7 +148,7 @@ pub fn (self CalendarEvent) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
+fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_i64(self.start_time)
 	e.add_i64(self.end_time)
@@ -160,7 +181,7 @@ fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) !
 	o.start_time = e.get_i64()!
 	o.end_time = e.get_i64()!
 	o.location = e.get_string()!
-	o.attendees = e.get_list_u32()!
+	// o.attendees = e.get_list_u32()!  // This line is incorrect, attendees is []Attendee not []u32
 	o.fs_items = e.get_list_u32()!
 	o.calendar_id = e.get_u32()!
 	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
@@ -223,7 +244,7 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 	mut o := CalendarEvent{
 		title:         args.title
 		location:      args.location
-		attendees:     args.attendees
+		attendees:     []Attendee{}
 		fs_items:      args.fs_items
 		calendar_id:   args.calendar_id
 		status:        args.status
@@ -273,6 +294,44 @@ pub fn (mut self DBCalendarEvent) get(id u32) !CalendarEvent {
 	return o
 }
 
-pub fn (mut self DBCalendarEvent) list() ![]CalendarEvent {
-	return self.db.list[CalendarEvent]()!.map(self.get(it)!)
+pub fn (mut self DBCalendarEvent) list(args CalendarEventListArg) ![]CalendarEvent {
+	// Require at least one parameter to be provided
+	if args.calendar_id == 0 && args.status == .draft && !args.public {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all calendar events from the database
+	all_events := self.db.list[CalendarEvent]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_events := []CalendarEvent{}
+	for event in all_events {
+		// Filter by calendar_id if provided
+		if args.calendar_id != 0 && event.calendar_id != args.calendar_id {
+			continue
+		}
+
+		// Filter by status if provided (status is not draft)
+		if args.status != .draft && event.status != args.status {
+			continue
+		}
+
+		// Filter by public if provided (public is true)
+		if args.public && !event.public {
+			continue
+		}
+
+		filtered_events << event
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_events.len > limit {
+		return filtered_events[..limit]
+	}
+
+	return filtered_events
 }

@@ -22,6 +22,14 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct CommentListArg {
+pub mut:
+	parent u32
+	author u32
+	limit  int = 100 // Default limit is 100
+}
+
 pub fn (self Comment) type_name() string {
 	return 'comments'
 }
@@ -74,7 +82,7 @@ pub fn (self Comment) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self Comment) dump(mut e encoder.Encoder) ! {
+fn (self Comment) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.comment)
 	e.add_u32(self.parent)
 	e.add_u32(self.author)
@@ -125,6 +133,39 @@ pub fn (mut self DBComments) get(id u32) !Comment {
 	return o
 }
 
-pub fn (mut self DBComments) list() ![]Comment {
-	return self.db.list[Comment]()!.map(self.get(it)!)
+pub fn (mut self DBComments) list(args CommentListArg) ![]Comment {
+	// Require at least one parameter to be provided
+	if args.parent == 0 && args.author == 0 {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all comments from the database
+	all_comments := self.db.list[Comment]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_comments := []Comment{}
+	for comment in all_comments {
+		// Filter by parent if provided
+		if args.parent != 0 && comment.parent != args.parent {
+			continue
+		}
+
+		// Filter by author if provided
+		if args.author != 0 && comment.author != args.author {
+			continue
+		}
+
+		filtered_comments << comment
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_comments.len > limit {
+		return filtered_comments[..limit]
+	}
+
+	return filtered_comments
 }

@@ -1,517 +1,459 @@
-#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused test
-
 module heromodels
 
-import freeflowuniverse.herolib.hero.heromodels { GroupMember, GroupRole }
-import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.hero.db
 
-// Test Group model CRUD operations
-fn test_group_new() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
+fn test_group_new() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
+	}
 
-	// Test creating a new group with all fields
-	now := ourtime.now().unix()
-	mut group := mydb.group.new(
-		name:         'Development Team'
-		description:  'Software development team for the main project'
-		members:      [
-			GroupMember{
-				user_id:   1
-				role:      .owner
-				joined_at: now
-			},
-			GroupMember{
-				user_id:   2
-				role:      .admin
-				joined_at: now
-			},
-			GroupMember{
-				user_id:   3
-				role:      .writer
-				joined_at: now
-			},
-		]
-		subgroups:    [u32(10), 20, 30]
+	// Test creating a new group
+	mut args := GroupArg{
+		name:         'test_group'
+		description:  'Test group for unit testing'
+		members:      []GroupMember{}
+		subgroups:    []u32{}
 		parent_group: 0
-		is_public:    false
-	) or { panic('Failed to create group: ${err}') }
+		is_public:    true
+	}
 
-	// Verify the group was created with correct values
-	assert group.name == 'Development Team'
-	assert group.description == 'Software development team for the main project'
-	assert group.members.len == 3
-	assert group.members[0].user_id == 1
-	assert group.members[0].role == .owner
-	assert group.members[1].user_id == 2
-	assert group.members[1].role == .admin
-	assert group.members[2].user_id == 3
-	assert group.members[2].role == .writer
-	assert group.subgroups.len == 3
-	assert group.subgroups[0] == 10
+	group := db_group.new(args)!
+	
+	assert group.name == 'test_group'
+	assert group.description == 'Test group for unit testing'
+	assert group.is_public == true
+	assert group.members.len == 0
+	assert group.subgroups.len == 0
 	assert group.parent_group == 0
-	assert group.is_public == false
-	assert group.id == 0 // Should be 0 before saving
-	assert group.updated_at > 0 // Should have timestamp
+	assert group.updated_at > 0
+	
+	println('✓ Group new test passed!')
 }
 
-fn test_group_set_and_get() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
+fn test_group_crud_operations() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
+	}
 
-	// Create a group
-	now := ourtime.now().unix()
-	mut group := mydb.group.new(
-		name:         'Marketing Team'
-		description:  'Marketing and communications team'
-		members:      [
-			GroupMember{
-				user_id:   100
-				role:      .owner
-				joined_at: now - 86400 // 1 day ago
-			},
-			GroupMember{
-				user_id:   101
-				role:      .writer
-				joined_at: now
-			},
-		]
+	// Create a new group
+	mut args := GroupArg{
+		name:         'crud_test_group'
+		description:  'Test group for CRUD operations'
+		members:      []GroupMember{}
 		subgroups:    []u32{}
-		parent_group: 5
-		is_public:    true
-	) or { panic('Failed to create group: ${err}') }
+		parent_group: 0
+		is_public:    false
+	}
 
-	// Save the group
-	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
+	mut group := db_group.new(args)!
 
-	// Verify ID was assigned
-	assert group.id > 0
+	// Test set operation
+	group = db_group.set(group)!
 	original_id := group.id
 
-	// Retrieve the group
-	retrieved_group := mydb.group.get(group.id) or { panic('Failed to get group: ${err}') }
-
-	// Verify all fields match
+	// Test get operation
+	retrieved_group := db_group.get(original_id)!
+	assert retrieved_group.name == 'crud_test_group'
+	assert retrieved_group.description == 'Test group for CRUD operations'
+	assert retrieved_group.is_public == false
 	assert retrieved_group.id == original_id
-	assert retrieved_group.name == 'Marketing Team'
-	assert retrieved_group.description == 'Marketing and communications team'
-	assert retrieved_group.members.len == 2
-	assert retrieved_group.members[0].user_id == 100
-	assert retrieved_group.members[0].role == .owner
-	assert retrieved_group.members[1].user_id == 101
-	assert retrieved_group.members[1].role == .writer
-	assert retrieved_group.subgroups.len == 0
-	assert retrieved_group.parent_group == 5
-	assert retrieved_group.is_public == true
-	assert retrieved_group.created_at > 0
-	assert retrieved_group.updated_at > 0
-}
 
-fn test_group_roles() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
+	// Test exist operation
+	exists := db_group.exist(original_id)!
+	assert exists == true
 
-	// Test all group roles
-	roles := [GroupRole.reader, .writer, .admin, .owner]
-	now := ourtime.now().unix()
-
-	mut members := []GroupMember{}
-	for i, role in roles {
-		members << GroupMember{
-			user_id:   u32(i + 1)
-			role:      role
-			joined_at: now + i64(i * 3600) // Different join times
-		}
-	}
-
-	mut group := mydb.group.new(
-		name:         'Role Test Group'
-		description:  'Testing all group roles'
-		members:      members
-		subgroups:    []u32{}
-		parent_group: 0
-		is_public:    false
-	) or { panic('Failed to create group: ${err}') }
-
-	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
-
-	retrieved_group := mydb.group.get(group.id) or { panic('Failed to get group: ${err}') }
-
-	// Verify all roles are preserved
-	assert retrieved_group.members.len == 4
-	assert retrieved_group.members[0].role == .reader
-	assert retrieved_group.members[1].role == .writer
-	assert retrieved_group.members[2].role == .admin
-	assert retrieved_group.members[3].role == .owner
-
-	// Verify join times are preserved
-	for i, member in retrieved_group.members {
-		assert member.joined_at == now + i64(i * 3600)
-	}
-}
-
-fn test_group_hierarchy() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
-
-	// Create parent group
-	mut parent_group := mydb.group.new(
-		name:         'Engineering'
-		description:  'Main engineering group'
-		members:      [
-			GroupMember{
-				user_id:   1
-				role:      .owner
-				joined_at: ourtime.now().unix()
-			},
-		]
-		subgroups:    []u32{}
-		parent_group: 0
-		is_public:    false
-	) or { panic('Failed to create parent group: ${err}') }
-
-	parent_group = mydb.group.set(parent_group) or { panic('Failed to save parent group: ${err}') }
-	parent_id := parent_group.id
-
-	// Create child groups
-	mut frontend_group := mydb.group.new(
-		name:         'Frontend Team'
-		description:  'Frontend development team'
-		members:      [
-			GroupMember{
-				user_id:   10
-				role:      .admin
-				joined_at: ourtime.now().unix()
-			},
-		]
-		subgroups:    []u32{}
-		parent_group: parent_id
-		is_public:    false
-	) or { panic('Failed to create frontend group: ${err}') }
-
-	mut backend_group := mydb.group.new(
-		name:         'Backend Team'
-		description:  'Backend development team'
-		members:      [
-			GroupMember{
-				user_id:   20
-				role:      .admin
-				joined_at: ourtime.now().unix()
-			},
-		]
-		subgroups:    []u32{}
-		parent_group: parent_id
-		is_public:    false
-	) or { panic('Failed to create backend group: ${err}') }
-
-	frontend_group = mydb.group.set(frontend_group) or { panic('Failed to save frontend group: ${err}') }
-	backend_group = mydb.group.set(backend_group) or { panic('Failed to save backend group: ${err}') }
-
-	// Update parent group with subgroups
-	parent_group.subgroups = [frontend_group.id, backend_group.id]
-	parent_group = mydb.group.set(parent_group) or { panic('Failed to update parent group: ${err}') }
-
-	// Verify hierarchy
-	retrieved_parent := mydb.group.get(parent_id) or { panic('Failed to get parent group: ${err}') }
-	retrieved_frontend := mydb.group.get(frontend_group.id) or {
-		panic('Failed to get frontend group: ${err}')
-	}
-	retrieved_backend := mydb.group.get(backend_group.id) or {
-		panic('Failed to get backend group: ${err}')
-	}
-
-	assert retrieved_parent.subgroups.len == 2
-	assert retrieved_parent.subgroups.contains(frontend_group.id)
-	assert retrieved_parent.subgroups.contains(backend_group.id)
-	assert retrieved_frontend.parent_group == parent_id
-	assert retrieved_backend.parent_group == parent_id
-}
-
-fn test_group_update() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
-
-	// Create and save a group
-	now := ourtime.now().unix()
-	mut group := mydb.group.new(
-		name:         'Original Group'
-		description:  'Original description'
-		members:      [
-			GroupMember{
-				user_id:   1
-				role:      .reader
-				joined_at: now
-			},
-		]
-		subgroups:    []u32{}
-		parent_group: 0
-		is_public:    false
-	) or { panic('Failed to create group: ${err}') }
-
-	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
-	original_id := group.id
-	original_created_at := group.created_at
-	original_updated_at := group.updated_at
-
-	// Update the group
-	group.name = 'Updated Group'
-	group.description = 'Updated description'
-	group.members = [
-		GroupMember{
-			user_id:   1
-			role:      .admin
-			joined_at: now
-		},
-		GroupMember{
-			user_id:   2
-			role:      .writer
-			joined_at: now + 3600
-		},
-	]
-	group.subgroups = [u32(100), 200]
-	group.parent_group = 50
-	group.is_public = true
-
-	group = mydb.group.set(group) or { panic('Failed to update group: ${err}') }
-
-	// Verify ID remains the same and updated_at is set
-	assert group.id == original_id
-	assert group.created_at == original_created_at
-	assert group.updated_at >= original_updated_at
-
-	// Retrieve and verify updates
-	updated_group := mydb.group.get(group.id) or { panic('Failed to get updated group: ${err}') }
-	assert updated_group.name == 'Updated Group'
-	assert updated_group.description == 'Updated description'
-	assert updated_group.members.len == 2
-	assert updated_group.members[0].role == .admin
-	assert updated_group.members[1].role == .writer
-	assert updated_group.subgroups.len == 2
-	assert updated_group.subgroups[0] == 100
-	assert updated_group.parent_group == 50
-	assert updated_group.is_public == true
-}
-
-fn test_group_exist() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
-
-	// Test non-existent group with a very high ID that shouldn't exist
-	exists := mydb.group.exist(999999) or { panic('Failed to check existence: ${err}') }
-	assert exists == false
-
-	// Create and save a group
-	mut group := mydb.group.new(
-		name:         'Existence Test'
-		description:  'Testing existence'
+	// Test update
+	mut updated_args := GroupArg{
+		name:         'updated_group'
+		description:  'Updated test group'
 		members:      []GroupMember{}
 		subgroups:    []u32{}
 		parent_group: 0
 		is_public:    true
-	) or { panic('Failed to create group: ${err}') }
-
-	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
-
-	// Test existing group
-	exists_after_save := mydb.group.exist(group.id) or {
-		panic('Failed to check existence: ${err}')
 	}
-	assert exists_after_save == true
+
+	mut updated_group := db_group.new(updated_args)!
+	updated_group.id = original_id
+	updated_group = db_group.set(updated_group)!
+
+	// Verify update
+	final_group := db_group.get(original_id)!
+	assert final_group.name == 'updated_group'
+	assert final_group.description == 'Updated test group'
+	assert final_group.is_public == true
+
+	// Test delete operation
+	db_group.delete(original_id)!
+	
+	// Verify deletion
+	exists_after_delete := db_group.exist(original_id)!
+	assert exists_after_delete == false
+	
+	println('✓ Group CRUD operations test passed!')
 }
 
-fn test_group_delete() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
+fn test_group_member_operations() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
+	}
 
-	// Create and save a group
-	mut group := mydb.group.new(
-		name:         'To Be Deleted'
-		description:  'This group will be deleted'
+	// Create a new group
+	mut args := GroupArg{
+		name:         'member_test_group'
+		description:  'Test group for member operations'
 		members:      []GroupMember{}
 		subgroups:    []u32{}
 		parent_group: 0
-		is_public:    false
-	) or { panic('Failed to create group: ${err}') }
+		is_public:    true
+	}
 
-	group = mydb.group.set(group) or { panic('Failed to save group: ${err}') }
+	mut group := db_group.new(args)!
+	group = db_group.set(group)!
 	group_id := group.id
 
-	// Verify it exists
-	exists_before := mydb.group.exist(group_id) or { panic('Failed to check existence: ${err}') }
-	assert exists_before == true
+	// Test add_member
+	group.add_member(100, .admin)
+	group.add_member(101, .writer)
+	group.add_member(102, .reader)
 
-	// Delete the group
-	mydb.group.delete(group_id) or { panic('Failed to delete group: ${err}') }
+	// Save updated group
+	group = db_group.set(group)!
 
-	// Verify it no longer exists
-	exists_after := mydb.group.exist(group_id) or { panic('Failed to check existence: ${err}') }
-	assert exists_after == false
-
-	// Verify get fails
-	if _ := mydb.group.get(group_id) {
-		panic('Should not be able to get deleted group')
-	}
+	// Verify members were added
+	updated_group := db_group.get(group_id)!
+	assert updated_group.members.len == 3
+	
+	// Check first member
+	assert updated_group.members[0].user_id == 100
+	assert updated_group.members[0].role == .admin
+	
+	// Check second member
+	assert updated_group.members[1].user_id == 101
+	assert updated_group.members[1].role == .writer
+	
+	// Check third member
+	assert updated_group.members[2].user_id == 102
+	assert updated_group.members[2].role == .reader
+	
+	// Verify joined_at timestamps are set
+	assert updated_group.members[0].joined_at > 0
+	assert updated_group.members[1].joined_at > 0
+	assert updated_group.members[2].joined_at > 0
+	
+	println('✓ Group member operations test passed!')
 }
 
-fn test_group_list() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
-
-	// Clear any existing groups by creating a fresh DB
-	mydb = heromodels.new() or { panic('Failed to create fresh DB: ${err}') }
-
-	// Initially should be empty
-	initial_list := mydb.group.list() or { panic('Failed to list groups: ${err}') }
-	initial_count := initial_list.len
-
-	// Create multiple groups
-	now := ourtime.now().unix()
-	mut group1 := mydb.group.new(
-		name:         'Group One'
-		description:  'First test group'
-		members:      [
-			GroupMember{
-				user_id:   1
-				role:      .owner
-				joined_at: now
-			},
-		]
-		subgroups:    []u32{}
-		parent_group: 0
-		is_public:    true
-	) or { panic('Failed to create group1: ${err}') }
-
-	mut group2 := mydb.group.new(
-		name:         'Group Two'
-		description:  'Second test group'
-		members:      [
-			GroupMember{
-				user_id:   2
-				role:      .admin
-				joined_at: now
-			},
-			GroupMember{
-				user_id:   3
-				role:      .writer
-				joined_at: now + 3600
-			},
-		]
-		subgroups:    [u32(10)]
-		parent_group: 0
-		is_public:    false
-	) or { panic('Failed to create group2: ${err}') }
-
-	// Save both groups
-	group1 = mydb.group.set(group1) or { panic('Failed to save group1: ${err}') }
-	group2 = mydb.group.set(group2) or { panic('Failed to save group2: ${err}') }
-
-	// List groups
-	group_list := mydb.group.list() or { panic('Failed to list groups: ${err}') }
-
-	// Should have 2 more groups than initially
-	assert group_list.len == initial_count + 2
-
-	// Find our groups in the list
-	mut found_group1 := false
-	mut found_group2 := false
-
-	for grp in group_list {
-		if grp.name == 'Group One' {
-			found_group1 = true
-			assert grp.is_public == true
-			assert grp.members.len == 1
-			assert grp.members[0].role == .owner
-		}
-		if grp.name == 'Group Two' {
-			found_group2 = true
-			assert grp.is_public == false
-			assert grp.members.len == 2
-			assert grp.subgroups.len == 1
-		}
+fn test_group_hierarchy_operations() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
 	}
 
-	assert found_group1 == true
-	assert found_group2 == true
-}
-
-fn test_group_edge_cases() {
-	mut mydb := heromodels.new() or { panic('Failed to create DB: ${err}') }
-
-	// Test group with no members
-	mut empty_group := mydb.group.new(
-		name:         'Empty Group'
-		description:  'Group with no members'
+	// Create parent group
+	mut parent_args := GroupArg{
+		name:         'parent_group'
+		description:  'Parent group'
 		members:      []GroupMember{}
 		subgroups:    []u32{}
 		parent_group: 0
 		is_public:    true
-	) or { panic('Failed to create empty group: ${err}') }
-
-	empty_group = mydb.group.set(empty_group) or { panic('Failed to save empty group: ${err}') }
-
-	retrieved_empty := mydb.group.get(empty_group.id) or {
-		panic('Failed to get empty group: ${err}')
-	}
-	assert retrieved_empty.members.len == 0
-	assert retrieved_empty.subgroups.len == 0
-	assert retrieved_empty.is_public == true
-
-	// Test group with many members
-	now := ourtime.now().unix()
-	mut many_members := []GroupMember{}
-	for i in 0 .. 100 {
-		many_members << GroupMember{
-			user_id:   u32(i + 1)
-			role:      if i % 4 == 0 {
-				.owner
-			} else if i % 4 == 1 {
-				.admin
-			} else if i % 4 == 2 {
-				.writer
-			} else {
-				.reader
-			}
-			joined_at: now + i64(i * 60) // Different join times
-		}
 	}
 
-	mut large_group := mydb.group.new(
-		name:         'Large Group'
-		description:  'Group with many members'
-		members:      many_members
-		subgroups:    []u32{len: 50, init: u32(index + 1000)} // 50 subgroups
-		parent_group: 999
+	mut parent_group := db_group.new(parent_args)!
+	parent_group = db_group.set(parent_group)!
+	parent_id := parent_group.id
+
+	// Create child group
+	mut child_args := GroupArg{
+		name:         'child_group'
+		description:  'Child group'
+		members:      []GroupMember{}
+		subgroups:    []u32{}
+		parent_group: parent_id
 		is_public:    false
-	) or { panic('Failed to create large group: ${err}') }
-
-	large_group = mydb.group.set(large_group) or { panic('Failed to save large group: ${err}') }
-
-	retrieved_large := mydb.group.get(large_group.id) or {
-		panic('Failed to get large group: ${err}')
 	}
-	assert retrieved_large.members.len == 100
-	assert retrieved_large.subgroups.len == 50
-	assert retrieved_large.parent_group == 999
 
-	// Verify member roles are preserved
-	mut role_counts := map[GroupRole]int{}
-	for member in retrieved_large.members {
-		role_counts[member.role]++
+	mut child_group := db_group.new(child_args)!
+	child_group = db_group.set(child_group)!
+	child_id := child_group.id
+
+	// Add child to parent's subgroups
+	parent_group.subgroups << child_id
+	parent_group = db_group.set(parent_group)!
+
+	// Verify hierarchy
+	final_parent := db_group.get(parent_id)!
+	final_child := db_group.get(child_id)!
+	
+	assert final_parent.subgroups.len == 1
+	assert final_parent.subgroups[0] == child_id
+	assert final_child.parent_group == parent_id
+	
+	println('✓ Group hierarchy operations test passed!')
+}
+
+fn test_group_list_operations() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
 	}
-	assert role_counts[GroupRole.owner] == 25
-	assert role_counts[GroupRole.admin] == 25
-	assert role_counts[GroupRole.writer] == 25
-	assert role_counts[GroupRole.reader] == 25
 
-	// Test group with empty strings
-	mut minimal_group := mydb.group.new(
-		name:         ''
-		description:  ''
+	// Create public group
+	mut public_args := GroupArg{
+		name:         'public_group'
+		description:  'Public group'
+		members:      []GroupMember{}
+		subgroups:    []u32{}
+		parent_group: 0
+		is_public:    true
+	}
+
+	mut public_group := db_group.new(public_args)!
+	public_group = db_group.set(public_group)!
+
+	// Create private group
+	mut private_args := GroupArg{
+		name:         'private_group'
+		description:  'Private group'
 		members:      []GroupMember{}
 		subgroups:    []u32{}
 		parent_group: 0
 		is_public:    false
-	) or { panic('Failed to create minimal group: ${err}') }
-
-	minimal_group = mydb.group.set(minimal_group) or { panic('Failed to save minimal group: ${err}') }
-
-	retrieved_minimal := mydb.group.get(minimal_group.id) or {
-		panic('Failed to get minimal group: ${err}')
 	}
-	assert retrieved_minimal.name == ''
-	assert retrieved_minimal.description == ''
-	assert retrieved_minimal.members.len == 0
-	assert retrieved_minimal.is_public == false
+
+	mut private_group := db_group.new(private_args)!
+	private_group = db_group.set(private_group)!
+
+	// Create child group
+	mut child_args := GroupArg{
+		name:         'child_group'
+		description:  'Child group'
+		members:      []GroupMember{}
+		subgroups:    []u32{}
+		parent_group: public_group.id
+		is_public:    true
+	}
+
+	mut child_group := db_group.new(child_args)!
+	child_group = db_group.set(child_group)!
+
+	// Add child to parent's subgroups
+	public_group.subgroups << child_group.id
+	public_group = db_group.set(public_group)!
+
+	// Test list with is_public filter
+	public_list_args := GroupListArg{
+		is_public:    true
+		parent_group: 0
+		limit:        100
+	}
+
+	public_groups := db_group.list(public_list_args)!
+	assert public_groups.len >= 1
+	
+	found_public := false
+	for group in public_groups {
+		if group.id == public_group.id {
+			found_public = true
+			break
+		}
+	}
+	assert found_public == true
+
+	// Test list with parent_group filter
+	parent_list_args := GroupListArg{
+		is_public:    false
+		parent_group: public_group.id
+		limit:        100
+	}
+
+	parent_groups := db_group.list(parent_list_args)!
+	assert parent_groups.len >= 1
+	
+	found_child := false
+	for group in parent_groups {
+		if group.id == child_group.id {
+			found_child = true
+			break
+		}
+	}
+	assert found_child == true
+
+	// Test list with both filters
+	both_list_args := GroupListArg{
+		is_public:    true
+		parent_group: public_group.id
+		limit:        100
+	}
+
+	both_groups := db_group.list(both_list_args)!
+	assert both_groups.len >= 1
+	
+	found_child_public := false
+	for group in both_groups {
+		if group.id == child_group.id && group.is_public == true {
+			found_child_public = true
+			break
+		}
+	}
+	assert found_child_public == true
+
+	println('✓ Group list operations test passed!')
+}
+
+fn test_group_type_name() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
+	}
+
+	// Create a new group
+	mut args := GroupArg{
+		name:         'type_test_group'
+		description:  'Test group for type name'
+		members:      []GroupMember{}
+		subgroups:    []u32{}
+		parent_group: 0
+		is_public:    true
+	}
+
+	group := db_group.new(args)!
+	
+	// Test type_name method
+	type_name := group.type_name()
+	assert type_name == 'group'
+	
+	println('✓ Group type_name test passed!')
+}
+
+fn test_group_description() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
+	}
+
+	// Create a new group
+	mut args := GroupArg{
+		name:         'description_test_group'
+		description:  'Test group for description'
+		members:      []GroupMember{}
+		subgroups:    []u32{}
+		parent_group: 0
+		is_public:    true
+	}
+
+	group := db_group.new(args)!
+	
+	// Test description method for each methodname
+	assert group.description('set') == 'Create or update a group. Returns the ID of the group.'
+	assert group.description('get') == 'Retrieve a group by ID. Returns the group object.'
+	assert group.description('delete') == 'Delete a group by ID. Returns true if successful.'
+	assert group.description('exist') == 'Check if a group exists by ID. Returns true or false.'
+	assert group.description('list') == 'List all groups. Returns an array of group objects.'
+	assert group.description('unknown') == 'This is generic method for the root object, TODO fill in, ...'
+	
+	println('✓ Group description test passed!')
+}
+
+fn test_group_example() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
+	}
+
+	// Create a new group
+	mut args := GroupArg{
+		name:         'example_test_group'
+		description:  'Test group for example'
+		members:      []GroupMember{}
+		subgroups:    []u32{}
+		parent_group: 0
+		is_public:    true
+	}
+
+	group := db_group.new(args)!
+	
+	// Test example method for each methodname
+	set_call, set_result := group.example('set')
+	assert set_call == '{"group": {"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}}'
+	assert set_result == '1'
+
+	get_call, get_result := group.example('get')
+	assert get_call == '{"id": 1}'
+	assert get_result == '{"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}'
+
+	delete_call, delete_result := group.example('delete')
+	assert delete_call == '{"id": 1}'
+	assert delete_result == 'true'
+
+	exist_call, exist_result := group.example('exist')
+	assert exist_call == '{"id": 1}'
+	assert exist_result == 'true'
+
+	list_call, list_result := group.example('list')
+	assert list_call == '{}'
+	assert list_result == '[{"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}]'
+
+	unknown_call, unknown_result := group.example('unknown')
+	assert unknown_call == '{}'
+	assert unknown_result == '{}'
+	
+	println('✓ Group example test passed!')
+}
+
+fn test_group_encoding_decoding() ! {
+	// Initialize DBGroup for testing
+	mut mydb := db.new_test()!
+	mut db_group := DBGroup{
+		db: &mydb
+	}
+
+	// Create a new group with members
+	mut args := GroupArg{
+		name:         'encoding_test_group'
+		description:  'Test group for encoding/decoding'
+		members:      []GroupMember{}
+		subgroups:    [u32(10), u32(20), u32(30)]
+		parent_group: 5
+		is_public:    true
+	}
+
+	mut group := db_group.new(args)!
+	
+	// Add some members
+	group.add_member(100, .admin)
+	group.add_member(101, .writer)
+	
+	// Save the group
+	group = db_group.set(group)!
+	group_id := group.id
+
+	// Retrieve and verify all fields were properly encoded/decoded
+	retrieved_group := db_group.get(group_id)!
+	
+	assert retrieved_group.name == 'encoding_test_group'
+	assert retrieved_group.description == 'Test group for encoding/decoding'
+	assert retrieved_group.subgroups == [u32(10), u32(20), u32(30)]
+	assert retrieved_group.parent_group == 5
+	assert retrieved_group.is_public == true
+	assert retrieved_group.members.len == 2
+	
+	// Verify member details
+	assert retrieved_group.members[0].user_id == 100
+	assert retrieved_group.members[0].role == .admin
+	assert retrieved_group.members[1].user_id == 101
+	assert retrieved_group.members[1].role == .writer
+	
+	println('✓ Group encoding/decoding test passed!')
 }

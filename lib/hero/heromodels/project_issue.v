@@ -58,6 +58,17 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct ProjectIssueListArg {
+pub mut:
+	project_id u32
+	issue_type IssueType
+	status     IssueStatus
+	swimlane   string
+	milestone  string
+	limit      int = 100 // Default limit is 100
+}
+
 pub fn (self ProjectIssue) type_name() string {
 	return 'project_issue'
 }
@@ -110,7 +121,7 @@ pub fn (self ProjectIssue) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
+fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.title)
 	e.add_u32(self.project_id)
 	e.add_u8(u8(self.issue_type))
@@ -255,6 +266,54 @@ pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
 	return o
 }
 
-pub fn (mut self DBProjectIssue) list() ![]ProjectIssue {
-	return self.db.list[ProjectIssue]()!.map(self.get(it)!)
+pub fn (mut self DBProjectIssue) list(args ProjectIssueListArg) ![]ProjectIssue {
+	// Require at least one parameter to be provided
+	if args.project_id == 0 && args.issue_type == .task && args.status == .open && args.swimlane == '' && args.milestone == '' {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all project issues from the database
+	all_project_issues := self.db.list[ProjectIssue]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_project_issues := []ProjectIssue{}
+	for project_issue in all_project_issues {
+		// Filter by project_id if provided
+		if args.project_id != 0 && project_issue.project_id != args.project_id {
+			continue
+		}
+
+		// Filter by issue_type if provided (issue_type is not task)
+		if args.issue_type != .task && project_issue.issue_type != args.issue_type {
+			continue
+		}
+
+		// Filter by status if provided (status is not open)
+		if args.status != .open && project_issue.status != args.status {
+			continue
+		}
+
+		// Filter by swimlane if provided
+		if args.swimlane != '' && project_issue.swimlane != args.swimlane {
+			continue
+		}
+
+		// Filter by milestone if provided
+		if args.milestone != '' && project_issue.milestone != args.milestone {
+			continue
+		}
+
+		filtered_project_issues << project_issue
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_project_issues.len > limit {
+		return filtered_project_issues[..limit]
+	}
+
+	return filtered_project_issues
 }

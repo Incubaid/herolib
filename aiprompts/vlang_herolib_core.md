@@ -45,13 +45,13 @@ vtest ~/code/github/incubaid/herolib/lib/osal/package_test.v
 
 - in v all files in a folder are part of the same module, no need to import then, this is important difference in v compared to other languages.
 
-## usage of @[params]
+## usage of /@[params]
 
 - this is the best way how to pass optional parameters to functions in V
 
 ```
 
-@[params]
+/@[params]
 pub struct MyArgs {
 pub mut:
 	name      string
@@ -78,7 +78,7 @@ can be used in any .v or .vsh script, easy to find content close to the script i
 ```v
 #!/usr/bin/env vsh
 
-const script_path = os.dir(@FILE) + '/scripts'
+const script_path = os.dir(/@FILE) + '/scripts'
 echo "Current scripts directory: ${script_directory}"
 
 ```
@@ -238,7 +238,7 @@ new_user_resp := conn.post_json_generic[NewUserResponse](
     prefix: 'users'
     params: {
         'name': 'Jane Doe'
-        'email': 'jane@example.com'
+        'email': 'jane/@example.com'
     }
 )!
 ```
@@ -788,9 +788,9 @@ val := redis.get('counter')! // "11"
 
 ```v
 redis.hset('user:1', 'name', 'John Doe')!
-redis.hset('user:1', 'email', 'john@example.com')!
+redis.hset('user:1', 'email', 'john/@example.com')!
 user_name := redis.hget('user:1', 'name')! // "John Doe"
-user_data := redis.hgetall('user:1')! // map['name':'John Doe', 'email':'john@example.com']
+user_data := redis.hgetall('user:1')! // map['name':'John Doe', 'email':'john/@example.com']
 ```
 
 ### List Commands
@@ -956,7 +956,7 @@ assert hello_world == texttools.name_fix("Hello World!")
 ### Text Cleaning
 *   `name_clean(r string) string`: Normalizes names by removing special characters.
     ```v
-    name := texttools.name_clean("Hello@World!") // Result: "HelloWorld"
+    name := texttools.name_clean("Hello/@World!") // Result: "HelloWorld"
     ```
 *   `ascii_clean(r string) string`: Removes all non-ASCII characters.
 *   `remove_empty_lines(text string) string`: Removes empty lines from text.
@@ -1258,14 +1258,14 @@ to be used for other kinds of text output also.
 
 ## Template directives
 
-Each template directive begins with an `@` sign.
+Each template directive begins with an `/@` sign.
 Some directives contain a `{}` block, others only have `''` (string) parameters.
 
 Newlines on the beginning and end are ignored in `{}` blocks,
 otherwise this (see [if](#if) for this syntax):
 
 ```html
-@if bool_val {
+/@if bool_val {
     <span>This is shown if bool_val is true</span>
 }
 ```
@@ -1282,17 +1282,17 @@ otherwise this (see [if](#if) for this syntax):
 
 ## if
 
-The if directive, consists of three parts, the `@if` tag, the condition (same syntax like in V)
+The if directive, consists of three parts, the `/@if` tag, the condition (same syntax like in V)
 and the `{}` block, where you can write html, which will be rendered if the condition is true:
 
 ```
-@if <condition> {}
+/@if <condition> {}
 ```
 
 ### Example
 
 ```html
-@if bool_val {
+/@if bool_val {
     <span>This is shown if bool_val is true</span>
 }
 ```
@@ -1300,7 +1300,7 @@ and the `{}` block, where you can write html, which will be rendered if the cond
 One-liner:
 
 ```html
-@if bool_val { <span>This is shown if bool_val is true</span> }
+/@if bool_val { <span>This is shown if bool_val is true</span> }
 ```
 
 The first example would result in:
@@ -1317,18 +1317,18 @@ The first example would result in:
 
 ## for
 
-The for directive consists of three parts, the `@for` tag,
+The for directive consists of three parts, the `/@for` tag,
 the condition (same syntax like in V) and the `{}` block,
 where you can write text, rendered for each iteration of the loop:
 
 ```
-@for <condition> {}
+/@for <condition> {}
 ```
 
-### Example for @for
+### Example for /@for
 
 ```html
-@for i, val in my_vals {
+/@for i, val in my_vals {
     <span>$i - $val</span>
 }
 ```
@@ -1336,7 +1336,7 @@ where you can write text, rendered for each iteration of the loop:
 One-liner:
 
 ```html
-@for i, val in my_vals { <span>$i - $val</span> }
+/@for i, val in my_vals { <span>$i - $val</span> }
 ```
 
 The first example would result in:
@@ -1360,7 +1360,7 @@ The first example would result in:
 You can also write (and all other for condition syntaxes that are allowed in V):
 
 ```html
-@for i = 0; i < 5; i++ {
+/@for i = 0; i < 5; i++ {
     <span>$i</span>
 }
 ```
@@ -1368,7 +1368,7 @@ You can also write (and all other for condition syntaxes that are allowed in V):
 ## include
 
 The include directive is for including other html files (which will be processed as well)
-and consists of two parts, the `@include` tag and a following `'<path>'` string.
+and consists of two parts, the `/@include` tag and a following `'<path>'` string.
 The path parameter is relative to the template file being called.
 
 ### Example for the folder structure of a project using templates:
@@ -1385,7 +1385,7 @@ Project root
 
 ```html
 
-<div>@include 'header/base'</div>
+<div>/@include 'header/base'</div>
 ```
 
 > Note that there shouldn't be a file suffix,
@@ -1394,25 +1394,25 @@ Project root
 
 ## js
 
-The js directive consists of two parts, the `@js` tag and `'<path>'` string,
+The js directive consists of two parts, the `/@js` tag and `'<path>'` string,
 where you can insert your src
 
 ```
-@js '<url>'
+/@js '<url>'
 ```
 
-### Example for the @js directive:
+### Example for the /@js directive:
 
 ```html
-@js 'myscripts.js'
+/@js 'myscripts.js'
 ```
 
 # Variables
 
-All variables, which are declared before the $tmpl can be used through the `@{my_var}` syntax.
-It's also possible to use properties of structs here like `@{my_struct.prop}`.
+All variables, which are declared before the $tmpl can be used through the `/@{my_var}` syntax.
+It's also possible to use properties of structs here like `/@{my_struct.prop}`.
 
 # Escaping
 
-The `@` symbol starts a template directive. If you need to use `@` as a regular 
-character within a template, escape it by using a double `@` like this: `@@`.
+The `/@` symbol starts a template directive. If you need to use `/@` as a regular 
+character within a template, escape it by using a double `/@` like this: `/@/@`.

@@ -26,6 +26,14 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct ChatGroupListArg {
+pub mut:
+	chat_type   ChatType
+	is_archived bool
+	limit       int = 100 // Default limit is 100
+}
+
 pub fn (self ChatGroup) type_name() string {
 	return 'chat_group'
 }
@@ -78,7 +86,7 @@ pub fn (self ChatGroup) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self ChatGroup) dump(mut e encoder.Encoder) ! {
+fn (self ChatGroup) dump(mut e encoder.Encoder) ! {
 	e.add_u8(u8(self.chat_type))
 	e.add_i64(self.last_activity)
 	e.add_bool(self.is_archived)
@@ -142,6 +150,39 @@ pub fn (mut self DBChatGroup) get(id u32) !ChatGroup {
 	return o
 }
 
-pub fn (mut self DBChatGroup) list() ![]ChatGroup {
-	return self.db.list[ChatGroup]()!.map(self.get(it)!)
+pub fn (mut self DBChatGroup) list(args ChatGroupListArg) ![]ChatGroup {
+	// Require at least one parameter to be provided
+	if args.chat_type == .public_channel && !args.is_archived {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all chat groups from the database
+	all_chat_groups := self.db.list[ChatGroup]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_chat_groups := []ChatGroup{}
+	for chat_group in all_chat_groups {
+		// Filter by chat_type if provided (chat_type is not public_channel)
+		if args.chat_type != .public_channel && chat_group.chat_type != args.chat_type {
+			continue
+		}
+
+		// Filter by is_archived if provided (is_archived is true)
+		if args.is_archived && !chat_group.is_archived {
+			continue
+		}
+
+		filtered_chat_groups << chat_group
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_chat_groups.len > limit {
+		return filtered_chat_groups[..limit]
+	}
+
+	return filtered_chat_groups
 }

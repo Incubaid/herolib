@@ -19,6 +19,13 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct CalendarListArg {
+pub mut:
+	is_public bool
+	limit     int = 100 // Default limit is 100
+}
+
 pub fn (self Calendar) type_name() string {
 	return 'calendar'
 }
@@ -71,7 +78,7 @@ pub fn (self Calendar) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self Calendar) dump(mut e encoder.Encoder) ! {
+fn (self Calendar) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.color)
 	e.add_string(self.timezone)
 	e.add_bool(self.is_public)
@@ -130,6 +137,34 @@ pub fn (mut self DBCalendar) get(id u32) !Calendar {
 	return o
 }
 
-pub fn (mut self DBCalendar) list() ![]Calendar {
-	return self.db.list[Calendar]()!.map(self.get(it)!)
+pub fn (mut self DBCalendar) list(args CalendarListArg) ![]Calendar {
+	// Require at least one parameter to be provided
+	if !args.is_public {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all calendars from the database
+	all_calendars := self.db.list[Calendar]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_calendars := []Calendar{}
+	for calendar in all_calendars {
+		// Filter by is_public if provided (is_public is true)
+		if args.is_public && !calendar.is_public {
+			continue
+		}
+
+		filtered_calendars << calendar
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_calendars.len > limit {
+		return filtered_calendars[..limit]
+	}
+
+	return filtered_calendars
 }

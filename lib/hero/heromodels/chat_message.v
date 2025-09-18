@@ -63,6 +63,15 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct ChatMessageListArg {
+pub mut:
+	chat_group_id u32
+	message_type  MessageType
+	status        MessageStatus
+	limit         int = 100 // Default limit is 100
+}
+
 pub fn (self ChatMessage) type_name() string {
 	return 'chat_message'
 }
@@ -115,7 +124,7 @@ pub fn (self ChatMessage) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self ChatMessage) dump(mut e encoder.Encoder) ! {
+fn (self ChatMessage) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.content)
 	e.add_u32(self.chat_group_id)
 	e.add_u32(self.sender_id)
@@ -246,6 +255,44 @@ pub fn (mut self DBChatMessage) get(id u32) !ChatMessage {
 	return o
 }
 
-pub fn (mut self DBChatMessage) list() ![]ChatMessage {
-	return self.db.list[ChatMessage]()!.map(self.get(it)!)
+pub fn (mut self DBChatMessage) list(args ChatMessageListArg) ![]ChatMessage {
+	// Require at least one parameter to be provided
+	if args.chat_group_id == 0 && args.message_type == .text && args.status == .sent {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all chat messages from the database
+	all_chat_messages := self.db.list[ChatMessage]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_chat_messages := []ChatMessage{}
+	for chat_message in all_chat_messages {
+		// Filter by chat_group_id if provided
+		if args.chat_group_id != 0 && chat_message.chat_group_id != args.chat_group_id {
+			continue
+		}
+
+		// Filter by message_type if provided (message_type is not text)
+		if args.message_type != .text && chat_message.message_type != args.message_type {
+			continue
+		}
+
+		// Filter by status if provided (status is not sent)
+		if args.status != .sent && chat_message.status != args.status {
+			continue
+		}
+
+		filtered_chat_messages << chat_message
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_chat_messages.len > limit {
+		return filtered_chat_messages[..limit]
+	}
+
+	return filtered_chat_messages
 }

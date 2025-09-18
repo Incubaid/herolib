@@ -1,6 +1,5 @@
 module gid
 
-import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.texttools
 
 pub struct GID {

@@ -81,7 +81,7 @@ pub fn (self Group) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self Group) dump(mut e encoder.Encoder) ! {
+fn (self Group) dump(mut e encoder.Encoder) ! {
 	e.add_u16(u16(self.members.len))
 	for member in self.members {
 		e.add_u32(member.user_id)
@@ -93,7 +93,7 @@ pub fn (self Group) dump(mut e encoder.Encoder) ! {
 	e.add_bool(self.is_public)
 }
 
-fn (mut self DBGroup) load(mut o Group, mut e encoder.Decoder) ! {
+fn (mut o Group) load(mut e encoder.Decoder) ! {
 	members_len := e.get_u16()!
 	mut members := []GroupMember{}
 	for _ in 0 .. members_len {
@@ -130,6 +130,14 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct GroupListArg {
+pub mut:
+	is_public    bool
+	parent_group u32
+	limit        int = 100 // Default limit is 100
+}
+
 // get new group, not from the DB
 pub fn (mut self DBGroup) new(args GroupArg) !Group {
 	mut o := Group{
@@ -162,12 +170,49 @@ pub fn (mut self DBGroup) exist(id u32) !bool {
 pub fn (mut self DBGroup) get(id u32) !Group {
 	mut o, data := self.db.get_data[Group](id)!
 	mut e_decoder := encoder.decoder_new(data)
-	self.load(mut o, mut e_decoder)!
+	o.load(mut e_decoder)!
 	return o
 }
 
-pub fn (mut self DBGroup) list() ![]Group {
-	return self.db.list[Group]()!.map(self.get(it)!)
+pub fn (mut self DBGroup) list(args GroupListArg) ![]Group {
+	// Require at least one parameter to be provided
+	if !args.is_public && args.parent_group == 0 {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all groups from the database
+	mut all_groups := self.db.list[Group]()!
+	mut groups := []Group{}
+	for id in all_groups {
+		groups << self.get(id)!
+	}
+
+	// Apply filters
+	mut filtered_groups := []Group{}
+	for group in groups {
+		// Filter by is_public if provided (is_public is true)
+		if args.is_public && !group.is_public {
+			continue
+		}
+
+		// Filter by parent_group if provided
+		if args.parent_group != 0 && group.parent_group != args.parent_group {
+			continue
+		}
+
+		filtered_groups << group
+	}
+
+	// Limit results to 100 or the specified limit
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_groups.len > limit {
+		return filtered_groups[..limit]
+	}
+
+	return filtered_groups
 }
 
 pub fn (mut self Group) add_member(user_id u32, role GroupRole) {

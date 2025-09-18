@@ -1,11 +1,5 @@
 module db
 
-import crypto.md5
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.data.ourtime
-
-// Group represents a collection of users with roles and permissions
-@[heap]
 pub struct Base {
 pub mut:
 	id             u32

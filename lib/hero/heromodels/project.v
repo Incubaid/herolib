@@ -48,6 +48,13 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct ProjectListArg {
+pub mut:
+	status ProjectStatus
+	limit  int = 100 // Default limit is 100
+}
+
 pub fn (self Project) type_name() string {
 	return 'project'
 }
@@ -100,7 +107,7 @@ pub fn (self Project) example(methodname string) (string, string) {
 	}
 }
 
-pub fn (self Project) dump(mut e encoder.Encoder) ! {
+fn (self Project) dump(mut e encoder.Encoder) ! {
 	e.add_u16(u16(self.swimlanes.len))
 	for swimlane in self.swimlanes {
 		e.add_string(swimlane.name)
@@ -233,6 +240,34 @@ pub fn (mut self DBProject) get(id u32) !Project {
 	return o
 }
 
-pub fn (mut self DBProject) list() ![]Project {
-	return self.db.list[Project]()!.map(self.get(it)!)
+pub fn (mut self DBProject) list(args ProjectListArg) ![]Project {
+	// Require at least one parameter to be provided
+	if args.status == .planning {
+		return error('At least one filter parameter must be provided')
+	}
+
+	// Get all projects from the database
+	all_projects := self.db.list[Project]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_projects := []Project{}
+	for project in all_projects {
+		// Filter by status if provided (status is not planning)
+		if args.status != .planning && project.status != args.status {
+			continue
+		}
+
+		filtered_projects << project
+	}
+
+	// Limit results to 100 or the specified limit
+	limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_projects.len > limit {
+		return filtered_projects[..limit]
+	}
+
+	return filtered_projects
 }
