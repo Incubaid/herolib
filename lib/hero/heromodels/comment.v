@@ -109,6 +109,14 @@ pub fn (self Comment) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.author)
 	e.add_list_u32(self.to)
 	e.add_list_u32(self.cc)
+	// Encode send_log array
+	e.add_u16(u16(self.send_log.len))
+	for log_entry in self.send_log {
+		e.add_list_u32(log_entry.to)
+		e.add_list_u32(log_entry.cc)
+		e.add_u8(u8(log_entry.status))
+		e.add_u64(log_entry.timestamp)
+	}
 }
 
 pub fn (mut self DBComments) load(mut o Comment, mut e encoder.Decoder) ! {
@@ -118,6 +126,23 @@ pub fn (mut self DBComments) load(mut o Comment, mut e encoder.Decoder) ! {
 	o.author = e.get_u32()!
 	o.to = e.get_list_u32()!
 	o.cc = e.get_list_u32()!
+	// Decode send_log array
+	send_log_len := e.get_u16()!
+	mut send_logs := []SendLog{}
+	for _ in 0 .. send_log_len {
+		to_list := e.get_list_u32()!
+		cc_list := e.get_list_u32()!
+		status := unsafe { SendStatus(e.get_u8()!) }
+		timestamp := e.get_u64()!
+
+		send_logs << SendLog{
+			to:        to_list
+			cc:        cc_list
+			status:    status
+			timestamp: timestamp
+		}
+	}
+	o.send_log = send_logs
 }
 
 @[params]
@@ -140,6 +165,7 @@ pub fn (mut self DBComments) new(args CommentArg) !Comment {
 		author:     args.author
 		to:         args.to
 		cc:         args.cc
+		send_log:   []SendLog{} // Initialize as empty
 		updated_at: ourtime.now().unix()
 	}
 	return o

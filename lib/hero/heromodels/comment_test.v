@@ -134,6 +134,21 @@ fn test_comment_encoding_decoding() ! {
 
 	mut comment := db_comments.new(args)!
 
+	// Add send_log data manually
+	mut send_log1 := SendLog{
+		to:        [u32(100), u32(101)]
+		cc:        [u32(102)]
+		status:    .sent
+		timestamp: 1678886400 // Example timestamp
+	}
+	mut send_log2 := SendLog{
+		to:        [u32(200)]
+		cc:        []u32{}
+		status:    .received
+		timestamp: 1678886500 // Example timestamp
+	}
+	comment.send_log = [send_log1, send_log2]
+
 	// Save the comment
 	comment = db_comments.set(comment)!
 	comment_id := comment.id
@@ -152,6 +167,22 @@ fn test_comment_encoding_decoding() ! {
 	assert retrieved_comment.cc.len == 2
 	assert retrieved_comment.cc[0] == 50
 	assert retrieved_comment.cc[1] == 60
+
+	// Verify send_log
+	assert retrieved_comment.send_log.len == 2
+	assert retrieved_comment.send_log[0].to.len == 2
+	assert retrieved_comment.send_log[0].to[0] == 100
+	assert retrieved_comment.send_log[0].to[1] == 101
+	assert retrieved_comment.send_log[0].cc.len == 1
+	assert retrieved_comment.send_log[0].cc[0] == 102
+	assert retrieved_comment.send_log[0].status == .sent
+	assert retrieved_comment.send_log[0].timestamp == 1678886400
+
+	assert retrieved_comment.send_log[1].to.len == 1
+	assert retrieved_comment.send_log[1].to[0] == 200
+	assert retrieved_comment.send_log[1].cc.len == 0
+	assert retrieved_comment.send_log[1].status == .received
+	assert retrieved_comment.send_log[1].timestamp == 1678886500
 
 	println('✓ Comment encoding/decoding test passed!')
 }
