@@ -76,3 +76,27 @@ pub fn group_list(request Request) !Response {
 
 	return jsonrpc.new_response(request.id, json.encode(groups))
 }
+
+
+@[params]
+pub struct ChatGroupListArgs {
+pub mut:
+	chat_type   heromodels.ChatType
+	is_archived bool
+	limit       int = 100
+}
+
+pub fn chat_group_list(request Request) !Response {
+	payload := jsonrpc.decode_payload[ChatGroupListArgs](request.params) or {
+		return jsonrpc.invalid_params
+	}
+
+	mut mydb := heromodels.new()!
+	chat_groups := mydb.chat_group.list(
+		chat_type: payload.chat_type
+		is_archived: payload.is_archived
+		limit: payload.limit
+	)!
+
+	return jsonrpc.new_response(request.id, json.encode(chat_groups))
+}
