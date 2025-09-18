@@ -17,7 +17,7 @@ pub mut:
 
 pub struct GroupMember {
 pub mut:
-	user_id   u32
+	user_id   u32 //are users as defined in ledger, each user needs to exist in the generic ledger
 	role      GroupRole
 	joined_at i64
 }

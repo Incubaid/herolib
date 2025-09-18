@@ -9,13 +9,8 @@ import freeflowuniverse.herolib.hero.db
 pub struct User {
 	db.Base
 pub mut:
-	email      string
-	public_key string // for encryption/signing
-	phone      string
-	address    string
-	avatar_url string
-	bio        string
-	timezone   string
+	user_id    u32 // id as is set in ledger, if 0 then we don't know
+	contact_id u32 // if we have separate content info for this person
 	status     UserStatus
 }
 

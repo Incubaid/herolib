@@ -1544,6 +1544,212 @@
                     }
                 }
             }
+        },
+        {
+            "name": "planning_get",
+            "summary": "Get a planning by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of the planning to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "planning",
+                "description": "Planning object",
+                "schema": {
+                    "$ref": "#/components/schemas/Planning"
+                }
+            }
+        },
+        {
+            "name": "planning_set",
+            "summary": "Create or update a planning",
+            "params": [
+                {
+                    "name": "planning",
+                    "description": "Planning object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Planning"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated planning",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "planning_delete",
+            "summary": "Delete a planning by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of the planning to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "planning_exist",
+            "summary": "Check if a planning exists by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of the planning to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "True if the planning exists, false otherwise",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "planning_list",
+            "summary": "List all plannings",
+            "params": [],
+            "result": {
+                "name": "plannings",
+                "description": "List of all planning objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Planning"
+                    }
+                }
+            }
+        },
+        {
+            "name": "registration_desk_get",
+            "summary": "Get a registration desk by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of the registration desk to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "registration_desk",
+                "description": "Registration desk object",
+                "schema": {
+                    "$ref": "#/components/schemas/RegistrationDesk"
+                }
+            }
+        },
+        {
+            "name": "registration_desk_set",
+            "summary": "Create or update a registration desk",
+            "params": [
+                {
+                    "name": "registration_desk",
+                    "description": "Registration desk object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/RegistrationDesk"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated registration desk",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "registration_desk_delete",
+            "summary": "Delete a registration desk by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of the registration desk to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "registration_desk_exist",
+            "summary": "Check if a registration desk exists by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of the registration desk to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "True if the registration desk exists, false otherwise",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "registration_desk_list",
+            "summary": "List all registration desks",
+            "params": [],
+            "result": {
+                "name": "registration_desks",
+                "description": "List of all registration desk objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/RegistrationDesk"
+                    }
+                }
+            }
         }
     ],
     "components": {
