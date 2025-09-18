@@ -12,6 +12,7 @@ pub mut:
 	chat_type     ChatType
 	last_activity i64
 	is_archived   bool
+	group_id u32 //group linked to this chat group
 }
 
 pub enum ChatType {
