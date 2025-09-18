@@ -5,9 +5,11 @@ import freeflowuniverse.herolib.hero.heromodels
 import time
 
 fn main() {
-	// Start the server in a background thread
+	// Start the server in a background thread with authentication disabled for testing
 	spawn fn () {
-		rpc.start(port: 8080) or { panic('Failed to start HeroModels server: ${err}') }
+		rpc.start(port: 8080, auth_enabled: false) or {
+			panic('Failed to start HeroModels server: ${err}')
+		}
 	}()
 
 	// Keep the main thread alive

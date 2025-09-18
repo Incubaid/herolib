@@ -10,6 +10,7 @@ pub mut:
 	methods   []DocMethod
 	objects   []DocObject
 	auth_info AuthDocInfo
+	base_url  string // Dynamic base URL for examples
 }
 
 // DocObject represents a logical grouping of methods.
@@ -31,7 +32,7 @@ pub mut:
 	example_call     string
 	example_response string
 	endpoint_url     string
-	curl_example     string // New field for curl command
+	curl_example     string
 }
 
 // DocParam represents a parameter or result in the documentation
@@ -47,9 +48,11 @@ pub mut:
 // AuthDocInfo contains authentication flow information
 pub struct AuthDocInfo {
 pub mut:
-	steps []AuthStep
+	enabled bool
+	steps   []AuthStep
 }
 
+// AuthStep represents a single step in the authentication flow
 pub struct AuthStep {
 pub mut:
 	number      int
@@ -60,79 +63,124 @@ pub mut:
 	example     string
 }
 
+// DocConfig holds configuration for documentation generation
+pub struct DocConfig {
+pub mut:
+	base_url     string = 'http://localhost:8080'
+	handler_type string
+	auth_enabled bool = true
+}
+
 // doc_spec_from_openrpc converts an OpenRPC specification to a documentation-friendly DocSpec.
 // Processes all methods, parameters, and results with proper type extraction and example generation.
 // Returns error if handler_type is empty or if OpenRPC spec is invalid.
 pub fn doc_spec_from_openrpc(openrpc_spec openrpc.OpenRPC, handler_type string) !DocSpec {
-	if handler_type.trim_space() == '' {
+	return doc_spec_from_openrpc_with_config(openrpc_spec, DocConfig{
+		handler_type: handler_type
+	})
+}
+
+// doc_spec_from_openrpc_with_config converts an OpenRPC specification with custom configuration
+pub fn doc_spec_from_openrpc_with_config(openrpc_spec openrpc.OpenRPC, config DocConfig) !DocSpec {
+	if config.handler_type.trim_space() == '' {
 		return error('handler_type cannot be empty')
 	}
+
 	mut doc_spec := DocSpec{
 		info:      openrpc_spec.info
-		auth_info: create_auth_info()
+		base_url:  config.base_url
+		auth_info: create_auth_info_with_config(config.auth_enabled)
 	}
 
+	// Process all methods
 	for method in openrpc_spec.methods {
-		// Convert parameters
-		mut doc_params := []DocParam{}
-		for param in method.params {
-			if param is openrpc.ContentDescriptor {
-				type_info := extract_type_from_schema(param.schema)
-				example := generate_example_from_schema(param.schema, param.name)
-
-				doc_param := DocParam{
-					name:        param.name
-					description: param.description
-					required:    param.required
-					type_info:   type_info
-					example:     example
-				}
-				doc_params << doc_param
-			}
-		}
-
-		// Convert result
-		mut doc_result := DocParam{}
-		if method.result is openrpc.ContentDescriptor {
-			result_cd := method.result as openrpc.ContentDescriptor
-			type_info := extract_type_from_schema(result_cd.schema)
-			example := generate_example_from_schema(result_cd.schema, result_cd.name)
-
-			doc_result = DocParam{
-				name:        result_cd.name
-				description: result_cd.description
-				required:    result_cd.required
-				type_info:   type_info
-				example:     example
-			}
-		}
-
-		// Generate example call and response
-		example_call := generate_example_call(doc_params)
-		example_response := generate_example_response(doc_result)
-
-		// Generate JSON-RPC example call
-		jsonrpc_call := generate_jsonrpc_example_call(method.name, doc_params)
-
-		mut doc_method := DocMethod{
-			name:             method.name
-			summary:          method.summary
-			description:      method.description
-			params:           doc_params
-			result:           doc_result
-			endpoint_url:     '/api/${handler_type}'
-			example_call:     example_call
-			example_response: example_response
-			curl_example:     '' // Will be set later with proper base URL
-		}
-
-		// Generate curl example with localhost as default using JSON-RPC format
-		doc_method.curl_example = generate_curl_example_jsonrpc(method.name, doc_params,
-			'http://localhost:8080', handler_type)
+		doc_method := process_method(method, config)!
 		doc_spec.methods << doc_method
 	}
 
 	return doc_spec
+}
+
+// process_method converts a single OpenRPC method to a DocMethod
+fn process_method(method openrpc.Method, config DocConfig) !DocMethod {
+	// Convert parameters
+	doc_params := process_parameters(method.params)!
+
+	// Convert result
+	doc_result := process_result(method.result)!
+
+	// Generate examples
+	example_call := generate_example_call(doc_params)
+	example_response := generate_example_response(doc_result)
+
+	doc_method := DocMethod{
+		name:             method.name
+		summary:          method.summary
+		description:      method.description
+		params:           doc_params
+		result:           doc_result
+		endpoint_url:     '${config.base_url}/api/${config.handler_type}'
+		example_call:     example_call
+		example_response: example_response
+		curl_example:     generate_curl_example_jsonrpc(method.name, doc_params, config.base_url,
+			config.handler_type)
+	}
+
+	return doc_method
+}
+
+// process_parameters converts OpenRPC parameters to DocParam array
+fn process_parameters(params []openrpc.ContentDescriptorRef) ![]DocParam {
+	mut doc_params := []DocParam{}
+
+	for param in params {
+		if param is openrpc.ContentDescriptor {
+			type_info := extract_type_from_schema(param.schema)
+			example := generate_example_from_schema(param.schema, param.name)
+
+			doc_params << DocParam{
+				name:        param.name
+				description: param.description
+				type_info:   type_info
+				required:    param.required
+				example:     example
+			}
+		}
+	}
+
+	return doc_params
+}
+
+// process_result converts OpenRPC result to DocParam
+fn process_result(result openrpc.ContentDescriptorRef) !DocParam {
+	mut doc_result := DocParam{}
+
+	if result is openrpc.ContentDescriptor {
+		type_info := extract_type_from_schema(result.schema)
+		example := generate_example_from_schema(result.schema, result.name)
+
+		doc_result = DocParam{
+			name:        result.name
+			description: result.description
+			type_info:   type_info
+			required:    false // Results are never required
+			example:     example
+		}
+	}
+
+	return doc_result
+}
+
+// create_auth_info_with_config creates authentication documentation based on configuration
+fn create_auth_info_with_config(enabled bool) AuthDocInfo {
+	if !enabled {
+		return AuthDocInfo{
+			enabled: false
+			steps:   []
+		}
+	}
+
+	return create_auth_info()
 }
 
 // extract_type_from_schema extracts the JSON Schema type from a SchemaRef.
@@ -205,7 +253,8 @@ fn generate_example_response(result DocParam) string {
 // Create authentication documentation info
 fn create_auth_info() AuthDocInfo {
 	return AuthDocInfo{
-		steps: [
+		enabled: true
+		steps:   [
 			AuthStep{
 				number:      1
 				title:       'Register Public Key'

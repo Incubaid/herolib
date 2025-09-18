@@ -2,8 +2,6 @@ module rpc
 
 import freeflowuniverse.herolib.schemas.openrpc
 import freeflowuniverse.herolib.hero.heroserver
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.ui.console
 import os
 
 const openrpc_path = os.join_path(os.dir(@FILE), 'openrpc.json')
@@ -73,20 +71,18 @@ pub fn new_heromodels_handler() !&openrpc.Handler {
 @[params]
 pub struct ServerArgs {
 pub mut:
-	port int    = 8080
-	host string = 'localhost'
+	port         int    = 8080
+	host         string = 'localhost'
+	auth_enabled bool   = true
 }
 
 pub fn start(args ServerArgs) ! {
 	// Create a new heroserver instance
-	mut server := heroserver.new(port: args.port, host: args.host)!
+	mut server := heroserver.new(port: args.port, host: args.host, auth_enabled: args.auth_enabled)!
 
 	// Create and register the heromodels handler
 	handler := new_heromodels_handler()!
 	server.register_handler('heromodels', handler)!
-
-	console.print_green('Documentation available at: http://${args.host}:${args.port}/doc/heromodels/')
-	console.print_green('HeroModels API available at: http://${args.host}:${args.port}/api/heromodels')
 
 	// Start the server
 	server.start()!

@@ -8,6 +8,7 @@
         {
             "name": "comment_get",
             "summary": "Get a comment by ID",
+            "description": "Retrieve a comment by its unique ID. Returns the comment object.",
             "params": [
                 {
                     "name": "id",

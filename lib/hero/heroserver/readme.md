@@ -35,17 +35,20 @@ fn main() {
 
 ## API Endpoints
 
-- **API Calls**: `POST /api/{handler_type}/{method_name}`
-- **Documentation**: `GET /doc/{handler_type}/`
+- **HTML Homepage**: `GET /` - Returns HTML homepage with server information
+- **JSON Handler Info**: `GET /json/{handler_type}` - Returns handler information in JSON format
+- **API Calls**: `POST /api/{handler_type}`
+- **Documentation**: `GET /doc/{handler_type}`
+- **Markdown Docs**: `GET /md/{handler_type}` - Returns documentation in markdown format
 
 ## Authentication Flow
 
-1.  **Register Public Key**: `POST /auth/register`
+1. **Register Public Key**: `POST /auth/register`
     - Body: `{"pubkey": "your_public_key"}`
-2.  **Request Challenge**: `POST /auth/authreq`
+2. **Request Challenge**: `POST /auth/authreq`
     - Body: `{"pubkey": "your_public_key"}`
     - Returns a unique challenge string.
-3.  **Submit Signature**: `POST /auth/auth`
+3. **Submit Signature**: `POST /auth/auth`
     - Sign the challenge from step 2 with your private key.
     - Body: `{"pubkey": "your_public_key", "signature": "your_signature"}`
     - Returns a session key.
