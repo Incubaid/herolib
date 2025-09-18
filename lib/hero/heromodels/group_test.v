@@ -278,7 +278,7 @@ fn test_group_list_operations() ! {
 	parent_groups := db_group.list(parent_list_args)!
 	assert parent_groups.len >= 1
 	
-	found_child := false
+	mut found_child := false
 	for group in parent_groups {
 		if group.id == child_group.id {
 			found_child = true
@@ -297,7 +297,7 @@ fn test_group_list_operations() ! {
 	both_groups := db_group.list(both_list_args)!
 	assert both_groups.len >= 1
 	
-	found_child_public := false
+	mut found_child_public := false
 	for group in both_groups {
 		if group.id == child_group.id && group.is_public == true {
 			found_child_public = true
@@ -425,7 +425,7 @@ fn test_group_encoding_decoding() ! {
 		description:  'Test group for encoding/decoding'
 		members:      []GroupMember{}
 		subgroups:    [u32(10), u32(20), u32(30)]
-		parent_group: 5
+		parent_group: 0
 		is_public:    true
 	}
 
@@ -445,7 +445,7 @@ fn test_group_encoding_decoding() ! {
 	assert retrieved_group.name == 'encoding_test_group'
 	assert retrieved_group.description == 'Test group for encoding/decoding'
 	assert retrieved_group.subgroups == [u32(10), u32(20), u32(30)]
-	assert retrieved_group.parent_group == 5
+	assert retrieved_group.parent_group == 0
 	assert retrieved_group.is_public == true
 	assert retrieved_group.members.len == 2
 	

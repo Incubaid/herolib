@@ -155,8 +155,9 @@ pub fn (mut self DBGroup) new(args GroupArg) !Group {
 	return o
 }
 
-pub fn (mut self DBGroup) set(mut o Group) !Group {
+pub fn (mut self DBGroup) set(o_ Group) !Group {
 	// Save the group first to get its ID if it's new
+	mut o:=o_
 	o = self.db.set[Group](o)!
 
 	// If this group has a parent, add it to the parent's subgroups
