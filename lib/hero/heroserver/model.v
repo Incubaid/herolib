@@ -2,6 +2,7 @@ module heroserver
 
 import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
+import freeflowuniverse.herolib.core.logger
 import time
 import veb
 
@@ -9,9 +10,13 @@ import veb
 @[params]
 pub struct HeroServerConfig {
 pub mut:
-	port         int    = 9977
-	host         string = 'localhost'
-	auth_enabled bool   = true // Whether to enable authentication
+	port           int    = 9977
+	host           string = 'localhost'
+	log_path       string = '/tmp/heroserver_logs'
+	console_output bool   = true // Enable console logging by default
+
+	// flags
+	auth_enabled bool = true // Whether to enable authentication
 	// CORS configuration
 	cors_enabled    bool     = true  // Whether to enable CORS
 	allowed_origins []string = ['*'] // Allowed origins for CORS, default allows all
@@ -31,8 +36,31 @@ mut:
 	challenges      map[string]AuthChallenge
 	cors_enabled    bool
 	allowed_origins []string
+	logger          logger.Logger // Logger instance with dual output
+	start_time      i64           // Server start timestamp for uptime calculation
 pub mut:
 	auth_enabled bool = true // Whether authentication is required
+}
+
+// Convenient logging method for the server
+@[params]
+pub struct ServerLogParams {
+pub:
+	message string
+	level   logger.LogType = .stdout  // Default to info level
+	cat     string         = 'server' // Default category
+}
+
+// Log a message using the server's logger
+pub fn (mut server HeroServer) log(params ServerLogParams) {
+	server.logger.log(
+		cat:     params.cat
+		log:     params.message
+		logtype: params.level
+	) or {
+		// Fallback to console if logging fails
+		println('[${params.cat}] ${params.message}')
+	}
 }
 
 // Authentication challenge data
@@ -168,4 +196,22 @@ pub:
 // Context struct for VEB
 pub struct Context {
 	veb.Context
+}
+
+// before_request is called before every request
+pub fn (mut server HeroServer) before_request(mut ctx Context) {
+	// Handle CORS manually
+	if server.cors_enabled {
+		origin := ctx.get_header(.origin) or { '' }
+
+		// Check if origin is allowed
+		if origin != ''
+			&& (server.allowed_origins.contains('*') || server.allowed_origins.contains(origin)) {
+			ctx.set_header(.access_control_allow_origin, origin)
+			ctx.set_header(.access_control_allow_methods, 'GET, HEAD, PATCH, PUT, POST, DELETE, OPTIONS')
+			ctx.set_header(.access_control_allow_headers, 'Content-Type, Authorization, X-Requested-With')
+			ctx.set_header(.access_control_allow_credentials, 'true')
+			ctx.set_header(.vary, 'Origin')
+		}
+	}
 }

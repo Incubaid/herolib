@@ -61,4 +61,26 @@ pub fn (mut l Logger) log(args_ LogItemArgs) ! {
 	}
 	f.writeln(content.trim_space_right())!
 	f.close()
+
+	// Also write to console if enabled
+	if l.console_output {
+		l.write_to_console(args, t)!
+	}
+}
+
+// Write log message to console with clean formatting
+fn (mut l Logger) write_to_console(args LogItemArgs, t ourtime.OurTime) ! {
+	timestamp := t.time().format_ss()
+	error_indicator := if args.logtype == .error { 'ERROR' } else { 'INFO' }
+	category := args.cat.trim_space()
+	lines := args.log.split('\n')
+
+	for i, line in lines {
+		if i == 0 {
+			println('${timestamp} [${error_indicator}] [${category}] ${line}')
+		} else {
+			// Indent continuation lines
+			println('${timestamp} [${error_indicator}] [${category}]   ${line}')
+		}
+	}
 }

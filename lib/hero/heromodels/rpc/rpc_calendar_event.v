@@ -4,6 +4,26 @@ import json
 import freeflowuniverse.herolib.schemas.jsonrpc { Request, Response, new_response_true, new_response_u32 }
 import freeflowuniverse.herolib.hero.heromodels
 import freeflowuniverse.herolib.hero.db
+
+fn convert_iso_to_ourtime(iso_time string) !string {
+	if iso_time.trim_space() == '' {
+		return error('Empty time string')
+	}
+
+	// Remove the 'Z' suffix if present
+	mut cleaned := iso_time.replace('Z', '')
+
+	// Remove milliseconds (.000) if present
+	if cleaned.contains('.') {
+		cleaned = cleaned.all_before_last('.')
+	}
+
+	// Replace 'T' with space
+	cleaned = cleaned.replace('T', ' ')
+
+	return cleaned
+}
+
 // CalendarEvent-specific argument structures
 
 @[params]
@@ -58,13 +78,20 @@ pub fn calendar_event_set(request Request) !Response {
 		return jsonrpc.invalid_params
 	}
 
-	mut mydb := heromodels.new()!
+	mut mydb := heromodels.new() or { return jsonrpc.internal_error }
+	start_time_converted := convert_iso_to_ourtime(payload.start_time) or {
+		return jsonrpc.internal_error
+	}
+	end_time_converted := convert_iso_to_ourtime(payload.end_time) or {
+		return jsonrpc.internal_error
+	}
+
 	mut calendar_event_obj := mydb.calendar_event.new(
 		name:           payload.name
 		description:    payload.description
 		title:          payload.title
-		start_time:     payload.start_time
-		end_time:       payload.end_time
+		start_time:     start_time_converted
+		end_time:       end_time_converted
 		location:       payload.location
 		attendees:      payload.attendees
 		fs_items:       payload.fs_items
@@ -79,9 +106,11 @@ pub fn calendar_event_set(request Request) !Response {
 		securitypolicy: payload.securitypolicy
 		tags:           payload.tags
 		comments:       payload.comments
-	)!
+	) or { return jsonrpc.internal_error }
 
-	calendar_event_obj = mydb.calendar_event.set(calendar_event_obj)!
+	calendar_event_obj = mydb.calendar_event.set(calendar_event_obj) or {
+		return jsonrpc.internal_error
+	}
 
 	return new_response_u32(request.id, calendar_event_obj.id)
 }
@@ -97,9 +126,9 @@ pub fn calendar_event_delete(request Request) !Response {
 	return new_response_true(request.id) // return true as jsonrpc (bool)
 }
 
+// List all calendar events
 pub fn calendar_event_list(request Request) !Response {
 	mut mydb := heromodels.new()!
 	calendar_events := mydb.calendar_event.list()!
-
 	return jsonrpc.new_response(request.id, json.encode(calendar_events))
 }

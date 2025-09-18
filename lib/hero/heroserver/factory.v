@@ -3,6 +3,8 @@ module heroserver
 import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
 import freeflowuniverse.herolib.ui.console
+import freeflowuniverse.herolib.core.logger
+import time
 import veb
 
 // Create a new HeroServer instance
@@ -14,6 +16,12 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 		herocrypt.new_default()!
 	}
 
+	// Create logger with configurable output
+	mut server_logger := logger.new(
+		path:           config.log_path
+		console_output: config.console_output
+	) or { return error('Failed to create logger: ${err}') }
+
 	mut server := &HeroServer{
 		port:            config.port
 		host:            config.host
@@ -24,6 +32,8 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 		auth_enabled:    config.auth_enabled
 		cors_enabled:    config.cors_enabled
 		allowed_origins: config.allowed_origins.clone()
+		logger:          server_logger
+		start_time:      time.now().unix()
 	}
 
 	console.print_header('HeroServer created on port ${server.port}')
@@ -38,15 +48,8 @@ pub fn (mut server HeroServer) register_handler(handler_type string, handler &op
 
 // Start the server
 pub fn (mut server HeroServer) start() ! {
-	// Configure CORS if enabled
 	if server.cors_enabled {
 		console.print_item('CORS enabled for origins: ${server.allowed_origins}')
-		server.use(veb.cors[Context](veb.CorsOptions{
-			origins:           server.allowed_origins
-			allowed_methods:   [.get, .head, .patch, .put, .post, .delete, .options]
-			allowed_headers:   ['Content-Type', 'Authorization', 'X-Requested-With']
-			allow_credentials: true
-		}))
 	}
 
 	// Start VEB server

@@ -1,12 +1,113 @@
 module heroserver
 
 import veb
+import net.http
 import freeflowuniverse.herolib.schemas.openrpc
 import freeflowuniverse.herolib.schemas.jsonschema
+import freeflowuniverse.herolib.schemas.jsonrpc
+import time
 
-// Home page handler - returns HTML homepage
-@['/']
+// Home page handler - returns HTML homepage for GET, handles JSON-RPC for POST
+@['/'; get; options; post]
 pub fn (mut server HeroServer) home_handler(mut ctx Context) veb.Result {
+	server.log(
+		message: 'New request: ${ctx.req.method} /'
+	)
+
+	// Handle CORS preflight OPTIONS request
+	if ctx.req.method == http.Method.options {
+		server.log(
+			message: 'Handling OPTIONS preflight request for root'
+		)
+
+		// Ensure CORS headers are set for OPTIONS response
+		if server.cors_enabled {
+			origin := ctx.get_header(.origin) or { '' }
+			if origin != ''
+				&& (server.allowed_origins.contains('*') || server.allowed_origins.contains(origin)) {
+				ctx.set_header(.access_control_allow_origin, origin)
+				ctx.set_header(.access_control_allow_methods, 'GET, HEAD, PATCH, PUT, POST, DELETE, OPTIONS')
+				ctx.set_header(.access_control_allow_headers, 'Content-Type, Authorization, X-Requested-With')
+				ctx.set_header(.access_control_allow_credentials, 'true')
+				ctx.set_header(.vary, 'Origin')
+				server.log(
+					message: 'CORS headers set for origin: ${origin}'
+				)
+			}
+		}
+
+		return ctx.text('')
+	}
+
+	// Handle POST requests as JSON-RPC
+	if ctx.req.method == http.Method.post {
+		server.log(
+			message: 'Handling JSON-RPC request at root endpoint'
+		)
+
+		// Set CORS headers for POST response
+		if server.cors_enabled {
+			origin := ctx.get_header(.origin) or { '' }
+			if origin != ''
+				&& (server.allowed_origins.contains('*') || server.allowed_origins.contains(origin)) {
+				ctx.set_header(.access_control_allow_origin, origin)
+				ctx.set_header(.access_control_allow_credentials, 'true')
+				ctx.set_header(.vary, 'Origin')
+				server.log(
+					message: 'CORS headers set for POST response, origin: ${origin}'
+				)
+			}
+		}
+
+		// Check if we have handlers
+		if server.handlers.len == 0 {
+			return ctx.server_error('No handlers registered')
+		}
+
+		// Use the first registered handler for root requests
+		handler_name := server.handlers.keys()[0]
+		server.log(
+			message: 'Using handler: ${handler_name}'
+		)
+
+		mut handler := server.handlers[handler_name] or {
+			return ctx.request_error('Handler not found: ${handler_name}')
+		}
+
+		// Parse JSON-RPC request
+		request := jsonrpc.decode_request(ctx.req.data) or {
+			server.log(
+				message: 'Invalid JSON-RPC request: ${err}'
+				level:   .error
+			)
+			return ctx.request_error('Invalid JSON-RPC request: ${err}')
+		}
+
+		server.log(
+			message: 'JSON-RPC method: ${request.method}'
+		)
+
+		// Handle the request using the OpenRPC handler
+		response := handler.handle(request) or {
+			server.log(
+				message: 'Handler error: ${err}'
+				level:   .error
+			)
+			return ctx.server_error('Handler error: ${err}')
+		}
+
+		server.log(
+			message: 'JSON-RPC response sent'
+		)
+		ctx.set_header(.content_type, 'application/json')
+		return ctx.text(response.encode())
+	}
+
+	// Handle GET requests as HTML homepage
+	server.log(
+		message: 'Serving HTML homepage'
+	)
+
 	// Create a simple server info structure for the template
 	server_info := HomePageData{
 		base_url:     get_base_url_from_context(ctx)
@@ -20,6 +121,42 @@ pub fn (mut server HeroServer) home_handler(mut ctx Context) veb.Result {
 	html_content := $tmpl('templates/home.html')
 
 	return ctx.html(html_content)
+}
+
+// Health check endpoint
+@['/health'; get]
+pub fn (mut server HeroServer) health_handler(mut ctx Context) veb.Result {
+	server.log(
+		message: 'Health check requested'
+	)
+
+	// Create health status response
+	current_time := time.now().unix()
+	uptime := current_time - server.start_time
+
+	health_status := {
+		'status':         'healthy'
+		'timestamp':      current_time.str()
+		'version':        '1.0.0'
+		'handlers_count': server.handlers.len.str()
+		'auth_enabled':   server.auth_enabled.str()
+		'cors_enabled':   server.cors_enabled.str()
+		'uptime_seconds': uptime.str()
+	}
+
+	// Set CORS headers if enabled
+	if server.cors_enabled {
+		origin := ctx.get_header(.origin) or { '' }
+		if origin != ''
+			&& (server.allowed_origins.contains('*') || server.allowed_origins.contains(origin)) {
+			ctx.set_header(.access_control_allow_origin, origin)
+			ctx.set_header(.access_control_allow_credentials, 'true')
+			ctx.set_header(.vary, 'Origin')
+		}
+	}
+
+	ctx.set_header(.content_type, 'application/json')
+	return ctx.json(health_status)
 }
 
 // JSON server info handler

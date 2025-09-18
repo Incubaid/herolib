@@ -1,6 +1,7 @@
 module heroserver
 
 import json
+import net.http
 import veb
 import freeflowuniverse.herolib.schemas.jsonrpc
 
@@ -36,8 +37,41 @@ pub fn (mut server HeroServer) auth_handler(mut ctx Context, action string) !veb
 	}
 }
 
-@['/api/:handler_type'; post]
+@['/api/:handler_type'; options; post]
 pub fn (mut server HeroServer) api_handler(mut ctx Context, handler_type string) veb.Result {
+	if ctx.req.method == http.Method.options {
+		if server.cors_enabled {
+			origin := ctx.get_header(.origin) or { '' }
+			if origin != ''
+				&& (server.allowed_origins.contains('*') || server.allowed_origins.contains(origin)) {
+				ctx.set_header(.access_control_allow_origin, origin)
+				ctx.set_header(.access_control_allow_methods, 'GET, HEAD, PATCH, PUT, POST, DELETE, OPTIONS')
+				ctx.set_header(.access_control_allow_headers, 'Content-Type, Authorization, X-Requested-With')
+				ctx.set_header(.access_control_allow_credentials, 'true')
+				ctx.set_header(.vary, 'Origin')
+				server.log(
+					message: 'CORS headers set for origin: ${origin}'
+				)
+			}
+		}
+
+		return ctx.text('')
+	}
+
+	// Set CORS headers for POST response
+	if server.cors_enabled {
+		origin := ctx.get_header(.origin) or { '' }
+		if origin != ''
+			&& (server.allowed_origins.contains('*') || server.allowed_origins.contains(origin)) {
+			ctx.set_header(.access_control_allow_origin, origin)
+			ctx.set_header(.access_control_allow_credentials, 'true')
+			ctx.set_header(.vary, 'Origin')
+			server.log(
+				message: 'CORS headers set for API POST response, origin: ${origin}'
+			)
+		}
+	}
+
 	// TODO: For now, skip authentication for testing
 	// session_key := ctx.get_header(.authorization) or {
 	// 	return ctx.request_error('Missing session key in Authorization header')
@@ -61,6 +95,6 @@ pub fn (mut server HeroServer) api_handler(mut ctx Context, handler_type string)
 	// Handle the request using the OpenRPC handler
 	response := handler.handle(request) or { return ctx.server_error('Handler error: ${err}') }
 
-	// Return the JSON-RPC response
-	return ctx.json(response)
+	ctx.set_header(.content_type, 'application/json')
+	return ctx.text(response.encode())
 }
