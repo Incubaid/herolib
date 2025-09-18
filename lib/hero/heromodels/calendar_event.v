@@ -19,13 +19,14 @@ pub mut:
 	status             EventStatus
 	is_all_day         bool
 	is_recurring       bool
-	recurrence         []RecurrenceRule // normally empty
+	recurrence         []RecurrenceRule
 	reminder_mins      []int            // Minutes before event for reminders
 	color              string           // Hex color code
 	timezone           string
 	priority           EventPriority
 	public             bool
 	locations []EventLocation
+	is_template bool //not to be shown as real event, serves as placeholder e.g. for planning
 }
 
 

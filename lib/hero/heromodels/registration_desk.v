@@ -14,6 +14,7 @@ pub mut:
 	fs_items            []RegistrationFileAttachment // link to docs
 	white_list          []u32 // users who can enter, if 1 specified then people need to be in this list
 	white_list_accepted []u32 // if in this list automatically accepted
+	required_list          []u32 // users who must be part of the event
 	black_list          []u32 // users not allowed
 	start_time          u64   // time when users can start registration
 	end_time            u64   // time when registration desk stops

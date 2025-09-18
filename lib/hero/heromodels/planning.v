@@ -4,36 +4,56 @@ import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 
-// Planning represents a collection of events
+// Planning, how do people or teams want to plan their time
+//acls can be used to define who can change this planning
 @[heap]
 pub struct Planning {
 	db.Base
 pub mut:
-	color     string // Hex color code
-	timezone  string
-	is_public bool
-	calendar_id u32 //link to calendarid which is relevant for this planning, the calendar has 
-
+	color              string // Hex color code
+	timezone           string
+	is_public          bool
+	calendar_template_id        u32              // link to calendarid which is relevant for this planning, this calendar event will be a template
+	registration_desk_id u32 //to arrange how we let people register, and track registrations
+	autoschedule_rules []RecurrenceRule // will automatically schedule, uses calendar_id as template
+	invite_rules       []RecurrenceRule // times in which people can invite themselves
+	attendees_required []u32 
+	attendees_optional []u32 //if we want to specify upfront
 }
 
 pub struct RecurrenceRule {
 pub mut:
-	frequency   RecurrenceFreq
-	interval    int   // Every N frequencies
-	until       i64   // End date (Unix timestamp)
-	count       int   // Number of occurrences
-	by_weekday  []int // Days of week (0=Sunday)
-	by_monthday []int // Days of month
+	// cron        string // in linux cron format, if cron used then other ones below not used
+	until       u64  // End date (Unix timestamp)
+	by_weekday  []u8 // Days of week (0=Sunday)
+	by_monthday []u8 // Days of month
+	hour_from   u8   // starts at midnight e.g. 10
+	hour_to     u8   // e.g. 12 means between 10 and 12 (noon)
+	duration    int  // in minutes e.g. 30, means half hour
+	priority    u8   // to tell user what has our preference, higher nr is better, max 10
 }
 
-pub enum RecurrenceFreq {
-	none
-	daily
-	weekly
-	monthly
-	yearly
+
+
+pub fn (self RecurrenceRule) dump(mut e encoder.Encoder) ! {
+	e.add_u64(self.until)
+	e.add_list_u8(self.by_weekday)
+	e.add_list_u8(self.by_monthday)
+	e.add_u8(self.hour_from)
+	e.add_u8(self.hour_to)
+	e.add_int(self.duration)
+	e.add_u8(self.priority)
 }
 
+pub fn (mut self RecurrenceRule) load(mut e encoder.Decoder) ! {
+	self.until = e.get_u64()!
+	self.by_weekday = e.get_list_u8()!
+	self.by_monthday = e.get_list_u8()!
+	self.hour_from = e.get_u8()!
+	self.hour_to = e.get_u8()!
+	self.duration = e.get_int()!
+	self.priority = e.get_u8()!
+}
 
 pub struct DBPlanning {
 pub mut:
@@ -103,12 +123,46 @@ pub fn (self Planning) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.color)
 	e.add_string(self.timezone)
 	e.add_bool(self.is_public)
+	e.add_u32(self.calendar_id)
+	
+	// Encode autoschedule_rules array
+	e.add_u16(u16(self.autoschedule_rules.len))
+	for rule in self.autoschedule_rules {
+		rule.dump(mut e)!
+	}
+	
+	// Encode invite_rules array
+	e.add_u16(u16(self.invite_rules.len))
+	for rule in self.invite_rules {
+		rule.dump(mut e)!
+	}
 }
 
 fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 	o.color = e.get_string()!
 	o.timezone = e.get_string()!
 	o.is_public = e.get_bool()!
+	o.calendar_id = e.get_u32()!
+	
+	// Decode autoschedule_rules array
+	autoschedule_rules_len := e.get_u16()!
+	mut autoschedule_rules := []RecurrenceRule{}
+	for _ in 0 .. autoschedule_rules_len {
+		mut rule := RecurrenceRule{}
+		rule.load(mut e)!
+		autoschedule_rules << rule
+	}
+	o.autoschedule_rules = autoschedule_rules
+	
+	// Decode invite_rules array
+	invite_rules_len := e.get_u16()!
+	mut invite_rules := []RecurrenceRule{}
+	for _ in 0 .. invite_rules_len {
+		mut rule := RecurrenceRule{}
+		rule.load(mut e)!
+		invite_rules << rule
+	}
+	o.invite_rules = invite_rules
 }
 
 @[params]

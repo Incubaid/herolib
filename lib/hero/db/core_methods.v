@@ -29,6 +29,10 @@ pub fn (mut self DB) set[T](obj_ T) !T {
 	for comment in obj.comments {
 		e.add_u32(comment)
 	}
+	e.add_u16(u16(obj.messages.len))
+	for message in obj.messages {
+		e.add_u32(message)
+	}
 
 	obj.dump(mut e)!
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
@@ -60,6 +64,9 @@ pub fn (mut self DB) get_data[T](id u32) !(T, []u8) {
 	for _ in 0 .. e.get_u16()! {
 		base.comments << e.get_u32()!
 	}
+	for _ in 0 .. e.get_u16()! {
+		base.messages << e.get_u32()!
+	}	
 	return base, e.data
 }
 
