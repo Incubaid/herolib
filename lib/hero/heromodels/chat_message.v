@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // ChatMessage represents a message in a chat group
 @[heap]
@@ -104,10 +107,10 @@ pub fn (self ChatMessage) description(methodname string) string {
 pub fn (self ChatMessage) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"chat_message": {"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}}', '1'
+			return '{"chat_message": {"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [{"message_id": 123, "link_type": "reply"}], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [{"user_id": 2, "emoji": "👍", "timestamp": 1678886400}], "mentions": [2, 3]}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}'
+			return '{"id": 1}', '{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [{"message_id": 123, "link_type": "reply"}], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [{"user_id": 2, "emoji": "👍", "timestamp": 1678886400}], "mentions": [2, 3]}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -116,7 +119,7 @@ pub fn (self ChatMessage) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}]'
+			return '{}', '[{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [{"message_id": 123, "link_type": "reply"}], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [{"user_id": 2, "emoji": "👍", "timestamp": 1678886400}], "mentions": [2, 3]}]'
 		}
 		else {
 			return '{}', '{}'
@@ -295,4 +298,44 @@ pub fn (mut self DBChatMessage) list(args ChatMessageListArg) ![]ChatMessage {
 	}
 
 	return filtered_chat_messages
+}
+
+
+pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.chat_message.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[ChatMessage](params)!
+			o = f.chat_message.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.chat_message.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.chat_message.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '')
+			res := f.chat_message.list()!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on chat_message'
+			)
+		}
+	}
 }

@@ -6,12 +6,13 @@
     },
     "methods": [
         {
-            "name": "message_get",
-            "summary": "Get a message by ID",
+            "name": "comment_get",
+            "summary": "Get a comment by ID",
+            "description": "Retrieve a comment by its unique ID. Returns the comment object.",
             "params": [
                 {
                     "name": "id",
-                    "description": "ID of message to fetch",
+                    "description": "ID of comment to fetch",
                     "required": true,
                     "schema": {
                         "type": "integer",
@@ -20,20 +21,20 @@
                 }
             ],
             "result": {
-                "name": "message",
-                "description": "Message object",
+                "name": "comment",
+                "description": "Comment object",
                 "schema": {
-                    "$ref": "#/components/schemas/Message"
+                    "$ref": "#/components/schemas/Comment"
                 }
             }
         },
         {
-            "name": "message_set",
-            "summary": "Create or update a message",
+            "name": "comment_set",
+            "summary": "Create or update a comment",
             "params": [
                 {
-                    "name": "message",
-                    "description": "Message text",
+                    "name": "comment",
+                    "description": "Comment text",
                     "required": true,
                     "schema": {
                         "type": "string"
@@ -41,7 +42,7 @@
                 },
                 {
                     "name": "parent",
-                    "description": "ID of parent message if any, 0 means none",
+                    "description": "ID of parent comment if any, 0 means none",
                     "schema": {
                         "type": "integer",
                         "minimum": 0
@@ -58,7 +59,7 @@
             ],
             "result": {
                 "name": "id",
-                "description": "ID of the created/updated message",
+                "description": "ID of the created/updated comment",
                 "schema": {
                     "type": "integer",
                     "minimum": 0
@@ -66,12 +67,12 @@
             }
         },
         {
-            "name": "message_delete",
-            "summary": "Delete a message by ID",
+            "name": "comment_delete",
+            "summary": "Delete a comment by ID",
             "params": [
                 {
                     "name": "id",
-                    "description": "ID of message to delete",
+                    "description": "ID of comment to delete",
                     "required": true,
                     "schema": {
                         "type": "integer",
@@ -88,16 +89,16 @@
             }
         },
         {
-            "name": "message_list",
-            "summary": "List all messages",
+            "name": "comment_list",
+            "summary": "List all comments",
             "params": [],
             "result": {
-                "name": "messages",
-                "description": "List of all message objects",
+                "name": "comments",
+                "description": "List of all comment objects",
                 "schema": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/components/schemas/Message"
+                        "$ref": "#/components/schemas/Comment"
                     }
                 }
             }
@@ -400,12 +401,12 @@
                     }
                 },
                 {
-                    "name": "messages",
-                    "description": "Messages for the calendar event",
+                    "name": "comments",
+                    "description": "Comments for the calendar event",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/MessageArg"
+                            "$ref": "#/components/schemas/CommentArg"
                         }
                     }
                 }
@@ -542,12 +543,12 @@
                     }
                 },
                 {
-                    "name": "messages",
-                    "description": "Messages for the chat group",
+                    "name": "comments",
+                    "description": "Comments for the chat group",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/MessageArg"
+                            "$ref": "#/components/schemas/CommentArg"
                         }
                     }
                 }
@@ -752,12 +753,12 @@
                     }
                 },
                 {
-                    "name": "messages",
-                    "description": "Messages for the chat message",
+                    "name": "comments",
+                    "description": "Comments for the chat message",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/MessageArg"
+                            "$ref": "#/components/schemas/CommentArg"
                         }
                     }
                 }
@@ -1128,12 +1129,12 @@
                     }
                 },
                 {
-                    "name": "messages",
-                    "description": "Messages for the project issue",
+                    "name": "comments",
+                    "description": "Comments for the project issue",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/MessageArg"
+                            "$ref": "#/components/schemas/CommentArg"
                         }
                     }
                 }
@@ -1312,12 +1313,12 @@
                     }
                 },
                 {
-                    "name": "messages",
-                    "description": "Messages for the project",
+                    "name": "comments",
+                    "description": "Comments for the project",
                     "schema": {
                         "type": "array",
                         "items": {
-                            "$ref": "#/components/schemas/MessageArg"
+                            "$ref": "#/components/schemas/CommentArg"
                         }
                     }
                 }
@@ -1488,8 +1489,8 @@
                     }
                 },
                 {
-                    "name": "messages",
-                    "description": "Messages for the user",
+                    "name": "comments",
+                    "description": "Comments for the user",
                     "schema": {
                         "type": "array",
                         "items": {
@@ -1544,212 +1545,6 @@
                     }
                 }
             }
-        },
-        {
-            "name": "planning_get",
-            "summary": "Get a planning by ID",
-            "params": [
-                {
-                    "name": "id",
-                    "description": "ID of the planning to fetch",
-                    "required": true,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                }
-            ],
-            "result": {
-                "name": "planning",
-                "description": "Planning object",
-                "schema": {
-                    "$ref": "#/components/schemas/Planning"
-                }
-            }
-        },
-        {
-            "name": "planning_set",
-            "summary": "Create or update a planning",
-            "params": [
-                {
-                    "name": "planning",
-                    "description": "Planning object to create or update",
-                    "required": true,
-                    "schema": {
-                        "$ref": "#/components/schemas/Planning"
-                    }
-                }
-            ],
-            "result": {
-                "name": "id",
-                "description": "ID of the created/updated planning",
-                "schema": {
-                    "type": "integer",
-                    "minimum": 0
-                }
-            }
-        },
-        {
-            "name": "planning_delete",
-            "summary": "Delete a planning by ID",
-            "params": [
-                {
-                    "name": "id",
-                    "description": "ID of the planning to delete",
-                    "required": true,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                }
-            ],
-            "result": {
-                "name": "result",
-                "description": "Success result",
-                "schema": {
-                    "type": "boolean"
-                }
-            }
-        },
-        {
-            "name": "planning_exist",
-            "summary": "Check if a planning exists by ID",
-            "params": [
-                {
-                    "name": "id",
-                    "description": "ID of the planning to check",
-                    "required": true,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                }
-            ],
-            "result": {
-                "name": "exists",
-                "description": "True if the planning exists, false otherwise",
-                "schema": {
-                    "type": "boolean"
-                }
-            }
-        },
-        {
-            "name": "planning_list",
-            "summary": "List all plannings",
-            "params": [],
-            "result": {
-                "name": "plannings",
-                "description": "List of all planning objects",
-                "schema": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/components/schemas/Planning"
-                    }
-                }
-            }
-        },
-        {
-            "name": "registration_desk_get",
-            "summary": "Get a registration desk by ID",
-            "params": [
-                {
-                    "name": "id",
-                    "description": "ID of the registration desk to fetch",
-                    "required": true,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                }
-            ],
-            "result": {
-                "name": "registration_desk",
-                "description": "Registration desk object",
-                "schema": {
-                    "$ref": "#/components/schemas/RegistrationDesk"
-                }
-            }
-        },
-        {
-            "name": "registration_desk_set",
-            "summary": "Create or update a registration desk",
-            "params": [
-                {
-                    "name": "registration_desk",
-                    "description": "Registration desk object to create or update",
-                    "required": true,
-                    "schema": {
-                        "$ref": "#/components/schemas/RegistrationDesk"
-                    }
-                }
-            ],
-            "result": {
-                "name": "id",
-                "description": "ID of the created/updated registration desk",
-                "schema": {
-                    "type": "integer",
-                    "minimum": 0
-                }
-            }
-        },
-        {
-            "name": "registration_desk_delete",
-            "summary": "Delete a registration desk by ID",
-            "params": [
-                {
-                    "name": "id",
-                    "description": "ID of the registration desk to delete",
-                    "required": true,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                }
-            ],
-            "result": {
-                "name": "result",
-                "description": "Success result",
-                "schema": {
-                    "type": "boolean"
-                }
-            }
-        },
-        {
-            "name": "registration_desk_exist",
-            "summary": "Check if a registration desk exists by ID",
-            "params": [
-                {
-                    "name": "id",
-                    "description": "ID of the registration desk to check",
-                    "required": true,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 0
-                    }
-                }
-            ],
-            "result": {
-                "name": "exists",
-                "description": "True if the registration desk exists, false otherwise",
-                "schema": {
-                    "type": "boolean"
-                }
-            }
-        },
-        {
-            "name": "registration_desk_list",
-            "summary": "List all registration desks",
-            "params": [],
-            "result": {
-                "name": "registration_desks",
-                "description": "List of all registration desk objects",
-                "schema": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/components/schemas/RegistrationDesk"
-                    }
-                }
-            }
         }
     ],
     "components": {
@@ -1781,7 +1576,7 @@
                         "type": "integer",
                         "minimum": 0
                     },
-                    "messages": {
+                    "comments": {
                         "type": "array",
                         "items": {
                             "type": "integer",
@@ -1790,16 +1585,16 @@
                     }
                 }
             },
-            "Message": {
-                "title": "Message",
-                "description": "A message object",
+            "Comment": {
+                "title": "Comment",
+                "description": "A comment object",
                 "allOf": [
                     {
                         "$ref": "#/components/schemas/Base"
                     }
                 ],
                 "properties": {
-                    "message": {
+                    "comment": {
                         "type": "string"
                     },
                     "parent": {
@@ -2372,12 +2167,12 @@
                     }
                 }
             },
-            "MessageArg": {
-                "title": "MessageArg",
-                "description": "A message argument",
+            "CommentArg": {
+                "title": "CommentArg",
+                "description": "A comment argument",
                 "type": "object",
                 "properties": {
-                    "message": {
+                    "comment": {
                         "type": "string"
                     },
                     "parent": {

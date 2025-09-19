@@ -50,7 +50,19 @@ pub fn new_request(method string, params string) Request {
 // Returns:
 //   - A Request object or an error if parsing fails
 pub fn decode_request(data string) !Request {
-	return json2.decode[Request](data)!
+	mut r2 := json2.decode[json2.Any](data)!
+	mut r3 := r2.as_map()
+	a := r3['jsonrpc'].str()
+	b := r3['method'].str()
+	c := r3['params'].str()
+	d := r3['id'].int()
+	mut r4 := Request{
+		jsonrpc: a
+		method:  b
+		params:  c
+		id:     d
+	}
+	return r4
 }
 
 // encode serializes the Request object into a JSON string.

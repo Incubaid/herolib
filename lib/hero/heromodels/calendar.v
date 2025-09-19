@@ -3,12 +3,16 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // Calendar represents a collection of events
 @[heap]
 pub struct Calendar {
 	db.Base
 pub mut:
+	events    []u32  // IDs of calendar events
 	color     string // Hex color code
 	timezone  string
 	is_public bool
@@ -17,13 +21,6 @@ pub mut:
 pub struct DBCalendar {
 pub mut:
 	db &db.DB @[skip; str: skip]
-}
-
-@[params]
-pub struct CalendarListArg {
-pub mut:
-	is_public bool
-	limit     int = 100 // Default limit is 100
 }
 
 pub fn (self Calendar) type_name() string {
@@ -79,12 +76,14 @@ pub fn (self Calendar) example(methodname string) (string, string) {
 }
 
 pub fn (self Calendar) dump(mut e encoder.Encoder) ! {
+	e.add_list_u32(self.events)
 	e.add_string(self.color)
 	e.add_string(self.timezone)
 	e.add_bool(self.is_public)
 }
 
 fn (mut self DBCalendar) load(mut o Calendar, mut e encoder.Decoder) ! {
+	o.events = e.get_list_u32()!
 	o.color = e.get_string()!
 	o.timezone = e.get_string()!
 	o.is_public = e.get_bool()!
@@ -107,6 +106,7 @@ pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
 		color:     args.color
 		timezone:  args.timezone
 		is_public: args.is_public
+		events:    args.events
 	}
 
 	// Set base fields
@@ -137,34 +137,49 @@ pub fn (mut self DBCalendar) get(id u32) !Calendar {
 	return o
 }
 
-pub fn (mut self DBCalendar) list(args CalendarListArg) ![]Calendar {
-	// Require at least one parameter to be provided
-	if !args.is_public {
-		return error('At least one filter parameter must be provided')
-	}
+pub fn (mut self DBCalendar) list() ![]Calendar {
+	r := self.db.list[Calendar]()!.map(self.get(it)!)
+	println(r)
+	return r
+}
 
-	// Get all calendars from the database
-	all_calendars := self.db.list[Calendar]()!.map(self.get(it)!)
-
-	// Apply filters
-	mut filtered_calendars := []Calendar{}
-	for calendar in all_calendars {
-		// Filter by is_public if provided (is_public is true)
-		if args.is_public && !calendar.is_public {
-			continue
+pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.calendar.get(id)!
+			return new_response(rpcid, json.encode(res))
 		}
-
-		filtered_calendars << calendar
+		'set' {
+			mut o := db.decode_generic[Calendar](params)!
+			o=f.calendar.set(o)!
+			return new_response_int(rpcid,int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.calendar.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.calendar.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '') // no params
+			res := f.calendar.list()!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			println('Method not found on calendar: ${method}')
+			$dbg;
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on calendar'
+			)
+		}
 	}
-
-	// Limit results to 100 or the specified limit
-	mut limit := args.limit
-	if limit > 100 {
-		limit = 100
-	}
-	if filtered_calendars.len > limit {
-		return filtered_calendars[..limit]
-	}
-
-	return filtered_calendars
 }
