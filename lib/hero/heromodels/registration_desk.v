@@ -3,7 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 @[heap]
 pub struct RegistrationDesk {
@@ -75,10 +77,10 @@ pub fn (self RegistrationDesk) description(methodname string) string {
 pub fn (self RegistrationDesk) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"registration_desk": {"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [], "white_list": [], "white_list_accepted": [], "black_list": [], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": []}}', '1'
+			return '{"registration_desk": {"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [{"fs_item": 1001, "cat": "agenda", "public": true}], "white_list": [100, 101], "white_list_accepted": [102], "black_list": [200], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": [{"user_id": 300, "accepted": true, "accepted_by": 400, "timestamp": 1672564900, "timestamp_acceptation": 1672565000}]}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [], "white_list": [], "white_list_accepted": [], "black_list": [], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": []}'
+			return '{"id": 1}', '{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [{"fs_item": 1001, "cat": "agenda", "public": true}], "white_list": [100, 101], "white_list_accepted": [102], "black_list": [200], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": [{"user_id": 300, "accepted": true, "accepted_by": 400, "timestamp": 1672564900, "timestamp_acceptation": 1672565000}]}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -87,7 +89,7 @@ pub fn (self RegistrationDesk) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [], "white_list": [], "white_list_accepted": [], "black_list": [], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": []}]'
+			return '{}', '[{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [{"fs_item": 1001, "cat": "agenda", "public": true}], "white_list": [100, 101], "white_list_accepted": [102], "black_list": [200], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": [{"user_id": 300, "accepted": true, "accepted_by": 400, "timestamp": 1672564900, "timestamp_acceptation": 1672565000}]}]'
 		}
 		else {
 			return '{}', '{}'
@@ -291,4 +293,43 @@ pub fn (mut self DBRegistrationDesk) list(args RegistrationDeskListArg) ![]Regis
 	}
 
 	return filtered_desks
+}
+
+pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.registration_desk.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[RegistrationDesk](params)!
+			o = f.registration_desk.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.registration_desk.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.registration_desk.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '')
+			res := f.registration_desk.list(RegistrationDeskListArg{})!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on registration_desk'
+			)
+		}
+	}
 }

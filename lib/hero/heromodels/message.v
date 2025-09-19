@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 @[heap]
 pub struct Message {
@@ -81,10 +84,10 @@ pub fn (self Message) description(methodname string) string {
 pub fn (self Message) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"message": {"message": "This is a test message.", "parent": 0, "author": 1}}', '1'
+			return '{"message": {"subject": "Test Subject", "message": "This is a test message.", "parent": 0, "author": 1, "to": [2, 3], "cc": [4], "send_log": [{"to": [2], "cc": [], "status": "sent", "timestamp": 1678886400}]}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"message": "This is a test message.", "parent": 0, "author": 1}'
+			return '{"id": 1}', '{"subject": "Test Subject", "message": "This is a test message.", "parent": 0, "author": 1, "to": [2, 3], "cc": [4], "send_log": [{"to": [2], "cc": [], "status": "sent", "timestamp": 1678886400}]}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -93,7 +96,7 @@ pub fn (self Message) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"message": "This is a test message.", "parent": 0, "author": 1}]'
+			return '{}', '[{"subject": "Test Subject", "message": "This is a test message.", "parent": 0, "author": 1, "to": [2, 3], "cc": [4], "send_log": [{"to": [2], "cc": [], "status": "sent", "timestamp": 1678886400}]}]'
 		}
 		else {
 			return '{}', '{}'
@@ -225,4 +228,43 @@ pub fn (mut self DBMessages) list(args MessageListArg) ![]Message {
 	}
 
 	return filtered_messages
+}
+
+pub fn message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.messages.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Message](params)!
+			o = f.messages.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.messages.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.messages.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '')
+			res := f.messages.list(MessageListArg{})!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on message'
+			)
+		}
+	}
 }

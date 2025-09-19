@@ -17,18 +17,21 @@ __global (
 @[heap]
 pub struct ModelsFactory {
 pub mut:
-	comments       DBComments
-	calendar       DBCalendar
-	calendar_event DBCalendarEvent
-	group          DBGroup
-	user           DBUser
-	project        DBProject
-	project_issue  DBProjectIssue
-	chat_group     DBChatGroup
-	chat_message   DBChatMessage
-	contact        DBContact
-	profile        DBProfile
-	rpc_handler    &Handler
+	comments         DBComments
+	calendar         DBCalendar
+	calendar_event   DBCalendarEvent
+	group            DBGroup
+	user             DBUser
+	project          DBProject
+	project_issue    DBProjectIssue
+	chat_group       DBChatGroup
+	chat_message     DBChatMessage
+	contact          DBContact
+	profile          DBProfile
+	planning         DBPlanning
+	registration_desk DBRegistrationDesk
+	messages         DBMessages
+	rpc_handler      &Handler
 }
 
 @[params]
@@ -46,40 +49,49 @@ pub fn new(args NewArgs) !&ModelsFactory {
 	}
 	mut h := new_handler(openrpc_path)!
 	mut f := ModelsFactory{
-		comments:       DBComments{
+		comments:         DBComments{
 			db: &mydb
 		}
-		calendar:       DBCalendar{
+		calendar:         DBCalendar{
 			db: &mydb
 		}
-		calendar_event: DBCalendarEvent{
+		calendar_event:   DBCalendarEvent{
 			db: &mydb
 		}
-		group:          DBGroup{
+		group:            DBGroup{
 			db: &mydb
 		}
-		user:           DBUser{
+		user:             DBUser{
 			db: &mydb
 		}
-		project:        DBProject{
+		project:          DBProject{
 			db: &mydb
 		}
-		project_issue:  DBProjectIssue{
+		project_issue:    DBProjectIssue{
 			db: &mydb
 		}
-		chat_group:     DBChatGroup{
+		chat_group:       DBChatGroup{
 			db: &mydb
 		}
-		chat_message:   DBChatMessage{
+		chat_message:     DBChatMessage{
 			db: &mydb
 		}
-		contact:        DBContact{
+		contact:          DBContact{
 			db: &mydb
 		}
-		profile:        DBProfile{
+		profile:          DBProfile{
 			db: &mydb
 		}
-		rpc_handler:    &h
+		planning:         DBPlanning{
+			db: &mydb
+		}
+		registration_desk: DBRegistrationDesk{
+			db: &mydb
+		}
+		messages:         DBMessages{
+			db: &mydb
+		}
+		rpc_handler:      &h
 	}
 
 	// openrpc handler can be used by any server, has even embedded unix sockets and simple http server
@@ -143,6 +155,15 @@ pub fn group_api_handler(rpcid int, servercontext map[string]string, actorname s
 		}
 		'profile' {
 			return profile_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'planning' {
+			return planning_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'registration_desk' {
+			return registration_desk_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'message' {
+			return message_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
 		else {
 			return jsonrpc.new_error(rpcid,

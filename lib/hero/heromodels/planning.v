@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // Planning, how do people or teams want to plan their time
 //acls can be used to define who can change this planning
@@ -21,8 +24,16 @@ pub mut:
 	attendees_optional []u32 //if we want to specify upfront
 }
 
-
-
+pub struct RecurrenceRule {
+pub mut:
+	until       u64   // End date (Unix timestamp)
+	by_weekday  []u8  // Days of week (0=Sunday)
+	by_monthday []u8  // Days of month
+	hour_from   u8    // Start hour (0-23)
+	hour_to     u8    // End hour (0-23)
+	duration    int   // Duration in minutes
+	priority    u8    // Priority level (0-10)
+}
 
 pub fn (self RecurrenceRule) dump(mut e encoder.Encoder) ! {
 	e.add_u64(self.until)
@@ -90,10 +101,10 @@ pub fn (self Planning) description(methodname string) string {
 pub fn (self Planning) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"planning": {"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}}', '1'
+			return '{"planning": {"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [{"until": 1893456000, "by_weekday": [1, 3, 5], "by_monthday": [], "hour_from": 9, "hour_to": 17, "duration": 30, "priority": 5}], "invite_rules": [{"until": 0, "by_weekday": [], "by_monthday": [1, 15], "hour_from": 10, "hour_to": 12, "duration": 60, "priority": 8}], "attendees_required": [100, 101], "attendees_optional": [200]}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}'
+			return '{"id": 1}', '{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [{"until": 1893456000, "by_weekday": [1, 3, 5], "by_monthday": [], "hour_from": 9, "hour_to": 17, "duration": 30, "priority": 5}], "invite_rules": [{"until": 0, "by_weekday": [], "by_monthday": [1, 15], "hour_from": 10, "hour_to": 12, "duration": 60, "priority": 8}], "attendees_required": [100, 101], "attendees_optional": [200]}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -102,7 +113,7 @@ pub fn (self Planning) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}]'
+			return '{}', '[{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [{"until": 1893456000, "by_weekday": [1, 3, 5], "by_monthday": [], "hour_from": 9, "hour_to": 17, "duration": 30, "priority": 5}], "invite_rules": [{"until": 0, "by_weekday": [], "by_monthday": [1, 15], "hour_from": 10, "hour_to": 12, "duration": 60, "priority": 8}], "attendees_required": [100, 101], "attendees_optional": [200]}]'
 		}
 		else {
 			return '{}', '{}'
@@ -275,4 +286,43 @@ pub fn (mut self DBPlanning) list(args PlanningListArg) ![]Planning {
 	}
 
 	return filtered_plannings
+}
+
+pub fn planning_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.planning.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Planning](params)!
+			o = f.planning.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.planning.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.planning.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '')
+			res := f.planning.list(PlanningListArg{})!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on planning'
+			)
+		}
+	}
 }
