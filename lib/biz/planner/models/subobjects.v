@@ -167,7 +167,7 @@ pub mut:
 }
 
 // RecurrenceRule for recurring agenda items
-pub struct RecurrenceRule {
+pub struct PlannerRecurrenceRule {
 pub mut:
 	frequency    RecurrenceFrequency
 	interval     int = 1 // Every N frequency units

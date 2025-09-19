@@ -1,7 +1,6 @@
 module heromodels
 
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.ourtime
 
 fn test_calendar_event_new() ! {
 	// Initialize DBCalendarEvent for testing

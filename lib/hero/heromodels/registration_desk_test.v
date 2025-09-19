@@ -1,7 +1,6 @@
 module heromodels
 
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.ourtime
 
 fn test_registration_desk_new() ! {
 	// Initialize DBRegistrationDesk for testing

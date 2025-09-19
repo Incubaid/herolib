@@ -1,7 +1,6 @@
 module heromodels
 
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.ourtime
 
 fn test_message_new() ! {
 	// Initialize DBMessages for testing

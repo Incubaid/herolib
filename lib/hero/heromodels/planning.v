@@ -18,13 +18,13 @@ pub mut:
 	is_public          bool
 	calendar_template_id        u32              // link to calendarid which is relevant for this planning, this calendar event will be a template
 	registration_desk_id u32 //to arrange how we let people register, and track registrations
-	autoschedule_rules []RecurrenceRule // will automatically schedule, uses calendar_id as template
-	invite_rules       []RecurrenceRule // times in which people can invite themselves
+	autoschedule_rules []PlanningRecurrenceRule // will automatically schedule, uses calendar_id as template
+	invite_rules       []PlanningRecurrenceRule // times in which people can invite themselves
 	attendees_required []u32 
 	attendees_optional []u32 //if we want to specify upfront
 }
 
-pub struct RecurrenceRule {
+pub struct PlanningRecurrenceRule {
 pub mut:
 	until       u64   // End date (Unix timestamp)
 	by_weekday  []u8  // Days of week (0=Sunday)
@@ -35,7 +35,7 @@ pub mut:
 	priority    u8    // Priority level (0-10)
 }
 
-pub fn (self RecurrenceRule) dump(mut e encoder.Encoder) ! {
+pub fn (self PlanningRecurrenceRule) dump(mut e encoder.Encoder) ! {
 	e.add_u64(self.until)
 	e.add_list_u8(self.by_weekday)
 	e.add_list_u8(self.by_monthday)
@@ -45,7 +45,7 @@ pub fn (self RecurrenceRule) dump(mut e encoder.Encoder) ! {
 	e.add_u8(self.priority)
 }
 
-pub fn (mut self RecurrenceRule) load(mut e encoder.Decoder) ! {
+pub fn (mut self PlanningRecurrenceRule) load(mut e encoder.Decoder) ! {
 	self.until = e.get_u64()!
 	self.by_weekday = e.get_list_u8()!
 	self.by_monthday = e.get_list_u8()!
@@ -156,9 +156,9 @@ fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 	
 	// Decode autoschedule_rules array
 	autoschedule_rules_len := e.get_u16()!
-	mut autoschedule_rules := []RecurrenceRule{}
+	mut autoschedule_rules := []PlanningRecurrenceRule{}
 	for _ in 0 .. autoschedule_rules_len {
-		mut rule := RecurrenceRule{}
+		mut rule := PlanningRecurrenceRule{}
 		rule.load(mut e)!
 		autoschedule_rules << rule
 	}
@@ -166,9 +166,9 @@ fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 	
 	// Decode invite_rules array
 	invite_rules_len := e.get_u16()!
-	mut invite_rules := []RecurrenceRule{}
+	mut invite_rules := []PlanningRecurrenceRule{}
 	for _ in 0 .. invite_rules_len {
-		mut rule := RecurrenceRule{}
+		mut rule := PlanningRecurrenceRule{}
 		rule.load(mut e)!
 		invite_rules << rule
 	}
@@ -191,8 +191,8 @@ pub mut:
 	is_public            bool
 	calendar_template_id u32
 	registration_desk_id u32
-	autoschedule_rules   []RecurrenceRule
-	invite_rules         []RecurrenceRule
+	autoschedule_rules   []PlanningRecurrenceRule
+	invite_rules         []PlanningRecurrenceRule
 	attendees_required   []u32
 	attendees_optional   []u32
 	securitypolicy       u32

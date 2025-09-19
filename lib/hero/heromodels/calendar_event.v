@@ -21,8 +21,6 @@ pub mut:
 	calendar_id   u32   // Associated calendar
 	status        EventStatus
 	is_all_day    bool
-	is_recurring  bool
-	recurrence    []RecurrenceRule // normally empty
 	reminder_mins []int            // Minutes before event for reminders
 	color         string           // Hex color code
 	timezone      string
@@ -53,24 +51,6 @@ pub enum EventStatus {
 	published
 	cancelled
 	completed
-}
-
-pub struct RecurrenceRule {
-pub mut:
-	frequency   RecurrenceFreq
-	interval    int   // Every N frequencies
-	until       i64   // End date (Unix timestamp)
-	count       int   // Number of occurrences
-	by_weekday  []int // Days of week (0=Sunday)
-	by_monthday []int // Days of month
-}
-
-pub enum RecurrenceFreq {
-	none
-	daily
-	weekly
-	monthly
-	yearly
 }
 
 pub struct DBCalendarEvent {
@@ -172,7 +152,7 @@ fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) !
 
 	// Decode recurrence array
 	recurrence_len := e.get_u16()!
-	mut recurrence := []RecurrenceRule{}
+	mut recurrence := []CalendarEventRecurrenceRule{}
 	for _ in 0 .. recurrence_len {
 		frequency := unsafe { RecurrenceFreq(e.get_u8()!) }
 		interval := e.get_int()!
@@ -181,7 +161,7 @@ fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) !
 		by_weekday := e.get_list_int()!
 		by_monthday := e.get_list_int()!
 
-		recurrence << RecurrenceRule{
+		recurrence << CalendarEventRecurrenceRule{
 			frequency:   frequency
 			interval:    interval
 			until:       until
@@ -212,7 +192,7 @@ pub mut:
 	status         EventStatus
 	is_all_day     bool
 	is_recurring   bool
-	recurrence     []RecurrenceRule
+	recurrence     []CalendarEventRecurrenceRule
 	reminder_mins  []int  // Minutes before event for reminders
 	color          string // Hex color code
 	timezone       string
