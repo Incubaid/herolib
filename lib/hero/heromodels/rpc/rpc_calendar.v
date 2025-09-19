@@ -54,7 +54,7 @@ pub fn calendar_set(request Request) !Response {
 		events:      payload.events
 	)!
 
-	calendar_obj=mydb.calendar.set( calendar_obj)!
+	calendar_obj = mydb.calendar.set(calendar_obj)!
 
 	return new_response_u32(request.id, calendar_obj.id)
 }
@@ -74,6 +74,5 @@ pub fn calendar_delete(request Request) !Response {
 pub fn calendar_list(request Request) !Response {
 	mut mydb := heromodels.new()!
 	calendars := mydb.calendar.list()!
-
 	return jsonrpc.new_response(request.id, json.encode(calendars))
 }

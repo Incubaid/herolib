@@ -8,9 +8,10 @@ fn main() {
 	// Start the server in a background thread with authentication disabled for testing
 	spawn fn () {
 		rpc.start(
-			port:            8080
+			port:            8086
 			auth_enabled:    false // Disable auth for testing
 			cors_enabled:    true
+			reset: true
 			allowed_origins: [
 				'http://localhost:5173',
 			]

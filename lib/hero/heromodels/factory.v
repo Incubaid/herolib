@@ -1,7 +1,13 @@
 module heromodels
 
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.core.redisclient
 
+__global (
+	rpc_heromodels map[string]&ModelsFactory
+)
+
+@[heap]
 pub struct ModelsFactory {
 pub mut:
 	comments       DBComments
@@ -15,9 +21,19 @@ pub mut:
 	chat_message   DBChatMessage
 }
 
-pub fn new() !ModelsFactory {
-	mut mydb := db.new()!
-	return ModelsFactory{
+@[params]
+pub struct NewArgs {
+	name  string @[required]
+	reset bool
+	redis ?&redisclient.Redis
+}
+
+pub fn new(args NewArgs) !&ModelsFactory {
+	mut mydb := db.new(redis: args.redis)!
+	if args.reset {
+		mydb.redis.flushdb()!
+	}
+	mut f := ModelsFactory{
 		comments:       DBComments{
 			db: &mydb
 		}
@@ -46,4 +62,6 @@ pub fn new() !ModelsFactory {
 			db: &mydb
 		}
 	}
+	rpc_heromodels[args.name] = &f
+	return rpc_heromodels[args.name] or { panic('bug') }
 }

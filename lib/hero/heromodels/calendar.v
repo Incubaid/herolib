@@ -135,5 +135,7 @@ pub fn (mut self DBCalendar) get(id u32) !Calendar {
 }
 
 pub fn (mut self DBCalendar) list() ![]Calendar {
-	return self.db.list[Calendar]()!.map(self.get(it)!)
+	r:= self.db.list[Calendar]()!.map(self.get(it)!)
+	println(r)
+	return r
 }

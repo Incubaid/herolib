@@ -1,9 +1,8 @@
 module jsonrpc
 
 import x.json2 as json
-import net.websocket
 
-// This file implements a JSON-RPC 2.0 handler for WebSocket servers.
+// This file implements a JSON-RPC 2.0 handler
 // It provides functionality to register procedure handlers and process incoming JSON-RPC requests.
 
 // Handler is a JSON-RPC request handler that maps method names to their corresponding procedure handlers.
@@ -13,6 +12,7 @@ pub struct Handler {
 pub mut:
 	// A map where keys are method names and values are the corresponding procedure handler functions
 	procedures map[string]ProcedureHandler
+	params     map[string]string
 }
 
 // ProcedureHandler is a function type that processes a JSON-RPC request payload and returns a response.
@@ -84,14 +84,32 @@ pub mut:
 }
 
 pub fn (pw Procedure[T, U]) handle(request Request) !Response {
-	payload := decode_payload[T](request.params) or { return invalid_params }
-	result := pw.function(payload) or { return internal_error }
+	payload := decode_payload[T](request.params) or {
+		RPCError{
+			code:    -32603
+			message: 'Invalid request params on rpc request.'
+			data:    '${request.params}'
+		}
+	}
+	result := pw.function(payload) or {
+		return RPCError{
+			code:    -32603
+			message: 'Error in function on rpc request.'
+			data:    '${request}\n${err}'
+		}
+	}
 	return new_response(request.id, '')
 }
 
 pub fn (pw ProcedureVoid[T]) handle(request Request) !Response {
 	payload := decode_payload[T](request.params) or { return invalid_params }
-	pw.function(payload) or { return internal_error }
+	result := pw.function(payload) or {
+		return RPCError{
+			code:    -32603
+			message: 'Error in function on rpc request.'
+			data:    '${request}\n${err}'
+		}
+	}
 	return new_response(request.id, 'null')
 }
 
@@ -145,8 +163,12 @@ pub fn (handler Handler) handle(request Request) !Response {
 	}
 
 	// Execute the procedure handler with the request payload
-	return procedure_func(request) or {
+	return procedure_func(handler.params, request) or {
 		// Return proper JSON-RPC error instead of panicking
-		return new_error(request.id, internal_error)
+		return new_error(request.id, RPCError{
+			code:    -32603
+			message: 'Error in function on rpc request.'
+			data:    '${request}\n${err}'
+		})
 	}
 }

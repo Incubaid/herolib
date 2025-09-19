@@ -62,12 +62,12 @@ pub mut:
 	id u32 @[required]
 }
 
-pub fn calendar_event_get(request Request) !Response {
+pub fn calendar_event_get(handlerparams map[string]string, request Request) !Response {
 	payload := jsonrpc.decode_payload[CalendarEventGetArgs](request.params) or {
 		return jsonrpc.invalid_params
 	}
-
-	mut mydb := heromodels.new()!
+	name := handlerparams['name'] or { 'default' }
+	mut mydb := heromodels.get(name)!
 	calendar_event := mydb.calendar_event.get(payload.id)!
 
 	return jsonrpc.new_response(request.id, json.encode(calendar_event))

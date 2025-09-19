@@ -22,6 +22,8 @@ pub mut:
 	// An identifier established by the client that must be included in the response
 	// This is used to correlate requests with their corresponding responses
 	id int @[required]
+
+	handler_params map[string]string
 }
 
 // new_request creates a new JSON-RPC request with the specified method and parameters.

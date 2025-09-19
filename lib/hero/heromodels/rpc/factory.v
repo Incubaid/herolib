@@ -1,13 +1,13 @@
 module rpc
 
-import freeflowuniverse.herolib.schemas.openrpc
+import freeflowuniverse.herolib.schemas.openrpc { Handler }
 import freeflowuniverse.herolib.hero.heroserver
 import os
 
 const openrpc_path = os.join_path(os.dir(@FILE), 'openrpc.json')
 
 // Create a new heromodels handler for heroserver
-pub fn new_heromodels_handler() !&openrpc.Handler {
+pub fn new_heromodels_handler() !&Handler {
 	mut handler := openrpc.new_handler(openrpc_path)!
 
 	// Register all comment methods
@@ -71,11 +71,13 @@ pub fn new_heromodels_handler() !&openrpc.Handler {
 @[params]
 pub struct ServerArgs {
 pub mut:
-	port            int      = 8080
-	host            string   = 'localhost'
-	auth_enabled    bool     = true
-	cors_enabled    bool     = true
+	port            int    = 8080
+	host            string = 'localhost'
+	auth_enabled    bool   = true
+	cors_enabled    bool   = true
+	reset           bool
 	allowed_origins []string = ['*'] // Default allows all origins
+	name            string
 }
 
 pub fn start(args ServerArgs) ! {
@@ -90,6 +92,7 @@ pub fn start(args ServerArgs) ! {
 
 	// Create and register the heromodels handler
 	handler := new_heromodels_handler()!
+	handler.params['name'] = args.name
 	server.register_handler('heromodels', handler)!
 
 	// Start the server
