@@ -321,7 +321,7 @@ fn test_registration_desk_example() ! {
 
 	list_call, list_result := registration_desk.example("list")
 	assert list_call == '{}'
-	assert list_result == '[{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [], "white_list": [], "white_list_accepted": [], "black_list": [], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": []}]'
+	assert list_result == '[{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [{"fs_item": 1001, "cat": "agenda", "public": true}], "white_list": [100, 101], "white_list_accepted": [102], "black_list": [200], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": [{"user_id": 300, "accepted": true, "accepted_by": 400, "timestamp": 1672564900, "timestamp_acceptation": 1672565000}]}]'
 
 	unknown_call, unknown_result := registration_desk.example("unknown")
 	assert unknown_call == '{}'

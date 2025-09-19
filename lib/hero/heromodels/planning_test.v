@@ -393,12 +393,12 @@ fn test_planning_example() ! {
 
 	// Test example method for each methodname
 	set_call, set_result := planning.example('set')
-	assert set_call == '{"planning": {"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}}'
+	assert set_call == '{"planning": {"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [{"until": 1893456000, "by_weekday": [1, 3, 5], "by_monthday": [], "hour_from": 9, "hour_to": 17, "duration": 30, "priority": 5}], "invite_rules": [{"until": 0, "by_weekday": [], "by_monthday": [1, 15], "hour_from": 10, "hour_to": 12, "duration": 60, "priority": 8}], "attendees_required": [100, 101], "attendees_optional": [200]}}'
 	assert set_result == '1'
 
 	get_call, get_result := planning.example('get')
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}'
+	assert get_result == '{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [{"until": 1893456000, "by_weekday": [1, 3, 5], "by_monthday": [], "hour_from": 9, "hour_to": 17, "duration": 30, "priority": 5}], "invite_rules": [{"until": 0, "by_weekday": [], "by_monthday": [1, 15], "hour_from": 10, "hour_to": 12, "duration": 60, "priority": 8}], "attendees_required": [100, 101], "attendees_optional": [200]}'
 
 	delete_call, delete_result := planning.example('delete')
 	assert delete_call == '{"id": 1}'
@@ -410,7 +410,7 @@ fn test_planning_example() ! {
 
 	list_call, list_result := planning.example('list')
 	assert list_call == '{}'
-	assert list_result == '[{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [], "invite_rules": [], "attendees_required": [], "attendees_optional": []}]'
+	assert list_result == '[{"name": "My Planning", "description": "A personal planning", "color": "#FF0000", "timezone": "UTC", "is_public": true, "calendar_template_id": 1, "registration_desk_id": 10, "autoschedule_rules": [{"until": 1893456000, "by_weekday": [1, 3, 5], "by_monthday": [], "hour_from": 9, "hour_to": 17, "duration": 30, "priority": 5}], "invite_rules": [{"until": 0, "by_weekday": [], "by_monthday": [1, 15], "hour_from": 10, "hour_to": 12, "duration": 60, "priority": 8}], "attendees_required": [100, 101], "attendees_optional": [200]}]'
 
 	unknown_call, unknown_result := planning.example('unknown')
 	assert unknown_call == '{}'
