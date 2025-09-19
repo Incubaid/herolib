@@ -12,6 +12,7 @@ pub mut:
 	user_id    u32 // id as is set in ledger, if 0 then we don't know
 	contact_id u32 // if we have separate content info for this person
 	status     UserStatus
+	profile_ids []string
 }
 
 pub enum UserStatus {

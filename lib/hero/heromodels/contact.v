@@ -17,6 +17,7 @@ pub mut:
 	bio        string
 	timezone   string
 	status     ContactStatus
+	profile_ids []string
 }
 
 pub enum ContactStatus {
