@@ -106,6 +106,30 @@ pub fn group_api_handler(rpcid int, servercontext map[string]string, actorname s
 		'calendar' {
 			return calendar_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
+		'calendar_event' {
+			return calendar_event_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'comment' {
+			return comment_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'chat_group' {
+			return chat_group_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'chat_message' {
+			return chat_message_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'group' {
+			return group_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'project' {
+			return project_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'project_issue' {
+			return project_issue_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'user' {
+			return user_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
 		else {
 			return jsonrpc.new_error(rpcid,
 				code:    32111

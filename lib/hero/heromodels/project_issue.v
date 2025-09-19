@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // ProjectIssue represents a task, story, bug, or question in a project
 @[heap]
@@ -257,4 +260,44 @@ pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
 
 pub fn (mut self DBProjectIssue) list() ![]ProjectIssue {
 	return self.db.list[ProjectIssue]()!.map(self.get(it)!)
+}
+
+
+pub fn project_issue_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.project_issue.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[ProjectIssue](params)!
+			o = f.project_issue.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.project_issue.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.project_issue.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '')
+			res := f.project_issue.list()!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on project_issue'
+			)
+		}
+	}
 }

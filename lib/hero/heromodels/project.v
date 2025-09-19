@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // Project represents a collection of issues organized in swimlanes
 @[heap]
@@ -81,10 +84,10 @@ pub fn (self Project) description(methodname string) string {
 pub fn (self Project) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"project": {"name": "My Project", "description": "A project to track tasks", "swimlanes": [], "milestones": [], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}}', '1'
+			return '{"project": {"name": "My Project", "description": "A project to track tasks", "swimlanes": [{"name": "To Do", "description": "Tasks to be done", "order": 1, "color": "#FF0000", "is_done": false}], "milestones": [{"name": "V1", "description": "Version 1", "due_date": 1678886400, "completed": false, "issues": [1, 2]}], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"name": "My Project", "description": "A project to track tasks", "swimlanes": [], "milestones": [], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}'
+			return '{"id": 1}', '{"name": "My Project", "description": "A project to track tasks", "swimlanes": [{"name": "To Do", "description": "Tasks to be done", "order": 1, "color": "#FF0000", "is_done": false}], "milestones": [{"name": "V1", "description": "Version 1", "due_date": 1678886400, "completed": false, "issues": [1, 2]}], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -93,7 +96,7 @@ pub fn (self Project) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"name": "My Project", "description": "A project to track tasks", "swimlanes": [], "milestones": [], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}]'
+			return '{}', '[{"name": "My Project", "description": "A project to track tasks", "swimlanes": [{"name": "To Do", "description": "Tasks to be done", "order": 1, "color": "#FF0000", "is_done": false}], "milestones": [{"name": "V1", "description": "Version 1", "due_date": 1678886400, "completed": false, "issues": [1, 2]}], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}]'
 		}
 		else {
 			return '{}', '{}'
@@ -239,4 +242,44 @@ pub fn (mut self DBProject) get(id u32) !Project {
 
 pub fn (mut self DBProject) list() ![]Project {
 	return self.db.list[Project]()!.map(self.get(it)!)
+}
+
+
+pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.project.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Project](params)!
+			o = f.project.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.project.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.project.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '')
+			res := f.project.list()!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on project'
+			)
+		}
+	}
 }
