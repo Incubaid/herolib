@@ -3,21 +3,24 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // Contact represents a person in the system
 @[heap]
 pub struct Contact {
 	db.Base
 pub mut:
-	email      string
-	user_id    u32 // id as is set in ledger, if 0 then we don't know
-	phone      string
-	address    string
-	avatar_url string
-	bio        string
-	timezone   string
-	status     ContactStatus
-	profile_ids []string
+	emails      []string
+	user_id     u32 // id as is set in ledger, if 0 then we don't know
+	phones      []string
+	addresses   []string
+	avatar_url  string
+	bio         string
+	timezone    string
+	status      ContactStatus
+	profile_ids []u32
 }
 
 pub enum ContactStatus {
@@ -78,10 +81,10 @@ pub fn (self Contact) example(methodname string) (string, string) {
 }
 
 pub fn (self Contact) dump(mut e encoder.Encoder) ! {
-	e.add_string(self.email)
-	e.add_string(self.public_key)
-	e.add_string(self.phone)
-	e.add_string(self.address)
+	e.add_list_string(self.emails)
+	e.add_u32(self.user_id)
+	e.add_list_string(self.phones)
+	e.add_list_string(self.addresses)
 	e.add_string(self.avatar_url)
 	e.add_string(self.bio)
 	e.add_string(self.timezone)
@@ -89,10 +92,10 @@ pub fn (self Contact) dump(mut e encoder.Encoder) ! {
 }
 
 fn (mut self DBContact) load(mut o Contact, mut e encoder.Decoder) ! {
-	o.email = e.get_string()!
-	o.public_key = e.get_string()!
-	o.phone = e.get_string()!
-	o.address = e.get_string()!
+	o.emails = e.get_list_string()!
+	o.user_id = e.get_u32()!
+	o.phones = e.get_list_string()!
+	o.addresses = e.get_list_string()!
 	o.avatar_url = e.get_string()!
 	o.bio = e.get_string()!
 	o.timezone = e.get_string()!
@@ -104,10 +107,9 @@ pub struct ContactArg {
 pub mut:
 	name           string @[required]
 	description    string
-	email          string
-	public_key     string // for encryption/signing
-	phone          string
-	address        string
+	emails         []string
+	phones         []string
+	addresses      []string
 	avatar_url     string
 	bio            string
 	timezone       string
@@ -132,10 +134,9 @@ pub mut:
 // get new contact, not from the DB
 pub fn (mut self DBContact) new(args ContactArg) !Contact {
 	mut o := Contact{
-		email:      args.email
-		public_key: args.public_key
-		phone:      args.phone
-		address:    args.address
+		emails:      args.emails
+		phones:      args.phones
+		addresses:    args.addresses
 		avatar_url: args.avatar_url
 		bio:        args.bio
 		timezone:   args.timezone
@@ -202,4 +203,44 @@ pub fn (mut self DBContact) list(args ContactListArg) ![]Contact {
 	}
 
 	return filtered_contacts
+}
+
+
+pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.contact.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Contact](params)!
+			o = f.contact.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.contact.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.contact.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '')
+			res := f.contact.list(ContactListArg{})!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on contact'
+			)
+		}
+	}
 }

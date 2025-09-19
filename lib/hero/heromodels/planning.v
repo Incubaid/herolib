@@ -21,17 +21,6 @@ pub mut:
 	attendees_optional []u32 //if we want to specify upfront
 }
 
-pub struct RecurrenceRule {
-pub mut:
-	// cron        string // in linux cron format, if cron used then other ones below not used
-	until       u64  // End date (Unix timestamp)
-	by_weekday  []u8 // Days of week (0=Sunday)
-	by_monthday []u8 // Days of month
-	hour_from   u8   // starts at midnight e.g. 10
-	hour_to     u8   // e.g. 12 means between 10 and 12 (noon)
-	duration    int  // in minutes e.g. 30, means half hour
-	priority    u8   // to tell user what has our preference, higher nr is better, max 10
-}
 
 
 

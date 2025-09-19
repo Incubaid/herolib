@@ -26,6 +26,8 @@ pub mut:
 	project_issue  DBProjectIssue
 	chat_group     DBChatGroup
 	chat_message   DBChatMessage
+	contact        DBContact
+	profile        DBProfile
 	rpc_handler    &Handler
 }
 
@@ -69,6 +71,12 @@ pub fn new(args NewArgs) !&ModelsFactory {
 			db: &mydb
 		}
 		chat_message:   DBChatMessage{
+			db: &mydb
+		}
+		contact:        DBContact{
+			db: &mydb
+		}
+		profile:        DBProfile{
 			db: &mydb
 		}
 		rpc_handler:    &h
@@ -129,6 +137,12 @@ pub fn group_api_handler(rpcid int, servercontext map[string]string, actorname s
 		}
 		'user' {
 			return user_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'contact' {
+			return contact_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'profile' {
+			return profile_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
 		else {
 			return jsonrpc.new_error(rpcid,
