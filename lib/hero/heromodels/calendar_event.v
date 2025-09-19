@@ -7,23 +7,6 @@ import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_respo
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
-pub enum RecurrenceFreq {
-	daily
-	weekly
-	monthly
-	yearly
-}
-
-pub struct CalendarEventRecurrenceRule {
-pub mut:
-	frequency   RecurrenceFreq
-	interval    int
-	until       i64 // Unix timestamp
-	count       int
-	by_weekday  []int // 0=Sunday, 1=Monday, ..., 6=Saturday
-	by_monthday []int // Day of the month (1-31)
-}
-
 // CalendarEvent represents a single event in a calendar
 @[heap]
 pub struct CalendarEvent {
@@ -34,12 +17,11 @@ pub mut:
 	end_time      i64 // Unix timestamp
 	location      string
 	attendees     []u32 // IDs of user groups
-	fs_items      []u32 // IDs of linked files or dirs
+	docs      []u32 // IDs of linked files or dirs
+	registration_desk_id u32   // ID of the registration desk
 	calendar_id   u32   // Associated calendar
 	status        EventStatus
 	is_all_day    bool
-	is_recurring  bool
-	recurrence    []CalendarEventRecurrenceRule
 	reminder_mins []int            // Minutes before event for reminders
 	color         string           // Hex color code
 	timezone      string
@@ -109,10 +91,10 @@ pub fn (self CalendarEvent) description(methodname string) string {
 pub fn (self CalendarEvent) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}', '1'
+			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
+			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -121,7 +103,7 @@ pub fn (self CalendarEvent) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "is_recurring": false, "recurrence": [], "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
+			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
 		}
 		else {
 			return '{}', '{}'
@@ -135,7 +117,7 @@ pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
 	e.add_i64(self.end_time)
 	e.add_string(self.location)
 	e.add_list_u32(self.attendees)
-	e.add_list_u32(self.fs_items)
+	e.add_list_u32(self.docs)
 	e.add_u32(self.calendar_id)
 	e.add_u8(u8(self.status))
 	e.add_bool(self.is_all_day)
@@ -150,7 +132,7 @@ fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) !
 	o.end_time = e.get_i64()!
 	o.location = e.get_string()!
 	o.attendees = e.get_list_u32()!
-	o.fs_items = e.get_list_u32()!
+	o.docs = e.get_list_u32()!
 	o.calendar_id = e.get_u32()!
 	o.status = unsafe { EventStatus(e.get_u8()!) }
 	o.is_all_day = e.get_bool()!
@@ -169,7 +151,7 @@ pub mut:
 	end_time       string // use ourtime module to go from string to epoch
 	location       string
 	attendees      []u32 // IDs of user groups
-	fs_items       []u32 // IDs of linked files or dirs
+	docs       []u32 // IDs of linked files or dirs
 	calendar_id    u32   // Associated calendar
 	status         EventStatus
 	is_all_day     bool
@@ -178,7 +160,7 @@ pub mut:
 	timezone       string
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 // get new calendar event, not from the DB
@@ -187,12 +169,10 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 		title:         args.title
 		location:      args.location
 		attendees:     args.attendees
-		fs_items:      args.fs_items
+		docs:      args.docs
 		calendar_id:   args.calendar_id
 		status:        args.status
 		is_all_day:    args.is_all_day
-		is_recurring:  args.is_recurring
-		recurrence:    args.recurrence
 		reminder_mins: args.reminder_mins
 		color:         args.color
 		timezone:      args.timezone
@@ -203,7 +183,7 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	// Convert string times to Unix timestamps

@@ -258,46 +258,8 @@ pub fn (mut self DBChatMessage) get(id u32) !ChatMessage {
 	return o
 }
 
-pub fn (mut self DBChatMessage) list(args ChatMessageListArg) ![]ChatMessage {
-	// Require at least one parameter to be provided
-	if args.chat_group_id == 0 && args.message_type == .text && args.status == .sent {
-		return error('At least one filter parameter must be provided')
-	}
-
-	// Get all chat messages from the database
-	all_chat_messages := self.db.list[ChatMessage]()!.map(self.get(it)!)
-
-	// Apply filters
-	mut filtered_chat_messages := []ChatMessage{}
-	for chat_message in all_chat_messages {
-		// Filter by chat_group_id if provided
-		if args.chat_group_id != 0 && chat_message.chat_group_id != args.chat_group_id {
-			continue
-		}
-
-		// Filter by message_type if provided (message_type is not text)
-		if args.message_type != .text && chat_message.message_type != args.message_type {
-			continue
-		}
-
-		// Filter by status if provided (status is not sent)
-		if args.status != .sent && chat_message.status != args.status {
-			continue
-		}
-
-		filtered_chat_messages << chat_message
-	}
-
-	// Limit results to 100 or the specified limit
-	mut limit := args.limit
-	if limit > 100 {
-		limit = 100
-	}
-	if filtered_chat_messages.len > limit {
-		return filtered_chat_messages[..limit]
-	}
-
-	return filtered_chat_messages
+pub fn (mut self DBChatMessage) list() ![]ChatMessage {
+	return self.db.list[ChatMessage]()!.map(self.get(it)!)
 }
 
 

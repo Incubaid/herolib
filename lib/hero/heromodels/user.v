@@ -78,25 +78,17 @@ pub fn (self User) example(methodname string) (string, string) {
 }
 
 pub fn (self User) dump(mut e encoder.Encoder) ! {
-	e.add_string(self.email)
-	e.add_string(self.public_key)
-	e.add_string(self.phone)
-	e.add_string(self.address)
-	e.add_string(self.avatar_url)
-	e.add_string(self.bio)
-	e.add_string(self.timezone)
+	e.add_u32(self.user_id)
+	e.add_u32(self.contact_id)
 	e.add_u8(u8(self.status))
+	e.add_list_string(self.profile_ids)
 }
 
 fn (mut self DBUser) load(mut o User, mut e encoder.Decoder) ! {
-	o.email = e.get_string()!
-	o.public_key = e.get_string()!
-	o.phone = e.get_string()!
-	o.address = e.get_string()!
-	o.avatar_url = e.get_string()!
-	o.bio = e.get_string()!
-	o.timezone = e.get_string()!
+	o.user_id = e.get_u32()!
+	o.contact_id = e.get_u32()!
 	o.status = unsafe { UserStatus(e.get_u8()!) }
+	o.profile_ids = e.get_list_string()!
 }
 
 @[params]
@@ -104,17 +96,13 @@ pub struct UserArg {
 pub mut:
 	name           string @[required]
 	description    string
-	email          string
-	public_key     string // for encryption/signing
-	phone          string
-	address        string
-	avatar_url     string
-	bio            string
-	timezone       string
+	user_id        u32
+	contact_id     u32
 	status         UserStatus
+	profile_ids    []string
 	securitypolicy u32
-	tags           u32
-	messages       []u32
+	tags           []string
+	messages       []db.MessageArg
 }
 
 pub struct DBUser {
@@ -132,22 +120,18 @@ pub mut:
 // get new user, not from the DB
 pub fn (mut self DBUser) new(args UserArg) !User {
 	mut o := User{
-		email:      args.email
-		public_key: args.public_key
-		phone:      args.phone
-		address:    args.address
-		avatar_url: args.avatar_url
-		bio:        args.bio
-		timezone:   args.timezone
+		user_id:    args.user_id
+		contact_id: args.contact_id
 		status:     args.status
+		profile_ids: args.profile_ids
 	}
 
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
-	o.tags = args.tags
-	o.messages = args.messages
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o

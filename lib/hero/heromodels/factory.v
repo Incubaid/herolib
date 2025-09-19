@@ -17,7 +17,6 @@ __global (
 @[heap]
 pub struct ModelsFactory {
 pub mut:
-	comments         DBComments
 	calendar         DBCalendar
 	calendar_event   DBCalendarEvent
 	group            DBGroup
@@ -49,9 +48,6 @@ pub fn new(args NewArgs) !&ModelsFactory {
 	}
 	mut h := new_handler(openrpc_path)!
 	mut f := ModelsFactory{
-		comments:         DBComments{
-			db: &mydb
-		}
 		calendar:         DBCalendar{
 			db: &mydb
 		}
@@ -128,9 +124,6 @@ pub fn group_api_handler(rpcid int, servercontext map[string]string, actorname s
 		}
 		'calendar_event' {
 			return calendar_event_handle(mut f, rpcid, servercontext, userref, methodname, params)!
-		}
-		'comment' {
-			return comment_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
 		'chat_group' {
 			return chat_group_handle(mut f, rpcid, servercontext, userref, methodname, params)!

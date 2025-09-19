@@ -115,8 +115,8 @@ pub mut:
 	timezone       string
 	status         ContactStatus
 	securitypolicy u32
-	tags           u32
-	messages       []u32
+	tags           []string
+	messages       []db.MessageArg
 }
 
 pub struct DBContact {
@@ -147,8 +147,8 @@ pub fn (mut self DBContact) new(args ContactArg) !Contact {
 	o.name = args.name
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
-	o.tags = args.tags
-	o.messages = args.messages
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o

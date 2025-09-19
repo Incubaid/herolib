@@ -158,41 +158,8 @@ pub fn (mut self DBChatGroup) get(id u32) !ChatGroup {
 	return o
 }
 
-pub fn (mut self DBChatGroup) list(args ChatGroupListArg) ![]ChatGroup {
-	// Require at least one parameter to be provided
-	if args.chat_type == .public_channel && !args.is_archived {
-		return error('At least one filter parameter must be provided')
-	}
-
-	// Get all chat groups from the database
-	all_chat_groups := self.db.list[ChatGroup]()!.map(self.get(it)!)
-
-	// Apply filters
-	mut filtered_chat_groups := []ChatGroup{}
-	for chat_group in all_chat_groups {
-		// Filter by chat_type if provided (chat_type is not public_channel)
-		if args.chat_type != .public_channel && chat_group.chat_type != args.chat_type {
-			continue
-		}
-
-		// Filter by is_archived if provided (is_archived is true)
-		if args.is_archived && !chat_group.is_archived {
-			continue
-		}
-
-		filtered_chat_groups << chat_group
-	}
-
-	// Limit results to 100 or the specified limit
-	mut limit := args.limit
-	if limit > 100 {
-		limit = 100
-	}
-	if filtered_chat_groups.len > limit {
-		return filtered_chat_groups[..limit]
-	}
-
-	return filtered_chat_groups
+pub fn (mut self DBChatGroup) list() ![]ChatGroup {
+	return self.db.list[ChatGroup]()!.map(self.get(it)!)
 }
 
 
