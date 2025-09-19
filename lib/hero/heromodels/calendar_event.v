@@ -7,6 +7,23 @@ import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_respo
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
+pub enum RecurrenceFreq {
+	daily
+	weekly
+	monthly
+	yearly
+}
+
+pub struct CalendarEventRecurrenceRule {
+pub mut:
+	frequency   RecurrenceFreq
+	interval    int
+	until       i64 // Unix timestamp
+	count       int
+	by_weekday  []int // 0=Sunday, 1=Monday, ..., 6=Saturday
+	by_monthday []int // Day of the month (1-31)
+}
+
 // CalendarEvent represents a single event in a calendar
 @[heap]
 pub struct CalendarEvent {
@@ -21,6 +38,8 @@ pub mut:
 	calendar_id   u32   // Associated calendar
 	status        EventStatus
 	is_all_day    bool
+	is_recurring  bool
+	recurrence    []CalendarEventRecurrenceRule
 	reminder_mins []int            // Minutes before event for reminders
 	color         string           // Hex color code
 	timezone      string
