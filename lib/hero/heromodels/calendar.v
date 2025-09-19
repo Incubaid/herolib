@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // Calendar represents a collection of events
 @[heap]
@@ -135,7 +138,48 @@ pub fn (mut self DBCalendar) get(id u32) !Calendar {
 }
 
 pub fn (mut self DBCalendar) list() ![]Calendar {
-	r:= self.db.list[Calendar]()!.map(self.get(it)!)
+	r := self.db.list[Calendar]()!.map(self.get(it)!)
 	println(r)
 	return r
+}
+
+pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.calendar.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Calendar](params)!
+			o=f.calendar.set(o)!
+			return new_response_int(rpcid,int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.calendar.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.calendar.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			req := jsonrpc.new_request(method, '') // no params
+			res := f.calendar.list()!
+			return new_response(req.id, json.encode(res))
+		}
+		else {
+			println('Method not found on calendar: ${method}')
+			$dbg;
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on calendar'
+			)
+		}
+	}
 }

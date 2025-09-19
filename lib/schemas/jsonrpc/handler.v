@@ -11,8 +11,9 @@ import x.json2 as json
 pub struct Handler {
 pub mut:
 	// A map where keys are method names and values are the corresponding procedure handler functions
-	procedures map[string]ProcedureHandler
-	params     map[string]string
+	procedures       map[string]ProcedureHandler
+	procedures_group map[string]ProcedureHandlerGroup
+	servercontext    map[string]string
 }
 
 // ProcedureHandler is a function type that processes a JSON-RPC request payload and returns a response.
@@ -22,6 +23,8 @@ pub mut:
 // 3. Return the result as a JSON-encoded string
 // If an error occurs during any of these steps, it should be returned.
 pub type ProcedureHandler = fn (request Request) !Response
+
+pub type ProcedureHandlerGroup = fn (rpcid int, servercontext map[string]string, actorname string, methodname string, params string) !Response
 
 // new_handler creates a new JSON-RPC handler with the specified procedure handlers.
 //
@@ -62,13 +65,22 @@ pub fn (mut handler Handler) register_procedure_void[T](method string, function 
 	handler.procedures[procedure.method] = procedure.handle
 }
 
+// // register_procedure registers a new procedure handler for the specified method.
+// //
+// // Parameters:
+// //   - method: The name of the method to register
+// //   - procedure: The procedure handler function to register
+// pub fn (mut handler Handler) register_procedure(method string, procedure ProcedureHandler) {
+// 	handler.procedures[method] = procedure
+// }
+
 // register_procedure registers a new procedure handler for the specified method.
 //
 // Parameters:
 //   - method: The name of the method to register
-//   - procedure: The procedure handler function to register
-pub fn (mut handler Handler) register_procedure_handle(method string, procedure ProcedureHandler) {
-	handler.procedures[method] = procedure
+//   - procedure: The procedure handler group function to register
+pub fn (mut handler Handler) register_api_handler(groupname string, procedure_group ProcedureHandlerGroup) {
+	handler.procedures_group[groupname] = procedure_group
 }
 
 pub struct Procedure[T, U] {
@@ -158,12 +170,46 @@ fn error_to_jsonrpc(err IError) !RPCError {
 // Returns:
 //   - The JSON-RPC response as a string, or an error if processing fails
 pub fn (handler Handler) handle(request Request) !Response {
+	if request.method.contains('.') {
+		parts := request.method.split('.')
+		mut groupname := ''
+		mut actorname := ''
+		mut methodname := ''
+		if parts.len == 2 {
+			groupname = 'default'
+			actorname = parts[0]
+			methodname = parts[1]
+		} else if parts.len == 3 {
+			groupname = parts[0]
+			actorname = parts[1]
+			methodname = parts[2]
+		} else {
+			return new_error(request.id, invalid_params)
+		}
+		procedure_group := handler.procedures_group[groupname] or {
+			return new_error(request.id, RPCError{
+				code:    -32602
+				message: 'Could not find procedure group ${groupname} in function on rpc request.'
+				data:    '${request}'
+			})
+		}
+		return procedure_group(request.id, handler.servercontext, actorname, methodname,
+			request.params) or {
+			// Return proper JSON-RPC error instead of panicking
+			return new_error(request.id, RPCError{
+				code:    -32603
+				message: 'Error in function on rpc request.'
+				data:    '${request}\n${err}'
+			})
+		}
+	}
+
 	procedure_func := handler.procedures[request.method] or {
 		return new_error(request.id, method_not_found)
 	}
 
 	// Execute the procedure handler with the request payload
-	return procedure_func(handler.params, request) or {
+	return procedure_func(request) or {
 		// Return proper JSON-RPC error instead of panicking
 		return new_error(request.id, RPCError{
 			code:    -32603

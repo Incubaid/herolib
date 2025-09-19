@@ -4,6 +4,7 @@ import json
 import net.http
 import veb
 import freeflowuniverse.herolib.schemas.jsonrpc
+import freeflowuniverse.herolib.ui.console
 
 @['/auth/:action']
 pub fn (mut server HeroServer) auth_handler(mut ctx Context, action string) !veb.Result {
@@ -88,9 +89,21 @@ pub fn (mut server HeroServer) api_handler(mut ctx Context, handler_type string)
 	}
 
 	// Parse JSON-RPC request
-	request := jsonrpc.decode_request(ctx.req.data) or {
+	mut request := jsonrpc.decode_request(ctx.req.data) or {
 		return ctx.request_error('Invalid JSON-RPC request: ${err}')
 	}
+
+	if request.method.count('.') == 0 {
+		return ctx.request_error('Invalid method format, expected actor.method')
+	} else if request.method.count('.') == 1 {
+		request.method = '${handler_type.to_lower()}.${request.method}'
+	} else {
+		if request.method.count('.') > 1 {
+			return ctx.request_error('Invalid method format, too many dots. ${ctx.req.method}')
+		}
+	}
+	console.print_debug('Handling request: ${request.method} with params: ${request.params}')
+	// $dbg;
 
 	// Handle the request using the OpenRPC handler
 	response := handler.handle(request) or { return ctx.server_error('Handler error: ${err}') }

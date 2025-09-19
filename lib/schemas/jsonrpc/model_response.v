@@ -48,6 +48,14 @@ pub fn new_response_true(id int) Response {
 	}
 }
 
+pub fn new_response_ok(id int) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  ''
+		id:      id
+	}
+}
+
 pub fn new_response_false(id int) Response {
 	return Response{
 		jsonrpc: jsonrpc_version
@@ -87,6 +95,9 @@ pub fn new_error_response(id int, error RPCError) Response {
 		id:      id
 	}
 }
+
+
+
 
 // decode_response parses a JSON string into a Response object.
 // This function handles the complex validation rules for JSON-RPC responses.
