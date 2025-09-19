@@ -19,8 +19,8 @@ fn test_planning_new() ! {
 		is_public:            true
 		calendar_template_id: 0
 		registration_desk_id: 0
-		autoschedule_rules:   []RecurrenceRule{}
-		invite_rules:         []RecurrenceRule{}
+		autoschedule_rules:   []PlanningRecurrenceRule{}
+		invite_rules:         []PlanningRecurrenceRule{}
 		attendees_required:   []u32{}
 		attendees_optional:   []u32{}
 		securitypolicy:       0
@@ -62,8 +62,8 @@ fn test_planning_crud_operations() ! {
 		is_public:            false
 		calendar_template_id: 1
 		registration_desk_id: 10
-		autoschedule_rules:   []RecurrenceRule{}
-		invite_rules:         []RecurrenceRule{}
+		autoschedule_rules:   []PlanningRecurrenceRule{}
+		invite_rules:         []PlanningRecurrenceRule{}
 		attendees_required:   [u32(100), u32(101)]
 		attendees_optional:   [u32(200)]
 		securitypolicy:       0
@@ -74,7 +74,7 @@ fn test_planning_crud_operations() ! {
 	mut planning := db_planning.new(args)!
 
 	// Create some recurrence rules
-	mut rule1 := RecurrenceRule{
+	mut rule1 := PlanningRecurrenceRule{
 		until:       1893456000 // 2030-01-01
 		by_weekday:  [u8(1), u8(3), u8(5)]  // Monday, Wednesday, Friday
 		by_monthday: []u8{}
@@ -84,7 +84,7 @@ fn test_planning_crud_operations() ! {
 		priority:    5
 	}
 
-	mut rule2 := RecurrenceRule{
+	mut rule2 := PlanningRecurrenceRule{
 		until:       0
 		by_weekday:  []u8{}
 		by_monthday: [u8(1), u8(15)] // 1st and 15th of each month
@@ -147,8 +147,8 @@ fn test_planning_crud_operations() ! {
 		is_public:            true
 		calendar_template_id: 2
 		registration_desk_id: 20
-		autoschedule_rules:   []RecurrenceRule{}
-		invite_rules:         []RecurrenceRule{}
+		autoschedule_rules:   []PlanningRecurrenceRule{}
+		invite_rules:         []PlanningRecurrenceRule{}
 		attendees_required:   [u32(102)]
 		attendees_optional:   []u32{}
 		securitypolicy:       0
@@ -160,7 +160,7 @@ fn test_planning_crud_operations() ! {
 	updated_planning.id = original_id
 
 	// Update rules
-	mut updated_rule1 := RecurrenceRule{
+	mut updated_rule1 := PlanningRecurrenceRule{
 		until:       1924992000 // 2031-01-01
 		by_weekday:  [u8(2), u8(4)]     // Tuesday, Thursday
 		by_monthday: []u8{}
@@ -170,7 +170,7 @@ fn test_planning_crud_operations() ! {
 		priority:    7
 	}
 
-	mut updated_rule2 := RecurrenceRule{
+	mut updated_rule2 := PlanningRecurrenceRule{
 		until:       1956528000 // 2032-01-01
 		by_weekday:  []u8{}
 		by_monthday: [u8(5), u8(20)] // 5th and 20th of each month
@@ -243,8 +243,8 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 		is_public:            true
 		calendar_template_id: 1
 		registration_desk_id: 0
-		autoschedule_rules:   []RecurrenceRule{}
-		invite_rules:         []RecurrenceRule{}
+		autoschedule_rules:   []PlanningRecurrenceRule{}
+		invite_rules:         []PlanningRecurrenceRule{}
 		attendees_required:   []u32{}
 		attendees_optional:   []u32{}
 		securitypolicy:       0
@@ -256,7 +256,7 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 	planning.calendar_template_id = 1
 
 	// Add complex recurrence rules
-	mut rule1 := RecurrenceRule{
+	mut rule1 := PlanningRecurrenceRule{
 		until:       1893456000 // 2030-01-01
 		by_weekday:  [u8(0), u8(1), u8(2), u8(3), u8(4), u8(5), u8(6)] // All days of week
 		by_monthday: [u8(1), u8(2), u8(3), u8(4), u8(5), u8(6), u8(7), u8(8), u8(9), u8(10), u8(11), u8(12), u8(13), u8(14), u8(15), u8(16), u8(17), u8(18), u8(19), u8(20), u8(21), u8(22), u8(23), u8(24), u8(25), u8(26), u8(27), u8(28), u8(29), u8(30), u8(31)] // All days of month
@@ -266,7 +266,7 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 		priority:    10
 	}
 
-	mut rule2 := RecurrenceRule{
+	mut rule2 := PlanningRecurrenceRule{
 		until:       1924992000 // 2031-01-01
 		by_weekday:  []u8{}
 		by_monthday: []u8{}

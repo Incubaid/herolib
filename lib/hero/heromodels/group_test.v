@@ -386,12 +386,12 @@ fn test_group_example() ! {
 	
 	// Test example method for each methodname
 	set_call, set_result := group.example('set')
-	assert set_call == '{"group": {"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}}'
+	assert set_call == '{"group": {"name": "Admins", "description": "Administrators group", "members": [{"user_id": 1, "role": "admin", "joined_at": 1678886400}], "subgroups": [], "parent_group": 0, "is_public": false}}'
 	assert set_result == '1'
 
 	get_call, get_result := group.example('get')
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}'
+	assert get_result == '{"name": "Admins", "description": "Administrators group", "members": [{"user_id": 1, "role": "admin", "joined_at": 1678886400}], "subgroups": [], "parent_group": 0, "is_public": false}'
 
 	delete_call, delete_result := group.example('delete')
 	assert delete_call == '{"id": 1}'
@@ -403,7 +403,7 @@ fn test_group_example() ! {
 
 	list_call, list_result := group.example('list')
 	assert list_call == '{}'
-	assert list_result == '[{"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}]'
+	assert list_result == '[{"name": "Admins", "description": "Administrators group", "members": [{"user_id": 1, "role": "admin", "joined_at": 1678886400}], "subgroups": [], "parent_group": 0, "is_public": false}]'
 
 	unknown_call, unknown_result := group.example('unknown')
 	assert unknown_call == '{}'

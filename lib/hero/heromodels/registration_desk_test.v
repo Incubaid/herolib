@@ -304,12 +304,12 @@ fn test_registration_desk_example() ! {
 
 	// Test example method for each methodname
 	set_call, set_result := registration_desk.example("set")
-	assert set_call == '{"registration_desk": {"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [], "white_list": [], "white_list_accepted": [], "black_list": [], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": []}}'
+	assert set_call == '{"registration_desk": {"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [{"fs_item": 1001, "cat": "agenda", "public": true}], "white_list": [100, 101], "white_list_accepted": [102], "black_list": [200], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": [{"user_id": 300, "accepted": true, "accepted_by": 400, "timestamp": 1672564900, "timestamp_acceptation": 1672565000}]}}'
 	assert set_result == "1"
 
 	get_call, get_result := registration_desk.example("get")
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [], "white_list": [], "white_list_accepted": [], "black_list": [], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": []}'
+	assert get_result == '{"name": "event_registration", "description": "Registration desk for team meeting", "fs_items": [{"fs_item": 1001, "cat": "agenda", "public": true}], "white_list": [100, 101], "white_list_accepted": [102], "black_list": [200], "start_time": 1672564800, "end_time": 1672568400, "acceptance_required": true, "registrations": [{"user_id": 300, "accepted": true, "accepted_by": 400, "timestamp": 1672564900, "timestamp_acceptation": 1672565000}]}'
 
 	delete_call, delete_result := registration_desk.example("delete")
 	assert delete_call == '{"id": 1}'

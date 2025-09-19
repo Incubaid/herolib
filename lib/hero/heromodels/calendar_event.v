@@ -2,6 +2,9 @@ module heromodels
 
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 import freeflowuniverse.herolib.hero.db
 
 // CalendarEvent represents a single event in a calendar

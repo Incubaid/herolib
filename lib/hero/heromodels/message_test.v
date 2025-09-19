@@ -263,12 +263,12 @@ fn test_message_example() ! {
 
 	// Test example method for each methodname
 	set_call, set_result := message.example('set')
-	assert set_call == '{"message": {"message": "This is a test message.", "parent": 0, "author": 1}}'
+	assert set_call == '{"message": {"subject": "Test Subject", "message": "This is a test message.", "parent": 0, "author": 1, "to": [2, 3], "cc": [4], "send_log": [{"to": [2], "cc": [], "status": "sent", "timestamp": 1678886400}]}}'
 	assert set_result == '1'
 
 	get_call, get_result := message.example('get')
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"message": "This is a test message.", "parent": 0, "author": 1}'
+	assert get_result == '{"subject": "Test Subject", "message": "This is a test message.", "parent": 0, "author": 1, "to": [2, 3], "cc": [4], "send_log": [{"to": [2], "cc": [], "status": "sent", "timestamp": 1678886400}]}'
 
 	delete_call, delete_result := message.example('delete')
 	assert delete_call == '{"id": 1}'
@@ -280,7 +280,7 @@ fn test_message_example() ! {
 
 	list_call, list_result := message.example('list')
 	assert list_call == '{}'
-	assert list_result == '[{"message": "This is a test message.", "parent": 0, "author": 1}]'
+	assert list_result == '[{"subject": "Test Subject", "message": "This is a test message.", "parent": 0, "author": 1, "to": [2, 3], "cc": [4], "send_log": [{"to": [2], "cc": [], "status": "sent", "timestamp": 1678886400}]}]'
 
 	unknown_call, unknown_result := message.example('unknown')
 	assert unknown_call == '{}'

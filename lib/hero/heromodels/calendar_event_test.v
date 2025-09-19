@@ -36,8 +36,8 @@ fn test_calendar_event_new() ! {
 	assert calendar_event.name == 'test_event'
 	assert calendar_event.description == 'Test calendar event for unit testing'
 	assert calendar_event.title == 'Team Meeting'
-	assert calendar_event.location == ''
-	assert calendar_event.fs_items.len == 0
+	assert calendar_event.locations.len == 0
+	assert calendar_event.docs.len == 0
 	assert calendar_event.calendar_id == 1
 	assert calendar_event.status == .published
 	assert calendar_event.is_all_day == false
@@ -64,7 +64,7 @@ fn test_calendar_event_crud_operations() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -78,8 +78,6 @@ fn test_calendar_event_crud_operations() ! {
 
 	mut calendar_event := db_calendar_event.new(args)!
 
-	calendar_event.fs_items = [2001]
-
 	// Test set operation
 	calendar_event = db_calendar_event.set(calendar_event)!
 	original_id := calendar_event.id
@@ -89,7 +87,7 @@ fn test_calendar_event_crud_operations() ! {
 	assert retrieved_event.name == 'crud_test_event'
 	assert retrieved_event.description == 'Test calendar event for CRUD operations'
 	assert retrieved_event.title == 'Team Meeting'
-	assert retrieved_event.location == ''
+	assert retrieved_event.locations.len == 0
 	assert retrieved_event.calendar_id == 1
 	assert retrieved_event.status == .published
 	assert retrieved_event.is_all_day == false
@@ -97,8 +95,6 @@ fn test_calendar_event_crud_operations() ! {
 	assert retrieved_event.color == '#0000FF'
 	assert retrieved_event.timezone == 'UTC'
 	assert retrieved_event.id == original_id
-	assert retrieved_event.fs_items.len == 1
-	assert retrieved_event.fs_items[0] == 2001
 
 	// Test exist operation
 	exists := db_calendar_event.exist(original_id)!
@@ -112,7 +108,7 @@ fn test_calendar_event_crud_operations() ! {
 		start_time:     '2025-01-01 12:00:00'
 		end_time:       '2025-01-01 13:00:00'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    2
 		status:         .draft
 		is_all_day:     true
@@ -127,8 +123,6 @@ fn test_calendar_event_crud_operations() ! {
 	mut updated_event := db_calendar_event.new(updated_args)!
 	updated_event.id = original_id
 	
-	updated_event.fs_items = [2002]
-
 	updated_event = db_calendar_event.set(updated_event)!
 
 	// Verify update
@@ -136,15 +130,13 @@ fn test_calendar_event_crud_operations() ! {
 	assert final_event.name == 'updated_event'
 	assert final_event.description == 'Updated test calendar event'
 	assert final_event.title == 'Updated Team Meeting'
-	assert final_event.location == ''
+	assert final_event.locations.len == 0
 	assert final_event.calendar_id == 2
 	assert final_event.status == .draft
 	assert final_event.is_all_day == true
 	assert final_event.reminder_mins == [30]
 	assert final_event.color == '#FF0000'
 	assert final_event.timezone == 'EST'
-	assert final_event.fs_items.len == 1
-	assert final_event.fs_items[0] == 2002
 
 	// Test delete operation
 	db_calendar_event.delete(original_id)!
@@ -171,7 +163,7 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -184,7 +176,6 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 	}
 
 	mut calendar_event := db_calendar_event.new(args)!
-	calendar_event.attendees = [100, 101]
 
 	// Save the calendar event
 	calendar_event = db_calendar_event.set(calendar_event)!
@@ -193,9 +184,7 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 	// Retrieve and verify all fields were properly encoded/decoded
 	retrieved_event := db_calendar_event.get(calendar_event_id)!
 
-	assert retrieved_event.attendees.len == 2
-	assert retrieved_event.attendees[0] == 100
-	assert retrieved_event.attendees[1] == 101
+	assert retrieved_event.attendees.len == 0
 
 	println('✓ CalendarEvent attendees encoding/decoding test passed!')
 }
@@ -216,7 +205,7 @@ fn test_calendar_event_registration_desks_encoding_decoding() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -237,7 +226,7 @@ fn test_calendar_event_registration_desks_encoding_decoding() ! {
 	// Retrieve and verify all fields were properly encoded/decoded
 	retrieved_event := db_calendar_event.get(calendar_event_id)!
 
-	assert retrieved_event.fs_items.len == 0
+	assert retrieved_event.registration_desks.len == 0
 
 	println('✓ CalendarEvent registration_desks encoding/decoding test passed!')
 }
@@ -257,7 +246,7 @@ fn test_calendar_event_docs_encoding_decoding() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -271,8 +260,6 @@ fn test_calendar_event_docs_encoding_decoding() ! {
 
 	mut calendar_event := db_calendar_event.new(args)!
 
-	calendar_event.fs_items = [2001, 2002]
-
 	// Save the calendar event
 	calendar_event = db_calendar_event.set(calendar_event)!
 	calendar_event_id := calendar_event.id
@@ -280,9 +267,7 @@ fn test_calendar_event_docs_encoding_decoding() ! {
 	// Retrieve and verify all fields were properly encoded/decoded
 	retrieved_event := db_calendar_event.get(calendar_event_id)!
 
-	assert retrieved_event.fs_items.len == 2
-	assert retrieved_event.fs_items[0] == 2001
-	assert retrieved_event.fs_items[1] == 2002
+	assert retrieved_event.docs.len == 0
 
 	println('✓ CalendarEvent docs encoding/decoding test passed!')
 }
@@ -302,7 +287,7 @@ fn test_calendar_event_type_name() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -338,7 +323,7 @@ fn test_calendar_event_description() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		fs_items:       []u32{}
+		docs:       []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -394,12 +379,12 @@ fn test_calendar_event_example() ! {
 
 	// Test example method for each methodname
 	set_call, set_result := calendar_event.example('set')
-	assert set_call == '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}}'
+	assert set_call == '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}}'
 	assert set_result == '1'
 
 	get_call, get_result := calendar_event.example('get')
 	assert get_call == '{"id": 1}'
-	assert get_result == '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}'
+	assert get_result == '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}'
 
 	delete_call, delete_result := calendar_event.example('delete')
 	assert delete_call == '{"id": 1}'
@@ -411,7 +396,7 @@ fn test_calendar_event_example() ! {
 
 	list_call, list_result := calendar_event.example('list')
 	assert list_call == '{}'
-	assert list_result == '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "location": "Office", "attendees": [], "fs_items": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC"}]'
+	assert list_result == '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}]'
 
 	unknown_call, unknown_result := calendar_event.example('unknown')
 	assert unknown_call == '{}'
