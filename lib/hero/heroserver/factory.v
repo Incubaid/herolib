@@ -4,11 +4,17 @@ import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.logger
+import freeflowuniverse.herolib.osal.core as osal
 import time
 import veb
 
 // Create a new HeroServer instance
 pub fn new(config HeroServerConfig) !&HeroServer {
+	// Check if the port is available
+	osal.port_check_available(config.port) or {
+		return error('Port ${config.port} is already in use')
+	}
+
 	// Initialize crypto client
 	crypto_client := if c := config.crypto_client {
 		c
@@ -35,8 +41,6 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 		logger:          server_logger
 		start_time:      time.now().unix()
 	}
-
-	console.print_header('HeroServer created on port ${server.port}')
 	return server
 }
 
@@ -48,6 +52,7 @@ pub fn (mut server HeroServer) register_handler(handler_type string, handler &op
 
 // Start the server
 pub fn (mut server HeroServer) start() ! {
+	// Print server info
 	if server.cors_enabled {
 		console.print_item('CORS enabled for origins: ${server.allowed_origins}')
 	}
