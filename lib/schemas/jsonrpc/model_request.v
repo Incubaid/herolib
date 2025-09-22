@@ -60,7 +60,7 @@ pub fn decode_request(data string) !Request {
 		jsonrpc: a
 		method:  b
 		params:  c
-		id:     d
+		id:      d
 	}
 	return r4
 }

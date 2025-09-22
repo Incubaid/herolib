@@ -102,8 +102,11 @@ pub fn (mut server HeroServer) api_handler(mut ctx Context, handler_type string)
 			return ctx.request_error('Invalid method format, too many dots. ${ctx.req.method}')
 		}
 	}
-	console.print_debug('Handling request: ${request.method} with params: ${request.params}')
-	// $dbg;
+
+	// Log the request
+	server.log(
+		message: 'Handling request: ${request.method} with params: ${request.params}'
+	)
 
 	// Handle the request using the OpenRPC handler
 	response := handler.handle(request) or { return ctx.server_error('Handler error: ${err}') }

@@ -10,7 +10,7 @@ fn main() {
 		heromodels.new(reset: true, name: 'test')!
 		heromodels.server_start(
 			name:            'test'
-			port:            8086
+			port:            8080
 			auth_enabled:    false // Disable auth for testing
 			cors_enabled:    true
 			reset:           true

@@ -2,7 +2,7 @@ module heromodels
 
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 import freeflowuniverse.herolib.hero.db
@@ -13,23 +13,22 @@ pub struct CalendarEvent {
 	db.Base
 pub mut:
 	title              string
-	start_time         i64 // Unix timestamp
-	end_time           i64 // Unix timestamp
-	registration_desks []u32 //link to registration mechanism, is where we track invitees, are not attendee unless accepted
+	start_time         i64   // Unix timestamp
+	end_time           i64   // Unix timestamp
+	registration_desks []u32 // link to registration mechanism, is where we track invitees, are not attendee unless accepted
 	attendees          []Attendee
-	docs           []EventDoc // link to docs
-	calendar_id        u32              // Associated calendar
+	docs               []EventDoc // link to docs
+	calendar_id        u32        // Associated calendar
 	status             EventStatus
 	is_all_day         bool
-	reminder_mins      []int            // Minutes before event for reminders
-	color              string           // Hex color code
+	reminder_mins      []int  // Minutes before event for reminders
+	color              string // Hex color code
 	timezone           string
 	priority           EventPriority
 	public             bool
-	locations []EventLocation
-	is_template bool //not to be shown as real event, serves as placeholder e.g. for planning
+	locations          []EventLocation
+	is_template        bool // not to be shown as real event, serves as placeholder e.g. for planning
 }
-
 
 pub struct Attendee {
 pub mut:
@@ -39,7 +38,7 @@ pub mut:
 	admin               bool // if set can manage the main elements of the event = description, can accept invitee...
 	organizer           bool // if set means others can ask for support, doesn't mean is admin
 	log                 []AttendeeLog
-	location string //optional if user wants to select a location
+	location            string // optional if user wants to select a location
 }
 
 pub enum EventPriority {
@@ -76,14 +75,12 @@ pub mut:
 	public  bool   // everyone can see the file, otherwise only the organizers, attendees
 }
 
-
-
 pub struct EventLocation {
 pub mut:
-	name string
+	name        string
 	description string
-	cat       EventLocationCat
-	docs           []EventDoc 
+	cat         EventLocationCat
+	docs        []EventDoc
 }
 
 pub enum EventLocationCat {
@@ -326,16 +323,16 @@ pub mut:
 	title          string
 	start_time     string // use ourtime module to go from string to epoch
 	end_time       string // use ourtime module to go from string to epoch
-	attendees      []u32 // IDs of user groups
-	docs       []u32 // IDs of linked files or dirs
-	calendar_id    u32   // Associated calendar
+	attendees      []u32  // IDs of user groups
+	docs           []u32  // IDs of linked files or dirs
+	calendar_id    u32    // Associated calendar
 	status         EventStatus
 	is_all_day     bool
 	reminder_mins  []int  // Minutes before event for reminders
 	color          string // Hex color code
 	timezone       string
 	priority       EventPriority // Added missing priority field
-	is_template    bool // Added missing is_template field
+	is_template    bool          // Added missing is_template field
 	securitypolicy u32
 	tags           []string
 	messages       []db.MessageArg
@@ -356,14 +353,14 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 	mut o := CalendarEvent{
 		title:         args.title
 		attendees:     []Attendee{}
-		docs:      fs_attachments
+		docs:          fs_attachments
 		calendar_id:   args.calendar_id
 		status:        args.status
 		is_all_day:    args.is_all_day
 		reminder_mins: args.reminder_mins
 		color:         args.color
 		timezone:      args.timezone
-		priority:      args.priority // Added missing priority field
+		priority:      args.priority    // Added missing priority field
 		is_template:   args.is_template // Added missing is_template field
 		public:        false
 	}
@@ -456,7 +453,8 @@ pub fn (mut self DBCalendarEvent) list(args CalendarEventListArg) ![]CalendarEve
 
 	return filtered_events
 }
-pub fn calendar_event_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !jsonrpc.Response {
+
+pub fn calendar_event_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
@@ -465,8 +463,8 @@ pub fn calendar_event_handle(mut f ModelsFactory, rpcid int, servercontext map[s
 		}
 		'set' {
 			mut o := db.decode_generic[CalendarEvent](params)!
-			o=f.calendar_event.set(o)!
-			return new_response_int(rpcid,int(o.id))
+			o = f.calendar_event.set(o)!
+			return new_response_int(rpcid, int(o.id))
 		}
 		'delete' {
 			id := db.decode_u32(params)!

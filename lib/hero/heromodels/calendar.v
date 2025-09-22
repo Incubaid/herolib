@@ -3,8 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
 import json
 
 // Calendar represents a collection of events
@@ -138,9 +139,7 @@ pub fn (mut self DBCalendar) get(id u32) !Calendar {
 }
 
 pub fn (mut self DBCalendar) list() ![]Calendar {
-	r := self.db.list[Calendar]()!.map(self.get(it)!)
-	println(r)
-	return r
+	return self.db.list[Calendar]()!.map(self.get(it)!)
 }
 
 pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
@@ -152,8 +151,8 @@ pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 		}
 		'set' {
 			mut o := db.decode_generic[Calendar](params)!
-			o=f.calendar.set(o)!
-			return new_response_int(rpcid,int(o.id))
+			o = f.calendar.set(o)!
+			return new_response_int(rpcid, int(o.id))
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -174,8 +173,7 @@ pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			return new_response(req.id, json.encode(res))
 		}
 		else {
-			println('Method not found on calendar: ${method}')
-			$dbg;
+			console.print_stderr('Method not found on calendar: ${method}')
 			return new_error(rpcid,
 				code:    32601
 				message: 'Method ${method} not found on calendar'

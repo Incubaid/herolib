@@ -16,10 +16,6 @@ pub fn decode_bool(data string) !bool {
 }
 
 pub fn decode_generic[T](data string) !T {
-	mut r := json.decode(T, data) or { 
-		println('Failed to decode T: \n***\n${data}\n***\n${err}')
-		println(T{})
-		return error('Failed to decode T: ${data}\n${err}') 
-	}
+	mut r := json.decode(T, data) or { return error('Failed to decode T: ${data}\n${err}') }
 	return r
 }

@@ -3,6 +3,7 @@ module heroserver
 import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
 import freeflowuniverse.herolib.core.logger
+import freeflowuniverse.herolib.ui.console
 import time
 import veb
 
@@ -59,7 +60,7 @@ pub fn (mut server HeroServer) log(params ServerLogParams) {
 		logtype: params.level
 	) or {
 		// Fallback to console if logging fails
-		println('[${params.cat}] ${params.message}')
+		console.print_info('[${params.cat}] ${params.message}')
 	}
 }
 
