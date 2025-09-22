@@ -40,6 +40,50 @@
                     "schema": {
                         "$ref": "#/components/schemas/Calendar"
                     }
+                },
+                {
+                    "name": "events",
+                    "description": "Array of event IDs to add to the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "array",
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "color",
+                    "description": "Hex color code for the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "#FF0000"
+                    }
+                },
+                {
+                    "name": "timezone",
+                    "description": "Timezone for the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "UTC"
+                    }
+                },
+                {
+                    "name": "is_public",
+                    "description": "Whether the calendar is public",
+                    "required": false,
+                    "schema": {
+                        "type": "boolean",
+                        "example": true
+                    }
                 }
             ],
             "result": {

@@ -190,7 +190,7 @@ fn create_auth_info_with_config(enabled bool) AuthDocInfo {
 }
 
 // extract_type_from_schema extracts the JSON Schema type from a SchemaRef.
-// Returns the type string (e.g., 'string', 'object', 'array') or 'reference'/'unknown' for edge cases.
+// Returns detailed type string (e.g., 'string', 'array[integer]', 'object') for better example generation.
 fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 	schema := match schema_ref {
 		jsonschema.Schema {
@@ -202,6 +202,30 @@ fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 	}
 
 	if schema.typ.len > 0 {
+		// For arrays, include the item type if available
+		if schema.typ == 'array' {
+			if items := schema.items {
+				// Handle single schema reference (most common case)
+				if items is jsonschema.SchemaRef {
+					item_type := extract_type_from_schema(items)
+					return 'array[${item_type}]'
+				}
+				// Handle array of schema references (tuple validation)
+				if items is []jsonschema.SchemaRef {
+					if items.len > 0 {
+						item_type := extract_type_from_schema(items[0])
+						return 'array[${item_type}]'
+					}
+				}
+			}
+		}
+		// For objects with additionalProperties, include the value type
+		if schema.typ == 'object' {
+			if additional := schema.additional_properties {
+				value_type := extract_type_from_schema(additional)
+				return 'object[${value_type}]'
+			}
+		}
 		return schema.typ
 	}
 	return 'unknown'
