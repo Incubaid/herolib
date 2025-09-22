@@ -58,13 +58,12 @@ pub fn (mut server HeroServer) start() ! {
 	}
 
 	// Start VEB server
-	handler_name := server.handlers.keys()[0]
 	console.print_item('Server starting on http://${server.host}:${server.port}')
 	console.print_item('HTML Homepage: http://${server.host}:${server.port}/')
-	console.print_item('JSON Info: http://${server.host}:${server.port}/json/${handler_name}')
-	console.print_item('Documentation: http://${server.host}:${server.port}/doc/${handler_name}')
-	console.print_item('Markdown Docs: http://${server.host}:${server.port}/md/${handler_name}')
-	console.print_item('API Endpoint: http://${server.host}:${server.port}/api/${handler_name}')
+	console.print_item('JSON Info: http://${server.host}:${server.port}/json/{handler_name}')
+	console.print_item('Documentation: http://${server.host}:${server.port}/doc/{handler_name}')
+	console.print_item('Markdown Docs: http://${server.host}:${server.port}/md/{handler_name}')
+	console.print_item('API Endpoint: http://${server.host}:${server.port}/api/{handler_name}')
 
 	veb.run[HeroServer, Context](mut server, server.port)
 }

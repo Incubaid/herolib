@@ -19,7 +19,6 @@ pub fn decode(data string) !Schema {
 		} else if key == 'items' {
 			schema.items = decode_items(value)!
 		} else if key == 'example' {
-			// Manually handle example field since it's marked with @[json: '-'] in the Schema struct
 			schema.example = value
 		}
 	}
