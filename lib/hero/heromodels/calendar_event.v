@@ -413,11 +413,6 @@ pub mut:
 }
 
 pub fn (mut self DBCalendarEvent) list(args CalendarEventListArg) ![]CalendarEvent {
-	// Require at least one parameter to be provided
-	if args.calendar_id == 0 && args.status == .draft && !args.public {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all calendar events from the database
 	all_events := self.db.list[CalendarEvent]()!.map(self.get(it)!)
 

@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -270,12 +270,6 @@ pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
 }
 
 pub fn (mut self DBProjectIssue) list(args ProjectIssueListArg) ![]ProjectIssue {
-	// Require at least one parameter to be provided
-	if args.project_id == 0 && args.issue_type == .task && args.status == .open
-		&& args.swimlane == '' && args.milestone == '' {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all project issues from the database
 	all_project_issues := self.db.list[ProjectIssue]()!.map(self.get(it)!)
 
@@ -321,7 +315,6 @@ pub fn (mut self DBProjectIssue) list(args ProjectIssueListArg) ![]ProjectIssue 
 
 	return filtered_project_issues
 }
-
 
 pub fn project_issue_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {

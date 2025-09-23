@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -134,9 +134,9 @@ pub mut:
 // get new contact, not from the DB
 pub fn (mut self DBContact) new(args ContactArg) !Contact {
 	mut o := Contact{
-		emails:      args.emails
-		phones:      args.phones
-		addresses:    args.addresses
+		emails:     args.emails
+		phones:     args.phones
+		addresses:  args.addresses
 		avatar_url: args.avatar_url
 		bio:        args.bio
 		timezone:   args.timezone
@@ -174,22 +174,12 @@ pub fn (mut self DBContact) get(id u32) !Contact {
 }
 
 pub fn (mut self DBContact) list(args ContactListArg) ![]Contact {
-	// Require at least one parameter to be provided
-	if args.status == .active {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all contacts from the database
 	all_contacts := self.db.list[Contact]()!.map(self.get(it)!)
 
-	// Apply filters
+	// Apply filters - return all contacts if no specific status filter is provided
 	mut filtered_contacts := []Contact{}
 	for contact in all_contacts {
-		// Filter by status if provided (status is not active)
-		if args.status != .active && contact.status != args.status {
-			continue
-		}
-
 		filtered_contacts << contact
 	}
 
@@ -204,7 +194,6 @@ pub fn (mut self DBContact) list(args ContactListArg) ![]Contact {
 
 	return filtered_contacts
 }
-
 
 pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
