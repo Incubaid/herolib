@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a distributed key-value storage service exposed via an HTTP API. It uses a master-worker architecture to handle read and write operations efficiently, with internal communication facilitated by the [Mycelium network](https://github.com/threefoldtech/mycelium). The system is built in [V](https://vlang.io/) and uses [OurDB](https://github.com/freeflowuniverse/herolib/tree/main/lib/data/ourdb) for embedded key-value storage.
+This project implements a distributed key-value storage service exposed via an HTTP API. It uses a master-worker architecture to handle read and write operations efficiently, with internal communication facilitated by the [Mycelium network](https://github.com/threefoldtech/mycelium). The system is built in [V](https://vlang.io/) and uses [OurDB](https://github.com/incubaid/herolib/tree/main/lib/data/ourdb) for embedded key-value storage.
 
 ### Key Features
 
@@ -73,7 +73,7 @@ To run this project, you need the following:
 
 - [V](https://vlang.io/) (Vlang compiler) installed.
 - [Mycelium](https://github.com/threefoldtech/mycelium) network configured (either public or private).
-- [OurDB](https://github.com/freeflowuniverse/herolib/tree/main/lib/data/ourdb) library included in your project (part of the HeroLib suite).
+- [OurDB](https://github.com/incubaid/herolib/tree/main/lib/data/ourdb) library included in your project (part of the HeroLib suite).
 
 ## Installation
 

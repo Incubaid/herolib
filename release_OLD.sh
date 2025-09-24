@@ -5,7 +5,7 @@ set -e
 
 # Function to get the latest release from GitHub
 get_latest_release() {
-    local url="https://api.github.com/repos/freeflowuniverse/herolib/releases/latest"
+    local url="https://api.github.com/repos/incubaid/herolib/releases/latest"
     local response
     response=$(curl -s "$url")
     if [ $? -ne 0 ]; then
@@ -93,12 +93,12 @@ cd "$script_dir" || { echo "Error: Could not change to script directory" >&2; ex
 
 # Prepare git commands
 cmd="
-git remote set-url origin git@github.com:freeflowuniverse/herolib.git
+git remote set-url origin git@github.com:incubaid/herolib.git
 git add $hero_v_path $install_hero_path
 git commit -m \"bump version to $new_version\"
-git pull git@github.com:freeflowuniverse/herolib.git main
+git pull git@github.com:incubaid/herolib.git main
 git tag -a \"v$new_version\" -m \"Release version $new_version\"
-git push git@github.com:freeflowuniverse/herolib.git \"v$new_version\"
+git push git@github.com:incubaid/herolib.git \"v$new_version\"
 "
 
 echo "$cmd"

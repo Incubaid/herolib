@@ -207,7 +207,7 @@ function os_update {
 
 
 function hero_lib_pull {
-    pushd $DIR_CODE/github/freeflowuniverse/herolib 2>&1 >> /dev/null     
+    pushd $DIR_CODE/github/incubaid/herolib 2>&1 >> /dev/null     
     if [[ $(git status -s) ]]; then
         echo "There are uncommitted changes in the Git repository herolib."
         return 1
@@ -219,12 +219,12 @@ function hero_lib_pull {
 function hero_lib_get {
     
     mkdir -p $DIR_CODE/github/freeflowuniverse
-    if [[ -d "$DIR_CODE/github/freeflowuniverse/herolib" ]]
+    if [[ -d "$DIR_CODE/github/incubaid/herolib" ]]
     then
         hero_lib_pull
     else
         pushd $DIR_CODE/github/freeflowuniverse 2>&1 >> /dev/null
-        git clone --depth 1 --no-single-branch https://github.com/freeflowuniverse/herolib.git
+        git clone --depth 1 --no-single-branch https://github.com/incubaid/herolib.git
         popd 2>&1 >> /dev/null
     fi    
 }
@@ -461,7 +461,7 @@ check_and_start_redis
 
 if [ "$HEROLIB" = true ]; then
     hero_lib_get
-    ~/code/github/freeflowuniverse/herolib/install_herolib.vsh
+    ~/code/github/incubaid/herolib/install_herolib.vsh
 fi
 
 

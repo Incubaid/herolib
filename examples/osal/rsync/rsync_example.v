@@ -19,7 +19,7 @@ fn do1() ! {
 	osal.rsync(source: myexamplepath, dest: tstdir, delete: true)!
 	cmd := osal.rsync_cmd(source: myexamplepath, dest: tstdir)!
 	println(cmd)
-	//"rsync -avz --no-perms   --exclude='*.pyc' --exclude='*.bak' --exclude='*dSYM' /Users/despiegk1/code/github/freeflowuniverse/herolib/examples /tmp/testsync"
+	//"rsync -avz --no-perms   --exclude='*.pyc' --exclude='*.bak' --exclude='*dSYM' /Users/despiegk1/code/github/incubaid/herolib/examples /tmp/testsync"
 }
 
 fn do2() ! {

@@ -24,7 +24,7 @@ Thank you for your interest in contributing to Herolib! This document provides g
 For developers, you can use the automated installation script:
 
 ```bash
-curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
 ```
@@ -34,7 +34,7 @@ Alternatively, you can manually set up the environment:
 ```bash
 mkdir -p ~/code/github/freeflowuniverse
 cd ~/code/github/freeflowuniverse
-git clone git@github.com:freeflowuniverse/herolib.git
+git clone git@github.com:incubaid/herolib.git
 cd herolib
 # checkout development branch for most recent changes
 git checkout development 
@@ -87,10 +87,10 @@ Before submitting a pull request, ensure all tests pass:
 ./test_basic.vsh
 
 # Run tests for a specific module
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal/package_test.v
+vtest ~/code/github/incubaid/herolib/lib/osal/package_test.v
 
 # Run tests for an entire directory
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal
+vtest ~/code/github/incubaid/herolib/lib/osal
 ```
 
 The test script (`test_basic.vsh`) manages test execution and caching to optimize performance. It automatically skips tests listed in the ignore or error sections of the script.
@@ -148,7 +148,7 @@ This workflow automatically updates the documentation on GitHub Pages when chang
 To generate documentation locally:
 
 ```bash
-cd ~/code/github/freeflowuniverse/herolib
+cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
 
@@ -179,5 +179,5 @@ For more details, see the [README.md](README.md) troubleshooting section.
 ## Additional Resources
 
 - [Herolib Documentation](https://freeflowuniverse.github.io/herolib/)
-- [Cookbook Examples](https://github.com/freeflowuniverse/herolib/tree/development/cookbook)
+- [Cookbook Examples](https://github.com/incubaid/herolib/tree/development/cookbook)
 - [AI Prompts](aiprompts/starter/0_start_here.md)

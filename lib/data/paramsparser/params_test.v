@@ -135,12 +135,12 @@ fn test_args_get() {
 }
 
 fn test_url1() {
-	mut text := "color:red url:'https://github.com/freeflowuniverse/herolib/tree/development/examples/mdbook/books_to_include1'"
+	mut text := "color:red url:'https://github.com/incubaid/herolib/tree/development/examples/mdbook/books_to_include1'"
 	mut params := parse(text) or { panic(err) }
-	mut text2 := 'color:red url:"https://github.com/freeflowuniverse/herolib/tree/development/examples/mdbook/books_to_include1 "'
+	mut text2 := 'color:red url:"https://github.com/incubaid/herolib/tree/development/examples/mdbook/books_to_include1 "'
 	mut params2 := parse(text2) or { panic(err) }
-	assert params.get('url')? == 'https://github.com/freeflowuniverse/herolib/tree/development/examples/mdbook/books_to_include1'
-	assert params2.get('url')? == 'https://github.com/freeflowuniverse/herolib/tree/development/examples/mdbook/books_to_include1'
+	assert params.get('url')? == 'https://github.com/incubaid/herolib/tree/development/examples/mdbook/books_to_include1'
+	assert params2.get('url')? == 'https://github.com/incubaid/herolib/tree/development/examples/mdbook/books_to_include1'
 }
 
 // // fn test_json() {

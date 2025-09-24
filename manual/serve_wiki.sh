@@ -15,7 +15,7 @@ CONFIG_FILE="$MANUAL_DIR/config.json"
 WIKI_DIR="/Users/timurgordon/code/github/freeflowuniverse/herolauncher/pkg/ui/wiki"
 
 # Path to the herolib directory
-HEROLIB_DIR="/Users/timurgordon/code/github/freeflowuniverse/herolib"
+HEROLIB_DIR="/Users/timurgordon/code/github/incubaid/herolib"
 
 cd "$WIKI_DIR"
 

@@ -31,7 +31,7 @@ pub fn list_v_files(dir string) ![]string {
 //   string - absolute path to the module directory
 pub fn get_module_dir(mod string) string {
 	module_parts := mod.trim_string_left('freeflowuniverse.herolib').split('.')
-	return '${os.home_dir()}/code/github/freeflowuniverse/herolib/lib/${module_parts.join('/')}'
+	return '${os.home_dir()}/code/github/incubaid/herolib/lib/${module_parts.join('/')}'
 }
 
 // ===== CODE PARSING UTILITIES =====

@@ -16,7 +16,7 @@ The server supports the following operations:
 ### Building the Server
 
 ```bash
-v -gc none -stats -enable-globals -n -w -cg -g -cc tcc /Users/despiegk/code/github/freeflowuniverse/herolib/lib/mcp/v_do
+v -gc none -stats -enable-globals -n -w -cg -g -cc tcc /Users/despiegk/code/github/incubaid/herolib/lib/mcp/v_do
 ```
 
 ### Using the Server

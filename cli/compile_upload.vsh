@@ -93,9 +93,9 @@ fn hero_upload() ! {
 }
 
 fn main() {
-	// os.execute_or_panic('${os.home_dir()}/code/github/freeflowuniverse/herolib/cli/compile.vsh -p')
+	// os.execute_or_panic('${os.home_dir()}/code/github/incubaid/herolib/cli/compile.vsh -p')
 	println('compile hero can take 60 sec+ on osx.')
-	os.execute_or_panic('${os.home_dir()}/code/github/freeflowuniverse/herolib/cli/compile.vsh -p')
+	os.execute_or_panic('${os.home_dir()}/code/github/incubaid/herolib/cli/compile.vsh -p')
 	println('upload:')
 	hero_upload() or {
 		eprintln(err)

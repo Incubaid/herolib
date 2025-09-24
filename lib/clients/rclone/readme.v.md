@@ -62,7 +62,7 @@ The configuration will be automatically loaded and applied when creating a new R
 To run the tests:
 
 ```bash
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal/rclone/rclone_test.v
+vtest ~/code/github/incubaid/herolib/lib/osal/rclone/rclone_test.v
 ```
 
 Note: Some tests are commented out as they require an actual rclone configuration and remote to work with. They serve as examples of how to use the RCloneClient module.

@@ -19,6 +19,6 @@ travelcost is 3% of revenue
 
 create me the full heroscript which gives me this biz model
 
-create bizmodel.heroscript in ~/code/github/freeflowuniverse/herolib/examples/biztools/generated_ai
+create bizmodel.heroscript in ~/code/github/incubaid/herolib/examples/biztools/generated_ai
 
 as well as a do.vsh file which executes the heroscript and does a pprint, in do.vsh , call play with heroscript_path arg

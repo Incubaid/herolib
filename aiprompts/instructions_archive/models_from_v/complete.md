@@ -1,5 +1,5 @@
 <file_map>
-/Users/despiegk/code/github/freeflowuniverse/herolib
+/Users/despiegk/code/github/incubaid/herolib
 └── aiprompts
     └── herolib_core
         ├── core_curdir_example.md
@@ -467,7 +467,7 @@
 </file_map>
 
 <file_contents>
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_curdir_example.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_curdir_example.md
 ```md
 # Getting the Current Script's Path in Herolib/V Shell
 
@@ -483,7 +483,7 @@ echo "Current scripts directory: ${script_directory}"
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_globals.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_globals.md
 ```md
 ## how to remember clients, installers as a global
 
@@ -531,7 +531,7 @@ pub fn default() !&SiteConfig {
 ```
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_heroscript_basics.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_heroscript_basics.md
 ```md
 # HeroScript: Vlang Integration
 
@@ -590,7 +590,7 @@ For detailed information on parameter retrieval methods (e.g., `p.get()`, `p.get
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_heroscript_playbook.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_heroscript_playbook.md
 ```md
 # PlayBook
 
@@ -620,7 +620,7 @@ playcmds.run(mut plbook)!
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_http_client.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_http_client.md
 ```md
 # HTTPConnection Module
 
@@ -732,7 +732,7 @@ user := conn.get_json_generic[User](
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_osal.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_osal.md
 ```md
 # OSAL Core Module - Key Capabilities (freeflowuniverse.herolib.osal.core)
 
@@ -798,7 +798,7 @@ this document has info about the most core functions, more detailed info can be 
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_ourtime.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_ourtime.md
 ```md
 # OurTime Module
 
@@ -895,7 +895,7 @@ t_invalid := ourtime.new('bad-date') or {
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_params.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_params.md
 ```md
 # Parameter Parsing in Vlang
 
@@ -1009,7 +1009,7 @@ Lists are typically comma-separated strings (e.g., `users: "john,jane,bob"`).
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_paths.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_paths.md
 ```md
 # Pathlib Usage Guide
 
@@ -1164,7 +1164,7 @@ if file_path.exists() {
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_text.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_text.md
 ```md
 # TextTools Module
 
@@ -1268,7 +1268,7 @@ assert hello_world == texttools.name_fix("Hello World!")
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_ui_console.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_ui_console.md
 ```md
 # module ui.console
 
@@ -1473,7 +1473,7 @@ enum Style {
 
 ```
 
-File: /Users/despiegk/code/github/freeflowuniverse/herolib/aiprompts/herolib_core/core_vshell.md
+File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_vshell.md
 ```md
 # how to run the vshell example scripts
 
@@ -1486,7 +1486,7 @@ import freeflowuniverse.herolib...
 
 ```
 
-the files are in ~/code/github/freeflowuniverse/herolib/examples for herolib
+the files are in ~/code/github/incubaid/herolib/examples for herolib
 
 ## important instructions
 
@@ -2456,7 +2456,7 @@ $NAME = finance
 walk over all models from biz: db/heromodels/src/models/$NAME in the rust repo
 create nice structured public models in Vlang (V) see instructions in herlolib
 
-put the results in /Users/despiegk/code/github/freeflowuniverse/herolib/lib/hero/models/$NAME
+put the results in /Users/despiegk/code/github/incubaid/herolib/lib/hero/models/$NAME
 
 put decorator on fields which need to be indexed: use @[index] for that at end of line of the property of the struct
 
