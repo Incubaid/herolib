@@ -186,7 +186,8 @@ pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]stri
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[User](params)!
+			args := db.decode_generic[UserArg](params)!
+			mut o := f.user.new(args)!
 			o = f.user.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
@@ -204,9 +205,9 @@ pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]stri
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.user.list(UserListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[UserListArg](params)!
+			res := f.user.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

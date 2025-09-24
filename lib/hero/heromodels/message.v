@@ -232,7 +232,8 @@ pub fn message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Message](params)!
+			args := db.decode_generic[MessageArg](params)!
+			mut o := f.messages.new(args)!
 			o = f.messages.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
@@ -250,9 +251,9 @@ pub fn message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.messages.list(MessageListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[MessageListArg](params)!
+			res := f.messages.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

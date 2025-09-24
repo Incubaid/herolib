@@ -280,7 +280,8 @@ pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Project](params)!
+			args := db.decode_generic[ProjectArg](params)!
+			mut o := f.project.new(args)!
 			o = f.project.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
@@ -298,9 +299,9 @@ pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.project.list(ProjectListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[ProjectListArg](params)!
+			res := f.project.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

@@ -292,7 +292,8 @@ pub fn planning_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Planning](params)!
+			args := db.decode_generic[PlanningArg](params)!
+			mut o := f.planning.new(args)!
 			o = f.planning.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
@@ -310,9 +311,9 @@ pub fn planning_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.planning.list(PlanningListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[PlanningListArg](params)!
+			res := f.planning.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

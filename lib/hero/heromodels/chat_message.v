@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -262,7 +262,6 @@ pub fn (mut self DBChatMessage) list() ![]ChatMessage {
 	return self.db.list[ChatMessage]()!.map(self.get(it)!)
 }
 
-
 pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
@@ -271,7 +270,8 @@ pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[str
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[ChatMessage](params)!
+			args := db.decode_generic[ChatMessageArg](params)!
+			mut o := f.chat_message.new(args)!
 			o = f.chat_message.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
@@ -289,9 +289,8 @@ pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[str
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
 			res := f.chat_message.list()!
-			return new_response(req.id, json.encode(res))
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

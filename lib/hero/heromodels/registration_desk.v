@@ -298,7 +298,8 @@ pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext ma
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[RegistrationDesk](params)!
+			args := db.decode_generic[RegistrationDeskArg](params)!
+			mut o := f.registration_desk.new(args)!
 			o = f.registration_desk.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
@@ -316,9 +317,9 @@ pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext ma
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.registration_desk.list(RegistrationDeskListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[RegistrationDeskListArg](params)!
+			res := f.registration_desk.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

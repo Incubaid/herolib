@@ -203,7 +203,8 @@ pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Contact](params)!
+			args := db.decode_generic[ContactArg](params)!
+			mut o := f.contact.new(args)!
 			o = f.contact.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
@@ -221,9 +222,9 @@ pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.contact.list(ContactListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[ContactListArg](params)!
+			res := f.contact.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,
