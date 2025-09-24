@@ -1,6 +1,7 @@
 module rclone
 
 import freeflowuniverse.herolib.data.paramsparser
+import freeflowuniverse.herolib.data.encoderhero
 import os
 
 pub const version = '0.0.0'
@@ -58,5 +59,16 @@ fn cfg_play(p paramsparser.Params) ! {
 fn obj_init(obj_ RCloneClient) !RCloneClient {
 	// never call get here, only thing we can do here is work on object itself
 	mut obj := obj_
+	return obj
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj RCloneClient) !string {
+	return encoderhero.encode[RCloneClient](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !RCloneClient {
+	mut obj := encoderhero.decode[RCloneClient](heroscript)!
 	return obj
 }

@@ -40,7 +40,7 @@ pub fn jina_model_from_string(s string) !JinaModel {
 		'jina-embeddings-v2-base-zh' { JinaModel.jina_embeddings_v2_base_zh }
 		'jina-embeddings-v2-base-code' { JinaModel.jina_embeddings_v2_base_code }
 		'jina-embeddings-v3' { JinaModel.jina_embeddings_v3 }
-		else { error('Invalid Jina model string: ${s}') }
+		else { return error('Invalid Jina model string: ${s}') }
 	}
 }
 
@@ -66,7 +66,7 @@ pub fn truncate_type_from_string(s string) !TruncateType {
 		'NONE' { TruncateType.none_ }
 		'START' { TruncateType.start }
 		'END' { TruncateType.end }
-		else { error('Invalid truncate type string: ${s}') }
+		else { return error('Invalid truncate type string: ${s}') }
 	}
 }
 
@@ -95,7 +95,7 @@ pub fn embedding_type_from_string(s string) !EmbeddingType {
 		'base64' { EmbeddingType.base64 }
 		'binary' { EmbeddingType.binary }
 		'ubinary' { EmbeddingType.ubinary }
-		else { error('Invalid embedding type string: ${s}') }
+		else { return error('Invalid embedding type string: ${s}') }
 	}
 }
 
@@ -116,7 +116,7 @@ pub fn task_type_from_string(s string) !TaskType {
 		'text-matching' { TaskType.text_matching }
 		'classification' { TaskType.classification }
 		'separation' { TaskType.separation }
-		else { error('Invalid task type string: ${s}') }
+		else { return error('Invalid task type string: ${s}') }
 	}
 }
 

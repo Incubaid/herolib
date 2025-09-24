@@ -18,7 +18,7 @@ pub mut:
 // checkout a code repository on right location
 pub fn (mut r DockerBuilderRecipe) add_codeget(args_ CodeGetArgs) ! {
 	mut args := args_
-	mut gs := gittools.get(coderoot: '${r.path()}/code')!
+	mut gs := gittools.new(coderoot: '${r.path()}/code')!
 	mut gr := gs.get_repo(url: args.url, pull: args.pull, reset: args.reset)!
 
 	if args.name == '' {

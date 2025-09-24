@@ -1,10 +1,10 @@
 module mycelium_installer
 
 import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.ui.console
+import json
 import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.osal.zinit
 import time
 
 __global (
@@ -17,92 +17,125 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name string
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
 }
 
-fn args_get(args_ ArgsGet) ArgsGet {
-	mut args := args_
-	if args.name == '' {
-		args.name = 'default'
+pub fn new(args ArgsGet) !&MyceliumInstaller {
+	mut obj := MyceliumInstaller{
+		name: args.name
 	}
-	return args
+	set(obj)!
+	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&MyceliumInstaller {
+pub fn get(args ArgsGet) !&MyceliumInstaller {
 	mut context := base.context()!
-	mut args := args_get(args_)
-	mut obj := MyceliumInstaller{}
-	if args.name !in mycelium_installer_global {
-		if !exists(args)! {
-			set(obj)!
+	mycelium_installer_default = args.name
+	if args.fromdb || args.name !in mycelium_installer_global {
+		mut r := context.redis()!
+		if r.hexists('context:mycelium_installer', args.name)! {
+			data := r.hget('context:mycelium_installer', args.name)!
+			if data.len == 0 {
+				print_backtrace()
+				return error('MyceliumInstaller with name: mycelium_installer does not exist, prob bug.')
+			}
+			mut obj := json.decode(MyceliumInstaller, data)!
+			set_in_mem(obj)!
 		} else {
-			heroscript := context.hero_config_get('mycelium_installer', args.name)!
-			mut obj_ := heroscript_loads(heroscript)!
-			set_in_mem(obj_)!
+			if args.create {
+				new(args)!
+			} else {
+				print_backtrace()
+				return error("MyceliumInstaller with name 'mycelium_installer' does not exist")
+			}
 		}
+		return get(name: args.name)! // no longer from db nor create
 	}
 	return mycelium_installer_global[args.name] or {
-		println(mycelium_installer_global)
-		// bug if we get here because should be in globals
-		panic('could not get config for mycelium_installer with name, is bug:${args.name}')
+		print_backtrace()
+		return error('could not get config for mycelium_installer with name:mycelium_installer')
 	}
 }
 
 // register the config for the future
 pub fn set(o MyceliumInstaller) ! {
-	set_in_mem(o)!
+	mut o2 := set_in_mem(o)!
+	mycelium_installer_default = o2.name
 	mut context := base.context()!
-	heroscript := heroscript_dumps(o)!
-	context.hero_config_set('mycelium_installer', o.name, heroscript)!
+	mut r := context.redis()!
+	r.hset('context:mycelium_installer', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
-pub fn exists(args_ ArgsGet) !bool {
+pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
-	mut args := args_get(args_)
-	return context.hero_config_exists('mycelium_installer', args.name)
+	mut r := context.redis()!
+	return r.hexists('context:mycelium_installer', args.name)!
 }
 
-pub fn delete(args_ ArgsGet) ! {
-	mut args := args_get(args_)
+pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
-	context.hero_config_delete('mycelium_installer', args.name)!
-	if args.name in mycelium_installer_global {
-		// del mycelium_installer_global[args.name]
-	}
-}
-
-// only sets in mem, does not set as config
-fn set_in_mem(o MyceliumInstaller) ! {
-	mut o2 := obj_init(o)!
-	mycelium_installer_global[o.name] = &o2
-	mycelium_installer_default = o.name
+	mut r := context.redis()!
+	r.hdel('context:mycelium_installer', args.name)!
 }
 
 @[params]
-pub struct PlayArgs {
+pub struct ArgsList {
 pub mut:
-	heroscript string // if filled in then plbook will be made out of it
-	plbook     ?playbook.PlayBook
-	reset      bool
+	fromdb bool // will load from filesystem
 }
 
-pub fn play(args_ PlayArgs) ! {
-	mut args := args_
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&MyceliumInstaller {
+	mut res := []&MyceliumInstaller{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		mycelium_installer_global = map[string]&MyceliumInstaller{}
+		mycelium_installer_default = ''
+	}
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:mycelium_installer')!
 
-	mut plbook := args.plbook or { playbook.new(text: args.heroscript)! }
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in mycelium_installer_global {
+			res << client
+		}
+	}
+	return res
+}
 
+// only sets in mem, does not set as config
+fn set_in_mem(o MyceliumInstaller) !MyceliumInstaller {
+	mut o2 := obj_init(o)!
+	mycelium_installer_global[o2.name] = &o2
+	mycelium_installer_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'mycelium_installer.') {
+		return
+	}
 	mut install_actions := plbook.find(filter: 'mycelium_installer.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
-
 	mut other_actions := plbook.find(filter: 'mycelium_installer.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -134,6 +167,7 @@ pub fn play(args_ PlayArgs) ! {
 				mycelium_installer_obj.restart()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
@@ -141,24 +175,28 @@ pub fn play(args_ PlayArgs) ! {
 //////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn startupmanager_get(cat zinit.StartupManagerType) !startupmanager.StartupManager {
+fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.StartupManager {
 	// unknown
 	// screen
 	// zinit
 	// tmux
 	// systemd
 	match cat {
+		.screen {
+			console.print_debug("installer: mycelium_installer' startupmanager get screen")
+			return startupmanager.get(.screen)!
+		}
 		.zinit {
-			console.print_debug('startupmanager: zinit')
-			return startupmanager.get(cat: .zinit)!
+			console.print_debug("installer: mycelium_installer' startupmanager get zinit")
+			return startupmanager.get(.zinit)!
 		}
 		.systemd {
-			console.print_debug('startupmanager: systemd')
-			return startupmanager.get(cat: .systemd)!
+			console.print_debug("installer: mycelium_installer' startupmanager get systemd")
+			return startupmanager.get(.systemd)!
 		}
 		else {
-			console.print_debug('startupmanager: auto')
-			return startupmanager.get()!
+			console.print_debug("installer: mycelium_installer' startupmanager get auto")
+			return startupmanager.get(.auto)!
 		}
 	}
 }
@@ -175,7 +213,7 @@ pub fn (mut self MyceliumInstaller) start() ! {
 		return
 	}
 
-	console.print_header('mycelium_installer start')
+	console.print_header('installer: mycelium_installer start')
 
 	if !installed()! {
 		install()!
@@ -188,7 +226,7 @@ pub fn (mut self MyceliumInstaller) start() ! {
 	for zprocess in startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		console.print_debug('starting mycelium_installer with ${zprocess.startuptype}...')
+		console.print_debug('installer: mycelium_installer starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
 
@@ -233,10 +271,12 @@ pub fn (mut self MyceliumInstaller) running() !bool {
 
 	// walk over the generic processes, if not running return
 	for zprocess in startupcmd()! {
-		mut sm := startupmanager_get(zprocess.startuptype)!
-		r := sm.running(zprocess.name)!
-		if r == false {
-			return false
+		if zprocess.startuptype != .screen {
+			mut sm := startupmanager_get(zprocess.startuptype)!
+			r := sm.running(zprocess.name)!
+			if r == false {
+				return false
+			}
 		}
 	}
 	return running()!
@@ -269,11 +309,4 @@ pub fn (mut self MyceliumInstaller) destroy() ! {
 // switch instance to be used for mycelium_installer
 pub fn switch(name string) {
 	mycelium_installer_default = name
-}
-
-// helpers
-
-@[params]
-pub struct DefaultConfigArgs {
-	instance string = 'default'
 }

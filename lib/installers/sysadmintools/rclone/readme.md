@@ -4,7 +4,7 @@
 
 To get started
 
-```vlang
+```v
 
 
 

@@ -13,6 +13,7 @@ fn (mut repo GitRepo) cache_set() ! {
 	mut redis_client := redis_get()
 	repo_json := json.encode(repo)
 	cache_key := repo.cache_key()
+	// println("Caching repository ${repo.name} at ${cache_key}")
 	redis_client.set(cache_key, repo_json)!
 }
 
@@ -26,8 +27,19 @@ fn (mut repo GitRepo) cache_get() ! {
 	if repo_json.len > 0 {
 		mut cached := json.decode(GitRepo, repo_json)!
 		cached.gs = repo.gs
+		cached.config.remote_check_period = 3600 * 24 * 7
 		repo = cached
 	}
+}
+
+fn (mut repo GitRepo) cache_exists() !bool {
+	mut repo_json := ''
+	mut redis_client := redis_get()
+	cache_key := repo.cache_key()
+	// println("${repo.name} : Checking if cache exists at ${cache_key}")
+	repo_json = redis_client.get(cache_key) or { return false }
+	// println(repo_json)
+	return repo_json.len > 0
 }
 
 // Remove cache
@@ -35,8 +47,6 @@ fn (mut repo GitRepo) cache_delete() ! {
 	mut redis_client := redis_get()
 	cache_key := repo.cache_key()
 	redis_client.del(cache_key) or { return error('Cannot delete the repo cache due to: ${err}') }
-	// TODO: report v bug, function should work without return as well
-	return
 }
 
 // put the data of last load on 0, means first time a git status check will be done it will update its info

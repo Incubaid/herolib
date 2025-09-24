@@ -1,20 +1,20 @@
 module playmacros
 
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { Action, PlayBook }
 import freeflowuniverse.herolib.threefold.grid4.gridsimulator
 import freeflowuniverse.herolib.threefold.grid4.farmingsimulator
 import freeflowuniverse.herolib.biz.bizmodel
 import freeflowuniverse.herolib.biz.spreadsheet
 
-pub fn play_actions(mut plbook playbook.PlayBook) ! {
+pub fn play_actions(mut plbook PlayBook) ! {
 	console.print_green('play actions (simulators)')
 	farmingsimulator.play(mut plbook)!
 	gridsimulator.play(mut plbook)!
-	bizmodel.play(plbook: *plbook)!
+	bizmodel.play(mut plbook)!
 }
 
-pub fn play_macro(action playbook.Action) !string {
+pub fn play_macro(action Action) !string {
 	if action.actiontype != .macro {
 		panic('should always be a macro')
 	}

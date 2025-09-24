@@ -56,7 +56,10 @@ pub fn get_dir(args_ GetArgs) !Path {
 		p2.absolute()
 		if p2.exist == .no {
 			if args.create {
-				os.mkdir_all(p2.absolute()) or { return error('cannot create path ${p2}, ${err}') } // Make sure that all the needed paths created		
+				os.mkdir_all(p2.absolute()) or {
+					print_backtrace()
+					return error('cannot create path ${p2}, ${err}')
+				} // Make sure that all the needed paths created		
 				p2.check()
 			}
 			return p2
@@ -97,7 +100,10 @@ pub fn get_file(args_ GetArgs) !Path {
 			mut parent_ := p2.parent()!
 			parent_.check()
 			if parent_.exist == .no {
-				os.mkdir_all(parent_.path) or { return error('cannot create path:${args.path}') }
+				os.mkdir_all(parent_.path) or {
+					print_backtrace()
+					return error('cannot create path:${args.path}')
+				}
 			}
 			if p2.exist == .no || args.empty {
 				os.write_file(args.path, '') or {

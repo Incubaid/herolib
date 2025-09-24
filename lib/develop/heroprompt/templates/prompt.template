@@ -1,0 +1,11 @@
+<user_instructions>
+@{prompt.user_instructions}
+</user_instructions>
+
+<file_map>
+@{prompt.file_map}
+</file_map>
+
+<file_contents>
+@{prompt.file_contents}
+</file_contents>

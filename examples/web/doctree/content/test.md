@@ -25,7 +25,7 @@ text in paragraph
 | February | $80     |
 | March    | $420    |
 
-```vlang
+```v
     fn main(){
         println('hello world')
     }

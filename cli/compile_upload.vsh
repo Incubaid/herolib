@@ -64,7 +64,9 @@ account = ${s3keyid}
 key = ${s3appid}
 hard_delete = true'
 
-	os.write_file(rclone_conf, config_content) or { return error('Failed to write rclone config: ${err}') }
+	os.write_file(rclone_conf, config_content) or {
+		return error('Failed to write rclone config: ${err}')
+	}
 
 	println('made S3 config on: ${rclone_conf}')
 	content := os.read_file(rclone_conf) or { return error('Failed to read rclone config: ${err}') }
@@ -72,8 +74,10 @@ hard_delete = true'
 }
 
 fn hero_upload() ! {
-	hero_path := os.find_abs_path_of_executable('hero') or { return error("Error: 'hero' command not found in PATH") }
-	
+	hero_path := os.find_abs_path_of_executable('hero') or {
+		return error("Error: 'hero' command not found in PATH")
+	}
+
 	s3_configure()!
 
 	platform_id := get_platform_id()
@@ -83,15 +87,18 @@ fn hero_upload() ! {
 
 	// List contents
 	os.execute_or_panic('rclone --config="${rclone_conf}" lsl b2:threefold/${platform_id}/')
-	
+
 	// Copy hero binary
 	os.execute_or_panic('rclone --config="${rclone_conf}" copy "${hero_path}" b2:threefold/${platform_id}/')
 }
 
 fn main() {
-	//os.execute_or_panic('${os.home_dir()}/code/github/freeflowuniverse/herolib/cli/compile.vsh -p')
-	println("compile hero can take 60 sec+ on osx.")
+	// os.execute_or_panic('${os.home_dir()}/code/github/freeflowuniverse/herolib/cli/compile.vsh -p')
+	println('compile hero can take 60 sec+ on osx.')
 	os.execute_or_panic('${os.home_dir()}/code/github/freeflowuniverse/herolib/cli/compile.vsh -p')
-	println( "upload:")
-	hero_upload() or { eprintln(err) exit(1) }
+	println('upload:')
+	hero_upload() or {
+		eprintln(err)
+		exit(1)
+	}
 }

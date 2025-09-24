@@ -12,7 +12,7 @@ struct MyStruct {
 }
 
 // is the one we should skip
-struct Remark {
+pub struct Remark {
 	id int
 }
 

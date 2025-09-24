@@ -1,11 +1,11 @@
 module installers
 
 import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.installers.develapps.vscode
-import freeflowuniverse.herolib.installers.develapps.chrome
+// import freeflowuniverse.herolib.installers.develapps.vscode
+// import freeflowuniverse.herolib.installers.develapps.chrome
 // import freeflowuniverse.herolib.installers.virt.podman as podman_installer
 // import freeflowuniverse.herolib.installers.virt.buildah as buildah_installer
-import freeflowuniverse.herolib.installers.virt.lima
+// import freeflowuniverse.herolib.installers.virt.lima
 // import freeflowuniverse.herolib.installers.net.mycelium
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.installers.lang.rust
@@ -15,15 +15,15 @@ import freeflowuniverse.herolib.installers.lang.herolib
 import freeflowuniverse.herolib.installers.lang.nodejs
 import freeflowuniverse.herolib.installers.lang.python
 // import freeflowuniverse.herolib.installers.web.zola
-import freeflowuniverse.herolib.installers.web.tailwind
+// import freeflowuniverse.herolib.installers.web.tailwind
 // import freeflowuniverse.herolib.installers.hero.heroweb
 // import freeflowuniverse.herolib.installers.hero.herodev
-import freeflowuniverse.herolib.installers.sysadmintools.daguserver
+// import freeflowuniverse.herolib.installers.sysadmintools.daguserver
 import freeflowuniverse.herolib.installers.sysadmintools.rclone
 // import freeflowuniverse.herolib.installers.sysadmintools.prometheus
 // import freeflowuniverse.herolib.installers.sysadmintools.grafana
 // import freeflowuniverse.herolib.installers.sysadmintools.fungistor
-import freeflowuniverse.herolib.installers.sysadmintools.garage_s3
+// import freeflowuniverse.herolib.installers.sysadmintools.garage_s3
 import freeflowuniverse.herolib.installers.infra.zinit_installer
 
 @[params]
@@ -104,35 +104,33 @@ pub fn install_multi(args_ InstallArgs) ! {
 			}
 			'hero' {
 				herolib.install(
-					reset:     args.reset
-					git_pull:  args.gitpull
-					git_reset: args.gitreset
+					reset: args.reset
 				)!
 			}
 			// 'hero' {
 			// 	herolib.hero_install(reset: args.reset)!
 			// }
-			'caddy' {
-				// caddy.install(reset: args.reset)!
-				// caddy.configure_examples()!
-			}
-			'chrome' {
-				chrome.install(reset: args.reset, uninstall: args.uninstall)!
-			}
+			// 'caddy' {
+			// caddy.install(reset: args.reset)!
+			// caddy.configure_examples()!
+			// }
+			// 'chrome' {
+			// 	chrome.install(reset: args.reset, uninstall: args.uninstall)!
+			// }
 			// 'mycelium' {
 			// 	mycelium.install(reset: args.reset)!
 			// 	mycelium.start()!
 			// }
-			'garage_s3' {
-				mut garages3 := garage_s3.get()!
-				garages3.install(reset: args.reset)!
-			}
+			// 'garage_s3' {
+			// 	mut garages3 := garage_s3.get()!
+			// 	garages3.install(reset: args.reset)!
+			// }
 			// 'fungistor' {
 			// 	fungistor.install(reset: args.reset)!
 			// }
-			'lima' {
-				lima.install_(reset: args.reset, uninstall: args.uninstall)!
-			}
+			// 'lima' {
+			// 	lima.install_(reset: args.reset, uninstall: args.uninstall)!
+			// }
 			// 'herocontainers' {
 			// 	mut podman_installer0 := podman_installer.get()!
 			// 	mut buildah_installer0 := buildah_installer.get()!
@@ -149,9 +147,9 @@ pub fn install_multi(args_ InstallArgs) ! {
 			// 'grafana' {
 			// 	grafana.install(reset: args.reset)!
 			// }
-			'vscode' {
-				vscode.install(reset: args.reset)!
-			}
+			// 'vscode' {
+			// 	vscode.install(reset: args.reset)!
+			// }
 			'nodejs' {
 				mut i := nodejs.get()!
 				i.install(reset: args.reset)!
@@ -166,21 +164,21 @@ pub fn install_multi(args_ InstallArgs) ! {
 			// 'heroweb' {
 			// heroweb.install()!
 			// }
-			'dagu' {
-				// will call the installer underneith
-				mut dserver := daguserver.get()!
-				dserver.install()!
-				dserver.restart()!
-				// mut dagucl:=dserver.client()!
-			}
+			// 'dagu' {
+			// 	// will call the installer underneith
+			// 	mut dserver := daguserver.get()!
+			// 	dserver.install()!
+			// 	dserver.restart()!
+			// 	// mut dagucl:=dserver.client()!
+			// }
 			// 'zola' {
 			// 	mut i2 := zola.get()!
 			// 	i2.install()! // will also install tailwind
 			// }
-			'tailwind' {
-				mut i := tailwind.get()!
-				i.install()!
-			}
+			// 'tailwind' {
+			// 	mut i := tailwind.get()!
+			// 	i.install()!
+			// }
 			'zinit' {
 				mut i := zinit_installer.get()!
 				i.install()!

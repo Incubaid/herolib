@@ -15,7 +15,7 @@ pub struct ListArgs {
 pub mut:
 	regex         []string // A slice of regular expressions to filter files.
 	recursive     bool = true // Whether to list files recursively (default true).
-	ignoredefault bool = true // Whether to ignore files starting with . and _ (default true).
+	ignore_default bool = true // Whether to ignore files starting with . and _ (default true).
 	include_links bool // Whether to include symbolic links in the list.
 	dirs_only     bool // Whether to include only directories in the list.
 	files_only    bool // Whether to include only files in the list.
@@ -77,7 +77,7 @@ for path_obj in top_level_items.paths {
 
 #### 3. Including or Excluding Hidden Files
 
-The `ignoredefault` parameter controls whether files and directories starting with `.` or `_` are ignored.
+The `ignore_default` parameter controls whether files and directories starting with `.` or `_` are ignored.
 
 ```v
 import freeflowuniverse.herolib.core.pathlib
@@ -86,7 +86,7 @@ mut dir := pathlib.get('/some/directory')!
 
 // List all files and directories, including hidden ones
 mut all_items := dir.list(
-    ignoredefault: false
+    ignore_default: false
 )!
 
 for path_obj in all_items.paths {

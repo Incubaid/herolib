@@ -2,10 +2,7 @@ module python
 
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.installers.lang.python
 import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.data.dbfs
 import freeflowuniverse.herolib.ui.console
 import os
 
@@ -13,14 +10,17 @@ pub struct PythonEnv {
 pub mut:
 	name string
 	path pathlib.Path
-	db   dbfs.DB
 }
 
 @[params]
 pub struct PythonEnvArgs {
 pub mut:
-	name  string = 'default'
-	reset bool
+	name             string = 'default'
+	reset            bool
+	python_version   string = '3.11'
+	dependencies     []string
+	dev_dependencies []string
+	description      string = 'A Python project managed by Herolib'
 }
 
 pub fn new(args_ PythonEnvArgs) !PythonEnv {
@@ -31,156 +31,162 @@ pub fn new(args_ PythonEnvArgs) !PythonEnv {
 	pp := '${os.home_dir()}/hero/python/${name}'
 	console.print_debug('Python environment path: ${pp}')
 
-	mut c := base.context()!
 	mut py := PythonEnv{
 		name: name
 		path: pathlib.get_dir(path: pp, create: true)!
-		db:   c.db_get('python_${args.name}')!
 	}
 
-	key_install := 'pips_${py.name}_install'
-	key_update := 'pips_${py.name}_update'
-	if !os.exists('${pp}/bin/activate') {
-		console.print_debug('Python environment directory does not exist, triggering reset')
-		args.reset = true
-	}
-	if args.reset {
-		console.print_debug('Resetting Python environment')
-		py.pips_done_reset()!
-		py.db.delete(key: key_install)!
-		py.db.delete(key: key_update)!
-	}
-
-	toinstall := !py.db.exists(key: key_install)!
-	if toinstall {
-		console.print_debug('Installing Python environment')
-		// python.install()!
-		py.init_env()!
-		py.db.set(key: key_install, value: 'done')!
-		console.print_debug('Python environment setup complete')
-	}
-
-	toupdate := !py.db.exists(key: key_update)!
-	if toupdate {
-		console.print_debug('Updating Python environment')
-		py.update()!
-		py.db.set(key: key_update, value: 'done')!
-		console.print_debug('Python environment update complete')
+	// Check if environment needs to be reset
+	if !py.exists() || args.reset {
+		console.print_debug('Python environment needs initialization')
+		py.init_env(args)!
 	}
 
 	return py
 }
 
-// comma separated list of packages to install
-pub fn (py PythonEnv) init_env() ! {
-	console.print_green('Initializing Python virtual environment at: ${py.path.path}')
-	cmd := '
-	cd ${py.path.path}
-	python3 -m venv .
-	'
-	osal.exec(cmd: cmd)!
-	console.print_debug('Virtual environment initialization complete')
+// Check if the Python environment exists and is properly configured
+pub fn (py PythonEnv) exists() bool {
+	return os.exists('${py.path.path}/.venv/bin/activate')
+		&& os.exists('${py.path.path}/pyproject.toml')
 }
 
-// comma separated list of packages to install
+// Initialize the Python environment using uv
+pub fn (mut py PythonEnv) init_env(args PythonEnvArgs) ! {
+	console.print_green('Initializing Python environment at: ${py.path.path}')
+
+	// Remove existing environment if reset is requested
+	if args.reset && py.path.exists() {
+		console.print_debug('Removing existing environment for reset')
+		py.path.delete()!
+		py.path = pathlib.get_dir(path: py.path.path, create: true)!
+	}
+
+	// Check if uv is installed
+	if !osal.cmd_exists('uv') {
+		return error('uv is not installed. Please install uv first: curl -LsSf https://astral.sh/uv/install.sh | sh')
+	}
+
+	// Generate project files from templates
+	template_args := TemplateArgs{
+		name:             py.name
+		python_version:   args.python_version
+		dependencies:     args.dependencies
+		dev_dependencies: args.dev_dependencies
+		description:      args.description
+	}
+
+	py.generate_all_templates(template_args)!
+
+	// Initialize uv project
+	cmd := '
+	cd ${py.path.path}
+	uv venv --python ${args.python_version}
+	'
+	osal.exec(cmd: cmd)!
+
+	// Sync dependencies if any are specified
+	if args.dependencies.len > 0 || args.dev_dependencies.len > 0 {
+		py.sync()!
+	}
+
+	console.print_debug('Python environment initialization complete')
+}
+
+// Sync dependencies using uv
+pub fn (py PythonEnv) sync() ! {
+	console.print_green('Syncing dependencies for Python environment: ${py.name}')
+	cmd := '
+	cd ${py.path.path}
+	uv sync
+	'
+	osal.exec(cmd: cmd)!
+	console.print_debug('Dependency sync complete')
+}
+
+// Add dependencies to the project
+pub fn (py PythonEnv) add_dependencies(packages []string, dev bool) ! {
+	if packages.len == 0 {
+		return
+	}
+
+	console.print_debug('Adding Python packages: ${packages.join(', ')}')
+	packages_str := packages.join(' ')
+
+	mut cmd := '
+	cd ${py.path.path}
+	uv add ${packages_str}'
+
+	if dev {
+		cmd += ' --dev'
+	}
+
+	osal.exec(cmd: cmd)!
+	console.print_debug('Successfully added packages: ${packages.join(', ')}')
+}
+
+// Remove dependencies from the project
+pub fn (py PythonEnv) remove_dependencies(packages []string, dev bool) ! {
+	if packages.len == 0 {
+		return
+	}
+
+	console.print_debug('Removing Python packages: ${packages.join(', ')}')
+	packages_str := packages.join(' ')
+
+	mut cmd := '
+	cd ${py.path.path}
+	uv remove ${packages_str}'
+
+	if dev {
+		cmd += ' --dev'
+	}
+
+	osal.exec(cmd: cmd)!
+	console.print_debug('Successfully removed packages: ${packages.join(', ')}')
+}
+
+// Legacy pip method for backward compatibility - now uses uv add
+pub fn (py PythonEnv) pip(packages string) ! {
+	package_list := packages.split(',').map(it.trim_space()).filter(it.len > 0)
+	py.add_dependencies(package_list, false)!
+}
+
+// Legacy pip_uninstall method for backward compatibility - now uses uv remove
+pub fn (py PythonEnv) pip_uninstall(packages string) ! {
+	package_list := packages.split(',').map(it.trim_space()).filter(it.len > 0)
+	py.remove_dependencies(package_list, false)!
+}
+
+// Get list of installed packages
+pub fn (py PythonEnv) list_packages() ![]string {
+	cmd := '
+	cd ${py.path.path}
+	source .venv/bin/activate
+	uv pip list --format=freeze
+	'
+	result := osal.exec(cmd: cmd)!
+	return result.output.split_into_lines().filter(it.trim_space().len > 0)
+}
+
+// Update all dependencies
 pub fn (py PythonEnv) update() ! {
-	console.print_green('Updating pip in Python environment: ${py.name}')
-	cmd := '
-	cd ${py.path.path}	
-	source bin/activate
-	python3 -m pip install --upgrade pip
-	'
-	osal.exec(cmd: cmd)!
-	console.print_debug('Pip update complete')
-}
-
-// comma separated list of packages to uninstall
-pub fn (mut py PythonEnv) pip_uninstall(packages string) ! {
-	mut to_uninstall := []string{}
-	for i in packages.split(',') {
-		pip := i.trim_space()
-		if !py.pips_done_check(pip)! {
-			to_uninstall << pip
-			console.print_debug('Package to uninstall: ${pip}')
-		}
-	}
-
-	if to_uninstall.len == 0 {
-		return
-	}
-
-	console.print_debug('uninstalling Python packages: ${packages}')
-	packages2 := to_uninstall.join(' ')
+	console.print_green('Updating dependencies in Python environment: ${py.name}')
 	cmd := '
 	cd ${py.path.path}
-	source bin/activate
-	pip3 uninstall ${packages2} -q
+	uv lock --upgrade
+	uv sync
 	'
 	osal.exec(cmd: cmd)!
+	console.print_debug('Dependencies update complete')
 }
 
-// comma separated list of packages to install
-pub fn (mut py PythonEnv) pip(packages string) ! {
-	mut to_install := []string{}
-	for i in packages.split(',') {
-		pip := i.trim_space()
-		if !py.pips_done_check(pip)! {
-			to_install << pip
-			console.print_debug('Package to install: ${pip}')
-		}
-	}
-	if to_install.len == 0 {
-		return
-	}
-	console.print_debug('Installing Python packages: ${packages}')
-	packages2 := to_install.join(' ')
+// Run a command in the Python environment
+pub fn (py PythonEnv) run(command string) !osal.Job {
 	cmd := '
 	cd ${py.path.path}
-	source bin/activate
-	pip3 install ${packages2} -q
+	source .venv/bin/activate
+	${command}
 	'
-	osal.exec(cmd: cmd)!
-	// After successful installation, record the packages as done
-	for pip in to_install {
-		py.pips_done_add(pip)!
-		console.print_debug('Successfully installed package: ${pip}')
-	}
-}
-
-pub fn (mut py PythonEnv) pips_done_reset() ! {
-	console.print_debug('Resetting installed packages list for environment: ${py.name}')
-	py.db.delete(key: 'pips_${py.name}')!
-}
-
-pub fn (mut py PythonEnv) pips_done() ![]string {
-	// console.print_debug('Getting list of installed packages for environment: ${py.name}')
-	mut res := []string{}
-	pips := py.db.get(key: 'pips_${py.name}') or { '' }
-	for pip_ in pips.split_into_lines() {
-		pip := pip_.trim_space()
-		if pip !in res && pip.len > 0 {
-			res << pip
-		}
-	}
-	// console.print_debug('Found ${res.len} installed packages')
-	return res
-}
-
-pub fn (mut py PythonEnv) pips_done_add(name string) ! {
-	console.print_debug('Adding package ${name} to installed packages list')
-	mut pips := py.pips_done()!
-	if name in pips {
-		// console.print_debug('Package ${name} already marked as installed')
-		return
-	}
-	pips << name
-	out := pips.join_lines()
-	py.db.set(key: 'pips_${py.name}', value: out)!
-	console.print_debug('Successfully added package ${name} to installed list')
-}
-
-pub fn (mut py PythonEnv) pips_done_check(name string) !bool {
-	// console.print_debug('Checking if package ${name} is installed')
-	mut pips := py.pips_done()!
-	return name in pips
+	return osal.exec(cmd: cmd)!
 }

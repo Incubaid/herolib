@@ -6,20 +6,21 @@ import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.core
 import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 import freeflowuniverse.herolib.core.httpconnection
 import freeflowuniverse.herolib.installers.lang.golang
 import os
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut args := get()!
-	mut res := []zinit.ZProcessNewArgs{}
+	mut res := []startupmanager.ZProcessNewArgs{}
 	cmd := "coredns -conf '${args.config_path}'"
-	res << zinit.ZProcessNewArgs{
+	res << startupmanager.ZProcessNewArgs{
 		name: 'coredns'
 		cmd:  cmd
 	}
+
 	return res
 }
 

@@ -1,55 +1,63 @@
 module docusaurus
 
-import os
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.core.texttools
-
-@[heap]
-pub struct DocusaurusFactory {
-pub mut:
-	sites        map[string]&DocSite @[skip; str: skip]
-	path_build   pathlib.Path
-	path_publish pathlib.Path
-	args         DocusaurusArgs
-	config       Configuration // Stores configuration from HeroScript if provided
-}
+import freeflowuniverse.herolib.web.site
+import freeflowuniverse.herolib.ui.console
 
 @[params]
-pub struct DocusaurusArgs {
+pub struct AddArgs {
 pub mut:
-	path_publish    string
-	path_build      string
-	install         bool   //install required modules
-	reset           bool   //reset the full system
-	template_update bool	//update docusaurus template
-	heroscript      string
-	heroscript_path string
+	sitename string // needs to exist in web.site module
 }
 
-pub fn new(args_ DocusaurusArgs) !&DocusaurusFactory {
-	mut args := args_
-	if args.path_build == '' {
-		args.path_build = '${os.home_dir()}/hero/var/docusaurus/build'
-	}
-	if args.path_publish == '' {
-		args.path_publish = '${os.home_dir()}/hero/var/docusaurus/publish'
+pub fn dsite_define(sitename string) ! {
+	console.print_header('Add Docusaurus Site: ${sitename}')
+	mut c := config()!
+
+	path_publish := '${c.path_publish.path}/${sitename}'
+	path_build_ := '${c.path_build.path}'
+
+	// Get the site object after processing, this is the website which is a generic definition of a site
+	mut website := site.get(name: sitename)!
+
+	// Create the DocSite instance
+	mut dsite := &DocSite{
+		name:         sitename
+		path_publish: pathlib.get_dir(path: '${path_build_}/build', create: true)!
+		path_build:   pathlib.get_dir(path: path_build_, create: true)!
+		config:       new_configuration(website.siteconfig)!
+		website:      website
 	}
 
-	// Create the factory instance
-	mut f := &DocusaurusFactory{
-		args:         args_
-		path_build:   pathlib.get_dir(path: args.path_build, create: true)!
-		path_publish: pathlib.get_dir(path: args_.path_publish, create: true)!
-	}
-
-	f.install(install: args.install, template_update: args.template_update, reset: args.reset)!
-
-	return f
+	docusaurus_sites[sitename] = dsite
+	docusaurus_last = sitename
 }
 
+pub fn dsite_get(name_ string) !&DocSite {
+	mut name := texttools.name_fix(name_)
+	if name == '' {
+		name = docusaurus_last
+	}
+	return docusaurus_sites[name] or {
+		return error('docusaurus site with name "${name}" does not exist')
+	}
+}
 
-// get site from the docusaurus factory
-pub fn (mut self DocusaurusFactory) site_get(name string) !&DocSite { // Changed return type to !&DocSite
-	name_:=texttools.name_fix(name) // Removed !
-	return self.sites[name_] or {return error('site not found: ${name} in docusaurus factory.') } // Removed ! from error()
+pub fn dsite_exists(name_ string) !bool {
+	mut name := texttools.name_fix(name_)
+	if name == '' {
+		name = docusaurus_last
+	}
+	_ := docusaurus_sites[name] or { return false }
+	return true
+}
+
+// dsite_names returns the list of defined docusaurus site names.
+pub fn dsite_names() []string {
+	mut names := []string{}
+	for k, _ in docusaurus_sites {
+		names << k
+	}
+	return names
 }

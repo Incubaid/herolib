@@ -3,23 +3,24 @@ module postgresql
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.installers.virt.podman as podman_installer
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 import os
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut cfg := get()!
-	mut res := []zinit.ZProcessNewArgs{}
+	mut res := []startupmanager.ZProcessNewArgs{}
 	cmd := "
     mkdir -p ${cfg.volume_path}
     podman run --name ${cfg.container_name} -e POSTGRES_USER=${cfg.user} -e POSTGRES_PASSWORD=\"${cfg.password}\" -v ${cfg.volume_path}:/var/lib/postgresql/data -p ${cfg.port}:5432 --health-cmd=\"pg_isready -U ${cfg.user}\" postgres:latest
     "
 
-	res << zinit.ZProcessNewArgs{
+	res << startupmanager.ZProcessNewArgs{
 		name:        'postgresql'
 		cmd:         cmd
 		startuptype: .zinit
 	}
+
 	return res
 }
 

@@ -4,7 +4,7 @@ Is a powerfull db for embedding for AI Agents.
 
 To get started
 
-```vlang
+```v
 
 import freeflowuniverse.herolib.installers.db.qdrant_installer
 

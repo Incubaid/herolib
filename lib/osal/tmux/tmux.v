@@ -1,6 +1,8 @@
 module tmux
 
 import freeflowuniverse.herolib.osal.core as osal
+import freeflowuniverse.herolib.core.texttools
+import freeflowuniverse.herolib.core.redisclient
 // import freeflowuniverse.herolib.session
 import os
 import time
@@ -11,32 +13,121 @@ pub struct Tmux {
 pub mut:
 	sessions  []&Session
 	sessionid string // unique link to job
+	redis     &redisclient.Redis @[skip] // Redis client for command state tracking
+}
+
+// get session (session has windows) .
+// returns none if not found
+pub fn (mut t Tmux) session_get(name_ string) !&Session {
+	name := texttools.name_fix(name_)
+	for s in t.sessions {
+		if s.name == name {
+			return s
+		}
+	}
+	return error('Can not find session with name: \'${name_}\', out of loaded sessions.')
+}
+
+pub fn (mut t Tmux) session_exist(name_ string) bool {
+	name := texttools.name_fix(name_)
+	t.session_get(name) or { return false }
+	return true
+}
+
+pub fn (mut t Tmux) session_delete(name_ string) ! {
+	if !(t.session_exist(name_)) {
+		return
+	}
+	name := texttools.name_fix(name_)
+	mut i := 0
+	for mut s in t.sessions {
+		if s.name == name {
+			s.stop()!
+			break
+		}
+		i += 1
+	}
+	t.sessions.delete(i)
+}
+
+@[params]
+pub struct SessionCreateArgs {
+pub mut:
+	name  string @[required]
+	reset bool
+}
+
+// create session, if reset will re-create
+pub fn (mut t Tmux) session_create(args SessionCreateArgs) !&Session {
+	name := texttools.name_fix(args.name)
+	if !(t.session_exist(name)) {
+		$if debug {
+			console.print_header(' tmux - create session: ${args}')
+		}
+		mut s2 := Session{
+			tmux: t // reference back
+			name: name
+		}
+		s2.create()!
+		t.sessions << &s2
+	}
+	mut s := t.session_get(name)!
+	if args.reset {
+		$if debug {
+			console.print_header(' tmux - session ${name} will be restarted.')
+		}
+		s.restart()!
+	}
+	t.scan()!
+	return s
 }
 
 @[params]
 pub struct TmuxNewArgs {
+pub:
 	sessionid string
 }
 
 // return tmux instance
 pub fn new(args TmuxNewArgs) !Tmux {
+	// Initialize Redis client for command state tracking
+	mut redis := redisclient.core_get()!
+
 	mut t := Tmux{
 		sessionid: args.sessionid
+		redis:     redis
 	}
 	// t.load()!
 	t.scan()!
 	return t
 }
 
-// // loads tmux session, populate the object
-// pub fn (mut tmux Tmux) load() ! {
-// 	// isrunning := tmux.is_running()!
-// 	// if !isrunning {
-// 	// 	tmux.start()!
-// 	// }
-// 	// console.print_debug("SCAN")
-// 	tmux.scan()!
-// }
+@[params]
+pub struct WindowNewArgs {
+pub mut:
+	session_name string = 'main'
+	name         string
+	cmd          string
+	env          map[string]string
+	reset        bool
+}
+
+pub fn (mut t Tmux) window_new(args WindowNewArgs) !&Window {
+	// Get or create session
+	mut session := if t.session_exist(args.session_name) {
+		t.session_get(args.session_name)!
+	} else {
+		t.session_create(name: args.session_name)!
+	}
+
+	// Create window in session
+	return session.window_new(
+		name:  args.name
+		cmd:   args.cmd
+		env:   args.env
+		reset: args.reset
+	)!
+}
 
 pub fn (mut t Tmux) stop() ! {
 	$if debug {
@@ -93,7 +184,7 @@ pub fn (mut t Tmux) windows_get() []&Window {
 pub fn (mut t Tmux) is_running() !bool {
 	res := os.execute('tmux info')
 	if res.exit_code != 0 {
-		if res.output.contains('no server running') {
+		if is_tmux_server_not_running_error(res.output) {
 			// console.print_debug(" TMUX NOT RUNNING")
 			return false
 		}

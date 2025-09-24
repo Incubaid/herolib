@@ -26,7 +26,7 @@ pub fn build_(args BuildArgs) ! {
 	// install restic if it was already done will return true
 	console.print_header('build restic')
 
-	mut gs := gittools.get(coderoot: '/tmp/builder')!
+	mut gs := gittools.new(coderoot: '/tmp/builder')!
 	mut repo := gs.get_repo(
 		url:   url
 		reset: true

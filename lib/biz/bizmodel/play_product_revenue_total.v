@@ -28,5 +28,4 @@ fn (mut sim BizModel) revenue_total() ! {
 	// println(revenue_total)
 	// println(cogs_total)
 	// println(margin_total)
-
 }

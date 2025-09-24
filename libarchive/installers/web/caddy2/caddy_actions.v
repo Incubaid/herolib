@@ -18,7 +18,6 @@ fn startupcmd() ![]zinit.ZProcessNewArgs {
 	return res
 }
 
-
 fn running() !bool {
 	res := os.execute('${osal.profile_path_source_and()!} caddy version')
 	if res.exit_code == 0 {
@@ -81,7 +80,6 @@ fn upload() ! {
 	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/caddy'
 	// )!
 }
-
 
 fn install() ! {
 	console.print_header('install caddy')
@@ -159,9 +157,6 @@ fn destroy() ! {
 	//    /tmp/conmon
 	// ")!
 }
-
-
-
 
 // configure caddy as default webserver & start
 // node, path, domain

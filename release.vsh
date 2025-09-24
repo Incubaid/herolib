@@ -18,7 +18,6 @@ fn get_latest_release() !string {
 	return release.tag_name
 }
 
-
 // Show current version
 latest_release := get_latest_release() or {
 	eprintln('Error getting latest release: ${err}')
@@ -81,17 +80,12 @@ lines[version_line_idx] = '		version:     \'${new_version}\''
 os.write_file(hero_v_path, lines.join_lines()) or {
 	eprintln('Error writing to ${hero_v_path}: ${err}')
 	// Restore backup
-	os.cp('${hero_v_path}.backup', hero_v_path) or {
-		eprintln('Error restoring backup: ${err}')
-	}
+	os.cp('${hero_v_path}.backup', hero_v_path) or { eprintln('Error restoring backup: ${err}') }
 	exit(1)
 }
 
 // Clean up backup
-os.rm('${hero_v_path}.backup') or {
-	eprintln('Warning: Could not remove backup file: ${err}')
-}
-
+os.rm('${hero_v_path}.backup') or { eprintln('Warning: Could not remove backup file: ${err}') }
 
 // Update version in install_hero.sh
 install_hero_path := '${ourdir}/install_hero.sh'
@@ -130,8 +124,13 @@ os.rm('${install_hero_path}.backup') or {
 	eprintln('Warning: Could not remove backup file of install_hero.sh: ${err}')
 }
 
-
-cmd:='
+cmd := '
+git add . -A
+git commit -am "bump version to ${new_version}"
+git push
+git checkout development
+git pull origin development
+git push
 git remote set-url origin git@github.com:freeflowuniverse/herolib.git
 git add ${hero_v_path} ${install_hero_path}
 git commit -m "bump version to ${new_version}"

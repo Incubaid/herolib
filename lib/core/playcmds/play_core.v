@@ -1,59 +1,64 @@
 module playcmds
 
 import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.ui.console
+import freeflowuniverse.herolib.core.texttools
+import os
 
-// !!context.configure
-//     name:'test'
-//     coderoot:...
-//     interactive:true
+// -------------------------------------------------------------------
+// Core play‑command processing (context, session, env‑subst, etc)
+// -------------------------------------------------------------------
 
-pub fn play_core(mut plbook playbook.PlayBook) ! {
-	// for mut action in plbook.find(filter: 'context.configure')! {
-	// 	mut p := action.params
-	// 	mut session := plbook.session
+fn play_core(mut plbook PlayBook) ! {
+	if plbook.exists(filter: 'play.') == false && plbook.exists(filter: 'play.') == false && plbook.exists(
+		filter: 'core.'
+	) == false {
+		return
+	}
 
-	// 	if p.exists('interactive') {
-	// 		session.interactive = p.get_default_false('interactive')
-	// 	}
+	// ----------------------------------------------------------------
+	// 1.  Include handling (play include / echo)
+	// ----------------------------------------------------------------
+	// Track included paths to prevent infinite recursion
+	mut included_paths := map[string]bool{}
 
-	// 	if p.exists('coderoot') {
-	// 		panic('implement')
-	// 		// mut coderoot := p.get_path_create('coderoot')!
-	// 		// mut gs := gittools.get()!
-	// 	}
-	// 	action.done = true
-	// }
-
-	// for mut action in plbook.find(filter: 'session.')! {
-	// 	// mut p := action.params
-	// 	// mut session := plbook.session
-
-	// 	//!!session.env_set key:'JWT_SHARED_KEY' val:'...'
-
-	// 	action.done = true
-	// }
-
-	for action_ in plbook.find(filter: 'play.*')! {
-		if action_.name == 'run' {
-			console.print_debug('play run:${action_}')
+	for mut action_ in plbook.find(filter: 'play.*')! {
+		if action_.name == 'include' {
 			mut action := *action_
+			mut toreplace := action.params.get_default('replace', '')!
 			mut playrunpath := action.params.get_default('path', '')!
 			if playrunpath.len == 0 {
 				action.name = 'pull'
-				playrunpath = gittools.get_repo_path(
-						path:action.params.get_default('path', '')!
-						git_url:action.params.get_default('git_url', '')!
-						git_reset:action.params.get_default_false('git_reset')
-						git_pull:action.params.get_default_false('git_pull')
-						)!
+				mypath := gittools.path(
+					path:      playrunpath
+					git_url:   action.params.get_default('git_url', '')!
+					git_reset: action.params.get_default_false('git_reset')
+					git_pull:  action.params.get_default_false('git_pull')
+				)!
+				playrunpath = mypath.path
 			}
 			if playrunpath.len == 0 {
 				return error("can't run a heroscript didn't find url or path.")
 			}
-			console.print_debug('play run path:${playrunpath}')
-			plbook.add(path: playrunpath)!
+
+			// console.print_debug('play run:\n${action_}')
+			if !playrunpath.starts_with('/') {
+				playrunpath = os.abs_path('${plbook.path}/${playrunpath}')
+			}
+
+			console.print_debug('play run include path:${playrunpath}')
+
+			// Check for cycle detection
+			if playrunpath in included_paths {
+				console.print_debug('Skipping already included path: ${playrunpath}')
+				continue
+			}
+			toreplacedict := texttools.to_map(toreplace)
+			included_paths[playrunpath] = true
+			plbook.add(path: playrunpath, replace: toreplacedict)!
+
+			action.done = true
 		}
 		if action_.name == 'echo' {
 			content := action_.params.get_default('content', "didn't find content")!
@@ -61,35 +66,80 @@ pub fn play_core(mut plbook playbook.PlayBook) ! {
 		}
 	}
 
-	// for mut action in plbook.find(filter: 'core.coderoot_set')! {
-	// 	mut p := action.params
-	// 	if p.exists('coderoot') {
-	// 		coderoot := p.get_path_create('coderoot')!
-	// 		mut gs := session.context.gitstructure()!
-	// 		if gs.rootpath.path != coderoot {
-	// 			mut db := session.context.contextdb.db_get(dbname: 'context')!
-	// 			db.set('coderoot', coderoot)!
-	// 			session.context.gitstructure_reload()!
-	// 		}
-	// 	} else {
-	// 		return error('coderoot needs to be specified')
-	// 	}
-	// 	action.done = true
-	// }
+	// ----------------------------------------------------------------
+	// 2.  Session environment handling
+	// ----------------------------------------------------------------
+	// Guard – make sure a session exists
+	mut session := plbook.session
 
-	// for mut action in plbook.find(filter: 'core.params_context_set')! {
-	// 	mut p := action.params
-	// 	for param in p.params {
-	// 		session.context.params.set(param.key, param.value)
-	// 	}
-	// 	action.done = true
-	// }
+	// !!session.env_set / env_set_once
+	for mut action in plbook.find(filter: 'session.')! {
+		mut p := action.params
+		match action.name {
+			'env_set' {
+				key := p.get('key')!
+				val := p.get('val') or { p.get('value')! }
+				session.env_set(key, val)!
+			}
+			'env_set_once' {
+				key := p.get('key')!
+				val := p.get('val') or { p.get('value')! }
+				// Use the dedicated “set‑once” method
+				session.env_set_once(key, val)!
+			}
+			else {}
+		}
+		action.done = true
+	}
 
-	// for mut action in plbook.find(filter: 'core.params_session_set')! {
-	// 	mut p := action.params
-	// 	for param in p.params {
-	// 		session.params.set(param.key, param.value)
-	// 	}
-	// 	action.done = true
-	// }
+	// ----------------------------------------------------------------
+	// 3.  Template replacement in action parameters
+	// ----------------------------------------------------------------
+	// Apply template replacement from session environment variables
+	if session.env.len > 0 {
+		// Create a map with name_fix applied to keys for template replacement
+		mut env_fixed := map[string]string{}
+		for key, value in session.env {
+			env_fixed[texttools.name_fix(key)] = value
+		}
+
+		for mut action in plbook.actions {
+			if !action.done {
+				action.params.replace(env_fixed)
+			}
+		}
+	}
+
+	for mut action in plbook.find(filter: 'core.coderoot_set')! {
+		mut p := action.params
+		if p.exists('coderoot') {
+			coderoot := p.get_path_create('coderoot')!
+			if session.context.config.coderoot != coderoot {
+				session.context.config.coderoot = coderoot
+				session.context.save()!
+			}
+		} else {
+			return error('coderoot needs to be specified')
+		}
+		action.done = true
+	}
+
+	for mut action in plbook.find(filter: 'core.params_context_set')! {
+		mut p := action.params
+		mut context_params := session.context.params()!
+		for param in p.params {
+			context_params.set(param.key, param.value)
+		}
+		session.context.save()!
+		action.done = true
+	}
+
+	for mut action in plbook.find(filter: 'core.params_session_set')! {
+		mut p := action.params
+		for param in p.params {
+			session.params.set(param.key, param.value)
+		}
+		session.save()!
+		action.done = true
+	}
 }

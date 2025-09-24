@@ -1,7 +1,7 @@
 module s3
 
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.data.dbfs
 import freeflowuniverse.herolib.core.texttools
 import json

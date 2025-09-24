@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.title}} - Heroprompt</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{.css_colors_url}}">
+    <link rel="stylesheet" href="{{.css_main_url}}">
+    <link rel="stylesheet" href="{{.css_heroprompt_url}}">
+    <meta name="color-scheme" content="light dark">
+</head>
+
+<body>
+    <nav class="navbar navbar-dark bg-dark fixed-top header px-2">
+        <div class="d-flex w-100 align-items-center justify-content-between">
+            <div class="text-white fw-bold">{{.title}}</div>
+            <div class="text-white-50">Heroprompt</div>
+        </div>
+    </nav>
+
+    <aside class="sidebar">
+        <div class="p-2">
+            <div class="menu-section">Navigation</div>
+            <div class="list-group list-group-flush">
+                {{.menu_html}}
+            </div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="container-fluid h-100">
+            <div class="d-flex align-items-center mb-3">
+                <h5 class="mb-0">Heroprompt</h5>
+                <div class="ms-auto">
+                    <button id="wsCreateBtn" class="btn btn-primary btn-sm">
+                        + New Workspace
+                    </button>
+                </div>
+            </div>
+
+            <div class="row h-100">
+                <!-- Left Panel: Enhanced File Explorer -->
+                <div class="col-md-4 h-100">
+                    <div class="explorer-panel h-100">
+                        <div class="explorer-header">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="mb-0 text-uppercase fw-bold explorer-title">Explorer</h6>
+                                <div class="explorer-actions">
+                                    <button id="refreshExplorer" class="btn btn-lg btn-ghost me-2"
+                                        title="Refresh Workspace">
+                                        <i class="icon-refresh"></i>
+                                    </button>
+                                    <button id="wsDetailsBtn" class="btn btn-lg btn-ghost " title="Workspace Details">
+                                        <i class="icon-settings"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="workspace-selector mb-3">
+                                <select id="workspaceSelect" class="form-select form-select-sm modern-select"></select>
+                            </div>
+
+                            <div class="search-container mb-3">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text search-icon">
+                                        <i class="icon-search"></i>
+                                    </span>
+                                    <input id="search" class="form-control modern-input"
+                                        placeholder="Search files and folders...">
+                                    <button id="clearSearch" class="btn btn-ghost search-clear" title="Clear search">
+                                        <i class="icon-close"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="explorer-content">
+                            <div class="selection-controls mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="selection-info">
+                                        <span class="badge badge-selection">
+                                            <span id="selCount">0</span> selected
+                                        </span>
+                                    </div>
+                                    <div class="selection-actions">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="tree" class="file-tree">
+                                <div class="empty-state">
+                                    <i class="icon-folder-open"></i>
+                                    <p>Select a workspace to browse files</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel: Enhanced Workspace -->
+                <div class="col-md-8 h-100">
+                    <div class="workspace-panel h-100">
+                        <div class="workspace-header">
+                            <div class="tab-navigation">
+                                <div class="nav nav-tabs modern-tabs" id="mainTabs">
+                                    <button class="nav-link active tab" data-tab="selection">
+                                        <i class="icon-selection"></i>
+                                        <span>Selection</span>
+                                        <span class="badge badge-count" id="selCountTab">0</span>
+                                    </button>
+                                    <button class="nav-link tab" data-tab="prompt">
+                                        <i class="icon-prompt"></i>
+                                        <span>Prompt</span>
+                                    </button>
+                                    <button class="nav-link tab" data-tab="chat">
+                                        <i class="icon-chat"></i>
+                                        <span>AI Chat</span>
+                                    </button>
+                                </div>
+                                <div class="workspace-actions">
+                                    <span class="token-counter">
+                                        <i class="icon-token"></i>
+                                        <span id="tokenCount">0</span> tokens
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="workspace-content">
+                            <!-- Selection Tab -->
+                            <div id="tab-selection" class="tab-pane active">
+                                <div class="selection-workspace">
+                                    <div class="selection-header">
+                                        <h6 class="section-title">Selected Files & Directories</h6>
+                                    </div>
+
+                                    <div class="selection-content">
+                                        <div class="selection-cards-container">
+                                            <div class="panel-header">
+                                                <span class="panel-title">Selected Files & Directories</span>
+                                            </div>
+                                            <div id="selectedCards" class="selection-cards">
+                                                <div class="empty-selection-cards">
+                                                    <i class="icon-empty"></i>
+                                                    <p>No files selected</p>
+                                                    <small>Use checkboxes in the explorer to select files and
+                                                        directories</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Prompt Tab -->
+                            <div id="tab-prompt" class="tab-pane" style="display: none;">
+                                <div class="prompt-workspace">
+                                    <div class="prompt-editor">
+                                        <div class="editor-header">
+                                            <h6 class="section-title">Prompt Instructions</h6>
+                                        </div>
+                                        <div class="editor-content">
+                                            <textarea id="promptText" class="modern-textarea" rows="8" placeholder="Enter your instructions for what needs to be done with the selected code...
+
+Example:
+- Analyze the code structure and identify potential improvements
+- Add comprehensive error handling and validation
+- Optimize performance and reduce complexity
+- Add detailed documentation and comments
+- Implement best practices and design patterns"></textarea>
+                                        </div>
+                                        <div class="editor-footer">
+                                            <button id="generatePrompt" class="btn btn-primary">
+                                                <i class="icon-generate"></i>
+                                                Generate Prompt
+                                            </button>
+                                            <button id="copyPrompt" class="btn btn-secondary">
+                                                <i class="icon-copy"></i>
+                                                Copy to Clipboard
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="prompt-output">
+                                        <div class="output-header">
+                                            <span class="panel-title">Generated Prompt</span>
+                                        </div>
+                                        <div class="output-content">
+                                            <div id="promptOutput" class="prompt-result">
+                                                <div class="empty-output">
+                                                    <i class="icon-prompt"></i>
+                                                    <p>Generated prompt will appear here</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chat Tab -->
+                            <div id="tab-chat" class="tab-pane" style="display: none;">
+                                <div class="chat-workspace">
+                                    <div class="chat-layout">
+                                        <!-- Chat Sidebar -->
+                                        <div class="chat-sidebar">
+                                            <div class="chat-sidebar-header">
+                                                <h6 class="sidebar-title">Conversations</h6>
+                                                <button id="newChatBtn" class="btn btn-sm btn-ghost" title="New Chat">
+                                                    <i class="icon-plus"></i>
+                                                </button>
+                                            </div>
+                                            <div class="chat-list">
+                                                <div id="chatList" class="chat-conversations">
+                                                    <div class="empty-chat-list">
+                                                        <i class="icon-chat"></i>
+                                                        <p>No conversations yet</p>
+                                                        <small>Start a new chat to begin</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Chat Main Area -->
+                                        <div class="chat-main">
+                                            <div class="chat-header">
+                                                <div class="chat-header-info">
+                                                    <h6 class="section-title">AI Assistant</h6>
+                                                    <span id="chatStatus" class="chat-status">Ready</span>
+                                                </div>
+                                                <div class="chat-actions">
+                                                    <button id="clearChat" class="btn btn-sm btn-ghost"
+                                                        title="Clear Chat">
+                                                        <i class="icon-clear"></i>
+                                                    </button>
+                                                    <button id="exportChat" class="btn btn-sm btn-ghost"
+                                                        title="Export Chat">
+                                                        <i class="icon-export"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div class="chat-content">
+                                                <div class="chat-messages">
+                                                    <div id="chatMessages" class="messages-container">
+                                                        <div class="welcome-message">
+                                                            <div class="welcome-avatar">
+                                                                <i class="icon-ai"></i>
+                                                            </div>
+                                                            <div class="welcome-content">
+                                                                <h4>Welcome to AI Assistant</h4>
+                                                                <p>I'm here to help you with your code! You can:</p>
+                                                                <ul>
+                                                                    <li>Ask questions about your selected files</li>
+                                                                    <li>Request code explanations and improvements</li>
+                                                                    <li>Get suggestions for best practices</li>
+                                                                    <li>Debug issues and optimize performance</li>
+                                                                </ul>
+                                                                <small>Select some files from the explorer and start
+                                                                    chatting!</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div id="typingIndicator" class="typing-indicator"
+                                                        style="display: none;">
+                                                        <span>AI is typing</span>
+                                                        <div class="typing-dots">
+                                                            <span></span>
+                                                            <span></span>
+                                                            <span></span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="chat-input">
+                                                    <div class="input-container">
+                                                        <textarea id="chatInput" class="chat-textarea" rows="2"
+                                                            placeholder="Ask about your code, request explanations, or get suggestions..."></textarea>
+                                                        <button id="sendChat" class="btn btn-primary send-btn">
+                                                            <i class="icon-send"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="input-footer">
+                                                        <span class="input-hint">Press Enter to send, Shift+Enter for
+                                                            new line</span>
+                                                        <span id="charCount" class="char-count">0</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div class="modal fade" id="wsCreate" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Workspace</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" id="wcClose"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="wcName" class="form-label">Workspace Name (optional)</label>
+                        <input type="text" class="form-control" id="wcName" placeholder="Enter workspace name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="wcPath" class="form-label">Base Path (required)</label>
+                        <input type="text" class="form-control" id="wcPath" placeholder="Enter base directory path">
+                    </div>
+                    <div id="wcError" class="text-danger small"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        id="wcCancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="wcCreate">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="wsDetails" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Workspace Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" id="wdClose"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="wdName" class="form-label">Workspace Name</label>
+                        <input type="text" class="form-control" id="wdName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="wdPath" class="form-label">Base Path</label>
+                        <input type="text" class="form-control" id="wdPath">
+                    </div>
+                    <div id="wdError" class="text-danger small"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="wdDelete">Delete</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"
+                        id="wdCancel">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="wdUpdate">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="wsManage" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Manage Workspaces</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="wmError" class="text-danger small mb-3"></div>
+                    <div class="list-group" id="wmList">
+                        <div class="text-muted">Loading workspaces...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmDeleteMessage">Are you sure you want to delete this workspace?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <script src="{{.js_theme_url}}"></script>
+    <script src="{{.js_heroprompt_url}}"></script>
+</body>
+
+</html>

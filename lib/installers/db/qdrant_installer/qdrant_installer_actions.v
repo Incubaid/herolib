@@ -1,17 +1,18 @@
 module qdrant_installer
 
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 import os
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
-	mut res := []zinit.ZProcessNewArgs{}
-	res << zinit.ZProcessNewArgs{
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
+	mut res := []startupmanager.ZProcessNewArgs{}
+	res << startupmanager.ZProcessNewArgs{
 		name:        'qdrant'
 		cmd:         'sleep 5 && qdrant --config-path ${os.home_dir()}/hero/var/qdrant/config.yaml'
 		startuptype: .zinit
 	}
+
 	return res
 }
 

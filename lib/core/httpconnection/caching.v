@@ -6,14 +6,13 @@ import net.http { Method }
 
 // https://cassiomolin.com/2016/09/09/which-http-status-codes-are-cacheable/
 const default_cacheable_codes = [200, 203, 204, 206, 300, 404, 405, 410, 414, 501]
-
 const unsafe_http_methods = [Method.put, .patch, .post, .delete]
 
 pub struct CacheConfig {
 pub mut:
 	key               string // as used to identity in redis
 	allowable_methods []Method = [.get, .head]
-	allowable_codes   []int    = default_cacheable_codes
+	allowable_codes   []int    = [200, 203, 204, 206, 300, 404, 405, 410, 414, 501] // TODO: produces v compiler error to use const
 	disable           bool     = true // default cache is not working
 	expire_after      int      = 3600 // default expire_after is 1h
 	match_headers     bool // cache the request header to be matched later

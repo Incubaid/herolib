@@ -10,7 +10,7 @@ import freeflowuniverse.herolib.clients.mailclient
 import freeflowuniverse.herolib.clients.postgresql_client
 import rand
 
-pub const version = '1.23.3'
+pub const version = '1.24.5'
 const singleton = true
 const default = false
 

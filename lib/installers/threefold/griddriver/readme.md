@@ -2,7 +2,7 @@
 
 To use the installer:
 
-```vlang
+```v
 import freeflowuniverse.herolib.installers.threefold.griddriver
 
 fn main() {

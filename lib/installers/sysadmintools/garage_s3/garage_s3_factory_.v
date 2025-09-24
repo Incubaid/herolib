@@ -1,10 +1,10 @@
 module garage_s3
 
 import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.ui.console
+import json
 import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.osal.zinit
 import time
 
 __global (
@@ -17,92 +17,125 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name string
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
 }
 
-fn args_get(args_ ArgsGet) ArgsGet {
-	mut args := args_
-	if args.name == '' {
-		args.name = 'default'
+pub fn new(args ArgsGet) !&GarageS3 {
+	mut obj := GarageS3{
+		name: args.name
 	}
-	return args
+	set(obj)!
+	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&GarageS3 {
+pub fn get(args ArgsGet) !&GarageS3 {
 	mut context := base.context()!
-	mut args := args_get(args_)
-	mut obj := GarageS3{}
-	if args.name !in garage_s3_global {
-		if !exists(args)! {
-			set(obj)!
+	garage_s3_default = args.name
+	if args.fromdb || args.name !in garage_s3_global {
+		mut r := context.redis()!
+		if r.hexists('context:garage_s3', args.name)! {
+			data := r.hget('context:garage_s3', args.name)!
+			if data.len == 0 {
+				print_backtrace()
+				return error('GarageS3 with name: garage_s3 does not exist, prob bug.')
+			}
+			mut obj := json.decode(GarageS3, data)!
+			set_in_mem(obj)!
 		} else {
-			heroscript := context.hero_config_get('garage_s3', args.name)!
-			mut obj_ := heroscript_loads(heroscript)!
-			set_in_mem(obj_)!
+			if args.create {
+				new(args)!
+			} else {
+				print_backtrace()
+				return error("GarageS3 with name 'garage_s3' does not exist")
+			}
 		}
+		return get(name: args.name)! // no longer from db nor create
 	}
 	return garage_s3_global[args.name] or {
-		println(garage_s3_global)
-		// bug if we get here because should be in globals
-		panic('could not get config for garage_s3 with name, is bug:${args.name}')
+		print_backtrace()
+		return error('could not get config for garage_s3 with name:garage_s3')
 	}
 }
 
 // register the config for the future
 pub fn set(o GarageS3) ! {
-	set_in_mem(o)!
+	mut o2 := set_in_mem(o)!
+	garage_s3_default = o2.name
 	mut context := base.context()!
-	heroscript := heroscript_dumps(o)!
-	context.hero_config_set('garage_s3', o.name, heroscript)!
+	mut r := context.redis()!
+	r.hset('context:garage_s3', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
-pub fn exists(args_ ArgsGet) !bool {
+pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
-	mut args := args_get(args_)
-	return context.hero_config_exists('garage_s3', args.name)
+	mut r := context.redis()!
+	return r.hexists('context:garage_s3', args.name)!
 }
 
-pub fn delete(args_ ArgsGet) ! {
-	mut args := args_get(args_)
+pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
-	context.hero_config_delete('garage_s3', args.name)!
-	if args.name in garage_s3_global {
-		// del garage_s3_global[args.name]
-	}
-}
-
-// only sets in mem, does not set as config
-fn set_in_mem(o GarageS3) ! {
-	mut o2 := obj_init(o)!
-	garage_s3_global[o.name] = &o2
-	garage_s3_default = o.name
+	mut r := context.redis()!
+	r.hdel('context:garage_s3', args.name)!
 }
 
 @[params]
-pub struct PlayArgs {
+pub struct ArgsList {
 pub mut:
-	heroscript string // if filled in then plbook will be made out of it
-	plbook     ?playbook.PlayBook
-	reset      bool
+	fromdb bool // will load from filesystem
 }
 
-pub fn play(args_ PlayArgs) ! {
-	mut args := args_
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&GarageS3 {
+	mut res := []&GarageS3{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		garage_s3_global = map[string]&GarageS3{}
+		garage_s3_default = ''
+	}
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:garage_s3')!
 
-	mut plbook := args.plbook or { playbook.new(text: args.heroscript)! }
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in garage_s3_global {
+			res << client
+		}
+	}
+	return res
+}
 
+// only sets in mem, does not set as config
+fn set_in_mem(o GarageS3) !GarageS3 {
+	mut o2 := obj_init(o)!
+	garage_s3_global[o2.name] = &o2
+	garage_s3_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'garage_s3.') {
+		return
+	}
 	mut install_actions := plbook.find(filter: 'garage_s3.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
-
 	mut other_actions := plbook.find(filter: 'garage_s3.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -134,6 +167,7 @@ pub fn play(args_ PlayArgs) ! {
 				garage_s3_obj.restart()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
@@ -141,24 +175,28 @@ pub fn play(args_ PlayArgs) ! {
 //////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn startupmanager_get(cat zinit.StartupManagerType) !startupmanager.StartupManager {
+fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.StartupManager {
 	// unknown
 	// screen
 	// zinit
 	// tmux
 	// systemd
 	match cat {
+		.screen {
+			console.print_debug("installer: garage_s3' startupmanager get screen")
+			return startupmanager.get(.screen)!
+		}
 		.zinit {
-			console.print_debug('startupmanager: zinit')
-			return startupmanager.get(cat: .zinit)!
+			console.print_debug("installer: garage_s3' startupmanager get zinit")
+			return startupmanager.get(.zinit)!
 		}
 		.systemd {
-			console.print_debug('startupmanager: systemd')
-			return startupmanager.get(cat: .systemd)!
+			console.print_debug("installer: garage_s3' startupmanager get systemd")
+			return startupmanager.get(.systemd)!
 		}
 		else {
-			console.print_debug('startupmanager: auto')
-			return startupmanager.get()!
+			console.print_debug("installer: garage_s3' startupmanager get auto")
+			return startupmanager.get(.auto)!
 		}
 	}
 }
@@ -175,7 +213,7 @@ pub fn (mut self GarageS3) start() ! {
 		return
 	}
 
-	console.print_header('garage_s3 start')
+	console.print_header('installer: garage_s3 start')
 
 	if !installed()! {
 		install()!
@@ -188,7 +226,7 @@ pub fn (mut self GarageS3) start() ! {
 	for zprocess in startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		console.print_debug('starting garage_s3 with ${zprocess.startuptype}...')
+		console.print_debug('installer: garage_s3 starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
 
@@ -233,10 +271,12 @@ pub fn (mut self GarageS3) running() !bool {
 
 	// walk over the generic processes, if not running return
 	for zprocess in startupcmd()! {
-		mut sm := startupmanager_get(zprocess.startuptype)!
-		r := sm.running(zprocess.name)!
-		if r == false {
-			return false
+		if zprocess.startuptype != .screen {
+			mut sm := startupmanager_get(zprocess.startuptype)!
+			r := sm.running(zprocess.name)!
+			if r == false {
+				return false
+			}
 		}
 	}
 	return running()!
@@ -264,11 +304,4 @@ pub fn (mut self GarageS3) destroy() ! {
 // switch instance to be used for garage_s3
 pub fn switch(name string) {
 	garage_s3_default = name
-}
-
-// helpers
-
-@[params]
-pub struct DefaultConfigArgs {
-	instance string = 'default'
 }

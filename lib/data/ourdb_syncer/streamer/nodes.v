@@ -23,9 +23,8 @@ pub mut:
 }
 
 // is_running checks if the node is operational by pinging its address
-fn (node &StreamerNode) is_running() bool {
-	ping_result := osal.ping(address: node.address, retry: 2) or { return false }
-	return ping_result == .ok
+fn (node &StreamerNode) is_running() !bool {
+	return osal.ping(address: node.address, retry: 2)!
 }
 
 // connect_to_master connects the worker node to its master
@@ -199,7 +198,7 @@ pub fn (mut node StreamerNode) handle_ping_nodes() ! {
 		mut i := 0
 		for i < node.workers.len {
 			worker := &node.workers[i]
-			if !worker.is_running() {
+			if !(worker.is_running() or { false }) {
 				log_event(event_type: 'logs', message: 'Worker ${worker.address} is not running')
 				log_event(event_type: 'logs', message: 'Removing worker ${worker.public_key}')
 				node.workers.delete(i)
@@ -213,7 +212,7 @@ pub fn (mut node StreamerNode) handle_ping_nodes() ! {
 			}
 		}
 	} else {
-		if !node.is_running() {
+		if !(node.is_running() or { false }) {
 			return error('Worker node is not running')
 		}
 		if node.master_public_key.len == 0 {

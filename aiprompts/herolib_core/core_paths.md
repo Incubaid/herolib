@@ -19,6 +19,9 @@ import freeflowuniverse.herolib.core.pathlib
 ```
 
 ### Creating Path Objects
+
+This will figure out if the path is a dir, file and if it exists.
+
 ```v
 // Create a Path object for a file
 mut file_path := pathlib.get("path/to/file.txt")
@@ -26,6 +29,8 @@ mut file_path := pathlib.get("path/to/file.txt")
 // Create a Path object for a directory
 mut dir_path := pathlib.get("path/to/directory")
 ```
+
+if you know in advance if you expect a dir or file its better to use `pathlib.get_dir(path:...,create:true)` or `pathlib.get_file(path:...,create:true)`.
 
 ### Basic Path Operations
 ```v

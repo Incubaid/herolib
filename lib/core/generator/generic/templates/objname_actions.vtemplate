@@ -7,7 +7,7 @@ import freeflowuniverse.herolib.core.pathlib
 
 @if args.startupmanager
 import freeflowuniverse.herolib.osal.systemd
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 @end
 import freeflowuniverse.herolib.installers.ulist
 
@@ -20,11 +20,11 @@ import freeflowuniverse.herolib.installers.lang.python
 import os
 
 @if args.startupmanager
-fn startupcmd () ![]zinit.ZProcessNewArgs{
+fn startupcmd () ![]startupmanager.ZProcessNewArgs{
 	mut installer := get()!
-	mut res := []zinit.ZProcessNewArgs{}
+	mut res := []startupmanager.ZProcessNewArgs{}
 	//THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
-	// res << zinit.ZProcessNewArgs{
+	// res << startupmanager.ZProcessNewArgs{
 	// 	name: '${args.name}'
 	// 	cmd: '${args.name} server'
 	// 	env: {

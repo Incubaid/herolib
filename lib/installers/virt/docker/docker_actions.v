@@ -3,12 +3,12 @@ module docker
 import freeflowuniverse.herolib.core
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
-	mut res := []zinit.ZProcessNewArgs{}
-	res << zinit.ZProcessNewArgs{
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
+	mut res := []startupmanager.ZProcessNewArgs{}
+	res << startupmanager.ZProcessNewArgs{
 		name: 'docker'
 		cmd:  'dockerd'
 	}

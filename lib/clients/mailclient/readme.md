@@ -3,7 +3,7 @@
 
 To get started
 
-```vlang
+```v
 
 import freeflowuniverse.herolib.clients.mailclient
 

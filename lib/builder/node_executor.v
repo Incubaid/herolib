@@ -14,6 +14,8 @@ pub fn (mut node Node) exec(args ExecArgs) !string {
 		return node.executor.exec(cmd: args.cmd, stdout: args.stdout)
 	} else if mut node.executor is ExecutorSSH {
 		return node.executor.exec(cmd: args.cmd, stdout: args.stdout)
+	} else if mut node.executor is ExecutorCrun {
+		return node.executor.exec(cmd: args.cmd, stdout: args.stdout)
 	}
 	panic('did not find right executor')
 }
@@ -80,6 +82,8 @@ pub fn (mut node Node) exec_silent(cmd string) !string {
 		return node.executor.exec(cmd: cmd, stdout: false)
 	} else if mut node.executor is ExecutorSSH {
 		return node.executor.exec(cmd: cmd, stdout: false)
+	} else if mut node.executor is ExecutorCrun {
+		return node.executor.exec(cmd: cmd, stdout: false)
 	}
 	panic('did not find right executor')
 }
@@ -89,14 +93,19 @@ pub fn (mut node Node) exec_interactive(cmd_ string) ! {
 		node.executor.exec_interactive(cmd: cmd_)!
 	} else if mut node.executor is ExecutorSSH {
 		node.executor.exec_interactive(cmd: cmd_)!
+	} else if mut node.executor is ExecutorCrun {
+		node.executor.exec_interactive(cmd: cmd_)!
+	} else {
+		panic('did not find right executor')
 	}
-	panic('did not find right executor')
 }
 
 pub fn (mut node Node) file_write(path string, text string) ! {
 	if mut node.executor is ExecutorLocal {
 		return node.executor.file_write(path, text)
 	} else if mut node.executor is ExecutorSSH {
+		return node.executor.file_write(path, text)
+	} else if mut node.executor is ExecutorCrun {
 		return node.executor.file_write(path, text)
 	}
 	panic('did not find right executor')
@@ -107,6 +116,8 @@ pub fn (mut node Node) file_read(path string) !string {
 		return node.executor.file_read(path)
 	} else if mut node.executor is ExecutorSSH {
 		return node.executor.file_read(path)
+	} else if mut node.executor is ExecutorCrun {
+		return node.executor.file_read(path)
 	}
 	panic('did not find right executor')
 }
@@ -115,6 +126,8 @@ pub fn (mut node Node) file_exists(path string) bool {
 	if mut node.executor is ExecutorLocal {
 		return node.executor.file_exists(path)
 	} else if mut node.executor is ExecutorSSH {
+		return node.executor.file_exists(path)
+	} else if mut node.executor is ExecutorCrun {
 		return node.executor.file_exists(path)
 	}
 	panic('did not find right executor')
@@ -136,6 +149,8 @@ pub fn (mut node Node) delete(path string) ! {
 	if mut node.executor is ExecutorLocal {
 		return node.executor.delete(path)
 	} else if mut node.executor is ExecutorSSH {
+		return node.executor.delete(path)
+	} else if mut node.executor is ExecutorCrun {
 		return node.executor.delete(path)
 	}
 	panic('did not find right executor')
@@ -179,6 +194,8 @@ pub fn (mut node Node) download(args_ SyncArgs) ! {
 		return node.executor.download(args)
 	} else if mut node.executor is ExecutorSSH {
 		return node.executor.download(args)
+	} else if mut node.executor is ExecutorCrun {
+		return node.executor.download(args)
 	}
 	panic('did not find right executor')
 }
@@ -208,6 +225,8 @@ pub fn (mut node Node) upload(args_ SyncArgs) ! {
 		return node.executor.upload(args)
 	} else if mut node.executor is ExecutorSSH {
 		return node.executor.upload(args)
+	} else if mut node.executor is ExecutorCrun {
+		return node.executor.upload(args)
 	}
 	panic('did not find right executor')
 }
@@ -224,6 +243,8 @@ pub fn (mut node Node) environ_get(args EnvGetParams) !map[string]string {
 			return node.executor.environ_get()
 		} else if mut node.executor is ExecutorSSH {
 			return node.executor.environ_get()
+		} else if mut node.executor is ExecutorCrun {
+			return node.executor.environ_get()
 		}
 		panic('did not find right executor')
 	}
@@ -235,6 +256,8 @@ pub fn (mut node Node) info() map[string]string {
 		return node.executor.info()
 	} else if mut node.executor is ExecutorSSH {
 		return node.executor.info()
+	} else if mut node.executor is ExecutorCrun {
+		return node.executor.info()
 	}
 	panic('did not find right executor')
 }
@@ -243,6 +266,8 @@ pub fn (mut node Node) shell(cmd string) ! {
 	if mut node.executor is ExecutorLocal {
 		return node.executor.shell(cmd)
 	} else if mut node.executor is ExecutorSSH {
+		return node.executor.shell(cmd)
+	} else if mut node.executor is ExecutorCrun {
 		return node.executor.shell(cmd)
 	}
 	panic('did not find right executor')
@@ -257,6 +282,8 @@ pub fn (mut node Node) list(path string) ![]string {
 		return node.executor.list(path)
 	} else if mut node.executor is ExecutorSSH {
 		return node.executor.list(path)
+	} else if mut node.executor is ExecutorCrun {
+		return node.executor.list(path)
 	}
 	panic('did not find right executor')
 }
@@ -265,6 +292,8 @@ pub fn (mut node Node) dir_exists(path string) bool {
 	if mut node.executor is ExecutorLocal {
 		return node.executor.dir_exists(path)
 	} else if mut node.executor is ExecutorSSH {
+		return node.executor.dir_exists(path)
+	} else if mut node.executor is ExecutorCrun {
 		return node.executor.dir_exists(path)
 	}
 	panic('did not find right executor')
@@ -275,8 +304,11 @@ pub fn (mut node Node) debug_off() {
 		node.executor.debug_off()
 	} else if mut node.executor is ExecutorSSH {
 		node.executor.debug_off()
+	} else if mut node.executor is ExecutorCrun {
+		node.executor.debug_off()
+	} else {
+		panic('did not find right executor')
 	}
-	panic('did not find right executor')
 }
 
 pub fn (mut node Node) debug_on() {
@@ -284,6 +316,9 @@ pub fn (mut node Node) debug_on() {
 		node.executor.debug_on()
 	} else if mut node.executor is ExecutorSSH {
 		node.executor.debug_on()
+	} else if mut node.executor is ExecutorCrun {
+		node.executor.debug_on()
+	} else {
+		panic('did not find right executor')
 	}
-	panic('did not find right executor')
 }

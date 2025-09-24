@@ -1,7 +1,5 @@
 module encoderhero
 
-import time
-
 // byte array versions of the most common tokens/chars to avoid reallocations
 const null_in_bytes = 'null'
 

@@ -102,7 +102,6 @@ fn (mut m BizModel) employee_define_action(action Action) !Action {
 	return action
 }
 
-
 fn (mut sim BizModel) hrcost_total() ! {
 	sim.sheet.group2row(
 		name:    'hr_cost_total'

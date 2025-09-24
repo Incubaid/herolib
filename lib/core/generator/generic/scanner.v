@@ -16,9 +16,9 @@ pub fn scan(args_ GeneratorArgs) ! {
 	// now walk over all directories, find .heroscript
 	mut pathroot := pathlib.get_dir(path: args.path, create: false)!
 	mut plist := pathroot.list(
-		recursive:     true
-		ignoredefault: false
-		regex:         ['.heroscript']
+		recursive:      true
+		ignore_default: false
+		regex:          ['.heroscript']
 	)!
 
 	for mut p in plist.paths {

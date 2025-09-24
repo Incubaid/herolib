@@ -5,7 +5,7 @@ import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.ui.console
 import os
 
-pub const gitcmds = 'clone,commit,pull,push,delete,reload,list,edit,sourcetree,cd'
+pub const gitcmds = 'clone,commit,pull,push,delete,reload,list,edit,sourcetree,path,exists'
 
 @[params]
 pub struct ReposActionsArgs {
@@ -43,32 +43,49 @@ pub mut:
 //```
 pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 	mut args := args_
-	// console.print_debug('git do ${args.cmd}')
+	console.print_debug('git do ${args.cmd}')
+	// println(args)
+	// $dbg;
 
-	if args.path == '' {
-		args.path = os.getwd()
+	if args.path.len > 0 && args.url.len > 0 {
+		panic('bug')
+	}
+	if args.path.len > 0 && args.filter.len > 0 {
+		panic('bug')
+	}
+	if args.url.len > 0 && args.filter.len > 0 {
+		panic('bug')
 	}
 
-	// see if its one repo we are in, based on current path
-	if args.repo == '' && args.account == '' && args.provider == '' && args.filter == '' {
-		mut curdiro := pathlib.get_dir(path: args.path, create: false)!
-		mut parentpath := curdiro.parent_find('.git') or { pathlib.Path{} }
-		if parentpath.path != '' {
-			r0 := gs.repo_init_from_path_(parentpath.path)!
+	if args.path != '' {
+		if args.path.contains('*') {
+			panic('bug')
+		}
+		if args.path == '.' {
+			// means current dir
+			args.path = os.getwd()
+			mut curdiro := pathlib.get_dir(path: args.path, create: false)!
+			// mut parentpath := curdiro.parent_find('.git') or { pathlib.Path{} }
+			args.path = curdiro.path
+		}
+		if !os.exists(args.path) {
+			return error('Path does not exist: ${args.path}')
+		}
+
+		r0 := gs.repo_init_from_path_(args.path)!
+		args.repo = r0.name
+		args.account = r0.account
+		args.provider = r0.provider
+	} else {
+		if args.url.len > 0 {
+			if !(args.repo == '' && args.account == '' && args.provider == '' && args.filter == '') {
+				return error('when specify url cannot specify repo, account, profider or filter')
+			}
+			mut r0 := gs.get_repo(url: args.url)!
 			args.repo = r0.name
 			args.account = r0.account
 			args.provider = r0.provider
 		}
-	}
-	// see if a url was used means we are in 1 repo
-	if args.url.len > 0 {
-		if !(args.repo == '' && args.account == '' && args.provider == '' && args.filter == '') {
-			return error('when specify url cannot specify repo, account, profider or filter')
-		}
-		mut r0 := gs.get_repo(url: args.url)!
-		args.repo = r0.name
-		args.account = r0.account
-		args.provider = r0.provider
 	}
 
 	args.cmd = args.cmd.trim_space().to_lower()
@@ -82,12 +99,12 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 		provider: args.provider
 	)!
 
-	// reset the status for the repo
-	if args.reload || args.cmd == 'reload'{
-		for mut repo in repos {
-			repo.cache_last_load_clear()!
-		}
-		gs.load(true)!
+	if repos.len < 4 || args.cmd in 'pull,push,commit,delete'.split(',') {
+		args.reload = true
+	}
+
+	for mut repo in repos {
+		repo.status_update(reset: args.reload || args.cmd == 'reload')!
 	}
 
 	if args.cmd == 'list' {
@@ -98,6 +115,20 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 			provider: args.provider
 		)!
 		return ''
+	}
+
+	if args.cmd == 'exists' {
+		return gs.check_repos_exist(args)
+	}
+
+	if args.cmd == 'path' {
+		if repos.len == 0 {
+			return error('No repository found for path command')
+		}
+		if repos.len > 1 {
+			return error('Multiple repositories found for path command, please be more specific')
+		}
+		return repos[0].path()
 	}
 
 	// means we are on 1 repo
@@ -157,14 +188,17 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 			if args.cmd in ['push', 'pull', 'commit'] && (g.need_commit()!) {
 				need_commit0 = true
 			}
+
+			// console.print_debug(" --- status repo ${g.name}'s\n    need_commit0:${need_commit0} \n    need_pull0:${need_pull0}  \n    need_push0:${need_push0}")
 		}
 
-		// console.print_debug(" --- status all repo's\n    need_commit0:${need_commit0} \n    need_pull0:${need_pull0}  \n    need_push0:${need_push0}")		
-		// exit(0)
+		// console.print_debug(" --- status all repo's\n    need_commit0:${need_commit0} \n    need_pull0:${need_pull0}  \n    need_push0:${need_push0}")
+
+		// $dbg;
 
 		mut ok := false
 		if need_commit0 || need_pull0 || need_push0 {
-			mut out := '\n ** NEED TO '
+			mut out := '\n\n** NEED TO '
 			if need_commit0 {
 				out += 'COMMIT '
 			}
@@ -223,7 +257,7 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 			need_commit_repo := need_push_repo || need_pull_repo
 				|| (need_commit0 && g.need_commit()!)
 
-			// console.print_debug(" --- git_do ${g.cache_key()} \n    need_commit_repo:${need_commit_repo} \n    need_pull_repo:${need_pull_repo}  \n    need_push_repo:${need_push_repo}")		
+			// console.print_debug(" --- git_do ${g.cache_key()} \n    need_commit_repo:${need_commit_repo} \n    need_pull_repo:${need_pull_repo}  \n    need_push_repo:${need_push_repo}")
 
 			if need_commit_repo {
 				mut msg := args.msg
@@ -231,7 +265,7 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 				g.commit(msg)!
 				has_changed = true
 			}
-			if need_pull_repo {
+			if has_changed || need_pull_repo {
 				if args.reset {
 					console.print_header(' - remove changes ${g.account}/${g.name}')
 					g.remove_changes()!
@@ -240,7 +274,7 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 				g.pull()!
 				has_changed = true
 			}
-			if need_push_repo {
+			if has_changed || need_push_repo {
 				console.print_header(' - push ${g.account}/${g.name}')
 				g.push()!
 				has_changed = true
@@ -253,7 +287,7 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 
 		if has_changed {
 			// console.clear()
-			console.print_header('\nCompleted required actions.\n')
+			console.print_header('Completed required actions.\n')
 
 			gs.repos_print(
 				filter:   args.filter

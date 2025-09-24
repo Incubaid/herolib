@@ -6,11 +6,11 @@ import freeflowuniverse.herolib.clients.postgresql_client
 pub struct Location {
 mut:
 	db        LocationDB
-	db_client postgresql_client.PostgresClient
+	db_client postgresql_client.PostgresqlClient
 }
 
 // new creates a new Location instance
-pub fn new(mut db_client postgresql_client.PostgresClient, reset bool) !Location {
+pub fn new(mut db_client postgresql_client.PostgresqlClient, reset bool) !Location {
 	db := new_location_db(mut db_client, reset)!
 	return Location{
 		db:        db

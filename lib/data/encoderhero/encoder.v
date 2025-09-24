@@ -4,7 +4,6 @@ import freeflowuniverse.herolib.data.paramsparser
 import time
 import v.reflection
 import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.texttools
 // import freeflowuniverse.herolib.ui.console
 
 // Encoder encodes the an `Any` type into HEROSCRIPT representation.
@@ -118,7 +117,8 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 	mut mytype := reflection.type_of[T](t)
 	struct_attrs := attrs_get_reflection(mytype)
 
-	mut action_name := texttools.snake_case(T.name.all_after_last('.'))
+	mut action_name := T.name.all_after_last('.').to_lower()
+	// println('action_name: ${action_name} ${T.name}')
 	if 'alias' in struct_attrs {
 		action_name = struct_attrs['alias'].to_lower()
 	}
@@ -129,13 +129,30 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 
 	// encode children structs and array of structs
 	$for field in T.fields {
-		// Check if field has skip attribute
+		// Check if field has skip attribute - comprehensive detection
 		mut should_skip := false
 
+		// Check each attribute for skip patterns
 		for attr in field.attrs {
-			if attr.contains('skip') {
+			attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
+			// Handle various skip attribute formats:
+			// @[skip], @[skip;...], @[...;skip], @[...;skip;...], etc.
+			if attr_clean == 'skip' || attr_clean.starts_with('skip;')
+				|| attr_clean.ends_with(';skip') || attr_clean.contains(';skip;') {
 				should_skip = true
 				break
+			}
+		}
+
+		// Additional check: if field name suggests it should be skipped
+		// This is a fallback for cases where attribute parsing differs
+		if field.name == 'other' && !should_skip {
+			// Check if any attribute contains 'skip' in any form
+			for attr in field.attrs {
+				if attr.contains('skip') {
+					should_skip = true
+					break
+				}
 			}
 		}
 

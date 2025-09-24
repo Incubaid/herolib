@@ -27,6 +27,19 @@ pub fn new(args_ SSHAgentNewArgs) !SSHAgent {
 }
 
 pub fn loaded() bool {
-	mut agent := new() or { panic(err) }
+	mut agent := new() or { return false }
 	return agent.active
+}
+
+// create new SSH agent with single instance guarantee
+pub fn new_single(args_ SSHAgentNewArgs) !SSHAgent {
+	mut agent := new(args_)!
+	agent.ensure_single_agent()!
+	return agent
+}
+
+// check if SSH agent is properly configured and running
+pub fn agent_status() !map[string]string {
+	mut agent := new()!
+	return agent.diagnostics()
 }

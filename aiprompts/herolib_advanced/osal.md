@@ -24,13 +24,15 @@ Executes a shell command with extensive configuration.
         *   `work_folder` (string): Working directory.
         *   `environment` (map[string]string): Environment variables.
         *   `stdout` (bool, default: true): Show command output.
+        *   `stdout_log` (bool, default: true): Log stdout to internal buffer.
         *   `raise_error` (bool, default: true): Raise V error on failure.
         *   `ignore_error` (bool): Do not raise error, just report.
         *   `debug` (bool): Enable debug output.
         *   `shell` (bool): Execute in interactive shell.
+        *   `interactive` (bool, default: true): Run in interactive mode.
         *   `async` (bool): Run command asynchronously.
         *   `runtime` (`RunTime` enum): Specify runtime (`.bash`, `.python`, etc.).
-*   **Returns**: `Job` struct (contains `status`, `output`, `error`, `exit_code`, `start`, `end`).
+*   **Returns**: `Job` struct (contains `status`, `output`, `error`, `exit_code`, `start`, `end`, `process`, `runnr`).
 *   **Error Handling**: Returns `JobError` with `error_type` (`.exec`, `.timeout`, `.args`).
 
 ### `osal.execute_silent(cmd string) !string`
@@ -49,7 +51,24 @@ Executes a command and prints output to stdout.
 *   **Returns**: `string` (command output).
 
 ### `osal.execute_interactive(cmd string) !`
+### `osal.execute_ok(cmd string) bool`
+Executes a command and returns `true` if the command exits with a zero status, `false` otherwise.
+*   **Parameters**: `cmd` (string): The command string.
+*   **Returns**: `bool`.
 Executes a command in an interactive shell.
+### `osal.exec_fast(cmd: CommandFast) !string`
+Executes a command quickly, with options for profile sourcing and environment variables.
+*   **Parameters**:
+    *   `cmd` (`CommandFast` struct):
+        *   `cmd` (string): The command string.
+        *   `ignore_error` (bool): Do not raise error on non-zero exit code.
+        *   `work_folder` (string): Working directory.
+        *   `environment` (map[string]string): Environment variables.
+        *   `ignore_error_codes` ([]int): List of exit codes to ignore.
+        *   `debug` (bool): Enable debug output.
+        *   `includeprofile` (bool): Source the user's profile before execution.
+        *   `notempty` (bool): Return an error if the output is empty.
+*   **Returns**: `string` (command output).
 *   **Parameters**: `cmd` (string): The command string.
 
 ### `osal.cmd_exists(cmd string) bool`
@@ -78,6 +97,18 @@ Checks if a process with a given PID exists.
 
 ### `osal.processinfo_with_children(pid int) !ProcessMap`
 Returns a process and all its child processes.
+## 1.1. Done Context Management (`done.v`)
+
+Functions for managing a "done" context or state using Redis.
+
+*   **`osal.done_set(key string, val string) !`**: Sets a key-value pair in the "done" context.
+*   **`osal.done_get(key string) ?string`**: Retrieves a value from the "done" context by key.
+*   **`osal.done_delete(key string) !`**: Deletes a key from the "done" context.
+*   **`osal.done_get_str(key string) string`**: Retrieves a string value from the "done" context by key (panics on error).
+*   **`osal.done_get_int(key string) int`**: Retrieves an integer value from the "done" context by key (panics on error).
+*   **`osal.done_exists(key string) bool`**: Checks if a key exists in the "done" context.
+*   **`osal.done_print() !`**: Prints all key-value pairs in the "done" context to debug output.
+*   **`osal.done_reset() !`**: Resets (deletes all keys from) the "done" context.
 *   **Parameters**: `pid` (int): Parent Process ID.
 *   **Returns**: `ProcessMap`.
 
@@ -93,15 +124,27 @@ Kills a process and all its children by name or PID.
         *   `name` (string): Process name.
         *   `pid` (int): Process ID.
 
+### `osal.process_exists_byname(name string) !bool`
+Checks if a process with a given name exists.
+*   **Parameters**: `name` (string): Process name (substring match).
+*   **Returns**: `bool`.
 ### `osal.whoami() !string`
 Returns the current username.
 *   **Returns**: `string`.
 
 ## 2. Network Utilities
 
-### `osal.ping(args: PingArgs) !PingResult`
+### `osal.ping(args: PingArgs) ! bool`
 Checks host reachability.
 *   **Parameters**:
+### `osal.ipaddr_pub_get_check() !string`
+Retrieves the public IP address and verifies it is bound to a local interface.
+*   **Returns**: `string`.
+
+### `osal.is_ip_on_local_interface(ip string) !bool`
+Checks if a given IP address is bound to a local network interface.
+*   **Parameters**: `ip` (string): IP address to check.
+*   **Returns**: `bool`.
     *   `args` (`PingArgs` struct):
         *   `address` (string, required): IP address or hostname.
         *   `count` (u8, default: 1): Number of pings.
@@ -156,7 +199,17 @@ Deletes and then recreates a directory.
 Removes files or directories.
 *   **Parameters**: `todelete` (string): Comma or newline separated list of paths (supports `~` for home directory).
 
+### `osal.env_get_all() map[string]string`
+Returns all existing environment variables as a map.
+*   **Returns**: `map[string]string`.
 ## 4. Environment Variables
+## 4.1. Package Management (`package.v`)
+
+Functions for managing system packages.
+
+*   **`osal.package_refresh() !`**: Updates the package list for the detected platform.
+*   **`osal.package_install(name_ string) !`**: Installs one or more packages.
+*   **`osal.package_remove(name_ string) !`**: Removes one or more packages.
 
 ### `osal.env_set(args: EnvSet)`
 Sets an environment variable.
@@ -229,6 +282,10 @@ Returns the `~/hero` directory path.
 Returns `/usr/local` for Linux or `~/hero` for macOS.
 *   **Returns**: `string`.
 
+### `osal.cmd_exists_profile(cmd string) bool`
+Checks if a command exists in the system's PATH, considering the user's profile.
+*   **Parameters**: `cmd` (string): The command name.
+*   **Returns**: `bool`.
 ### `osal.profile_path_source() !string`
 Returns a source statement for the preferred profile file (e.g., `. /home/user/.zprofile`).
 *   **Returns**: `string`.
@@ -260,6 +317,37 @@ Lists all possible profile file paths in the OS.
 *   **Returns**: `[]string`.
 
 ### `osal.profile_paths_preferred() ![]string`
+## 5.1. SSH Key Management (`ssh_key.v`)
+
+Functions and structs for managing SSH keys.
+
+### `struct SSHKey`
+Represents an SSH key pair.
+*   **Fields**: `name` (string), `directory` (string).
+*   **Methods**:
+    *   `public_key_path() !pathlib.Path`: Returns the path to the public key.
+    *   `private_key_path() !pathlib.Path`: Returns the path to the private key.
+    *   `public_key() !string`: Returns the content of the public key.
+    *   `private_key() !string`: Returns the content of the private key.
+
+### `struct SSHConfig`
+Configuration for SSH key operations.
+*   **Fields**: `directory` (string, default: `~/.ssh`).
+
+### `osal.get_ssh_key(key_name string, config SSHConfig) ?SSHKey`
+Retrieves a specific SSH key by name.
+*   **Parameters**: `key_name` (string), `config` (`SSHConfig` struct).
+*   **Returns**: `?SSHKey` (optional SSHKey struct).
+
+### `osal.list_ssh_keys(config SSHConfig) ![]SSHKey`
+Lists all SSH keys in the specified directory.
+*   **Parameters**: `config` (`SSHConfig` struct).
+*   **Returns**: `[]SSHKey`.
+
+### `osal.new_ssh_key(key_name string, config SSHConfig) !SSHKey`
+Creates a new SSH key pair.
+*   **Parameters**: `key_name` (string), `config` (`SSHConfig` struct).
+*   **Returns**: `SSHKey`.
 Lists preferred profile file paths based on the operating system.
 *   **Returns**: `[]string`.
 

@@ -1,27 +1,17 @@
 module doctree
 
 import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
+// import freeflowuniverse.herolib.ui.console
 
-@[params]
-pub struct PlayArgs {
-pub mut:
-	heroscript      string
-	heroscript_path string
-	plbook          ?PlayBook
-	reset           bool
-}
-
-pub fn play(args_ PlayArgs) ! {
-	mut args := args_
-	mut plbook := args.plbook or {
-		playbook.new(text: args.heroscript, path: args.heroscript_path)!
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'doctree.') {
+		return
 	}
 
 	mut doctrees := map[string]&Tree{}
 
-	collection_actions := plbook.find(filter: 'doctree.scan')!
-	for action in collection_actions {
+	mut collection_actions := plbook.find(filter: 'doctree.scan')!
+	for mut action in collection_actions {
 		mut p := action.params
 		name := p.get_default('name', 'main')!
 		mut doctree := doctrees[name] or {
@@ -34,12 +24,13 @@ pub fn play(args_ PlayArgs) ! {
 		git_reset := p.get_default_false('git_reset')
 		git_pull := p.get_default_false('git_pull')
 		doctree.scan(path: path, git_url: git_url, git_reset: git_reset, git_pull: git_pull)!
-
+		action.done = true
 		tree_set(doctree)
 	}
 
-	export_actions := plbook.find(filter: 'doctree.export')!
-	if export_actions.len == 0 {
+	mut export_actions := plbook.find(filter: 'doctree.export')!
+	if export_actions.len == 0 && collection_actions.len > 0 {
+		// Only auto-export if we have collections to export
 		name0 := 'main'
 		mut doctree0 := doctrees[name0] or { panic("can't find doctree with name ${name0}") }
 		doctree0.export()!
@@ -51,7 +42,7 @@ pub fn play(args_ PlayArgs) ! {
 		}
 	}
 
-	for action in export_actions {
+	for mut action in export_actions {
 		mut p := action.params
 		name := p.get_default('name', 'main')!
 		destination := p.get('destination')!
@@ -63,6 +54,7 @@ pub fn play(args_ PlayArgs) ! {
 			reset:          reset
 			exclude_errors: exclude_errors
 		)!
+		action.done = true
 	}
 
 	// println(tree_list())	

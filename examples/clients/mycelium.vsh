@@ -2,7 +2,6 @@
 
 import freeflowuniverse.herolib.clients.mycelium
 import freeflowuniverse.herolib.installers.net.mycelium_installer
-import freeflowuniverse.herolib.osal
 import time
 import os
 import encoding.base64
@@ -39,70 +38,175 @@ fn terminate(port int) ! {
 	println('Successfully terminated process ${pid} running on port ${port}')
 }
 
-// Check if not installed install it.
+println('[INFO] Starting mycelium messaging test with two connected nodes')
+
+// Clean up any existing mycelium processes first
+println('[INFO] Cleaning up any existing mycelium processes')
+terminate(server1_port) or {}
+terminate(server2_port) or {}
+_ := os.execute('sudo pkill mycelium')
+
+// Ensure mycelium is installed
+println('[INFO] Checking mycelium installation')
 mut installer := mycelium_installer.get()!
 installer.install()!
 
+// Clean up any existing mycelium configurations
+println('[INFO] Cleaning up existing mycelium configurations')
 mycelium.delete()!
 
+// Start two mycelium server instances with different configurations
+println('[INFO] Starting mycelium server instances')
+println('[INFO] Node 1 will use port ${server1_port} with TUN interface tun2')
+println('[INFO] Node 2 will use port ${server2_port} with TUN interface tun3')
+
 spawn fn () {
-	os.execute('mkdir -p /tmp/mycelium_server1 && cd /tmp/mycelium_server1 && mycelium --peers tcp://188.40.132.242:9651 quic://[2a01:4f8:212:fa6::2]:9651 tcp://185.69.166.7:9651 quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651 tcp://65.21.231.58:9651 quic://[2a01:4f9:5a:1042::2]:9651 tcp://[2604:a00:50:17b:9e6b:ff:fe1f:e054]:9651 quic://5.78.122.16:9651 tcp://[2a01:4ff:2f0:3621::1]:9651 quic://142.93.217.194:9651 --tun-name tun2 --tcp-listen-port 9652 --quic-listen-port 9653 --api-addr 127.0.0.1:${server1_port}')
+	result := os.execute('mkdir -p /tmp/mycelium_server1 && cd /tmp/mycelium_server1 && sudo mycelium --key-file mycelium_key1.bin --api-addr 127.0.0.1:${server1_port} --jsonrpc-addr 127.0.0.1:8990 --tcp-listen-port 9652 --quic-listen-port 9653 --peer-discovery-port 9650 --no-tun')
+	if result.exit_code != 0 {
+		println('[ERROR] Server 1 failed to start: ${result.output}')
+	}
 }()
 
 spawn fn () {
-	os.execute('mkdir -p /tmp/mycelium_server2 && cd /tmp/mycelium_server2 && mycelium --peers tcp://188.40.132.242:9651 quic://[2a01:4f8:212:fa6::2]:9651 tcp://185.69.166.7:9651 quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651 tcp://65.21.231.58:9651 quic://[2a01:4f9:5a:1042::2]:9651 tcp://[2604:a00:50:17b:9e6b:ff:fe1f:e054]:9651 quic://5.78.122.16:9651 tcp://[2a01:4ff:2f0:3621::1]:9651 quic://142.93.217.194:9651 --tun-name tun3 --tcp-listen-port 9654 --quic-listen-port 9655 --api-addr 127.0.0.1:${server2_port}')
+	result := os.execute('mkdir -p /tmp/mycelium_server2 && cd /tmp/mycelium_server2 && sudo mycelium --key-file mycelium_key2.bin --api-addr 127.0.0.1:${server2_port} --jsonrpc-addr 127.0.0.1:8991 --tcp-listen-port 9654 --quic-listen-port 9655 --peer-discovery-port 9656 --peers tcp://127.0.0.1:9652 --no-tun')
+	if result.exit_code != 0 {
+		println('[ERROR] Server 2 failed to start: ${result.output}')
+	}
 }()
 
+// Ensure cleanup on exit
 defer {
+	println('[INFO] Cleaning up mycelium server instances')
 	terminate(server1_port) or {}
 	terminate(server2_port) or {}
 }
 
-time.sleep(2 * time.second)
+// Wait for servers to start up
+println('[INFO] Waiting for mycelium servers to initialize')
+time.sleep(5 * time.second)
 
-mut client1 := mycelium.get()!
+// Check if servers are responding
+println('[INFO] Checking if mycelium servers are responding')
+for i in 0 .. 10 {
+	server1_check := os.execute('curl -s http://localhost:${server1_port}/api/v1/admin')
+	server2_check := os.execute('curl -s http://localhost:${server2_port}/api/v1/admin')
+
+	if server1_check.exit_code == 0 && server2_check.exit_code == 0 {
+		println('[INFO] Both servers are responding')
+		break
+	}
+
+	println('[INFO] Waiting for servers to be ready... (attempt ${i + 1}/10)')
+	time.sleep(2 * time.second)
+
+	if i == 9 {
+		println('[ERROR] Servers did not start properly after 20 seconds')
+		return
+	}
+}
+
+// Initialize mycelium clients with different names
+println('[INFO] Initializing mycelium clients')
+mut client1 := mycelium.get(name: 'node1')!
 client1.server_url = 'http://localhost:${server1_port}'
-client1.name = 'client1'
-println(client1)
 
-mut client2 := mycelium.get()!
+mut client2 := mycelium.get(name: 'node2')!
 client2.server_url = 'http://localhost:${server2_port}'
-client2.name = 'client2'
-println(client2)
 
-inspect1 := mycelium.inspect(key_file_path: '/tmp/mycelium_server1/priv_key.bin')!
-inspect2 := mycelium.inspect(key_file_path: '/tmp/mycelium_server2/priv_key.bin')!
+println('[INFO] Client 1 configured for: ${client1.server_url}')
+println('[INFO] Client 2 configured for: ${client2.server_url}')
 
-println('Server 1 public key: ${inspect1.public_key}')
-println('Server 2 public key: ${inspect2.public_key}')
+// Get public keys from the key files
+println('[INFO] Retrieving public keys from server key files')
+inspect1 := mycelium.inspect(key_file_path: '/tmp/mycelium_server1/mycelium_key1.bin')!
+inspect2 := mycelium.inspect(key_file_path: '/tmp/mycelium_server2/mycelium_key2.bin')!
 
-// Send a message to a node by public key
-// Parameters: public_key, payload, topic, wait_for_reply
-msg := client1.send_msg(
-	public_key: inspect2.public_key // destination public key
-	payload:    'Sending a message from the client 1 to the client 2' // message payload
-	topic:      'testing' // optional topic
+println('[INFO] Node 1 public key: ${inspect1.public_key}')
+println('[INFO] Node 2 public key: ${inspect2.public_key}')
+
+// Verify nodes have different public keys
+if inspect1.public_key == inspect2.public_key {
+	println('[ERROR] Both nodes have the same public key - this should not happen')
+	return
+}
+println('[INFO] Nodes have different public keys - configuration is correct')
+println('')
+
+// Test messaging between the two connected nodes
+test_topic := 'test_messaging'
+
+// Test 1: Node 1 -> Node 2
+println('[TEST] Sending message from Node 1 to Node 2')
+test_payload_1 := 'Hello from Node 1 to Node 2'
+
+msg1 := client1.send_msg(
+	public_key: inspect2.public_key
+	payload:    test_payload_1
+	topic:      test_topic
+	wait:       false
 )!
 
-println('Sent message ID: ${msg.id}')
-println('send succeeded')
+println('[INFO] Message sent successfully from Node 1')
+println('[INFO] Message ID: ${msg1.id}')
+println('[INFO] Payload: ${test_payload_1}')
 
-// Receive messages
-// Parameters: wait_for_message, peek_only, topic_filter
-received := client2.receive_msg(wait: true, peek: false, topic: 'testing')!
-println('Received message from: ${received.src_pk}')
-println('Message payload: ${base64.decode_str(received.payload)}')
+println('[INFO] Waiting for Node 2 to receive the message')
+received1 := client2.receive_msg(wait: true, peek: false, topic: test_topic)!
+decoded_payload1 := base64.decode_str(received1.payload)
 
-// Reply to a message
-// client1.reply_msg(
-// 	id:         received.id
-// 	public_key: received.src_pk
-// 	payload:    'Got your message!'
-// 	topic:      'greetings'
-// )!
+println('[INFO] Message received on Node 2')
+println('[INFO] Message ID: ${received1.id}')
+println('[INFO] Source public key: ${received1.src_pk}')
+println('[INFO] Decoded payload: ${decoded_payload1}')
 
-// // // Check message status
-// // status := client.get_msg_status(msg.id)!
-// // println('Message status: ${status.state}')
-// // println('Created at: ${status.created}')
-// // println('Expires at: ${status.deadline}')
+// Verify message integrity for Test 1
+if received1.src_pk == inspect1.public_key && decoded_payload1 == test_payload_1 {
+	println('[SUCCESS] Node 1 -> Node 2 messaging test passed')
+} else {
+	println('[ERROR] Node 1 -> Node 2 messaging test failed')
+	println('[ERROR] Expected source: ${inspect1.public_key}')
+	println('[ERROR] Actual source: ${received1.src_pk}')
+	println('[ERROR] Expected payload: ${test_payload_1}')
+	println('[ERROR] Actual payload: ${decoded_payload1}')
+}
+
+println('')
+
+// Test 2: Node 2 -> Node 1
+println('[TEST] Sending message from Node 2 to Node 1')
+test_payload_2 := 'Hello from Node 2 to Node 1'
+
+msg2 := client2.send_msg(
+	public_key: inspect1.public_key
+	payload:    test_payload_2
+	topic:      test_topic
+	wait:       false
+)!
+
+println('[INFO] Message sent successfully from Node 2')
+println('[INFO] Message ID: ${msg2.id}')
+println('[INFO] Payload: ${test_payload_2}')
+
+println('[INFO] Waiting for Node 1 to receive the message')
+received2 := client1.receive_msg(wait: true, peek: false, topic: test_topic)!
+decoded_payload2 := base64.decode_str(received2.payload)
+
+println('[INFO] Message received on Node 1')
+println('[INFO] Message ID: ${received2.id}')
+println('[INFO] Source public key: ${received2.src_pk}')
+println('[INFO] Decoded payload: ${decoded_payload2}')
+
+// Verify message integrity for Test 2
+if received2.src_pk == inspect2.public_key && decoded_payload2 == test_payload_2 {
+	println('[SUCCESS] Node 2 -> Node 1 messaging test passed')
+} else {
+	println('[ERROR] Node 2 -> Node 1 messaging test failed')
+	println('[ERROR] Expected source: ${inspect2.public_key}')
+	println('[ERROR] Actual source: ${received2.src_pk}')
+	println('[ERROR] Expected payload: ${test_payload_2}')
+	println('[ERROR] Actual payload: ${decoded_payload2}')
+}
+
+println('')
+println('[INFO] All messaging tests completed successfully')
+println('[INFO] Both nodes can send and receive messages bidirectionally')

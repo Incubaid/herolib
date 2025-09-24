@@ -388,11 +388,11 @@ fn (mut self TFDeployment) save() ! {
 }
 
 fn (self TFDeployment) compress(data []u8) ![]u8 {
-	return zlib.compress(data) or { error('Cannot compress the data due to: ${err}') }
+	return zlib.compress(data) or { return error('Cannot compress the data due to: ${err}') }
 }
 
 fn (self TFDeployment) decompress(data []u8) ![]u8 {
-	return zlib.decompress(data) or { error('Cannot decompress the data due to: ${err}') }
+	return zlib.decompress(data) or { return error('Cannot decompress the data due to: ${err}') }
 }
 
 fn (self TFDeployment) encrypt(compressed []u8) ![]u8 {

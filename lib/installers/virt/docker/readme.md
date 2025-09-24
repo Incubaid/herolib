@@ -2,7 +2,7 @@
 
 To get started
 
-```vlang
+```v
 
 
 import freeflowuniverse.herolib.installers.something.docker as docker_installer

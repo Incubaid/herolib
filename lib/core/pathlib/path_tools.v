@@ -222,7 +222,7 @@ pub fn (mut path Path) move(args MoveArgs) ! {
 // e.g. path is /tmp/rclone and there is /tmp/rclone/rclone-v1.64.2-linux-amd64 .
 // that last dir needs to move 1 up
 pub fn (mut path Path) moveup_single_subdir() ! {
-	mut plist := path.list(recursive: false, ignoredefault: true, dirs_only: true)!
+	mut plist := path.list(recursive: false, ignore_default: true, dirs_only: true)!
 	// console.print_debug(plist.str())
 	if plist.paths.len != 1 {
 		return error('could not find one subdir in ${path.path} , so cannot move up')

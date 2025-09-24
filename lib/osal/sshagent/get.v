@@ -44,7 +44,8 @@ fn (mut agent SSHAgent) pop(pubkey_ string) {
 		if agent.keys.len > result {
 			agent.keys.delete(x)
 		} else {
-			panic('bug')
+			// This should not happen, but handle gracefully
+			return
 		}
 	}
 }

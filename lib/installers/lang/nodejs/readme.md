@@ -4,7 +4,7 @@
 
 To get started
 
-```vlang
+```v
 
 
 import freeflowuniverse.herolib.installers.something.nodejs as nodejs_installer

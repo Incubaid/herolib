@@ -7,22 +7,15 @@ fn get_repo_status(gr GitRepo) !string {
 	mut repo := gr
 	mut statuses := []string{}
 
-	if repo.status_local.error.len > 0 {
-		mut err_msg := repo.status_local.error
+	if repo.status.error.len > 0 {
+		mut err_msg := repo.status.error
 		if err_msg.len > 40 {
 			err_msg = err_msg[0..40] + '...'
 		}
-		statuses << 'ERROR (Local): ${err_msg}'
-	}
-	if repo.status_remote.error.len > 0 {
-		mut err_msg := repo.status_remote.error
-		if err_msg.len > 40 {
-			err_msg = err_msg[0..40] + '...'
-		}
-		statuses << 'ERROR (Remote): ${err_msg}'
+		statuses << 'ERROR: ${err_msg}'
 	}
 
-	if repo.has_changes {
+	if repo.status.has_changes {
 		statuses << 'COMMIT'
 	}
 
@@ -41,10 +34,10 @@ fn get_repo_status(gr GitRepo) !string {
 fn format_repo_info(repo GitRepo) ![]string {
 	status := get_repo_status(repo)!
 
-	tag_or_branch := if repo.status_local.tag.len > 0 {
-		'[[${repo.status_local.tag}]]' // Display tag if it exists
+	tag_or_branch := if repo.status.tag.len > 0 {
+		'[[${repo.status.tag}]]' // Display tag if it exists
 	} else {
-		'[${repo.status_local.branch}]' // Otherwise, display branch
+		'[${repo.status.branch}]' // Otherwise, display branch
 	}
 
 	relative_path := repo.get_human_path()!
@@ -64,7 +57,7 @@ pub fn (mut gitstructure GitStructure) repos_print(args ReposGetArgs) ! {
 	console.clear()
 	// console.print_lf(1) // Removed to reduce newlines
 
-	header := 'Repositories: ${gitstructure.config()!.coderoot}'
+	header := 'Repositories: ${gitstructure.coderoot.path}'
 	console.print_header(header)
 	console.print_lf(1) // Keep one newline after header
 

@@ -13,10 +13,11 @@ pub mut:
 	git_reset  bool
 	prio       int = 50
 	priorities map[int]string // filter and give priority, see filtersort method to know how to use
+	replace    map[string]string
 	// session    ?&base.Session
 }
 
-// get a new playbook, can scan a directory or just add text
+// get a new plbook, can scan a directory or just add text
 // ```
 // path string
 // text string
@@ -25,6 +26,7 @@ pub mut:
 // git_branch string
 // git_reset bool
 // session &base.Session
+// replace    map[string]string
 // ```
 pub fn new(args_ PlayBookNewArgs) !PlayBook {
 	mut args := args_

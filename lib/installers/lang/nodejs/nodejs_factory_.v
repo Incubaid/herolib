@@ -1,9 +1,9 @@
 module nodejs
 
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.ui.console
+import json
 import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.osal.zinit
 
 __global (
 	nodejs_global  map[string]&NodeJS
@@ -15,28 +15,27 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name string
+	name string = 'default'
 }
 
-pub fn get(args_ ArgsGet) !&NodeJS {
+pub fn new(args ArgsGet) !&NodeJS {
 	return &NodeJS{}
 }
 
-@[params]
-pub struct PlayArgs {
-pub mut:
-	heroscript string // if filled in then plbook will be made out of it
-	plbook     ?playbook.PlayBook
-	reset      bool
+pub fn get(args ArgsGet) !&NodeJS {
+	return new(args)!
 }
 
-pub fn play(args_ PlayArgs) ! {
-	mut args := args_
-
-	mut plbook := args.plbook or { playbook.new(text: args.heroscript)! }
-
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'nodejs.') {
+		return
+	}
+	mut install_actions := plbook.find(filter: 'nodejs.configure')!
+	if install_actions.len > 0 {
+		return error("can't configure nodejs, because no configuration allowed for this installer.")
+	}
 	mut other_actions := plbook.find(filter: 'nodejs.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -49,34 +48,13 @@ pub fn play(args_ PlayArgs) ! {
 				install()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-fn startupmanager_get(cat zinit.StartupManagerType) !startupmanager.StartupManager {
-	// unknown
-	// screen
-	// zinit
-	// tmux
-	// systemd
-	match cat {
-		.zinit {
-			console.print_debug('startupmanager: zinit')
-			return startupmanager.get(cat: .zinit)!
-		}
-		.systemd {
-			console.print_debug('startupmanager: systemd')
-			return startupmanager.get(cat: .systemd)!
-		}
-		else {
-			console.print_debug('startupmanager: auto')
-			return startupmanager.get()!
-		}
-	}
-}
 
 @[params]
 pub struct InstallArgs {
@@ -98,12 +76,4 @@ pub fn (mut self NodeJS) destroy() ! {
 
 // switch instance to be used for nodejs
 pub fn switch(name string) {
-	nodejs_default = name
-}
-
-// helpers
-
-@[params]
-pub struct DefaultConfigArgs {
-	instance string = 'default'
 }

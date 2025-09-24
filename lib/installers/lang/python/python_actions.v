@@ -1,31 +1,28 @@
 module python
 
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core
 import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.core.texttools
+import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.installers.ulist
+import freeflowuniverse.herolib.core.texttools
 import os
 
 //////////////////// following actions are not specific to instance of the object
 
-// checks if a certain version or above is installed
 fn installed() !bool {
-	res := os.execute('python3 --version')
+	res := os.execute('${osal.profile_path_source_and()!} uv self version')
 	if res.exit_code != 0 {
 		return false
 	}
-
 	r := res.output.split_into_lines().filter(it.trim_space().len > 0)
 	if r.len != 1 {
-		return error("couldn't parse pnpm version.\n${res.output}")
+		return error("couldn't parse python version.\n${res.output}")
 	}
-
-	if texttools.version(r[0].all_after_first('ython')) >= texttools.version(version) {
+	r2 := r[0].split(' ')[1] or { return error("couldn't parse python version.\n${res.output}") }
+	if texttools.version(version) <= texttools.version(r2) {
 		return true
 	}
-
 	return false
 }
 
@@ -49,29 +46,44 @@ fn install() ! {
 
 	osal.package_install('python3')!
 	pl := core.platform()!
-	if pl == .arch {
-		osal.package_install('python-pipx,sqlite')!
-	} else if pl == .ubuntu {
-		osal.package_install('pipx,sqlite')!
+	if pl == .ubuntu {
+		osal.package_install('python3')!
 	} else if pl == .osx {
-		osal.package_install('pipx,sqlite')!
+		osal.package_install('python@3.12')!
 	} else {
-		return error('only support osx, arch & ubuntu.')
+		return error('only support osx & ubuntu.')
 	}
-	osal.execute_silent('pipx install uv')!
+	osal.execute_silent('curl -LsSf https://astral.sh/uv/install.sh | sh')!
+	if pl == .ubuntu {
+		osal.execute_silent('echo \'eval "$(uvx --generate-shell-completion bash)"\' >> ~/.bashrc')!
+	} else if pl == .osx {
+		osal.execute_silent('echo \'eval "$(uvx --generate-shell-completion bash)"\' >> ~/.bashrc')!
+		osal.execute_silent('echo \'eval "$(uvx --generate-shell-completion bash)"\' >> ~/.zshrc')!
+	} else {
+		return error('only support osx & ubuntu.')
+	}
 }
 
 fn destroy() ! {
-	console.print_header('destroy python')
-	osal.package_remove('python3')!
-	pl := core.platform()!
-	if pl == .arch {
-		osal.package_remove('pipx,sqlite')!
-	} else if pl == .ubuntu {
-		osal.package_remove('pipx,sqlite')!
-	} else if pl == .osx {
-		osal.package_remove('pipx,sqlite')!
-	} else {
-		return error('only support osx, arch & ubuntu.')
-	}
+	console.print_header('remove python uv')
+
+	// //will remove all paths where go/bin is found
+	// osal.profile_path_add_remove(paths2delete:"go/bin")!
+
+	dir1 := osal.exec_fast(cmd: 'uv python dir', notempty: true)!
+	dir2 := osal.exec_fast(cmd: 'uv tool dir', notempty: true)!
+	dir3 := osal.exec_fast(cmd: 'uv cache dir', notempty: true)!
+
+	osal.execute_silent('
+
+	uv cache clean
+	rm -rf "${dir1}"
+	rm -rf "${dir2}"
+	rm -rf "${dir3}"
+	rm ~/.local/bin/uv ~/.local/bin/uvx
+	')!
+	osal.rm('
+	   uv
+	   uvx
+	')!
 }

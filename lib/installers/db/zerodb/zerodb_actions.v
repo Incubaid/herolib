@@ -3,7 +3,7 @@ module zerodb
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 import freeflowuniverse.herolib.develop.gittools
 import freeflowuniverse.herolib.installers.base
@@ -14,19 +14,20 @@ import rand
 import os
 import time
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut cfg := get()!
 	mut cmd := 'zdb --socket ${os.home_dir()}/var/zdb.sock --port ${cfg.port} --admin ${cfg.secret} --data ${cfg.datadir} --index ${cfg.indexdir} --dualnet --protect --rotate ${cfg.rotateperiod}'
 	if cfg.sequential {
 		cmd += ' --mode seq'
 	}
 
-	mut res := []zinit.ZProcessNewArgs{}
-	res << zinit.ZProcessNewArgs{
+	mut res := []startupmanager.ZProcessNewArgs{}
+	res << startupmanager.ZProcessNewArgs{
 		name:        'zdb'
 		cmd:         cmd
 		startuptype: .zinit
 	}
+
 	return res
 }
 

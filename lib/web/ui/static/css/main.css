@@ -1,0 +1,280 @@
+/* Main Layout Styles using CSS Custom Properties */
+
+/* Base Layout */
+body {
+  padding-top: 44px;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Header Styles */
+.header {
+  height: 44px;
+  line-height: 44px;
+  font-size: 14px;
+  background-color: var(--header-bg) !important;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.header .navbar-brand,
+.header .text-white {
+  color: var(--header-text) !important;
+}
+
+.header .text-white-50 {
+  color: var(--header-text-muted) !important;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  position: fixed;
+  top: 44px;
+  bottom: 0;
+  left: 0;
+  width: 260px;
+  overflow-y: auto;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  z-index: 1000;
+}
+
+/* Main Content Area */
+.main {
+  margin-left: 260px;
+  padding: 16px;
+  background-color: var(--bg-primary);
+  min-height: calc(100vh - 44px);
+}
+
+/* Menu Styles */
+.menu-section {
+  font-weight: 600;
+  color: var(--sidebar-section-text);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.list-group-item {
+  border: 0;
+  padding: 0.35rem 0.75rem;
+  background-color: var(--menu-item-bg);
+  color: var(--menu-item-text);
+  transition: all 0.2s ease;
+}
+
+.list-group-item:hover {
+  background-color: var(--menu-item-hover-bg);
+  color: var(--menu-item-hover-text);
+}
+
+.menu-leaf a {
+  color: var(--menu-item-text);
+  text-decoration: none;
+  display: block;
+  padding: 0.25rem 0;
+  transition: color 0.2s ease;
+}
+
+.menu-leaf a:hover {
+  color: var(--link-hover-color);
+}
+
+.menu-leaf:hover a {
+  color: var(--link-hover-color);
+}
+
+.menu-toggle {
+  text-decoration: none;
+  color: var(--menu-toggle-text);
+  transition: color 0.2s ease;
+}
+
+.menu-toggle:hover {
+  color: var(--link-hover-color);
+}
+
+.menu-toggle .chev {
+  font-size: 10px;
+  opacity: var(--menu-chevron-opacity);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menu-toggle[aria-expanded="true"] .chev {
+  transform: rotate(90deg);
+  opacity: 0.8;
+}
+
+/* Nested menu indentation */
+.sidebar .ms-2 {
+  margin-left: 1rem !important;
+}
+
+.sidebar .ms-2 .list-group-item {
+  padding-left: 1rem;
+  font-size: 0.9rem;
+}
+
+.sidebar .ms-2 .ms-2 .list-group-item {
+  padding-left: 1.5rem;
+  font-size: 0.85rem;
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 0.125rem 0.25rem var(--card-shadow);
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 0.25rem 0.5rem var(--card-shadow);
+}
+
+.card-body {
+  color: var(--text-primary);
+}
+
+/* Content Area Styles */
+.container-fluid {
+  background-color: var(--bg-primary);
+}
+
+.mb-3 h5 {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.text-muted {
+  color: var(--text-muted) !important;
+}
+
+.small {
+  font-size: 0.875rem;
+}
+
+/* Code elements */
+code {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  position: fixed;
+  top: 8px;
+  right: 16px;
+  z-index: 1050;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar.show {
+    transform: translateX(0);
+  }
+
+  .main {
+    margin-left: 0;
+  }
+
+  .mobile-menu-toggle {
+    display: block;
+    position: fixed;
+    top: 8px;
+    left: 16px;
+    z-index: 1051;
+    background-color: var(--header-bg);
+    border: 1px solid var(--border-primary);
+    color: var(--header-text);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-toggle {
+    display: none;
+  }
+}
+
+/* Scrollbar Styling for Webkit browsers */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background-color: var(--bg-secondary);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--border-primary);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-secondary);
+}
+
+/* Focus styles for accessibility */
+.menu-toggle:focus,
+.menu-leaf a:focus,
+.theme-toggle:focus {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}
+
+/* Animation for collapsible menu items */
+.collapse {
+  transition: height 0.3s ease;
+}
+
+/* Loading state */
+.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Print styles */
+@media print {
+
+  .sidebar,
+  .header,
+  .theme-toggle {
+    display: none !important;
+  }
+
+  .main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+
+  body {
+    padding-top: 0 !important;
+  }
+}

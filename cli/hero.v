@@ -3,8 +3,6 @@ module main
 import os
 import cli { Command }
 import freeflowuniverse.herolib.core.herocmds
-// import freeflowuniverse.herolib.hero.cmds
-// import freeflowuniverse.herolib.hero.publishing
 import freeflowuniverse.herolib.installers.base
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.ui
@@ -15,7 +13,7 @@ import freeflowuniverse.herolib.core.playcmds
 
 fn playcmds_do(path string) ! {
 	mut plbook := playbook.new(path: path)!
-	playcmds.run(mut plbook, false)!
+	playcmds.run(plbook: plbook)!
 }
 
 fn do() ! {
@@ -40,7 +38,7 @@ fn do() ! {
 
 	if os.args.len == 2 {
 		mypath := os.args[1]
-		if mypath.to_lower().ends_with('.hero') {
+		if mypath.to_lower().ends_with('.hero')  || mypath.to_lower().ends_with('.heroscript') || mypath.to_lower().ends_with('.hs') {
 			// hero was called from a file
 			playcmds_do(mypath)!
 			return
@@ -50,7 +48,7 @@ fn do() ! {
 	mut cmd := Command{
 		name:        'hero'
 		description: 'Your HERO toolset.'
-		version:     '1.0.26'
+		version:     '1.0.33'
 	}
 
 	// herocmds.cmd_run_add_flags(mut cmd)
@@ -83,35 +81,26 @@ fn do() ! {
 
 	base.redis_install()!
 
-	// herocmds.cmd_bootstrap(mut cmd)
-	// herocmds.cmd_run(mut cmd)
+	herocmds.cmd_run(mut cmd)
 	herocmds.cmd_git(mut cmd)
-	// herocmds.cmd_init(mut cmd)
-	// herocmds.cmd_imagedownsize(mut cmd)
-	// herocmds.cmd_biztools(mut cmd)
-	// herocmds.cmd_gen(mut cmd)
-	// herocmds.cmd_sshagent(mut cmd)
-	// herocmds.cmd_installers(mut cmd)
-	// herocmds.cmd_configure(mut cmd)
-	// herocmds.cmd_postgres(mut cmd)
-	herocmds.cmd_mdbook(mut cmd)
-	// herocmds.cmd_luadns(mut cmd)
-	// herocmds.cmd_caddy(mut cmd)
-	// herocmds.cmd_zola(mut cmd)
-	// herocmds.cmd_juggler(mut cmd)
 	herocmds.cmd_generator(mut cmd)
 	herocmds.cmd_docusaurus(mut cmd)
-	// herocmds.cmd_starlight(mut cmd)
-	// herocmds.cmd_docsorter(mut cmd)
-	// cmd.add_command(publishing.cmd_publisher(pre_func))
+	herocmds.cmd_web(mut cmd)
+	herocmds.cmd_sshagent(mut cmd)
+
 	cmd.setup()
 	cmd.parse(os.args)
 }
 
 fn main() {
-	do() or { panic(err) }
+	do() or {
+		// $dbg;
+		eprintln('Error: ${err}')
+		print_backtrace()
+		exit(1)
+	}
 }
 
-fn pre_func(cmd Command) ! {
-	herocmds.plbook_run(cmd)!
-}
+// fn pre_func(cmd Command) ! {
+// 	herocmds.plbook_run(cmd)!
+// }

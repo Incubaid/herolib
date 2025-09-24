@@ -1,46 +1,77 @@
 module playcmds
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.playbook
-// import freeflowuniverse.herolib.virt.hetzner
-// import freeflowuniverse.herolib.clients.b2
-import freeflowuniverse.herolib.biz.bizmodel
-// import freeflowuniverse.herolib.hero.publishing
-import freeflowuniverse.herolib.threefold.grid4.gridsimulator
-// import freeflowuniverse.herolib.installers.sysadmintools.daguserver
-import freeflowuniverse.herolib.threefold.grid4.farmingsimulator
-// import freeflowuniverse.herolib.web.components.slides
-// import freeflowuniverse.herolib.installers.base as base_install
-// import freeflowuniverse.herolib.installers.infra.coredns
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.data.doctree
+import freeflowuniverse.herolib.biz.bizmodel
+import freeflowuniverse.herolib.threefold.incatokens
+import freeflowuniverse.herolib.web.site
+import freeflowuniverse.herolib.virt.hetznermanager
+import freeflowuniverse.herolib.web.docusaurus
+import freeflowuniverse.herolib.clients.openai
+import freeflowuniverse.herolib.clients.giteaclient
+import freeflowuniverse.herolib.osal.tmux
+import freeflowuniverse.herolib.installers.base
+import freeflowuniverse.herolib.installers.lang.vlang
+import freeflowuniverse.herolib.installers.lang.herolib
 
-pub fn run(mut plbook playbook.PlayBook, dagu bool) ! {
-	if dagu {
-		hscript := plbook.str()
-		scheduler(hscript)!
+// -------------------------------------------------------------------
+// run – entry point for all HeroScript play‑commands
+// -------------------------------------------------------------------
+
+@[params]
+pub struct PlayArgs {
+pub mut:
+	heroscript      string
+	heroscript_path string
+	plbook          ?PlayBook
+	reset           bool
+	emptycheck      bool = true
+}
+
+pub fn play(args_ PlayArgs) ! {
+	return run(args_)
+}
+
+pub fn run(args_ PlayArgs) ! {
+	mut args := args_
+	// println('DEBUG: the args is: ${args}')
+	mut plbook := args.plbook or {
+		playbook.new(text: args.heroscript, path: args.heroscript_path)!
 	}
 
+	// Core actions
 	play_core(mut plbook)!
-	play_ssh(mut plbook)!
-	// play_git.play(mut plbook)! // Changed to play_git.play
-	// play_publisher(mut plbook)!
-	// play_zola(mut plbook)!
-	// play_caddy(mut plbook)!
-	// play_juggler(mut plbook)!
-	// play_luadns(mut plbook)!
-	// hetzner.heroplay(mut plbook)!
-	// b2.heroplay(mut plbook)!
 
-	farmingsimulator.play(mut plbook)!
-	gridsimulator.play(mut plbook)!
-	bizmodel.play(plbook:*plbook)!
-	doctree.play(plbook:*plbook)!
-	
-	// slides.play(mut plbook)!
-	// base_install(play(mut plbook)!
-	// coredns.play(mut plbook)!
+	// Git actions
+	play_git(mut plbook)!
 
-	// plbook.empty_check()!
+	// Tmux actions
+	tmux.play(mut plbook)!
 
-	console.print_header('Actions concluded succesfully.')
+	// Business model (e.g. currency, bizmodel)
+	bizmodel.play(mut plbook)!
+
+	// OpenAI client
+	openai.play(mut plbook)!
+
+	// Website / docs
+	site.play(mut plbook)!
+	doctree.play(mut plbook)!
+
+	incatokens.play(mut plbook)!
+
+	docusaurus.play(mut plbook)!
+	hetznermanager.play(mut plbook)!
+	hetznermanager.play2(mut plbook)!
+
+	base.play(mut plbook)!
+	herolib.play(mut plbook)!
+	vlang.play(mut plbook)!
+
+	giteaclient.play(mut plbook)!
+
+	if args.emptycheck {
+		// Ensure we did not leave any actions un‑processed
+		plbook.empty_check()!
+	}
 }

@@ -63,7 +63,7 @@ pub fn jina_rerank_model_from_string(s string) !JinaRerankModel {
 		'jina-reranker-v1-tiny-en' { JinaRerankModel.reranker_v1_tiny_en }
 		'jina-reranker-v1-turbo-en' { JinaRerankModel.reranker_v1_turbo_en }
 		'jina-colbert-v1-en' { JinaRerankModel.colbert_v1_en }
-		else { error('Invalid JinaRerankModel string: ${s}') }
+		else { return error('Invalid JinaRerankModel string: ${s}') }
 	}
 }
 

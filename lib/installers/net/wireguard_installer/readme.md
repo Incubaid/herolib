@@ -4,7 +4,7 @@
 
 To get started
 
-```vlang
+```v
 
 
 import freeflowuniverse.herolib.installers.something.wireguard as wireguard_installer

@@ -1,0 +1,2189 @@
+{
+    "openrpc": "1.0.0",
+    "info": {
+        "title": "Hero Models API",
+        "version": "1.0.0"
+    },
+    "methods": [
+        {
+            "name": "comment_get",
+            "summary": "Get a comment by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of comment to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "comment",
+                "description": "Comment object",
+                "schema": {
+                    "$ref": "#/components/schemas/Comment"
+                }
+            }
+        },
+        {
+            "name": "comment_set",
+            "summary": "Create or update a comment",
+            "params": [
+                {
+                    "name": "comment",
+                    "description": "Comment text",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "parent",
+                    "description": "ID of parent comment if any, 0 means none",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "author",
+                    "description": "ID of the author user",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated comment",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "comment_delete",
+            "summary": "Delete a comment by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of comment to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "comment_list",
+            "summary": "List all comments",
+            "params": [],
+            "result": {
+                "name": "comments",
+                "description": "List of all comment objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Comment"
+                    }
+                }
+            }
+        },
+        {
+            "name": "calendar_get",
+            "summary": "Get a calendar by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "calendar",
+                "description": "Calendar object",
+                "schema": {
+                    "$ref": "#/components/schemas/Calendar"
+                }
+            }
+        },
+        {
+            "name": "calendar_set",
+            "summary": "Create or update a calendar",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the calendar",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the calendar",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "color",
+                    "description": "Hex color code for the calendar",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "timezone",
+                    "description": "Timezone of the calendar",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "is_public",
+                    "description": "Whether the calendar is public",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "name": "events",
+                    "description": "IDs of calendar events",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated calendar",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "calendar_delete",
+            "summary": "Delete a calendar by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "calendar_list",
+            "summary": "List all calendars",
+            "params": [],
+            "result": {
+                "name": "calendars",
+                "description": "List of all calendar objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Calendar"
+                    }
+                }
+            }
+        },
+        {
+            "name": "calendar_event_get",
+            "summary": "Get a calendar event by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar event to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "calendar_event",
+                "description": "Calendar event object",
+                "schema": {
+                    "$ref": "#/components/schemas/CalendarEvent"
+                }
+            }
+        },
+        {
+            "name": "calendar_event_set",
+            "summary": "Create or update a calendar event",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the calendar event",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the calendar event",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "title",
+                    "description": "Title of the calendar event",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "start_time",
+                    "description": "Start time of the calendar event",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "end_time",
+                    "description": "End time of the calendar event",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "location",
+                    "description": "Location of the calendar event",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "attendees",
+                    "description": "IDs of user groups",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "fs_items",
+                    "description": "IDs of linked files or dirs",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "calendar_id",
+                    "description": "Associated calendar ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "status",
+                    "description": "Event status",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "published",
+                            "cancelled",
+                            "completed"
+                        ]
+                    }
+                },
+                {
+                    "name": "is_all_day",
+                    "description": "Whether the event is all day",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "name": "is_recurring",
+                    "description": "Whether the event is recurring",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "name": "recurrence",
+                    "description": "Recurrence rules",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RecurrenceRule"
+                        }
+                    }
+                },
+                {
+                    "name": "reminder_mins",
+                    "description": "Minutes before event for reminders",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                {
+                    "name": "color",
+                    "description": "Hex color code",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "timezone",
+                    "description": "Timezone of the calendar event",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "securitypolicy",
+                    "description": "Security policy ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "tags",
+                    "description": "Tags for the calendar event",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "comments",
+                    "description": "Comments for the calendar event",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentArg"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated calendar event",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "calendar_event_delete",
+            "summary": "Delete a calendar event by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar event to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "calendar_event_list",
+            "summary": "List all calendar events",
+            "params": [],
+            "result": {
+                "name": "calendar_events",
+                "description": "List of all calendar event objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/CalendarEvent"
+                    }
+                }
+            }
+        },
+        {
+            "name": "chat_group_get",
+            "summary": "Get a chat group by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat group to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "chat_group",
+                "description": "Chat group object",
+                "schema": {
+                    "$ref": "#/components/schemas/ChatGroup"
+                }
+            }
+        },
+        {
+            "name": "chat_group_set",
+            "summary": "Create or update a chat group",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the chat group",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the chat group",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "chat_type",
+                    "description": "Type of chat",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "public_channel",
+                            "private_channel",
+                            "direct_message",
+                            "group_message"
+                        ]
+                    }
+                },
+                {
+                    "name": "last_activity",
+                    "description": "Unix timestamp of last activity",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "is_archived",
+                    "description": "Whether the chat group is archived",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                },
+                {
+                    "name": "securitypolicy",
+                    "description": "Security policy ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "tags",
+                    "description": "Tags for the chat group",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "comments",
+                    "description": "Comments for the chat group",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentArg"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated chat group",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "chat_group_delete",
+            "summary": "Delete a chat group by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat group to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "chat_group_list",
+            "summary": "List all chat groups",
+            "params": [],
+            "result": {
+                "name": "chat_groups",
+                "description": "List of all chat group objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/ChatGroup"
+                    }
+                }
+            }
+        },
+        {
+            "name": "chat_message_get",
+            "summary": "Get a chat message by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat message to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "chat_message",
+                "description": "Chat message object",
+                "schema": {
+                    "$ref": "#/components/schemas/ChatMessage"
+                }
+            }
+        },
+        {
+            "name": "chat_message_set",
+            "summary": "Create or update a chat message",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the chat message",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the chat message",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "content",
+                    "description": "Message content",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "chat_group_id",
+                    "description": "Associated chat group ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "sender_id",
+                    "description": "User ID of sender",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "parent_messages",
+                    "description": "Referenced/replied messages",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageLink"
+                        }
+                    }
+                },
+                {
+                    "name": "fs_files",
+                    "description": "IDs of linked files",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "message_type",
+                    "description": "Type of message",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "image",
+                            "file",
+                            "voice",
+                            "video",
+                            "system",
+                            "announcement"
+                        ]
+                    }
+                },
+                {
+                    "name": "status",
+                    "description": "Message status",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "sent",
+                            "delivered",
+                            "read",
+                            "failed",
+                            "deleted"
+                        ]
+                    }
+                },
+                {
+                    "name": "reactions",
+                    "description": "Message reactions",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageReaction"
+                        }
+                    }
+                },
+                {
+                    "name": "mentions",
+                    "description": "User IDs mentioned in message",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "securitypolicy",
+                    "description": "Security policy ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "tags",
+                    "description": "Tags for the chat message",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "comments",
+                    "description": "Comments for the chat message",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentArg"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated chat message",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "chat_message_delete",
+            "summary": "Delete a chat message by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat message to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "chat_message_list",
+            "summary": "List all chat messages",
+            "params": [],
+            "result": {
+                "name": "chat_messages",
+                "description": "List of all chat message objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/ChatMessage"
+                    }
+                }
+            }
+        },
+        {
+            "name": "group_get",
+            "summary": "Get a group by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of group to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "group",
+                "description": "Group object",
+                "schema": {
+                    "$ref": "#/components/schemas/Group"
+                }
+            }
+        },
+        {
+            "name": "group_set",
+            "summary": "Create or update a group",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the group",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the group",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "members",
+                    "description": "Group members",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GroupMember"
+                        }
+                    }
+                },
+                {
+                    "name": "subgroups",
+                    "description": "IDs of child groups",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "parent_group",
+                    "description": "ID of parent group",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "is_public",
+                    "description": "Whether the group is public",
+                    "schema": {
+                        "type": "boolean"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated group",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "group_delete",
+            "summary": "Delete a group by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of group to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "group_list",
+            "summary": "List all groups",
+            "params": [],
+            "result": {
+                "name": "groups",
+                "description": "List of all group objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Group"
+                    }
+                }
+            }
+        },
+        {
+            "name": "project_issue_get",
+            "summary": "Get a project issue by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project issue to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "project_issue",
+                "description": "Project issue object",
+                "schema": {
+                    "$ref": "#/components/schemas/ProjectIssue"
+                }
+            }
+        },
+        {
+            "name": "project_issue_set",
+            "summary": "Create or update a project issue",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the project issue",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the project issue",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "title",
+                    "description": "Title of the project issue",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "project_id",
+                    "description": "Associated project ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "issue_type",
+                    "description": "Type of issue",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "task",
+                            "story",
+                            "bug",
+                            "question",
+                            "epic",
+                            "subtask"
+                        ]
+                    }
+                },
+                {
+                    "name": "priority",
+                    "description": "Issue priority",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "lowest",
+                            "low",
+                            "medium",
+                            "high",
+                            "highest",
+                            "critical"
+                        ]
+                    }
+                },
+                {
+                    "name": "status",
+                    "description": "Issue status",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "in_progress",
+                            "blocked",
+                            "review",
+                            "testing",
+                            "done",
+                            "closed"
+                        ]
+                    }
+                },
+                {
+                    "name": "swimlane",
+                    "description": "Current swimlane",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "assignees",
+                    "description": "User IDs of assignees",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "reporter",
+                    "description": "User ID of reporter",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "milestone",
+                    "description": "Associated milestone",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "deadline",
+                    "description": "Deadline as string",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "estimate",
+                    "description": "Story points or hours",
+                    "schema": {
+                        "type": "integer"
+                    }
+                },
+                {
+                    "name": "fs_files",
+                    "description": "IDs of linked files",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "parent_id",
+                    "description": "Parent issue ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "children",
+                    "description": "Child issue IDs",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "securitypolicy",
+                    "description": "Security policy ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "tags",
+                    "description": "Tags for the project issue",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "comments",
+                    "description": "Comments for the project issue",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentArg"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated project issue",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "project_issue_delete",
+            "summary": "Delete a project issue by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project issue to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "project_issue_list",
+            "summary": "List all project issues",
+            "params": [],
+            "result": {
+                "name": "project_issues",
+                "description": "List of all project issue objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/ProjectIssue"
+                    }
+                }
+            }
+        },
+        {
+            "name": "project_get",
+            "summary": "Get a project by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "project",
+                "description": "Project object",
+                "schema": {
+                    "$ref": "#/components/schemas/Project"
+                }
+            }
+        },
+        {
+            "name": "project_set",
+            "summary": "Create or update a project",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the project",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the project",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "swimlanes",
+                    "description": "Project swimlanes",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Swimlane"
+                        }
+                    }
+                },
+                {
+                    "name": "milestones",
+                    "description": "Project milestones",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Milestone"
+                        }
+                    }
+                },
+                {
+                    "name": "issues",
+                    "description": "IDs of project issues",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "fs_files",
+                    "description": "IDs of linked files or dirs",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "status",
+                    "description": "Project status",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "planning",
+                            "active",
+                            "on_hold",
+                            "completed",
+                            "cancelled"
+                        ]
+                    }
+                },
+                {
+                    "name": "start_date",
+                    "description": "Start date as string",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "end_date",
+                    "description": "End date as string",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "securitypolicy",
+                    "description": "Security policy ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "tags",
+                    "description": "Tags for the project",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "comments",
+                    "description": "Comments for the project",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CommentArg"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated project",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "project_delete",
+            "summary": "Delete a project by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "project_list",
+            "summary": "List all projects",
+            "params": [],
+            "result": {
+                "name": "projects",
+                "description": "List of all project objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Project"
+                    }
+                }
+            }
+        },
+        {
+            "name": "user_get",
+            "summary": "Get a user by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of user to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "user",
+                "description": "User object",
+                "schema": {
+                    "$ref": "#/components/schemas/User"
+                }
+            }
+        },
+        {
+            "name": "user_set",
+            "summary": "Create or update a user",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the user",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the user",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "email",
+                    "description": "Email of the user",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "public_key",
+                    "description": "Public key for encryption/signing",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "phone",
+                    "description": "Phone number of the user",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "address",
+                    "description": "Address of the user",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "avatar_url",
+                    "description": "Avatar URL of the user",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "bio",
+                    "description": "Bio of the user",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "timezone",
+                    "description": "Timezone of the user",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "status",
+                    "description": "User status",
+                    "schema": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "suspended",
+                            "pending"
+                        ]
+                    }
+                },
+                {
+                    "name": "securitypolicy",
+                    "description": "Security policy ID",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "tags",
+                    "description": "Tags for the user",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "comments",
+                    "description": "Comments for the user",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated user",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "user_delete",
+            "summary": "Delete a user by ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of user to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "user_list",
+            "summary": "List all users",
+            "params": [],
+            "result": {
+                "name": "users",
+                "description": "List of all user objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                }
+            }
+        }
+    ],
+    "components": {
+        "schemas": {
+            "Base": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "created_at": {
+                        "type": "integer"
+                    },
+                    "updated_at": {
+                        "type": "integer"
+                    },
+                    "securitypolicy": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "tags": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "comments": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            },
+            "Comment": {
+                "title": "Comment",
+                "description": "A comment object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "comment": {
+                        "type": "string"
+                    },
+                    "parent": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "author": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            },
+            "Calendar": {
+                "title": "Calendar",
+                "description": "A calendar object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "events": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "color": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    },
+                    "is_public": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "CalendarEvent": {
+                "title": "CalendarEvent",
+                "description": "A calendar event object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "start_time": {
+                        "type": "integer"
+                    },
+                    "end_time": {
+                        "type": "integer"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "attendees": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "fs_items": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "calendar_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "draft",
+                            "published",
+                            "cancelled",
+                            "completed"
+                        ]
+                    },
+                    "is_all_day": {
+                        "type": "boolean"
+                    },
+                    "is_recurring": {
+                        "type": "boolean"
+                    },
+                    "recurrence": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/RecurrenceRule"
+                        }
+                    },
+                    "reminder_mins": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "color": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    }
+                }
+            },
+            "RecurrenceRule": {
+                "title": "RecurrenceRule",
+                "description": "A recurrence rule for calendar events",
+                "type": "object",
+                "properties": {
+                    "frequency": {
+                        "type": "string",
+                        "enum": [
+                            "none",
+                            "daily",
+                            "weekly",
+                            "monthly",
+                            "yearly"
+                        ]
+                    },
+                    "interval": {
+                        "type": "integer"
+                    },
+                    "until": {
+                        "type": "integer"
+                    },
+                    "count": {
+                        "type": "integer"
+                    },
+                    "by_weekday": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "by_monthday": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            },
+            "ChatGroup": {
+                "title": "ChatGroup",
+                "description": "A chat group object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "chat_type": {
+                        "type": "string",
+                        "enum": [
+                            "public_channel",
+                            "private_channel",
+                            "direct_message",
+                            "group_message"
+                        ]
+                    },
+                    "last_activity": {
+                        "type": "integer"
+                    },
+                    "is_archived": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "ChatMessage": {
+                "title": "ChatMessage",
+                "description": "A chat message object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "content": {
+                        "type": "string"
+                    },
+                    "chat_group_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "sender_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "parent_messages": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageLink"
+                        }
+                    },
+                    "fs_files": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "message_type": {
+                        "type": "string",
+                        "enum": [
+                            "text",
+                            "image",
+                            "file",
+                            "voice",
+                            "video",
+                            "system",
+                            "announcement"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "sent",
+                            "delivered",
+                            "read",
+                            "failed",
+                            "deleted"
+                        ]
+                    },
+                    "reactions": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageReaction"
+                        }
+                    },
+                    "mentions": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            },
+            "MessageLink": {
+                "title": "MessageLink",
+                "description": "A link to another message",
+                "type": "object",
+                "properties": {
+                    "message_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "link_type": {
+                        "type": "string",
+                        "enum": [
+                            "reply",
+                            "reference",
+                            "forward",
+                            "quote"
+                        ]
+                    }
+                }
+            },
+            "MessageReaction": {
+                "title": "MessageReaction",
+                "description": "A reaction to a message",
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "emoji": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Group": {
+                "title": "Group",
+                "description": "A group object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "members": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GroupMember"
+                        }
+                    },
+                    "subgroups": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "parent_group": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "is_public": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "GroupMember": {
+                "title": "GroupMember",
+                "description": "A group member",
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "role": {
+                        "type": "string",
+                        "enum": [
+                            "reader",
+                            "writer",
+                            "admin",
+                            "owner"
+                        ]
+                    },
+                    "joined_at": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "ProjectIssue": {
+                "title": "ProjectIssue",
+                "description": "A project issue object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "project_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "issue_type": {
+                        "type": "string",
+                        "enum": [
+                            "task",
+                            "story",
+                            "bug",
+                            "question",
+                            "epic",
+                            "subtask"
+                        ]
+                    },
+                    "priority": {
+                        "type": "string",
+                        "enum": [
+                            "lowest",
+                            "low",
+                            "medium",
+                            "high",
+                            "highest",
+                            "critical"
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "open",
+                            "in_progress",
+                            "blocked",
+                            "review",
+                            "testing",
+                            "done",
+                            "closed"
+                        ]
+                    },
+                    "swimlane": {
+                        "type": "string"
+                    },
+                    "assignees": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "reporter": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "milestone": {
+                        "type": "string"
+                    },
+                    "deadline": {
+                        "type": "integer"
+                    },
+                    "estimate": {
+                        "type": "integer"
+                    },
+                    "fs_files": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "parent_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "children": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            },
+            "Project": {
+                "title": "Project",
+                "description": "A project object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "swimlanes": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Swimlane"
+                        }
+                    },
+                    "milestones": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Milestone"
+                        }
+                    },
+                    "issues": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "fs_files": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "planning",
+                            "active",
+                            "on_hold",
+                            "completed",
+                            "cancelled"
+                        ]
+                    },
+                    "start_date": {
+                        "type": "integer"
+                    },
+                    "end_date": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "Swimlane": {
+                "title": "Swimlane",
+                "description": "A project swimlane",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "order": {
+                        "type": "integer"
+                    },
+                    "color": {
+                        "type": "string"
+                    },
+                    "is_done": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "Milestone": {
+                "title": "Milestone",
+                "description": "A project milestone",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "due_date": {
+                        "type": "integer"
+                    },
+                    "completed": {
+                        "type": "boolean"
+                    },
+                    "issues": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            },
+            "User": {
+                "title": "User",
+                "description": "A user object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "public_key": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "address": {
+                        "type": "string"
+                    },
+                    "avatar_url": {
+                        "type": "string"
+                    },
+                    "bio": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "suspended",
+                            "pending"
+                        ]
+                    }
+                }
+            },
+            "CommentArg": {
+                "title": "CommentArg",
+                "description": "A comment argument",
+                "type": "object",
+                "properties": {
+                    "comment": {
+                        "type": "string"
+                    },
+                    "parent": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "author": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            }
+        }
+    }
+}

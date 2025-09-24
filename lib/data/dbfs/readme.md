@@ -25,22 +25,10 @@ assert 'bbbb' == db.get('a')!
 
 ```
 
-## dbname 
-
-DBName has functionality to efficiently store millions of names and generate a unique id for it, each name gets a unique id, and based on the id the name can be found back easily.
-
-Some string based data can be attached to one name so it becomes a highly efficient key value stor, can be used for e.g. having DB of pubkeys, for a nameserver, ...
-
 ## dbfs examples
 
-Each session has such a DB attached to it, data is stored on filesystem, 
 
-e.g. ideal for config sessions (which are done on context level)
-
-
-```golang
-
-> TODO: fix, we refactored
+```go
 
 import freeflowuniverse.herolib.data.dbfs
 

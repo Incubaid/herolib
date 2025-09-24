@@ -90,7 +90,7 @@ pub fn start(args RedisInstallArgs) ! {
 		// 	osal.exec(cmd:"redis-server ${configfilepath()} --daemonize yes")!
 		// }
 	} else {
-		mut sm := startupmanager.get()!
+		mut sm := startupmanager.get(.auto)!
 		sm.new(name: 'redis', cmd: 'redis-server ${configfilepath()}', start: true)!
 	}
 

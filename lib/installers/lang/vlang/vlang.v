@@ -11,7 +11,7 @@ import freeflowuniverse.herolib.develop.gittools
 
 pub fn install(args_ InstallArgs) ! {
 	mut args := args_
-	version := '0.4.8'
+	version := '0.4.11'
 	console.print_header('install vlang (reset: ${args.reset})')
 	res := os.execute('${osal.profile_path_source_and()!} v --version')
 	if res.exit_code == 0 {
@@ -38,28 +38,38 @@ pub fn install(args_ InstallArgs) ! {
 
 	base.develop()!
 
-	mut gs := gittools.get(coderoot: '${os.home_dir()}/_code')!
-	mut repo := gs.get_repo(
-		pull:  true
-		reset: true
-		url:   'https://github.com/vlang/v/tree/master'
+	osal.exec(
+		cmd: '
+		V_DIR="${os.home_dir()}/_code/v"
+
+		mkdir -p "${os.home_dir()}/_code"
+
+		cd ${os.home_dir()}/_code
+
+		if [ ! -d "\${V_DIR}" ]; then
+			echo "Cloning V..."
+			git clone --depth=1 https://github.com/vlang/v "\${V_DIR}"
+			
+		else
+			echo "V already exists, cleaning and updating..."
+			cd "\${V_DIR}"
+			git fetch origin
+			git reset --hard origin/master
+			git pull --rebase
+		fi
+		cd "\${V_DIR}"
+		make
+	'
 	)!
 
-	mut path1 := repo.path()
-
-	mut extra := ''
+	mut extra := 'cd ${os.home_dir()}/_code/v'
 	if core.is_linux()! {
-		extra = './v symlink'
+		extra = '${extra}\n./v symlink'
 	} else {
-		extra = 'cp v ${os.home_dir()}/bin/'
+		extra = '${extra}\ncp v ${os.home_dir()}/hero/bin/'
 	}
-	cmd := '
-	cd ${path1}
-	make	
-	${extra}
-	'
-	console.print_header('compile')
-	osal.exec(cmd: cmd, stdout: true)!
+	osal.exec(cmd: extra, stdout: true)!
+
 	console.print_header('compile done')
 
 	osal.done_set('install_vlang', 'OK')!

@@ -84,8 +84,8 @@ pub fn (mut rt RadixTree) print_tree_from_node(node_id u32, indent string) ! {
 
 // Prints the entire tree structure starting from root
 pub fn (mut rt RadixTree) print_tree() ! {
-	// console.print_debug('\nRadix Tree Structure:')
-	// console.print_debug('===================')
+	console.print_debug('\nRadix Tree Structure:')
+	console.print_debug('===================')
 	rt.print_tree_from_node(rt.root_id, '')!
 }
 

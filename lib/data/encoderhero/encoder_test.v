@@ -10,7 +10,7 @@ struct Base {
 	remarks []Remark
 }
 
-struct Remark {
+pub struct Remark {
 	text string
 }
 
@@ -75,8 +75,7 @@ struct Profile {
 	url      string
 }
 
-const person_heroscript = "
-!!define.person id:1 name:Bob birthday:'2012-12-12 00:00:00'
+const person_heroscript = "!!define.person id:1 name:Bob age:21 birthday:'2012-12-12 00:00:00'
 !!define.person.car name:'Bob\\'s car' year:2014
 !!define.person.car.insurance provider:insurer
 
@@ -107,15 +106,14 @@ const person = Person{
 	]
 }
 
-const company_script = "
-!!define.company name:'Tech Corp' founded:'2022-12-05 20:14'
-!!define.company.person id:1 name:Bob birthday:'2012-12-12 00:00:00'
+const company_script = "!!define.company name:'Tech Corp' founded:'2022-12-05 20:14'
+!!define.company.person id:1 name:Bob age:21 birthday:'2012-12-12 00:00:00'
 !!define.company.person.car name:'Bob\\'s car' year:2014
 !!define.company.person.car.insurance provider:insurer
 
 !!define.company.person.profile platform:Github url:github.com/example
 
-!!define.company.person id:2 name:Alice birthday:'1990-06-20 00:00:00'
+!!define.company.person id:2 name:Alice age:30 birthday:'1990-06-20 00:00:00'
 !!define.company.person.car name:'Alice\\'s car' year:2018
 !!define.company.person.car.insurance 
 

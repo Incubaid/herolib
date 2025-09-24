@@ -4,7 +4,7 @@
 
 To get started
 
-```vlang
+```v
 
 
 import freeflowuniverse.herolib.installers.something.yggdrasil as yggdrasil_installer

@@ -30,7 +30,7 @@ pub mut:
 // if overwrite this means will overwrite the last one in the directory
 pub fn (mut path Path) backup_path(args BackupArgs) !Path {
 	if !path.exists() && args.restore == false {
-		error('cannot find path, so cannot create backup for ${path}')
+		return error('cannot find path, so cannot create backup for ${path}')
 	}
 	mut dest := ''
 	mut rel := ''

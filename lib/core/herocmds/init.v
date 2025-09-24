@@ -91,9 +91,9 @@ fn cmd_init_execute(cmd Command) ! {
 	}
 	if hero {
 		base.install(reset: reset, develop: true)!
-		herolib.install(reset: reset, git_pull: git_pull, git_reset: git_reset)!
+		herolib.install(reset: reset)!
 		base.redis_install()!
-		herolib.hero_compile(reset: reset)!
+		herolib.compile(reset: reset, git_pull: git_pull, git_reset: git_reset)!
 		r := osal.profile_path_add_hero()!
 		console.print_header(' add path ${r} to profile.')
 		return

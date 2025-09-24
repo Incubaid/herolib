@@ -25,7 +25,7 @@ The parser supports various input formats:
 4.  **Comments**: `// this is a comment` (ignored during parsing)
 
 Example:
-```vlang
+```v
 text := "name:'John Doe' age:30 active:true // user details"
 params := paramsparser.new(text)!
 ```

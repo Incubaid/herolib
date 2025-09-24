@@ -1,11 +1,11 @@
 module gridsimulator
 
 import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.threefold.grid4.cloudslices
+import freeflowuniverse.herolib.threefold.grid4.datamodel
 
 pub fn play(mut plbook PlayBook) ! {
 	// first make sure we find a run action to know the name
-	mut my_actions := plbook.actions_find(actor: 'tfgrid_simulator')!
+	mut my_actions := plbook.find(filter: 'tfgrid_simulator.*')!
 
 	if my_actions.len == 0 {
 		return
@@ -33,12 +33,12 @@ pub fn play(mut plbook PlayBook) ! {
 
 pub fn (mut self Simulator) play(mut plbook PlayBook) ! {
 	// make sure we know the inca price
-	mut actions4 := plbook.actions_find(actor: 'tfgrid_simulator')!
+	mut actions4 := plbook.find(filter: 'tfgrid_simulator.*')!
 
 	if actions4.len == 0 {
 		return
 	}
-	self.nodes = cloudslices.play(mut plbook)!
+	self.nodes = datamodel.play(mut plbook)!
 
 	for mut action in actions4 {
 		if action.name == 'incaprice_define' {
@@ -61,7 +61,7 @@ pub fn (mut self Simulator) play(mut plbook PlayBook) ! {
 		return error("can't find incaprice_define action for tfgrid_simulator, needs to define INCA price.")
 	}
 
-	mut actions2 := plbook.actions_find(actor: 'tfgrid_simulator')!
+	mut actions2 := plbook.find(filter: 'tfgrid_simulator.*')!
 	for action in actions2 {
 		if action.name == 'node_growth_define' {
 			mut node_name := action.params.get_default('node_name', '')!
@@ -79,125 +79,125 @@ pub fn (mut self Simulator) play(mut plbook PlayBook) ! {
 				aggregatetype: .max
 			)!
 
-			println('new per month for ${node_name}:')
-			println(new_nodes_per_month.cells)
+			// println('new per month for ${node_name}:')
+			// println(new_nodes_per_month.cells)
 
-			mut investment_nodes := new_nodes_per_month.copy(
-				name:  '${node_name}_investment_usd'
-				tags:  'node_investment nodetype:${node_name}'
-				descr: "investment needed for node type ${node_name}'"
-			)!
-			for mut cell in investment_nodes.cells {
-				cell.val = cell.val * node.cost
-			}
+			// mut investment_nodes := new_nodes_per_month.copy(
+			// 	name:  '${node_name}_investment_usd'
+			// 	tags:  'node_investment nodetype:${node_name}'
+			// 	descr: "investment needed for node type ${node_name}'"
+			// )!
+			// for mut cell in investment_nodes.cells {
+			// 	cell.val = cell.val * node.cost
+			// }
 
-			_ = self.sheet.row_new(
-				name:          '${node_name}_churn'
-				growth:        action.params.get('churn')!
-				tags:          'churn nodetype:${node_name}'
-				descr:         '"nr of nodes in percentage we loose per year for node type: ${node_name}'
-				extrapolate:   true
-				aggregatetype: .avg
-			)!
+			// _ = self.sheet.row_new(
+			// 	name:          '${node_name}_churn'
+			// 	growth:        action.params.get('churn')!
+			// 	tags:          'churn nodetype:${node_name}'
+			// 	descr:         '"nr of nodes in percentage we loose per year for node type: ${node_name}'
+			// 	extrapolate:   true
+			// 	aggregatetype: .avg
+			// )!
 
-			mut utilization := self.sheet.row_new(
-				name:          '${node_name}_utilization'
-				growth:        action.params.get('utilization')!
-				tags:          'utilization nodetype:${node_name}'
-				descr:         '"utilization in 0..100 percent for node type: ${node_name}'
-				extrapolate:   true
-				aggregatetype: .avg
-			)!
+			// mut utilization := self.sheet.row_new(
+			// 	name:          '${node_name}_utilization'
+			// 	growth:        action.params.get('utilization')!
+			// 	tags:          'utilization nodetype:${node_name}'
+			// 	descr:         '"utilization in 0..100 percent for node type: ${node_name}'
+			// 	extrapolate:   true
+			// 	aggregatetype: .avg
+			// )!
 
-			mut discount := self.sheet.row_new(
-				name:          '${node_name}_discount'
-				growth:        action.params.get('discount')!
-				tags:          'discount nodetype:${node_name}'
-				descr:         '"discount in 0..100 percent for node type: ${node_name}'
-				extrapolate:   true
-				aggregatetype: .avg
-			)!
+			// mut discount := self.sheet.row_new(
+			// 	name:          '${node_name}_discount'
+			// 	growth:        action.params.get('discount')!
+			// 	tags:          'discount nodetype:${node_name}'
+			// 	descr:         '"discount in 0..100 percent for node type: ${node_name}'
+			// 	extrapolate:   true
+			// 	aggregatetype: .avg
+			// )!
 
-			mut row_nr_nodes_total := new_nodes_per_month.recurring(
-				name:          '${node_name}_nr_active'
-				delaymonths:   2
-				tags:          'nrnodes_active nodetype:${node_name}'
-				descr:         '"nr nodes active for for node type: ${node_name}'
-				aggregatetype: .max
-			)!
+			// mut row_nr_nodes_total := new_nodes_per_month.recurring(
+			// 	name:          '${node_name}_nr_active'
+			// 	delaymonths:   2
+			// 	tags:          'nrnodes_active nodetype:${node_name}'
+			// 	descr:         '"nr nodes active for for node type: ${node_name}'
+			// 	aggregatetype: .max
+			// )!
 
-			node_total := node.node_total()
+			// node_total := node.node_total()
 
-			mut node_rev := self.sheet.row_new(
-				name:          '${node_name}_rev_month'
-				growth:        '${node_total.price_simulation}'
-				tags:          'nodetype:${node_name}'
-				descr:         '"Sales price in USD per node of type:${node_name} per month (usd)'
-				extrapolate:   true
-				aggregatetype: .sum
-			)!
+			// mut node_rev := self.sheet.row_new(
+			// 	name:          '${node_name}_rev_month'
+			// 	growth:        '${node_total.price_simulation}'
+			// 	tags:          'nodetype:${node_name}'
+			// 	descr:         '"Sales price in USD per node of type:${node_name} per month (usd)'
+			// 	extrapolate:   true
+			// 	aggregatetype: .sum
+			// )!
 
-			mut node_rev_total := self.sheet.row_new(
-				name:          '${node_name}_rev_total'
-				tags:          'noderev nodetype:${node_name}'
-				descr:         '"Sales price in USD total for node type: ${node_name} per month'
-				aggregatetype: .sum
-				growth:        '1:0'
-			)!
+			// mut node_rev_total := self.sheet.row_new(
+			// 	name:          '${node_name}_rev_total'
+			// 	tags:          'noderev nodetype:${node_name}'
+			// 	descr:         '"Sales price in USD total for node type: ${node_name} per month'
+			// 	aggregatetype: .sum
+			// 	growth:        '1:0'
+			// )!
 
-			// apply the sales price discount & calculate the sales price in total
-			mut counter := 0
-			for mut cell in node_rev.cells {
-				discount_val := discount.cells[counter].val
-				cell.val = cell.val * (1 - discount_val / 100) * utilization.cells[counter].val / 100
-				node_rev_total.cells[counter].val = cell.val * row_nr_nodes_total.cells[counter].val
-				counter += 1
-			}
+			// // apply the sales price discount & calculate the sales price in total
+			// mut counter := 0
+			// for mut cell in node_rev.cells {
+			// 	discount_val := discount.cells[counter].val
+			// 	cell.val = cell.val * (1 - discount_val / 100) * utilization.cells[counter].val / 100
+			// 	node_rev_total.cells[counter].val = cell.val * row_nr_nodes_total.cells[counter].val
+			// 	counter += 1
+			// }
 
-			// grant_month_usd:'1:60,24:60,25:0'
-			// grant_month_inca:'1:0,24:0'
-			// grant_max_nrnodes:1000 //max nr of nodes which will get this grant
+			// // grant_month_usd:'1:60,24:60,25:0'
+			// // grant_month_inca:'1:0,24:0'
+			// // grant_max_nrnodes:1000 //max nr of nodes which will get this grant
 
-			mut grant_node_month_usd := self.sheet.row_new(
-				name:          '${node_name}_grant_node_month_usd'
-				descr:         '"Grant in USD for node type: ${node_name}'
-				aggregatetype: .sum
-				growth:        node.grant.grant_month_usd
-			)!
+			// mut grant_node_month_usd := self.sheet.row_new(
+			// 	name:          '${node_name}_grant_node_month_usd'
+			// 	descr:         '"Grant in USD for node type: ${node_name}'
+			// 	aggregatetype: .sum
+			// 	growth:        node.grant.grant_month_usd
+			// )!
 
-			mut grant_node_month_inca := self.sheet.row_new(
-				name:          '${node_name}_grant_node_month_inca'
-				descr:         '"Grant in INCA for node type: ${node_name}'
-				aggregatetype: .sum
-				growth:        node.grant.grant_month_inca
-			)!
+			// mut grant_node_month_inca := self.sheet.row_new(
+			// 	name:          '${node_name}_grant_node_month_inca'
+			// 	descr:         '"Grant in INCA for node type: ${node_name}'
+			// 	aggregatetype: .sum
+			// 	growth:        node.grant.grant_month_inca
+			// )!
 
-			mut inca_grant_node_month_inca := self.sheet.row_new(
-				name:          '${node_name}_grant_node_total'
-				tags:          'incagrant'
-				descr:         '"INCA grant for node type: ${node_name}'
-				aggregatetype: .sum
-				growth:        '0:0'
-			)!
-			mut counter2 := 0
-			row_incaprice := self.sheet.rows['incaprice'] or {
-				return error("can't find row incaprice")
-			}
-			for mut cell in inca_grant_node_month_inca.cells {
-				grant_usd := grant_node_month_usd.cells[counter2].val
-				grant_inca := grant_node_month_inca.cells[counter2].val
-				mut nr_nodes := row_nr_nodes_total.cells[counter2].val
-				if nr_nodes > node.grant.grant_max_nrnodes {
-					nr_nodes = node.grant.grant_max_nrnodes
-				}
-				incaprice_now := f64(row_incaprice.cells[counter2].val)
-				if incaprice_now == 0.0 {
-					panic('bug incaprice_now cannot be 0')
-				}
-				// println(" nrnodes: ${nr_nodes} incaprice:${incaprice_now} grant_usd:${grant_usd} grant_inca:${grant_inca}")
-				cell.val = nr_nodes * (grant_usd / incaprice_now + grant_inca)
-				counter2 += 1
-			}
+			// mut inca_grant_node_month_inca := self.sheet.row_new(
+			// 	name:          '${node_name}_grant_node_total'
+			// 	tags:          'incagrant'
+			// 	descr:         '"INCA grant for node type: ${node_name}'
+			// 	aggregatetype: .sum
+			// 	growth:        '0:0'
+			// )!
+			// mut counter2 := 0
+			// row_incaprice := self.sheet.rows['incaprice'] or {
+			// 	return error("can't find row incaprice")
+			// }
+			// for mut cell in inca_grant_node_month_inca.cells {
+			// 	grant_usd := grant_node_month_usd.cells[counter2].val
+			// 	grant_inca := grant_node_month_inca.cells[counter2].val
+			// 	mut nr_nodes := row_nr_nodes_total.cells[counter2].val
+			// 	if nr_nodes > node.grant.grant_max_nrnodes {
+			// 		nr_nodes = node.grant.grant_max_nrnodes
+			// 	}
+			// 	incaprice_now := f64(row_incaprice.cells[counter2].val)
+			// 	if incaprice_now == 0.0 {
+			// 		panic('bug incaprice_now cannot be 0')
+			// 	}
+			// 	// println(" nrnodes: ${nr_nodes} incaprice:${incaprice_now} grant_usd:${grant_usd} grant_inca:${grant_inca}")
+			// 	cell.val = nr_nodes * (grant_usd / incaprice_now + grant_inca)
+			// 	counter2 += 1
+			// }
 			// println(inca_grant_node_month_inca.cells)    	
 		}
 	}

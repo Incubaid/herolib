@@ -40,6 +40,38 @@ pub fn new_response(id int, result string) Response {
 	}
 }
 
+pub fn new_response_true(id int) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  'true'
+		id:      id
+	}
+}
+
+pub fn new_response_false(id int) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  'false'
+		id:      id
+	}
+}
+
+pub fn new_response_int(id int, result int) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  result.str()
+		id:      id
+	}
+}
+
+pub fn new_response_u32(id int, result u32) Response {
+	return Response{
+		jsonrpc: jsonrpc_version
+		result:  result.str()
+		id:      id
+	}
+}
+
 // new_error_response creates an error JSON-RPC response with the given error object.
 //
 // Parameters:
@@ -65,13 +97,17 @@ pub fn new_error_response(id int, error RPCError) Response {
 // Returns:
 //   - A Response object or an error if parsing fails or the response is invalid
 pub fn decode_response(data string) !Response {
-	raw := json2.raw_decode(data)!
+	raw := json2.raw_decode(data) or {
+		return error('Failed to decode JSONRPC response ${data}\n${err}')
+	}
 	raw_map := raw.as_map()
 
 	// Validate that the response contains either result or error, but not both or neither
 	if 'error' !in raw_map.keys() && 'result' !in raw_map.keys() {
+		print_backtrace()
 		return error('Invalid JSONRPC response, no error and result found.')
 	} else if 'error' in raw_map.keys() && 'result' in raw_map.keys() {
+		print_backtrace()
 		return error('Invalid JSONRPC response, both error and result found.')
 	}
 
@@ -87,7 +123,10 @@ pub fn decode_response(data string) !Response {
 
 	// Handle successful responses
 	return Response{
-		id:      raw_map['id'] or { return error('Invalid JSONRPC response, no ID Field found') }.int()
+		id:      raw_map['id'] or {
+			print_backtrace()
+			return error('Invalid JSONRPC response, no ID Field found')
+		}.int()
 		jsonrpc: jsonrpc_version
 		result:  raw_map['result']!.str()
 	}
@@ -100,7 +139,7 @@ pub fn decode_response(data string) !Response {
 pub fn (resp Response) encode() string {
 	// Payload is already json string
 	if resp.error_ != none {
-		return '{"jsonrpc":"2.0","id":${resp.id},"error":${resp.error_.str()}}'
+		return '{"jsonrpc":"2.0","id":${resp.id},"error":${json2.encode(resp.error_)}}'
 	} else if resp.result != none {
 		return '{"jsonrpc":"2.0","id":${resp.id},"result":${resp.result}}'
 	}
@@ -113,10 +152,12 @@ pub fn (resp Response) encode() string {
 // Returns:
 //   - An error if validation fails, otherwise nothing
 pub fn (resp Response) validate() ! {
-	// Note: This validation is currently commented out but should be implemented
-	// if err := resp.error_ && resp.result != '' {
-	// 	return error('Response contains both error and result.\n- Error: ${resp.error_.str()}\n- Result: ${resp.result}')
-	// }
+	if resp.error_ != none && resp.result != none {
+		return error('Response contains both error and result.\n- Error: ${resp.error_.str()}\n- Result: ${resp.result}')
+	}
+	if resp.error_ == none && resp.result == none {
+		return error('Response contains neither error nor result.')
+	}
 }
 
 // is_error checks if the response contains an error.
@@ -202,15 +243,15 @@ pub fn new_response_generic[D](id int, result D) ResponseGeneric[D] {
 // Returns:
 //   - A ResponseGeneric object with result of type D, or an error if parsing fails
 pub fn decode_response_generic[D](data string) !ResponseGeneric[D] {
-	// Debug output - consider removing in production
-
 	raw := json2.raw_decode(data)!
 	raw_map := raw.as_map()
 
 	// Validate that the response contains either result or error, but not both or neither
 	if 'error' !in raw_map.keys() && 'result' !in raw_map.keys() {
+		print_backtrace()
 		return error('Invalid JSONRPC response, no error and result found.')
 	} else if 'error' in raw_map.keys() && 'result' in raw_map.keys() {
+		print_backtrace()
 		return error('Invalid JSONRPC response, both error and result found.')
 	}
 
@@ -218,6 +259,7 @@ pub fn decode_response_generic[D](data string) !ResponseGeneric[D] {
 	if err := raw_map['error'] {
 		return ResponseGeneric[D]{
 			id:      raw_map['id'] or {
+				print_backtrace()
 				return error('Invalid JSONRPC response, no ID Field found')
 			}.int()
 			jsonrpc: jsonrpc_version
@@ -228,7 +270,10 @@ pub fn decode_response_generic[D](data string) !ResponseGeneric[D] {
 	// Handle successful responses
 	resp := json.decode(ResponseGeneric[D], data)!
 	return ResponseGeneric[D]{
-		id:      raw_map['id'] or { return error('Invalid JSONRPC response, no ID Field found') }.int()
+		id:      raw_map['id'] or {
+			print_backtrace()
+			return error('Invalid JSONRPC response, no ID Field found')
+		}.int()
 		jsonrpc: jsonrpc_version
 		result:  resp.result
 	}
@@ -249,6 +294,7 @@ pub fn (resp ResponseGeneric[D]) encode() string {
 //   - An error if validation fails, otherwise nothing
 pub fn (resp ResponseGeneric[D]) validate() ! {
 	if resp.is_error() && resp.is_result() {
+		print_backtrace()
 		return error('Response contains both error and result.\n- Error: ${resp.error.str()}\n- Result: ${resp.result}')
 	}
 }

@@ -1,0 +1,6 @@
+{
+  "context": "Workspace",
+  "bindings": {
+    "cmd-r": ["task::Spawn", { "task_name": "ET", "reveal_target": "center" }]
+  }
+}

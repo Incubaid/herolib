@@ -1,93 +1,102 @@
-## How to use Heroscript with Docusaurus
+## Docusaurus Module with HeroLib
 
-You can use Heroscript to define and add content to your Docusaurus site. Below is an example:
+This module allows you to build and manage Docusaurus websites using a generic configuration layer provided by `lib/web/site`.
+
+### Workflow
+
+1. **Configure Your Site**: Define your site's metadata, navigation, footer, pages, and content sources using `!!site.*` actions in a `.heroscript` file. This creates a generic site definition.
+2. **Define Docusaurus Build**: Use `!!docusaurus.define` to specify build paths and other factory-level settings.
+3. **Link Site to Docusaurus**: Use `!!docusaurus.add` to link your generic site configuration to the Docusaurus factory. This tells HeroLib to build this specific site using Docusaurus.
+4. **Run Actions**: Use actions like `!!docusaurus.dev` or `!!docusaurus.build` to generate and serve your site.
+
+### Hero Command (Recommended)
+
+For quick setup and development, use the hero command:
+
+```bash
+# Start development server
+hero docusaurus -d -path /path/to/your/site
+
+# Build for production
+hero docusaurus -b -path /path/to/your/site
+
+# Build and publish
+hero docusaurus -bp -path /path/to/your/site
+```
+
+
+### Example HeroScript
 
 ```heroscript
+
+// Define the Docusaurus build environment, is optional
 !!docusaurus.define
-	path_build: "/tmp/docusaurus_build"
-	path_publish: "/tmp/docusaurus_publish"
+    path_build: "/tmp/docusaurus_build"
+    path_publish: "/tmp/docusaurus_publish"
+    reset: 1
+    install: 1
+    template_update: 1
 
-!!docusaurus.reset
-
-!!docusaurus.add name:"my_local_docs" path:"./docs"
-
-!!docusaurus.add name:"tfgrid_docs" 
-    git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"
-    git_reset:true
-    git_pull:true
-```
-
-### `docusaurus.define` Arguments
-
-*   `path_build` (string): Path where the Docusaurus site will be built. Default is `os.home_dir()/hero/var/docusaurus/build`.
-*   `path_publish` (string): Path where the Docusaurus site will be published. Default is `os.home_dir()/hero/var/docusaurus/publish`.
-
-### `docusaurus.reset` 
-
-* resets the full docusaurus build system
-
-### `docusaurus.update` 
-
-* updates the docusaurus build system, e.g. pull the templates back in
+!!docusaurus.add
+    sitename:"my_site"
+    path:"./path/to/my/site/source"
+    path_publish: "/tmp/docusaurus_publish"                                                 //optional
+    git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"    //optional: can use git to pull the site source
+    git_root:"/tmp/code"                                                                    //optional: where to clone git repo
+    git_reset:1                                                                             //optional: reset git repo
+    git_pull:1                                                                              //optional: pull latest changes
+    play:true                                                                               //required when using git_url: process heroscript files from source path
 
 
-### `docusaurus.generate` Arguments
-
-*   `name` (string): Name of the Docusaurus site. Default is "main".
-*   `path` (string): Local path to the documentation content. Default is an empty string.
-*   `git_url` (string): Git URL of the documentation repository. Default is an empty string.
-*   `git_reset` (boolean): If set to `true`, the Git repository will be reset. Default is `false`.
-*   `git_pull` (boolean): If set to `true`, the Git repository will be pulled. Default is `false`.
-*   `git_root` (string): Root directory within the Git repository. Default is an empty string.
-*   `nameshort` (string): Short name for the Docusaurus site. Default is the value of `name`.
-
-## called through code
-
-### with heroscript in code
-
-```v
-
-import freeflowuniverse.herolib.web.docusaurus
-
-mut ds:=docusaurus.new(heroscript:'
-
-	//next is optional
-	!!docusaurus.define
-		path_build: "/tmp/docusaurus_build"
-		path_publish: "/tmp/docusaurus_publish"
-
-	!!docusaurus.generate name:"tfgrid_docs" 
-		git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"
-		git_root:"/tmp/code"
-
-	')!
-
-mut site:=ds.site_get(name:"tfgrid_docs")!
-
-site.dev()!
+// Run the development server
+!!docusaurus.dev site:"my_site" open:true watch_changes:true
 
 ```
 
-### directly
+## see sites to define a site
 
-```v
+the site needs to be defined following the generic site definition, see the `lib/web/site` module for more details.
 
-import freeflowuniverse.herolib.web.docusaurus
+```heroscript
 
-// Create a new docusaurus factory
-mut ds := docusaurus.new(
-	path_build: '/tmp/docusaurus_build'
-	path_publish: '/tmp/docusaurus_publish'
-)!
+//Configure the site using the generic 'site' module
+!!site.config
+    name: "my_site"
+    title: "My Awesome Docs"
+    tagline: "The best docs ever"
+    url: "https://docs.example.com"
+    base_url: "/"
+    copyright: "Example Corp"
 
-// mut site:=ds.add(path:"${os.home_dir()}/code/git.threefold.info/tfgrid/docs_tfgrid4/ebooks/tech",name:"atest")!
-mut site:=ds.add(git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech",name:"atest")!
+!!site.menu_item
+    label: "Homepage"
+    href: "https://example.com"
+    position: "right"
 
-// println(site)
-
-//next generates but doesn't do anything beyond
-// site.generate()!
-
-site.dev()!
+// ... add footer, pages, etc. using !!site.* actions ...
 
 ```
+
+### Heroscript Actions
+
+- `!!docusaurus.define`: Configures a Docusaurus factory instance.
+  - `name` (string): Name of the factory (default: `default`).
+  - `path_build` (string): Path to build the site.
+  - `path_publish` (string): Path to publish the final build.
+  - `reset` (bool): If `true`, clean the build directory before starting.
+  - `template_update` (bool): If `true`, update the Docusaurus template.
+  - `install` (bool): If `true`, run `bun install`.
+
+- `!!docusaurus.add`: Links a configured site to the Docusaurus factory.
+  - `site` (string, required): The name of the site defined in `!!site.config`.
+  - `path` (string, required): The local filesystem path to the site's source directory (e.g., for `static/` folder).
+
+- `!!docusaurus.dev`: Runs the Docusaurus development server.
+  - `site` (string, required): The name of the site to run.
+  - `host` (string): Host to bind to (default: `localhost`).
+  - `port` (int): Port to use (default: `3000`).
+  - `open` (bool): Open the site in a browser.
+  - `watch_changes` (bool): Watch for source file changes and auto-reload.
+
+- `!!docusaurus.build`: Builds the static site for production.
+  - `site` (string, required): The name of the site to build.

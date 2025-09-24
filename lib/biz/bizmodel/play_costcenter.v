@@ -9,9 +9,7 @@ import freeflowuniverse.herolib.core.texttools
 //     descr:'Marketing Cost Center'
 //     department:'marketing'
 fn (mut m BizModel) costcenter_define_action(action Action) !Action {
-	mut name := action.params.get('name') or {
-		return error('Costcenter name is required.')
-	}
+	mut name := action.params.get('name') or { return error('Costcenter name is required.') }
 	mut descr := action.params.get_default('descr', '')!
 	if descr.len == 0 {
 		descr = action.params.get_default('description', '')!

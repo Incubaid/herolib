@@ -11,13 +11,13 @@ import freeflowuniverse.herolib.clients.postgresql_client
 pub struct LocationDB {
 pub mut:
 	db        pg.DB
-	db_client postgresql_client.PostgresClient
+	db_client postgresql_client.PostgresqlClient
 	tmp_dir   pathlib.Path
 	db_dir    pathlib.Path
 }
 
 // new_location_db creates a new LocationDB instance
-pub fn new_location_db(mut db_client postgresql_client.PostgresClient, reset bool) !LocationDB {
+pub fn new_location_db(mut db_client postgresql_client.PostgresqlClient, reset bool) !LocationDB {
 	mut db_dir := pathlib.get_dir(path: '${os.home_dir()}/hero/var/db/location.db', create: true)!
 
 	// Create locations database if it doesn't exist

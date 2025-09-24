@@ -1,29 +1,27 @@
 module core
 
 import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.data.dbfs
+import freeflowuniverse.herolib.core.redisclient
 import freeflowuniverse.herolib.ui.console
 
-fn donedb() !&dbfs.DB {
+fn donedb() !&redisclient.Redis {
 	mut context := base.context()!
-	mut collection := context.dbcollection()!
-	mut db := collection.db_get_create(name: 'todo', withkeys: true)!
-	return &db
+	return context.redis()!
 }
 
 pub fn done_set(key string, val string) ! {
 	mut db := donedb()!
-	db.set(key: key, value: val)!
+	db.hset('context:done', key, val)!
 }
 
 pub fn done_get(key string) ?string {
 	mut db := donedb() or { panic(err) }
-	return db.get(key: key) or { return none }
+	return db.hget('context:done', key) or { return none }
 }
 
 pub fn done_delete(key string) ! {
 	mut db := donedb()!
-	db.delete(key: key)!
+	db.hdel('context:done', key)!
 }
 
 pub fn done_get_str(key string) string {
@@ -38,7 +36,7 @@ pub fn done_get_int(key string) int {
 
 pub fn done_exists(key string) bool {
 	mut db := donedb() or { panic(err) }
-	return db.exists(key: key) or { false }
+	return db.hexists('context:done', key) or { false }
 }
 
 pub fn done_print() ! {
@@ -54,5 +52,5 @@ pub fn done_print() ! {
 
 pub fn done_reset() ! {
 	mut db := donedb()!
-	db.destroy()!
+	db.del('context:done')!
 }

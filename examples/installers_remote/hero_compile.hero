@@ -1,0 +1,6 @@
+#!/usr/bin/env hero
+
+//root@65.21.132.119
+
+
+!!herolib.compile reset:1

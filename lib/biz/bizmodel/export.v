@@ -36,7 +36,6 @@ pub fn (b BizModel) export(args ExportArgs) ! {
 	// b.export_fundraising(export)
 }
 
-
 pub fn (model BizModel) write_introduction(args ExportArgs) ! {
 	mut index_page := pathlib.get_file(path: '${args.path}/introduction.md')!
 	// mut tmpl_index := $tmpl('templates/index.md')

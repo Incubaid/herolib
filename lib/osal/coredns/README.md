@@ -2,6 +2,80 @@
 
 This module provides functionality for managing DNS records in Redis for use with CoreDNS. It supports various DNS record types and provides a simple interface for adding and managing DNS records.
 
+
+## Heroscript Examples
+
+The following examples demonstrate how to define DNS records using heroscript actions:
+
+### A Record
+```
+!!dns.a_record
+    sub_domain: 'host1'
+    ip: '1.2.3.4'
+    ttl: 300
+```
+
+### AAAA Record
+```
+!!dns.aaaa_record
+    sub_domain: 'host1'
+    ip: '2001:db8::1'
+    ttl: 300
+```
+
+### MX Record
+```
+!!dns.mx_record
+    sub_domain: '*'
+    host: 'mail.example.com'
+    preference: 10
+    ttl: 300
+```
+
+### TXT Record
+```
+!!dns.txt_record
+    sub_domain: '*'
+    text: 'v=spf1 mx ~all'
+    ttl: 300
+```
+
+### SRV Record
+```
+!!dns.srv_record
+    service: 'ssh'
+    protocol: 'tcp'
+    host: 'host1'
+    target: 'sip.example.com'
+    port: 5060
+    priority: 10
+    weight: 100
+    ttl: 300
+```
+
+### NS Record
+```
+!!dns.ns_record
+    sub_domain: '@'
+    host: 'ns1.example.com'
+    ttl: 300
+```
+
+### SOA Record
+```
+!!dns.soa_record
+    mbox: 'hostmaster.example.com'
+    ns: 'ns1.example.com'
+    refresh: 44
+    retry: 55
+    expire: 66
+    minttl: 100
+    ttl: 300
+```
+
+
+## v
+
 ```v
 import freeflowuniverse.herolib.osal.core.coredns
 
@@ -93,3 +167,5 @@ SOARecord {
     ttl     int     // Default: 300
 }
 ```
+
+

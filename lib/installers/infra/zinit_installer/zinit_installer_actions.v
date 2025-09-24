@@ -6,19 +6,30 @@ import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.develop.gittools
 import freeflowuniverse.herolib.core
 import freeflowuniverse.herolib.osal.systemd
-import freeflowuniverse.herolib.osal.zinit as zinit_module
 import freeflowuniverse.herolib.installers.ulist
+import freeflowuniverse.herolib.installers.lang.rust
+import freeflowuniverse.herolib.osal.startupmanager
 import os
 
-fn startupcmd() ![]zinit_module.ZProcessNewArgs {
-	mut res := []zinit_module.ZProcessNewArgs{}
-	res << zinit_module.ZProcessNewArgs{
-		name:        'zinit'
-		cmd:         '/usr/local/bin/zinit init'
-		startuptype: .systemd
-		start:       true
-		restart:     true
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
+	mut res := []startupmanager.ZProcessNewArgs{}
+	if core.is_linux()! {
+		res << startupmanager.ZProcessNewArgs{
+			name:        'zinit'
+			cmd:         '/usr/local/bin/zinit init -c ${os.home_dir()}/hero/cfg/zinit'
+			startuptype: .systemd
+			start:       true
+			restart:     true
+		}
+	} else {
+		res << startupmanager.ZProcessNewArgs{
+			name:        'zinit'
+			cmd:         '${os.home_dir()}/hero/bin/zinit init -c  ${os.home_dir()}/hero/cfg/zinit'
+			startuptype: .screen
+			start:       true
+		}
 	}
+	osal.dir_ensure(os.home_dir() + '/hero/cfg/zinit')!
 	return res
 }
 
@@ -70,25 +81,29 @@ fn upload() ! {}
 
 fn install() ! {
 	console.print_header('install zinit')
-	if !core.is_linux()! {
-		return error('only support linux for now')
+	baseurl := 'https://github.com/threefoldtech/zinit/releases/download/v${version}/zinit-'
+
+	mut url := ''
+
+	if core.is_linux_intel()! {
+		url = '${baseurl}linux-x86_64'
+	} else if core.is_osx_arm()! {
+		url = '${baseurl}macos-aarch64'
+	} else if core.is_osx_intel()! {
+		url = '${baseurl}macos-x86_64'
+	} else {
+		return error('unsupported platform to install zinit')
 	}
 
-	release_url := 'https://github.com/threefoldtech/zinit/releases/download/v0.2.14/zinit'
-
 	mut dest := osal.download(
-		url:        release_url
-		minsize_kb: 2000
-		reset:      true
+		url:        url
+		minsize_kb: 4000
 	)!
 
 	osal.cmd_add(
 		cmdname: 'zinit'
 		source:  dest.path
 	)!
-
-	osal.dir_ensure('/etc/zinit')!
-	console.print_header('install zinit done')
 }
 
 fn build() ! {
@@ -96,12 +111,13 @@ fn build() ! {
 		return error('only support linux for now')
 	}
 
-	// rust.install()
+	mut i := rust.new()!
+	i.install()!
 
 	// install zinit if it was already done will return true
 	console.print_header('build zinit')
 
-	mut gs := gittools.get(coderoot: '/tmp/builder')!
+	mut gs := gittools.new(coderoot: '/tmp/builder')!
 	mut repo := gs.get_repo(
 		url:   'https://github.com/threefoldtech/zinit'
 		reset: true
@@ -125,8 +141,12 @@ fn build() ! {
 }
 
 fn destroy() ! {
-	mut systemdfactory := systemd.new()!
-	systemdfactory.destroy('zinit') or { return error('Could not destroy zinit due to: ${err}') }
+	if core.is_linux()! {
+		mut systemdfactory := systemd.new()!
+		systemdfactory.destroy('zinit') or {
+			return error('Could not destroy zinit due to: ${err}')
+		}
+	}
 
 	osal.process_kill_recursive(name: 'zinit') or {
 		return error('Could not kill zinit due to: ${err}')

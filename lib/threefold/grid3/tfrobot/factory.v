@@ -39,7 +39,7 @@ pub fn configure(instance string, config_ Config) !TFRobot[Config] {
 // pub fn heroplay(args play.PLayBookAddArgs) ! {
 // 	// make session for configuring from heroscript
 // 	mut session := play.session_new(session_name: 'config')!
-// 	session.playbook_add(path: args.path, text: args.text, git_url: args.git_url)!
+// 	session.plbook_add(path: args.path, text: args.text, git_url: args.git_url)!
 // 	for mut action in session.plbook.find(filter: 'tfrobot.define')! {
 // 		mut p := action.params
 // 		instance := p.get_default('instance', 'default')!

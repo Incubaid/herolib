@@ -1,13 +1,12 @@
 module postgresql_client
 
 import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.data.encoderhero
+import json
 
 __global (
-	postgresql_client_global  map[string]&PostgresClient
+	postgresql_client_global  map[string]&PostgresqlClient
 	postgresql_client_default string
 )
 
@@ -16,92 +15,122 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name string
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
 }
 
-fn args_get(args_ ArgsGet) ArgsGet {
-	mut model := args_
-	if model.name == '' {
-		model.name = postgresql_client_default
+pub fn new(args ArgsGet) !&PostgresqlClient {
+	mut obj := PostgresqlClient{
+		name: args.name
 	}
-	if model.name == '' {
-		model.name = 'default'
-	}
-	return model
+	set(obj)!
+	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&PostgresClient {
-	mut args := args_get(args_)
-	if args.name !in postgresql_client_global {
-		if args.name == 'default' {
-			if !exists(args)! {
-				if default {
-					mut context := base.context() or { panic('bug') }
-					context.hero_config_set('postgresql_client', args.name, heroscript_default()!)!
-				}
+pub fn get(args ArgsGet) !&PostgresqlClient {
+	mut context := base.context()!
+	postgresql_client_default = args.name
+	if args.fromdb || args.name !in postgresql_client_global {
+		mut r := context.redis()!
+		if r.hexists('context:postgresql_client', args.name)! {
+			data := r.hget('context:postgresql_client', args.name)!
+			if data.len == 0 {
+				return error('PostgresqlClient with name: postgresql_client does not exist, prob bug.')
 			}
-			load(args)!
+			mut obj := json.decode(PostgresqlClient, data)!
+			set_in_mem(obj)!
+		} else {
+			if args.create {
+				new(args)!
+			} else {
+				return error("PostgresqlClient with name 'postgresql_client' does not exist")
+			}
 		}
+		return get(name: args.name)! // no longer from db nor create
 	}
 	return postgresql_client_global[args.name] or {
-		println(postgresql_client_global)
-		panic('could not get config for ${args.name}.')
+		return error('could not get config for postgresql_client with name:postgresql_client')
 	}
 }
 
-// set the model in mem and the config on the filesystem
-pub fn set(o PostgresClient) ! {
-	mut o2 := obj_init(o)!
-	postgresql_client_global[o.name] = &o2
-	postgresql_client_default = o.name
+// register the config for the future
+pub fn set(o PostgresqlClient) ! {
+	mut o2 := set_in_mem(o)!
+	postgresql_client_default = o2.name
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hset('context:postgresql_client', o2.name, json.encode(o2))!
 }
 
-// check we find the config on the filesystem
-pub fn exists(args_ ArgsGet) !bool {
-	mut model := args_get(args_)
+// does the config exists?
+pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
-	return context.hero_config_exists('postgresql_client', model.name)
+	mut r := context.redis()!
+	return r.hexists('context:postgresql_client', args.name)!
 }
 
-// load the config error if it doesn't exist
-pub fn load(args_ ArgsGet) ! {
-	mut model := args_get(args_)
+pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
-	mut heroscript := context.hero_config_get('postgresql_client', model.name)!
-	play(heroscript: heroscript)!
-}
-
-// save the config to the filesystem in the context
-pub fn save(o PostgresClient) ! {
-	mut context := base.context()!
-	heroscript := encoderhero.encode[PostgresClient](o)!
-	context.hero_config_set('postgresql_client', o.name, heroscript)!
+	mut r := context.redis()!
+	r.hdel('context:postgresql_client', args.name)!
 }
 
 @[params]
-pub struct PlayArgs {
+pub struct ArgsList {
 pub mut:
-	heroscript string // if filled in then plbook will be made out of it
-	plbook     ?playbook.PlayBook
-	reset      bool
+	fromdb bool // will load from filesystem
 }
 
-pub fn play(args_ PlayArgs) ! {
-	mut model := args_
-
-	if model.heroscript == '' {
-		model.heroscript = heroscript_default()!
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&PostgresqlClient {
+	mut res := []&PostgresqlClient{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		postgresql_client_global = map[string]&PostgresqlClient{}
+		postgresql_client_default = ''
 	}
-	mut plbook := model.plbook or { playbook.new(text: model.heroscript)! }
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:postgresql_client')!
 
-	mut configure_actions := plbook.find(filter: 'postgresql_client.configure')!
-	if configure_actions.len > 0 {
-		for config_action in configure_actions {
-			mut p := config_action.params
-			mycfg := cfg_play(p)!
-			console.print_debug('install action postgresql_client.configure\n${mycfg}')
-			set(mycfg)!
-			save(mycfg)!
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in postgresql_client_global {
+			res << client
 		}
 	}
+	return res
+}
+
+// only sets in mem, does not set as config
+fn set_in_mem(o PostgresqlClient) !PostgresqlClient {
+	mut o2 := obj_init(o)!
+	postgresql_client_global[o2.name] = &o2
+	postgresql_client_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'postgresql_client.') {
+		return
+	}
+	mut install_actions := plbook.find(filter: 'postgresql_client.configure')!
+	if install_actions.len > 0 {
+		for install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+		}
+	}
+}
+
+// switch instance to be used for postgresql_client
+pub fn switch(name string) {
+	postgresql_client_default = name
 }

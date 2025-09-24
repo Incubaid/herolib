@@ -1,43 +1,19 @@
-# coredns
+# Installer - CoreDNS Module
 
-coredns
+This module provides heroscript actions for installing and managing CoreDNS.
 
-To get started
+## Actions
 
-```vlang
+### `coredns.install`
 
+Installs the CoreDNS server.
 
-import freeflowuniverse.herolib.installers.infra.coredns as coredns_installer
+**Parameters:**
 
-heroscript:="
-!!coredns.configure name:'test'
-    config_path: '/etc/coredns/Corefile'
-    dnszones_path: '/etc/coredns/zones'
-    plugins: 'forward,cache'
-    example: true
+-   `reset` (bool): If true, force a reinstall even if CoreDNS is already detected. Default: `false`.
 
-!!coredns.start name:'test' reset:1 
-"
+**Example:**
 
-coredns_installer.play(heroscript=heroscript)!
-
-//or we can call the default and do a start with reset
-//mut installer:= coredns_installer.get()!
-//installer.start(reset:true)!
-
-
-
-```
-
-## example heroscript
-
-```hero
-!!coredns.configure
-    name: 'custom'
-    config_path: '/etc/coredns/Corefile'
-    config_url: 'https://github.com/example/coredns-config'
-    dnszones_path: '/etc/coredns/zones'
-    dnszones_url: 'https://github.com/example/dns-zones'
-    plugins: 'forward,cache'
-    example: false
-```
+```heroscript
+!!coredns.install
+reset: true

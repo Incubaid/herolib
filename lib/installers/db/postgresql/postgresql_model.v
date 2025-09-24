@@ -14,7 +14,7 @@ pub mut:
 	password       string = 'postgres'
 	host           string = 'localhost'
 	volume_path    string = '/var/lib/postgresql/data'
-	container_name string = 'herocontainer_postgresql'
+	container_name string = 'postgresql'
 	port           int    = 5432
 	container_id   string
 }

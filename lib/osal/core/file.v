@@ -47,7 +47,7 @@ pub fn rm(todelete_ string) ! {
 		}
 
 		item = item.replace('~', os.home_dir())
-		
+
 		if item.starts_with('/') {
 			if os.exists(item) {
 				console.print_debug(' - rm: ${item}')
@@ -76,8 +76,10 @@ pub fn rm(todelete_ string) ! {
 				}
 			}
 		} else {
-			if item.contains('/') {
-				return error('there should be no / in to remove list')
+			// Handle relative paths - they can contain '/' as long as they're valid relative paths
+			if item.contains('/') && !item.starts_with('./') && !item.starts_with('../')
+				&& item.contains('..') {
+				return error('relative paths with .. are not allowed for security: ${item}')
 			}
 			cmd_delete(item)! // look for the command, if will be removed if found
 		}

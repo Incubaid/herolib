@@ -7,7 +7,7 @@ Chalk offers functions:- `console.color_fg(text string, color string)` - To chan
 
 Example:
 
-```vlang
+```v
 import freeflowuniverse.herolib.ui.console
 
 # basic usage

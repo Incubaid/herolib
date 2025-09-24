@@ -1,6 +1,6 @@
 module jsonrpc
 
-import log
+import x.json2 as json
 import net.websocket
 
 // This file implements a JSON-RPC 2.0 handler for WebSocket servers.
@@ -20,7 +20,7 @@ pub mut:
 // 2. Execute the procedure with the extracted parameters
 // 3. Return the result as a JSON-encoded string
 // If an error occurs during any of these steps, it should be returned.
-pub type ProcedureHandler = fn (payload string) !string
+pub type ProcedureHandler = fn (request Request) !Response
 
 // new_handler creates a new JSON-RPC handler with the specified procedure handlers.
 //
@@ -40,8 +40,77 @@ pub fn new_handler(handler Handler) !&Handler {
 // Parameters:
 //   - method: The name of the method to register
 //   - procedure: The procedure handler function to register
-pub fn (mut handler Handler) register_procedure(method string, procedure ProcedureHandler) {
+pub fn (mut handler Handler) register_procedure[T, U](method string, function fn (T) !U) {
+	procedure := Procedure[T, U]{
+		function: function
+		method:   method
+	}
+	handler.procedures[procedure.method] = procedure.handle
+}
+
+// register_procedure registers a new procedure handler for the specified method.
+//
+// Parameters:
+//   - method: The name of the method to register
+//   - procedure: The procedure handler function to register
+pub fn (mut handler Handler) register_procedure_void[T](method string, function fn (T) !) {
+	procedure := ProcedureVoid[T]{
+		function: function
+		method:   method
+	}
+	handler.procedures[procedure.method] = procedure.handle
+}
+
+// register_procedure registers a new procedure handler for the specified method.
+//
+// Parameters:
+//   - method: The name of the method to register
+//   - procedure: The procedure handler function to register
+pub fn (mut handler Handler) register_procedure_handle(method string, procedure ProcedureHandler) {
 	handler.procedures[method] = procedure
+}
+
+pub struct Procedure[T, U] {
+pub mut:
+	method   string
+	function fn (T) !U
+}
+
+pub struct ProcedureVoid[T] {
+pub mut:
+	method   string
+	function fn (T) !
+}
+
+pub fn (pw Procedure[T, U]) handle(request Request) !Response {
+	payload := decode_payload[T](request.params) or { return invalid_params }
+	result := pw.function(payload) or { return internal_error }
+	return new_response(request.id, '')
+}
+
+pub fn (pw ProcedureVoid[T]) handle(request Request) !Response {
+	payload := decode_payload[T](request.params) or { return invalid_params }
+	pw.function(payload) or { return internal_error }
+	return new_response(request.id, 'null')
+}
+
+pub fn decode_payload[T](payload string) !T {
+	$if T is string {
+		return payload
+	} $else $if T is int {
+		return payload.int()
+	} $else $if T is u32 {
+		return payload.u32()
+	} $else $if T is bool {
+		return payload.bool()
+	} $else {
+		return json.decode[T](payload) or { return error('Failed to decode payload: ${err}') }
+	}
+	panic('Unsupported type: ${T.name}')
+}
+
+fn error_to_jsonrpc(err IError) !RPCError {
+	return error('Internal error: ${err.msg()}')
 }
 
 // handler is a callback function compatible with the WebSocket server's message handler interface.
@@ -54,9 +123,12 @@ pub fn (mut handler Handler) register_procedure(method string, procedure Procedu
 // Returns:
 //   - The JSON-RPC response as a string
 // Note: This method panics if an error occurs during handling
-pub fn (handler Handler) handler(client &websocket.Client, message string) string {
-	return handler.handle(message) or { panic(err) }
-}
+// pub fn (handler Handler) handle_message(client &websocket.Client, message string) string {
+// 	req := decode_request(message) or {
+// 		return invalid_request }
+// 	resp := handler.handle(req) or { panic(err) }
+// 	return resp.encode()
+// }
 
 // handle processes a JSON-RPC request message and invokes the appropriate procedure handler.
 // If the requested method is not found, it returns a method_not_found error response.
@@ -66,20 +138,11 @@ pub fn (handler Handler) handler(client &websocket.Client, message string) strin
 //
 // Returns:
 //   - The JSON-RPC response as a string, or an error if processing fails
-pub fn (handler Handler) handle(message string) !string {
-	// Extract the method name from the request
-	log.error('debugzo1')
-	method := decode_request_method(message)!
-	// log.info('Handling remote procedure call to method: ${method}')
-	// Look up the procedure handler for the requested method
-	procedure_func := handler.procedures[method] or {
-		// log.error('No procedure handler for method ${method} found')
-		return method_not_found
+pub fn (handler Handler) handle(request Request) !Response {
+	procedure_func := handler.procedures[request.method] or {
+		return new_error(request.id, method_not_found)
 	}
 
-	log.error('debugzo3')
-
 	// Execute the procedure handler with the request payload
-	response := procedure_func(message) or { panic(err) }
-	return response
+	return procedure_func(request) or { panic(err) }
 }

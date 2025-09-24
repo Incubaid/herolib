@@ -7,11 +7,13 @@ abs_dir_of_script := dir(@FILE)
 // Format code
 println('Formatting code...')
 if os.system('v fmt -w ${abs_dir_of_script}/examples') != 0 {
-    eprintln('Warning: Failed to format examples')
+	eprintln('Warning: Failed to format examples')
+	exit(1)
 }
 
 if os.system('v fmt -w ${abs_dir_of_script}/lib') != 0 {
-    eprintln('Warning: Failed to format herolib')
+	eprintln('Warning: Failed to format herolib')
+	exit(1)
 }
 
 // Clean existing docs
@@ -22,9 +24,7 @@ os.rmdir_all('docs') or {}
 os.rmdir_all('vdocs') or {}
 
 herolib_path := os.join_path(abs_dir_of_script, 'lib')
-os.chdir(herolib_path) or {
-    panic('Failed to change directory to herolib: ${err}')
-}
+os.chdir(herolib_path) or { panic('Failed to change directory to herolib: ${err}') }
 
 os.mkdir_all('_docs') or {}
 os.mkdir_all('docs') or {}
@@ -33,12 +33,14 @@ os.mkdir_all('vdocs') or {}
 // Generate HTML documentation
 println('Generating HTML documentation...')
 if os.system('v doc -m -f html . -readme -comments -no-timestamp -o ../docs') != 0 {
-    panic('Failed to generate HTML documentation')
+	panic('Failed to generate HTML documentation')
 }
 
-os.chdir(abs_dir_of_script) or {
-    panic('Failed to change directory to abs_dir_of_script: ${err}')
+if os.system('v doc -m -f md . -no-color  -o ../vdocs/') != 0 {
+	panic('Failed to generate Hero markdown documentation')
 }
+
+os.chdir(abs_dir_of_script) or { panic('Failed to change directory to abs_dir_of_script: ${err}') }
 
 // Generate Markdown documentation
 println('Generating Markdown documentation...')
@@ -47,18 +49,16 @@ println('Generating Markdown documentation...')
 //     panic('Failed to generate V markdown documentation')
 // }
 
-if os.system('v doc -m -no-color -f md -o vdocs/') != 0 {
-    panic('Failed to generate Hero markdown documentation')
-}
+// if os.system('v doc -m -no-color -f md . -o vdocs/') != 0 {
+//     panic('Failed to generate Hero markdown documentation')
+// }
 
 // Open documentation in browser on non-Linux systems
 $if !linux {
-    os.chdir(abs_dir_of_script) or {
-        panic('Failed to change directory: ${err}')
-    }
-    if os.system('open docs/index.html') != 0 {
-        eprintln('Warning: Failed to open documentation in browser')
-    }
+	os.chdir(abs_dir_of_script) or { panic('Failed to change directory: ${err}') }
+	if os.system('open docs/index.html') != 0 {
+		eprintln('Warning: Failed to open documentation in browser')
+	}
 }
 
 // Create Jekyll required files
@@ -68,7 +68,7 @@ os.mkdir_all('docs/assets/css') or {}
 // Create style.scss
 style_content := '---\n---\n\n@import "{{ site.theme }}";'
 os.write_file('docs/assets/css/style.scss', style_content) or {
-    panic('Failed to create style.scss: ${err}')
+	panic('Failed to create style.scss: ${err}')
 }
 
 // Create _config.yml
@@ -87,7 +87,7 @@ exclude:
   - vendor/ruby/'
 
 os.write_file('docs/_config.yml', config_content) or {
-    panic('Failed to create _config.yml: ${err}')
+	panic('Failed to create _config.yml: ${err}')
 }
 
 println('Documentation generation completed successfully!')

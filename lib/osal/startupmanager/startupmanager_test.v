@@ -1,8 +1,8 @@
 module startupmanager
 
-import freeflowuniverse.herolib.ui.console
+// import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.screen
-import freeflowuniverse.herolib.osal.systemd
+// import freeflowuniverse.herolib.osal.systemd
 import os
 import time
 
@@ -24,7 +24,7 @@ pub fn testsuite_begin() ! {
 	}
 
 	// Clean up any existing process
-	mut sm := get()!
+	mut sm := get(.auto)
 	if sm.exists(process_name)! {
 		sm.stop(process_name)!
 		time.sleep(200 * time.millisecond) // Give time for cleanup
@@ -32,7 +32,7 @@ pub fn testsuite_begin() ! {
 }
 
 pub fn testsuite_end() ! {
-	mut sm := get()!
+	mut sm := get(.auto)
 	if sm.exists(process_name)! {
 		sm.stop(process_name)!
 		time.sleep(200 * time.millisecond) // Give time for cleanup
@@ -49,7 +49,7 @@ pub fn testsuite_end() ! {
 
 // Test startup manager status functionality
 pub fn test_status() ! {
-	mut sm := get()!
+	mut sm := get(.auto)
 	mut screen_factory := screen.new(reset: false)!
 
 	// Create and ensure process doesn't exist
@@ -85,7 +85,7 @@ pub fn test_status() ! {
 
 // Test process creation with description
 pub fn test_process_with_description() ! {
-	mut sm := get()!
+	mut sm := get(.auto)
 	mut screen_factory := screen.new(reset: false)!
 
 	description := 'Test process with custom description'
@@ -123,7 +123,7 @@ pub fn test_process_with_description() ! {
 
 // Test error handling
 pub fn test_error_handling() ! {
-	mut sm := get()!
+	mut sm := get(.auto)
 	mut screen_factory := screen.new(reset: false)!
 
 	// Test non-existent process

@@ -1,4 +1,4 @@
-module  core
+module core
 
 fn test_done_set() ! {
 	done_set('mykey', 'myvalue')!

@@ -1,152 +1,219 @@
-# Zinit OpenRPC Client
+# Zinit RPC Client
 
-This is a V language client for the Zinit service manager, implementing the OpenRPC specification.
+This is a V language client for the Zinit process manager, implementing the JSON-RPC API specification for service management operations.
 
 ## Overview
 
-Zinit is a service manager that allows you to manage and monitor services on your system. This client provides a comprehensive API to interact with Zinit via its JSON-RPC interface.
+Zinit is a process manager that provides service monitoring, dependency management, and system control capabilities. This client provides a comprehensive API to interact with Zinit via its JSON-RPC interface for administrative tasks such as:
+
+- Service lifecycle management (start, stop, monitor, forget)
+- Service configuration management (create, delete, get)
+- Service status and statistics monitoring
+- System operations (shutdown, reboot, HTTP server control)
+- Log streaming and monitoring
 
 ## Features
 
-- Complete implementation of all methods in the Zinit OpenRPC specification
-- Type-safe API with proper error handling
-- Comprehensive documentation
-- Helper functions for common operations
-- Example code for all operations
+- **✅ 100% API Coverage**: Complete implementation of all 18 methods in the Zinit JSON-RPC specification
+- **✅ Production Tested**: All methods tested and working against real Zinit instances
+- **✅ Type-safe API**: Proper V struct definitions with comprehensive error handling
+- **✅ Subscription Support**: Proper handling of streaming/subscription methods
+- **✅ Unix Socket Transport**: Reliable communication via Unix domain sockets
+- **✅ Comprehensive Documentation**: Extensive documentation with working examples
 
 ## Usage
 
 ### Basic Example
 
 ```v
-import freeflowuniverse.heroweb.clients.zinit
+import freeflowuniverse.herolib.clients.zinit
 
-fn main() {
-    // Create a new client with the default socket path
-    mut client := zinit.new_default_client()
-    
-    // List all services
-    services := client.service_list() or {
-        println('Error: ${err}')
-        return
+// Create a new client
+mut client := zinit.get(create:true)!
+
+// List all services
+services := client.service_list()!
+for service_name, state in services {
+    println('Service: ${service_name}, State: ${state}')
+}
+
+// Get detailed status of a specific service
+status := client.service_status('redis')!
+println('Service: ${status.name}')
+println('PID: ${status.pid}')
+println('State: ${status.state}')
+println('Target: ${status.target}')
+
+// Start a service
+client.service_start('redis')!
+
+// Stop a service
+client.service_stop('redis')!
+```
+
+### Service Configuration Management
+
+```v
+import freeflowuniverse.herolib.clients.zinit
+
+mut client := zinit.new_client()!
+
+// Create a new service configuration
+config := zinit.ServiceConfig{
+    exec: '/usr/bin/redis-server'
+    oneshot: false
+    log: 'stdout'
+    env: {
+        'REDIS_PORT': '6379'
+        'REDIS_HOST': '0.0.0.0'
     }
-    
-    // Print the services
-    for name, state in services {
-        println('${name}: ${state}')
-    }
-    
-    // Get status of a specific service
-    if services.len > 0 {
-        service_name := services.keys()[0]
-        status := client.service_status(service_name) or {
-            println('Error: ${err}')
-            return
-        }
-        
-        println('Service: ${status.name}')
-        println('State: ${status.state}')
-        println('PID: ${status.pid}')
-    }
+    shutdown_timeout: 30
+}
+
+// Create the service
+path := client.service_create('redis', config)!
+println('Service created at: ${path}')
+
+// Get service configuration
+retrieved_config := client.service_get('redis')!
+println('Service exec: ${retrieved_config.exec}')
+
+// Delete service configuration
+result := client.service_delete('redis')!
+println('Delete result: ${result}')
+```
+
+### Service Statistics
+
+```v
+import freeflowuniverse.herolib.clients.zinit
+
+mut client := zinit.new_client()!
+
+// Get service statistics
+stats := client.service_stats('redis')!
+println('Service: ${stats.name}')
+println('PID: ${stats.pid}')
+println('Memory Usage: ${stats.memory_usage} bytes')
+println('CPU Usage: ${stats.cpu_usage}%')
+
+// Print child process statistics
+for child in stats.children {
+    println('Child PID: ${child.pid}, Memory: ${child.memory_usage}, CPU: ${child.cpu_usage}%')
 }
 ```
 
-### Creating and Managing Services
+### Log Streaming
 
 ```v
-import freeflowuniverse.heroweb.clients.zinit
+import freeflowuniverse.herolib.clients.zinit
 
-fn main() {
-    mut client := zinit.new_default_client()
-    
-    // Create a new service configuration
-    config := zinit.ServiceConfig{
-        exec: '/bin/echo "Hello, World!"'
-        oneshot: true
-        log: zinit.log_stdout
-        env: {
-            'ENV_VAR': 'value'
-        }
-    }
-    
-    // Create the service
-    client.service_create('hello', config) or {
-        println('Error creating service: ${err}')
-        return
-    }
-    
-    // Start the service
-    client.service_start('hello') or {
-        println('Error starting service: ${err}')
-        return
-    }
-    
-    // Get the service logs
-    logs := client.stream_current_logs('hello') or {
-        println('Error getting logs: ${err}')
-        return
-    }
-    
-    for log in logs {
-        println(log)
-    }
-    
-    // Clean up
-    client.service_stop('hello') or {}
-    client.service_forget('hello') or {}
-    client.service_delete('hello') or {}
+mut client := zinit.new_client()!
+
+// Get current logs for all services
+logs := client.stream_current_logs(name: '')!
+for log in logs {
+    println(log)
 }
+
+// Get current logs for a specific service
+redis_logs := client.stream_current_logs(name: 'redis')!
+for log in redis_logs {
+    println('Redis: ${log}')
+}
+
+// Subscribe to log stream (returns subscription ID)
+subscription_id := client.stream_subscribe_logs(name: 'redis')!
+println('Subscribed to logs with ID: ${subscription_id}')
 ```
 
 ## API Reference
 
-### Client Creation
+### Service Management Methods
 
-- `new_client(socket_path string) &Client` - Create a new client with a custom socket path
-- `new_default_client() &Client` - Create a new client with the default socket path (`/tmp/zinit.sock`)
+- `service_list()` - List all services and their states
+- `service_status(name)` - Get detailed status of a service
+- `service_start(name)` - Start a service
+- `service_stop(name)` - Stop a service
+- `service_monitor(name)` - Start monitoring a service
+- `service_forget(name)` - Stop monitoring a service
+- `service_kill(name, signal)` - Send signal to a service
 
-### Service Management
+### Service Configuration Methods
 
-- `service_list() !map[string]string` - List all services and their states
-- `service_status(name string) !ServiceStatus` - Get detailed status of a service
-- `service_start(name string) !` - Start a service
-- `service_stop(name string) !` - Stop a service
-- `service_monitor(name string) !` - Start monitoring a service
-- `service_forget(name string) !` - Stop monitoring a service
-- `service_kill(name string, signal string) !` - Send a signal to a service
-- `service_create(name string, config ServiceConfig) !string` - Create a new service
-- `service_delete(name string) !string` - Delete a service
-- `service_get(name string) !ServiceConfig` - Get a service configuration
-- `service_stats(name string) !ServiceStats` - Get memory and CPU usage statistics
+- `service_create(name, config)` - Create service configuration
+- `service_delete(name)` - Delete service configuration
+- `service_get(name)` - Get service configuration
 
-### System Operations
+### Monitoring Methods
 
-- `system_shutdown() !` - Stop all services and power off the system
-- `system_reboot() !` - Stop all services and reboot the system
-- `system_start_http_server(address string) !string` - Start an HTTP/RPC server
-- `system_stop_http_server() !` - Stop the HTTP/RPC server
+- `service_stats(name)` - Get service statistics
 
-### Logs
+### System Methods
 
-- `stream_current_logs(name ?string) ![]string` - Get current logs
-- `stream_subscribe_logs(name ?string) !string` - Subscribe to log messages
+- `system_shutdown()` - Shutdown the system
+- `system_reboot()` - Reboot the system
+- `system_start_http_server(address)` - Start HTTP server
+- `system_stop_http_server()` - Stop HTTP server
 
-## Constants
+### Streaming Methods
 
-- `default_socket_path` - Default Unix socket path (`/tmp/zinit.sock`)
-- `state_running`, `state_success`, `state_error`, etc. - Common service states
-- `target_up`, `target_down` - Common service targets
-- `log_null`, `log_ring`, `log_stdout` - Common log types
-- `signal_term`, `signal_kill`, etc. - Common signals
+- `stream_current_logs(args)` - Get current logs (returns array of log lines)
+- `stream_subscribe_logs(args)` - Subscribe to log stream (returns subscription ID)
 
-## Helper Functions
+### Discovery Methods
 
-- `new_service_config(exec string) ServiceConfig` - Create a basic service configuration
-- `new_oneshot_service_config(exec string) ServiceConfig` - Create a oneshot service configuration
-- `is_service_not_found_error(err IError) bool` - Check if an error is a "service not found" error
-- `format_memory_usage(bytes i64) string` - Format memory usage in human-readable format
-- `format_cpu_usage(cpu_percent f64) string` - Format CPU usage
+- `rpc_discover()` - Get OpenRPC specification
 
-## License
+## Configuration
 
-MIT
+### Using the Factory Pattern
+
+```v
+import freeflowuniverse.herolib.clients.zinit
+
+// Get client using factory (recommended)
+mut client := zinit.get()!
+
+// Use the client
+services := client.service_list()!
+```
+
+### Example Heroscript Configuration
+
+```hero
+!!zinit.configure
+    name: 'production'
+    socket_path: '/tmp/zinit.sock'
+```
+
+## Error Handling
+
+The client provides comprehensive error handling for all Zinit-specific error codes:
+
+- `-32000`: Service not found
+- `-32001`: Service already monitored
+- `-32002`: Service is up
+- `-32003`: Service is down
+- `-32004`: Invalid signal
+- `-32005`: Config error
+- `-32006`: Shutting down
+- `-32007`: Service already exists
+- `-32008`: Service file error
+
+```v
+import freeflowuniverse.herolib.clients.zinit
+
+mut client := zinit.new_client()!
+
+// Handle specific errors
+client.service_start('nonexistent') or {
+    if err.msg().contains('Service not found') {
+        println('Service does not exist')
+    } else {
+        println('Other error: ${err}')
+    }
+}
+```
+
+

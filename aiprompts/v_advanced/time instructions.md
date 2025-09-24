@@ -83,7 +83,7 @@ fn main() {
 }
 ```
 
-```vlang
+```v
 
 module time
 

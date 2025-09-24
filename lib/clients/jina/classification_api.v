@@ -282,7 +282,6 @@ pub fn (mut j Jina) list_classifiers() ![]Classifier {
 		method: .get
 		prefix: 'v1/classifiers'
 	}
-
 	mut httpclient := j.httpclient()!
 	response := httpclient.get(req)!
 	classifiers := json.decode([]Classifier, response)!

@@ -6,7 +6,7 @@ import freeflowuniverse.herolib.develop.gittools
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core.playbook
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.threefold.grid4.cloudslices
+import freeflowuniverse.herolib.threefold.grid4.datamodel
 
 __global (
 	grid_simulators shared map[string]&Simulator
@@ -17,7 +17,7 @@ pub mut:
 	name   string
 	sheet  &spreadsheet.Sheet
 	params SimulatorArgs
-	nodes  map[string]&cloudslices.Node
+	nodes  map[string]&datamodel.Node
 }
 
 @[params]

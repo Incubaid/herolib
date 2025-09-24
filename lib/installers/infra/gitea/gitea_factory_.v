@@ -1,10 +1,10 @@
 module gitea
 
 import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.ui.console
+import json
 import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.osal.zinit
 import time
 
 __global (
@@ -17,92 +17,125 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name string
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
 }
 
-fn args_get(args_ ArgsGet) ArgsGet {
-	mut args := args_
-	if args.name == '' {
-		args.name = 'default'
+pub fn new(args ArgsGet) !&GiteaServer {
+	mut obj := GiteaServer{
+		name: args.name
 	}
-	return args
+	set(obj)!
+	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&GiteaServer {
+pub fn get(args ArgsGet) !&GiteaServer {
 	mut context := base.context()!
-	mut args := args_get(args_)
-	mut obj := GiteaServer{}
-	if args.name !in gitea_global {
-		if !exists(args)! {
-			set(obj)!
+	gitea_default = args.name
+	if args.fromdb || args.name !in gitea_global {
+		mut r := context.redis()!
+		if r.hexists('context:gitea', args.name)! {
+			data := r.hget('context:gitea', args.name)!
+			if data.len == 0 {
+				print_backtrace()
+				return error('GiteaServer with name: gitea does not exist, prob bug.')
+			}
+			mut obj := json.decode(GiteaServer, data)!
+			set_in_mem(obj)!
 		} else {
-			heroscript := context.hero_config_get('gitea', args.name)!
-			mut obj_ := heroscript_loads(heroscript)!
-			set_in_mem(obj_)!
+			if args.create {
+				new(args)!
+			} else {
+				print_backtrace()
+				return error("GiteaServer with name 'gitea' does not exist")
+			}
 		}
+		return get(name: args.name)! // no longer from db nor create
 	}
 	return gitea_global[args.name] or {
-		println(gitea_global)
-		// bug if we get here because should be in globals
-		panic('could not get config for gitea with name, is bug:${args.name}')
+		print_backtrace()
+		return error('could not get config for gitea with name:gitea')
 	}
 }
 
 // register the config for the future
 pub fn set(o GiteaServer) ! {
-	set_in_mem(o)!
+	mut o2 := set_in_mem(o)!
+	gitea_default = o2.name
 	mut context := base.context()!
-	heroscript := heroscript_dumps(o)!
-	context.hero_config_set('gitea', o.name, heroscript)!
+	mut r := context.redis()!
+	r.hset('context:gitea', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
-pub fn exists(args_ ArgsGet) !bool {
+pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
-	mut args := args_get(args_)
-	return context.hero_config_exists('gitea', args.name)
+	mut r := context.redis()!
+	return r.hexists('context:gitea', args.name)!
 }
 
-pub fn delete(args_ ArgsGet) ! {
-	mut args := args_get(args_)
+pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
-	context.hero_config_delete('gitea', args.name)!
-	if args.name in gitea_global {
-		// del gitea_global[args.name]
-	}
-}
-
-// only sets in mem, does not set as config
-fn set_in_mem(o GiteaServer) ! {
-	mut o2 := obj_init(o)!
-	gitea_global[o.name] = &o2
-	gitea_default = o.name
+	mut r := context.redis()!
+	r.hdel('context:gitea', args.name)!
 }
 
 @[params]
-pub struct PlayArgs {
+pub struct ArgsList {
 pub mut:
-	heroscript string // if filled in then plbook will be made out of it
-	plbook     ?playbook.PlayBook
-	reset      bool
+	fromdb bool // will load from filesystem
 }
 
-pub fn play(args_ PlayArgs) ! {
-	mut args := args_
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&GiteaServer {
+	mut res := []&GiteaServer{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		gitea_global = map[string]&GiteaServer{}
+		gitea_default = ''
+	}
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:gitea')!
 
-	mut plbook := args.plbook or { playbook.new(text: args.heroscript)! }
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in gitea_global {
+			res << client
+		}
+	}
+	return res
+}
 
+// only sets in mem, does not set as config
+fn set_in_mem(o GiteaServer) !GiteaServer {
+	mut o2 := obj_init(o)!
+	gitea_global[o2.name] = &o2
+	gitea_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'gitea.') {
+		return
+	}
 	mut install_actions := plbook.find(filter: 'gitea.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
-
 	mut other_actions := plbook.find(filter: 'gitea.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -134,6 +167,7 @@ pub fn play(args_ PlayArgs) ! {
 				gitea_obj.restart()!
 			}
 		}
+		other_action.done = true
 	}
 }
 
@@ -141,41 +175,43 @@ pub fn play(args_ PlayArgs) ! {
 //////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-fn startupmanager_get(cat zinit.StartupManagerType) !startupmanager.StartupManager {
+fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.StartupManager {
 	// unknown
 	// screen
 	// zinit
 	// tmux
 	// systemd
 	match cat {
+		.screen {
+			console.print_debug("installer: gitea' startupmanager get screen")
+			return startupmanager.get(.screen)!
+		}
 		.zinit {
-			console.print_debug('startupmanager: zinit')
-			return startupmanager.get(cat: .zinit)!
+			console.print_debug("installer: gitea' startupmanager get zinit")
+			return startupmanager.get(.zinit)!
 		}
 		.systemd {
-			console.print_debug('startupmanager: systemd')
-			return startupmanager.get(cat: .systemd)!
+			console.print_debug("installer: gitea' startupmanager get systemd")
+			return startupmanager.get(.systemd)!
 		}
 		else {
-			console.print_debug('startupmanager: auto')
-			return startupmanager.get()!
+			console.print_debug("installer: gitea' startupmanager get auto")
+			return startupmanager.get(.auto)!
 		}
 	}
 }
 
 // load from disk and make sure is properly intialized
 pub fn (mut self GiteaServer) reload() ! {
-	switch(self.name)
 	self = obj_init(self)!
 }
 
 pub fn (mut self GiteaServer) start() ! {
-	switch(self.name)
 	if self.running()! {
 		return
 	}
 
-	console.print_header('gitea start')
+	console.print_header('installer: gitea start')
 
 	if !installed()! {
 		install()!
@@ -188,7 +224,7 @@ pub fn (mut self GiteaServer) start() ! {
 	for zprocess in startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		console.print_debug('starting gitea with ${zprocess.startuptype}...')
+		console.print_debug('installer: gitea starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
 
@@ -233,10 +269,12 @@ pub fn (mut self GiteaServer) running() !bool {
 
 	// walk over the generic processes, if not running return
 	for zprocess in startupcmd()! {
-		mut sm := startupmanager_get(zprocess.startuptype)!
-		r := sm.running(zprocess.name)!
-		if r == false {
-			return false
+		if zprocess.startuptype != .screen {
+			mut sm := startupmanager_get(zprocess.startuptype)!
+			r := sm.running(zprocess.name)!
+			if r == false {
+				return false
+			}
 		}
 	}
 	return running()!
@@ -268,12 +306,4 @@ pub fn (mut self GiteaServer) destroy() ! {
 
 // switch instance to be used for gitea
 pub fn switch(name string) {
-	gitea_default = name
-}
-
-// helpers
-
-@[params]
-pub struct DefaultConfigArgs {
-	instance string = 'default'
 }

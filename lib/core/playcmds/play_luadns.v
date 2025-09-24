@@ -1,10 +1,14 @@
 module playcmds
 
 import freeflowuniverse.herolib.develop.luadns
-import freeflowuniverse.herolib.core.playbook
-import os
+import freeflowuniverse.herolib.core.playbook { PlayBook }
+// import os
 
-pub fn play_luadns(mut plbook playbook.PlayBook) ! {
+fn play_luadns(mut plbook PlayBook) ! {
+	if plbook.exists(filter: 'luadns.') == false {
+		return
+	}
+
 	// Variables below are not used, commenting them out
 	// mut buildroot := '${os.home_dir()}/hero/var/mdbuild'
 	// mut publishroot := '${os.home_dir()}/hero/www/info'

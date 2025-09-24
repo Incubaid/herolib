@@ -6,7 +6,7 @@ import freeflowuniverse.herolib.develop.gittools
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core.playbook
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.threefold.grid4.cloudslices
+import freeflowuniverse.herolib.threefold.grid4.datamodel
 
 @[heap]
 pub struct Simulator {

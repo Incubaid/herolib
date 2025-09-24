@@ -13,9 +13,7 @@ import math
 //     costcenter:'marketing_cc'
 //     cost_percent_revenue:'1%'
 fn (mut m BizModel) cost_define_action(action Action) !Action {
-	mut name := action.params.get('name') or {
-		return error('Cost name is required.')
-	}
+	mut name := action.params.get('name') or { return error('Cost name is required.') }
 	mut descr := action.params.get_default('descr', '')!
 	if descr.len == 0 {
 		descr = action.params.get_default('description', '')!
@@ -32,7 +30,8 @@ fn (mut m BizModel) cost_define_action(action Action) !Action {
 		return error('Costcenter `${costcenter}` not found. Please define it first.')
 	}
 
-	cost_percent_revenue := action.params.get_percentage_default('cost_percent_revenue','0%')!
+	cost_percent_revenue := action.params.get_percentage_default('cost_percent_revenue',
+		'0%')!
 
 	indexation := action.params.get_percentage_default('indexation', '0%')!
 
@@ -55,7 +54,6 @@ fn (mut m BizModel) cost_define_action(action Action) !Action {
 	)!
 	cost_row = cost_row.action(action: .reverse)!
 
-
 	if cost_percent_revenue > 0 {
 		// println(cost_row)
 		mut revtotal := m.sheet.row_get('revenue_total')!
@@ -72,9 +70,6 @@ fn (mut m BizModel) cost_define_action(action Action) !Action {
 	}
 	return action
 }
-
-
-
 
 fn (mut sim BizModel) cost_total() ! {
 	sim.sheet.group2row(

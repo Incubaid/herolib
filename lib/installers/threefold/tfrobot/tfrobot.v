@@ -48,7 +48,7 @@ pub fn build_() ! {
 		dest_on_os = '/usr/local/bin'
 	}
 
-	mut gs := gittools.get()!
+	mut gs := gittools.new()!
 	mut repo := gs.get_repo(
 		url:   'https://github.com/threefoldtech/tfgrid-sdk-go'
 		reset: true

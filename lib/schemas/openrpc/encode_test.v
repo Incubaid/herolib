@@ -1,27 +1,20 @@
 module openrpc
 
-import x.json2 as json
+// import x.json2 as json
 import freeflowuniverse.herolib.schemas.jsonschema { Schema, SchemaRef }
 
-const blank_openrpc = '{
-	"openrpc": "1.0.0",
-	"info": {
-		"version": "1.0.0"
-	},
-	"methods": []
-}'
+const blank_openrpc = '{"openrpc": "1.0.0","info": {"version": "1.0.0"},"methods": []}'
 
 // test if encode can correctly encode a blank OpenRPC
 fn test_encode_blank() ! {
 	doc := OpenRPC{
-		info:    Info{
+		info: Info{
 			title:   ''
 			version: '1.0.0'
 		}
-		methods: []Method{}
 	}
 	encoded := doc.encode()!
-	assert encoded.trim_space().split_into_lines().map(it.trim_space()) == blank_openrpc.split_into_lines().map(it.trim_space())
+	assert encoded == blank_openrpc
 }
 
 // test if can correctly encode an OpenRPC doc with a method
@@ -48,7 +41,7 @@ fn test_encode_with_method() ! {
 			},
 		]
 	}
-	encoded := doc.encode()!
+	encoded := doc.encode_pretty()!
 	assert encoded == '{
   "openrpc": "1.0.0",
   "info": {
@@ -96,6 +89,6 @@ fn test_encode() ! {
 			},
 		]
 	}
-	encoded := json.encode(doc)
+	encoded := doc.encode()!
 	assert encoded == '{"openrpc":"1.0.0","info":{"title":"","version":"1.0.0"},"methods":[{"name":"method_name","summary":"summary","description":"description for this method","params":[{"name":"sample descriptor","schema":{"\$schema":"","\$id":"","title":"","description":"","type":"string","properties":{},"additionalProperties":{},"required":[],"ref":"","items":{},"defs":{},"oneOf":[],"_type":"Schema"},"_type":"ContentDescriptor"}],"result":{},"deprecated":true}]}'
 }

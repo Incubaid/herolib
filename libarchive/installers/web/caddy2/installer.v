@@ -8,8 +8,6 @@ import freeflowuniverse.herolib.sysadmin.startupmanager
 import freeflowuniverse.herolib.installers.lang.golang
 import os
 
-
-
 pub fn install_caddy_from_release() ! {
 	version := '2.8.4'
 	mut url := ''

@@ -39,7 +39,7 @@ fn (self Paragraph) html() !string {
 	mut out := self.DocBase.html()! // the children should have all the content
 	if self.children.len == 1 {
 		if out.trim_space() != '' {
-			if self.children[0] or { panic("bug") } is Link {
+			if self.children[0] or { panic('bug') } is Link {
 				return out
 			} else {
 				return out

@@ -80,7 +80,7 @@ pub fn (mut tree Tree) scan(args TreeScannerArgs) ! {
 pub fn (mut tree Tree) scan_concurrent(args_ TreeScannerArgs) ! {
 	mut args := args_
 	if args.git_url.len > 0 {
-		mut gs := gittools.get(coderoot: args.git_root)!
+		mut gs := gittools.new(coderoot: args.git_root)!
 		mut repo := gs.get_repo(
 			url:   args.git_url
 			pull:  args.git_pull

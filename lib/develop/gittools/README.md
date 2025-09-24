@@ -236,50 +236,39 @@ repo.remove_changes()!
 repo.update_submodules()!
 ```
 
-## Repository Configuration
+## Repository Configuration & Status
 
-### GitRepo Structure
+The `gittools` module uses an imperative model. The `GitRepo` struct holds the *current* status of a repository in a unified `GitStatus` object. To change the state, you call explicit functions like `repo.branch_switch('my-feature')`.
+
+### GitRepo and GitStatus Structure
 
 ```v
+// GitRepo represents a single git repository.
 pub struct GitRepo {
 pub mut:
-    provider      string              // e.g., github.com
-    account       string              // Git account name
-    name          string              // Repository name
-    status_remote GitRepoStatusRemote // Remote repository status
-    status_local  GitRepoStatusLocal  // Local repository status
-    status_wanted GitRepoStatusWanted // Desired status
-    config        GitRepoConfig       // Repository configuration
-    deploysshkey  string              // SSH key for git operations
-}
-```
-
-### Status Tracking
-
-```v
-// Remote Status
-pub struct GitRepoStatusRemote {
-pub mut:
-    ref_default string            // Default branch hash
-    branches    map[string]string // Branch name -> commit hash
-    tags        map[string]string // Tag name -> commit hash
+    provider      string
+    account       string
+    name          string
+    config        GitRepoConfig
+    status        GitStatus   // Unified struct holding the CURRENT repo status.
 }
 
-// Local Status
-pub struct GitRepoStatusLocal {
+// GitStatus holds all live status information for a repository.
+pub struct GitStatus {
 pub mut:
-    branches map[string]string // Branch name -> commit hash
-    branch   string           // Current branch
-    tag      string           // Current tag
-}
-
-// Desired Status
-pub struct GitRepoStatusWanted {
-pub mut:
-    branch   string
-    tag      string
-    url      string // Remote repository URL
-    readonly bool   // Prevent push/commit operations
+	// State from local and remote (`git fetch`)
+	branches map[string]string // branch name -> commit hash
+	tags     map[string]string // tag name -> commit hash
+	
+	// Current local state
+	branch   string // The current checked-out branch
+	tag      string // The current checked-out tag (if any)
+	ahead    int    // Commits ahead of remote
+	behind   int    // Commits behind remote
+	
+	// Overall status
+	has_changes bool   // True if there are uncommitted local changes
+	error       string // Error message if any status update fails
 }
 ```
 

@@ -1,324 +1,221 @@
+// lib/develop/gittools/repository.v
 module gittools
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.core as osal
 import os
 
-// GitRepo holds information about a single Git repository.
-@[heap]
-pub struct GitRepo {
-pub mut:
-	gs            &GitStructure @[skip; str: skip] // Reference to the parent GitStructure
-	provider      string              // e.g., github.com, shortened to 'github'
-	account       string              // Git account name
-	name          string              // Repository name
-	status_remote GitRepoStatusRemote // Remote repository status
-	status_local  GitRepoStatusLocal  // Local repository status
-	status_wanted GitRepoStatusWanted // what is the status we want?
-	config        GitRepoConfig       // Repository-specific configuration
-	last_load     int                 // Epoch timestamp of the last load from reality
-	deploysshkey  string              // to use with git
-	has_changes   bool
-}
-
-// this is the status we want, we need to work towards off
-pub struct GitRepoStatusWanted {
-pub mut:
-	branch   string
-	tag      string
-	url      string // Remote repository URL, is basically the one we want	
-	readonly bool   // if read only then we cannot push or commit, all changes will be reset when doing pull
-}
-
-// GitRepoStatusRemote holds remote status information for a repository.
-pub struct GitRepoStatusRemote {
-pub mut:
-	ref_default string            // is the default branch hash
-	branches    map[string]string // Branch name -> commit hash
-	tags        map[string]string // Tag name -> commit hash
-	error       string            // Error message if remote status update fails
-}
-
-// GitRepoStatusLocal holds local status information for a repository.
-pub struct GitRepoStatusLocal {
-pub mut:
-	branches map[string]string // Branch name -> commit hash
-	branch   string            // the current branch
-	tag      string            // If the local branch is not set, the tag may be set
-	error    string            // Error message if local status update fails
-}
-
-// GitRepoConfig holds repository-specific configuration options.
-pub struct GitRepoConfig {
-pub mut:
-	remote_check_period int = 3600 * 24 * 7 // Seconds to wait between remote checks (0 = check every time), default 7 days
-}
-
-// just some initialization mechanism
-pub fn (mut gitstructure GitStructure) repo_new_from_gitlocation(git_location GitLocation) !&GitRepo {
-	mut repo := GitRepo{
-		provider:      git_location.provider
-		name:          git_location.name
-		account:       git_location.account
-		gs:            &gitstructure
-		status_remote: GitRepoStatusRemote{}
-		status_local:  GitRepoStatusLocal{}
-		status_wanted: GitRepoStatusWanted{}
-	}
-	gitstructure.repos[repo.cache_key()] = &repo
-
-	return &repo
-}
-
-//////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////
-
-// Commit the staged changes with the provided commit message.
+// commit stages all changes and commits them with the provided message.
 pub fn (mut repo GitRepo) commit(msg string) ! {
 	repo.status_update()!
 	if !repo.need_commit()! {
-		console.print_debug('No changes to commit.')
+		console.print_debug('No changes to commit for ${repo.path()}.')
 		return
 	}
 
 	if msg == '' {
-		return error('Commit message is empty.')
+		return error('Commit message cannot be empty.')
 	}
-	repo_path := repo.path()
-	repo.exec('git add . -A') or {
-		return error('Cannot add to repo: ${repo_path}. Error: ${err}')
+	repo.exec('add . -A')!
+	repo.exec('commit -m "${msg}"') or {
+		// A common case for failure is when changes are only whitespace changes and git is configured to ignore them.
+		console.print_debug('Could not commit in ${repo.path()}. Maybe nothing to commit? Error: ${err}')
+		return
 	}
-	repo.exec('git commit -m "${msg}"') or {
-		return error('Cannot commit repo: ${repo_path}. Error: ${err}')
-	}
-	console.print_green('Changes committed successfully.')
-	repo.load()!
+	console.print_green("Committed changes in '${repo.path()}' with message: '${msg}'.")
+	repo.cache_last_load_clear()!
 }
 
-// Push local changes to the remote repository.
+// push local changes to the remote repository.
 pub fn (mut repo GitRepo) push() ! {
 	repo.status_update()!
-	if repo.need_push_or_pull()! {
-		url := repo.get_repo_url_for_clone()!
-		console.print_header('Pushing changes to ${url}')
-		// We may need to push the locally created branches
-		repo.exec('git push --set-upstream origin ${repo.status_local.branch}')!
-		console.print_green('Changes pushed successfully.')
-		repo.load()!
-	} else {
-		console.print_header('Everything is up to date.')
+	if !repo.need_push()! {
+		console.print_header('Nothing to push for ${repo.path()}. Already up-to-date.')
+		return
 	}
+
+	url := repo.get_repo_url_for_clone()!
+	console.print_header('Pushing changes to ${url}')
+	// This will push the current branch to its upstream counterpart.
+	// --set-upstream is useful for new branches.
+	repo.exec('push --set-upstream origin ${repo.status.branch}')!
+	console.print_green('Changes pushed successfully.')
+	repo.cache_last_load_clear()!
 }
 
 @[params]
-pub struct PullCheckoutArgs {
+pub struct PullArgs {
 pub mut:
 	submodules bool // if we want to pull for submodules
+	reset      bool // if true, will reset local changes before pulling
 }
 
-// Pull remote content into the repository.
-pub fn (mut repo GitRepo) pull(args_ PullCheckoutArgs) ! {
+// pull remote content into the repository.
+pub fn (mut repo GitRepo) pull(args PullArgs) ! {
 	repo.status_update()!
-	if repo.need_checkout() {
-		repo.checkout()!
+
+	if args.reset {
+		repo.reset()!
 	}
 
-	repo.exec('git pull') or { return error('Cannot pull repo: ${repo.path()}. Error: ${err}') }
+	if repo.need_commit()! {
+		return error('Cannot pull in ${repo.path()} due to uncommitted changes. Either commit them or use the reset:true option.')
+	}
 
-	if args_.submodules {
+	repo.exec('pull')!
+
+	if args.submodules {
 		repo.update_submodules()!
 	}
 
-	repo.load()!
-	console.print_green('Changes pulled successfully.')
-}
-
-// Checkout a branch in the repository.
-pub fn (mut repo GitRepo) checkout() ! {
-	repo.status_update()!
-	if repo.status_wanted.readonly {
-		repo.reset()!
-	}
-	if repo.need_commit()! {
-		return error('Cannot checkout branch due to uncommitted changes in ${repo.path()}.')
-	}
-	if repo.status_wanted.tag.len > 0 {
-		repo.exec('git checkout tags/${repo.status_wanted.tag}')!
-	}
-	if repo.status_wanted.branch.len > 0 {
-		repo.exec('git checkout ${repo.status_wanted.branch}')!
-	}
 	repo.cache_last_load_clear()!
+	console.print_green('Changes pulled successfully from ${repo.path()}.')
 }
 
-// Create a new branch in the repository.
+// branch_create creates a new branch.
 pub fn (mut repo GitRepo) branch_create(branchname string) ! {
-	repo.exec('git branch -c ${branchname}') or {
-		return error('Cannot Create branch: ${repo.path()} to ${branchname}\nError: ${err}')
-	}
+	repo.exec('branch ${branchname}')!
 	repo.cache_last_load_clear()!
-	console.print_green('Branch ${branchname} created successfully.')
+	console.print_green('Branch ${branchname} created successfully in ${repo.path()}.')
 }
 
+// branch_switch switches to a different branch.
 pub fn (mut repo GitRepo) branch_switch(branchname string) ! {
-	repo.exec('git switch ${branchname}') or {
-		return error('Cannot switch branch: ${repo.path()} to ${branchname}\nError: ${err}')
+	if repo.need_commit()! {
+		return error('Cannot switch branch in ${repo.path()} due to uncommitted changes.')
 	}
-	console.print_green('Branch ${branchname} switched successfully.')
-	repo.status_local.branch = branchname
-	repo.status_local.tag = ''
-	repo.pull()!
+	repo.exec('switch ${branchname}')!
+	console.print_green('Switched to branch ${branchname} in ${repo.path()}.')
+	repo.status.branch = branchname
+	repo.status.tag = ''
+	repo.cache_last_load_clear()!
 }
 
-// Create a new branch in the repository.
+// tag_create creates a new tag.
 pub fn (mut repo GitRepo) tag_create(tagname string) ! {
-	repo_path := repo.path()
-	repo.exec('git tag ${tagname}') or {
-		return error('Cannot create tag: ${repo_path}. Error: ${err}')
-	}
-	console.print_green('Tag ${tagname} created successfully.')
+	repo.exec('tag ${tagname}')!
+	console.print_green('Tag ${tagname} created successfully in ${repo.path()}.')
+	repo.cache_last_load_clear()!
 }
 
+// tag_switch checks out a specific tag.
 pub fn (mut repo GitRepo) tag_switch(tagname string) ! {
-	repo.exec('git checkout ${tagname}') or {
-		return error('Cannot switch to tag: ${tagname}. Error: ${err}')
+	if repo.need_commit()! {
+		return error('Cannot switch to tag in ${repo.path()} due to uncommitted changes.')
 	}
-	console.print_green('Tag ${tagname} activated.')
-	repo.status_local.branch = ''
-	repo.status_local.tag = tagname
-	repo.pull()!
+	repo.exec('checkout tags/${tagname}')!
+	console.print_green('Switched to tag ${tagname} in ${repo.path()}.')
+	repo.status.branch = ''
+	repo.status.tag = tagname
+	repo.cache_last_load_clear()!
 }
 
-// Create a new branch in the repository.
+// tag_exists checks if a tag exists in the repository.
 pub fn (mut repo GitRepo) tag_exists(tag string) !bool {
-	repo.exec('git show ${tag}') or { return false }
-	return true
+	repo.status_update()!
+	return tag in repo.status.tags
 }
 
-// Deletes the Git repository
+// delete removes the repository from the filesystem and cache.
 pub fn (mut repo GitRepo) delete() ! {
 	repo_path := repo.path()
 	key := repo.cache_key()
 	repo.cache_delete()!
 	osal.rm(repo_path)!
-	repo.gs.repos.delete(key) // Remove from GitStructure's repos map
+	repo.gs.repos.delete(key)
 }
 
-// Create GitLocation from the path within the Git repository
-pub fn (mut gs GitRepo) gitlocation_from_path(path string) !GitLocation {
+// gitlocation_from_path creates a GitLocation from a path inside this repository.
+pub fn (mut repo GitRepo) gitlocation_from_path(path string) !GitLocation {
 	if path.starts_with('/') || path.starts_with('~') {
 		return error('Path must be relative, cannot start with / or ~')
 	}
+	repo.status_update()!
 
-	mut git_path := gs.patho()!
+	mut git_path := repo.patho()!
 	repo_path := git_path.path
 	abs_path := os.abs_path(path)
 
-	// Check if path is inside git repo
 	if !abs_path.starts_with(repo_path) {
 		return error('Path ${path} is not inside the git repository at ${repo_path}')
 	}
 
-	// Get relative path in relation to root of gitrepo
-	rel_path := abs_path[repo_path.len + 1..] // +1 to skip the trailing slash
+	rel_path := abs_path[repo_path.len + 1..]
 	if !os.exists(abs_path) {
 		return error('Path does not exist inside the repository: ${abs_path}')
 	}
 
-	mut branch_or_tag := gs.status_wanted.branch
-	if gs.status_wanted.tag.len > 0 {
-		branch_or_tag = gs.status_wanted.tag
+	mut branch_or_tag := repo.status.branch
+	if repo.status.tag != '' {
+		branch_or_tag = repo.status.tag
 	}
 
 	return GitLocation{
-		provider:      gs.provider
-		account:       gs.account
-		name:          gs.name
+		provider:      repo.provider
+		account:       repo.account
+		name:          repo.name
 		branch_or_tag: branch_or_tag
-		path:          rel_path // relative path in relation to git repo
+		path:          rel_path
 	}
 }
 
-// Check if repo path exists and validate fields
+// init validates the repository's configuration and path.
 pub fn (mut repo GitRepo) init() ! {
-	path_string := repo.path()
-	if repo.provider == '' {
-		return error('Provider cannot be empty')
-	}
-	if repo.account == '' {
-		return error('Account cannot be empty')
-	}
-	if repo.name == '' {
-		return error('Name cannot be empty')
+	if repo.provider == '' || repo.account == '' || repo.name == '' {
+		return error('Repo identifier (provider, account, name) cannot be empty for ${repo.path()}')
 	}
 
-	if !os.exists(path_string) {
-		return error('Path does not exist: ${path_string}')
-	}
-
-	// Check if deploy key is set in repo config
-	if repo.deploysshkey.len > 0 {
-		git_config := repo.exec('git config --get core.sshCommand') or { '' }
-		if !git_config.contains(repo.deploysshkey) {
-			repo.set_sshkey(repo.deploysshkey)!
-		}
-	}
-
-	// Check that either tag or branch is set on wanted, but not both
-	if repo.status_wanted.tag.len > 0 && repo.status_wanted.branch.len > 0 {
-		return error('Cannot set both tag and branch in wanted status. Choose one or the other.')
+	if !os.exists(repo.path()) {
+		return error('Path does not exist: ${repo.path()}')
 	}
 }
 
-// Set the ssh key on the repo
+// set_sshkey configures the repository to use a specific SSH key for git operations.
 fn (mut repo GitRepo) set_sshkey(key_name string) ! {
-	// will use this dir to find and set key from
 	ssh_dir := os.join_path(os.home_dir(), '.ssh')
 	key := osal.get_ssh_key(key_name, directory: ssh_dir) or {
 		return error('SSH Key with name ${key_name} not found.')
 	}
-
-	private_key := key.private_key_path()!
-	repo.exec('git config core.sshcommand "ssh -i ~/.ssh/${private_key.path}"')!
+	private_key_path := key.private_key_path()!
+	repo.exec('config core.sshCommand "ssh -i ${private_key_path}"')!
 	repo.deploysshkey = key_name
 }
 
-// Removes all changes from the repo; be cautious
+// remove_changes hard resets the repository to HEAD and cleans untracked files.
 pub fn (mut repo GitRepo) remove_changes() ! {
 	repo.status_update()!
-	if repo.has_changes {
-		console.print_header('Removing changes in ${repo.path()}')
-		repo.exec('git reset HEAD --hard && git clean -xfd') or {
-			return error("can't remove changes on repo: ${repo.path()}.\n${err}")
-			// TODO: we can do this fall back later
-			// console.print_header('Could not remove changes; will re-clone ${repo.path()}')
-			// mut p := repo.patho()!
-			// p.delete()! // remove path, this will re-clone the full thing
-			// repo.load_from_url()!
-		}
-		repo.load()!
+	if repo.status.has_changes {
+		console.print_header('Removing all local changes in ${repo.path()}')
+		repo.exec('reset --hard HEAD && git clean -fdx')!
+		repo.cache_last_load_clear()!
 	}
 }
 
-// alias for remove changes
+// reset is an alias for remove_changes.
 pub fn (mut repo GitRepo) reset() ! {
-	return repo.remove_changes()
+	repo.remove_changes()!
 }
 
-// Update submodules
+// update_submodules initializes and updates all submodules.
 fn (mut repo GitRepo) update_submodules() ! {
-	repo.exec('git submodule update --init --recursive') or {
-		return error('Cannot update submodules for repo: ${repo.path()}. Error: ${err}')
-	}
+	repo.exec('submodule update --init --recursive')!
 }
 
+// exec executes a command within the repository's directory.
+// This is the designated wrapper for all git commands for this repo.
 fn (repo GitRepo) exec(cmd_ string) !string {
 	repo_path := repo.path()
-	cmd := 'cd ${repo_path} && ${cmd_}'
+
+	// if cmd_.starts_with("pull ") || cmd_.starts_with("push ") || cmd_.starts_with("fetch "){
+	// 	//means we need to be able to fetch from remote repo, check we have a key registered e.g. for gitea
+	// 	$dbg;
+
+	// }
+	cmd := 'cd ${repo_path} && git ${cmd_}'
 	// console.print_debug(cmd)
 	r := os.execute(cmd)
 	if r.exit_code != 0 {
-		return error('Repo failed to exec cmd: ${cmd}\n${r.output})')
+		return error('Repo command failed:\nCMD: ${cmd}\nOUT: ${r.output})')
 	}
-	return r.output
+	return r.output.trim_space()
 }

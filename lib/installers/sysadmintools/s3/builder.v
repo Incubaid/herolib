@@ -25,7 +25,7 @@ pub fn build_(args BuildArgs) ! {
 
 	osal.package_install('libssl-dev,pkg-config')!
 
-	mut gs := gittools.get()!
+	mut gs := gittools.new()!
 	mut repo := gs.get_repo(
 		url:   'https://github.com/leesmet/s3-cas'
 		reset: false

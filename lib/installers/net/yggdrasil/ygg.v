@@ -41,7 +41,7 @@ Peers:
 	if args.reset {
 		golang.install()!
 		console.print_header('install yggdrasil')
-		mut gs := gittools.get(coderoot: '${os.home_dir()}/_code')!
+		mut gs := gittools.new(coderoot: '${os.home_dir()}/_code')!
 		mut repo := gs.get_repo(
 			url:   'https://github.com/yggdrasil-network/yggdrasil-go.git'
 			reset: false

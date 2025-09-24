@@ -48,3 +48,10 @@ compile_summary.log
 .summary_lock
 .aider*
 *.dylib
+HTTP_REST_MCP_DEMO.md
+MCP_HTTP_REST_IMPLEMENTATION_PLAN.md
+.roo
+.kilocode
+.continue
+tmux_logger
+release

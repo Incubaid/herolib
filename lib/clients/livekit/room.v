@@ -1,50 +1,49 @@
 module livekit
 
-import net.http
 import json
+import net.http
 
-@[params]
-pub struct ListRoomsParams {
-	names []string
+pub struct Room {
+pub mut:
+	sid                        string
+	name                       string
+	empty_timeout              u32
+	max_participants           u32
+	creation_time              i64
+	turn_password              string
+	enabled_codecs             []string
+	metadata                   string
+	num_participants           u32
+	num_connected_participants u32
+	active_recording           bool
 }
 
-pub struct ListRoomsResponse {
-pub:
-	rooms []Room
+pub struct CreateRoomArgs {
+pub mut:
+	name             string
+	empty_timeout    u32
+	max_participants u32
+	metadata         string
 }
 
-pub fn (c Client) list_rooms(params ListRoomsParams) !ListRoomsResponse {
-	// Prepare request body
-	request := params
-	request_json := json.encode(request)
+pub struct UpdateRoomMetadataArgs {
+pub mut:
+	room_name string
+	metadata  string
+}
 
-	// create token and give grant to list rooms
-	mut token := c.new_access_token()!
-	token.grants.video.room_list = true
+pub fn (mut c LivekitClient) create_room(args CreateRoomArgs) !Room {
+	mut resp := c.post('twirp/livekit.RoomService/CreateRoom', args)!
+	room := json.decode[Room](resp.body)!
+	return room
+}
 
-	// make POST request
-	url := '${c.url}/twirp/livekit.RoomService/ListRooms'
-	// Configure HTTP request
-	mut headers := http.new_header_from_map({
-		http.CommonHeader.authorization: 'Bearer ${token.to_jwt()!}'
-		http.CommonHeader.content_type:  'application/json'
-	})
-
-	response := http.fetch(http.FetchConfig{
-		url:    url
-		method: .post
-		header: headers
-		data:   request_json
+pub fn (mut c LivekitClient) delete_room(room_name string) ! {
+	_ = c.post('twirp/livekit.RoomService/DeleteRoom', {
+		'room': room_name
 	})!
+}
 
-	if response.status_code != 200 {
-		return error('Failed to list rooms: ${response.status_code}')
-	}
-
-	// Parse response
-	rooms_response := json.decode(ListRoomsResponse, response.body) or {
-		return error('Failed to parse response: ${err}')
-	}
-
-	return rooms_response
+pub fn (mut c LivekitClient) update_room_metadata(args UpdateRoomMetadataArgs) ! {
+	_ = c.post('twirp/livekit.RoomService/UpdateRoomMetadata', args)!
 }

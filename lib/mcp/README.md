@@ -4,9 +4,54 @@ This module provides a V language implementation of the [Model Context Protocol 
 
 ## Overview
 
-The MCP module serves as a core library for building MCP-compliant servers in V. Its main purpose is to provide all the boilerplate MCP functionality, so implementers only need to define and register their specific handlers. The module handles the Standard Input/Output (stdio) transport as described in the [MCP transport specification](https://modelcontextprotocol.io/docs/concepts/transports), enabling standardized communication between AI models and their context providers.
+The MCP module serves as a core library for building MCP-compliant servers in V. Its main purpose is to provide all the boilerplate MCP functionality, so implementers only need to define and register their specific handlers. The module supports **both local (STDIO) and remote (HTTP/REST) transports**, enabling standardized communication between AI models and their context providers.
 
 The module implements all the required MCP protocol methods (resources/list, tools/list, prompts/list, etc.) and manages the underlying JSON-RPC communication, allowing developers to focus solely on implementing their specific tools and handlers. The module itself is not a standalone server but rather a framework that can be used to build different MCP server implementations. The subdirectories within this module (such as `baobab` and `developer`) contain specific implementations of MCP servers that utilize this core framework.
+
+## 🚀 HTTP/REST Transport Support
+
+**NEW**: MCP servers can now run in HTTP mode for remote access:
+
+```bash
+# Local mode (traditional STDIO)
+./your_mcp_server.vsh
+
+# Remote mode (HTTP/REST)
+./your_mcp_server.vsh --http --port 8080
+```
+
+### Key Benefits
+
+- 🔌 **VS Code Integration**: Connect coding agents via HTTP URL
+- 🌐 **Remote Deployment**: Run on servers, access from anywhere
+- 📱 **Web Integration**: Call from web applications via REST API
+- ⚖️ **Scalability**: Multiple instances, load balancing support
+
+### Available Endpoints
+
+- `POST /jsonrpc` - JSON-RPC over HTTP
+- `GET /api/tools` - List available tools (REST)
+- `POST /api/tools/:name/call` - Call tools (REST)
+- `GET /health` - Health check
+
+### Example Usage
+
+```bash
+# Start HTTP server
+./examples/mcp/http_demo/server.vsh --http --port 8080
+
+# Test via REST API
+curl -X POST http://localhost:8080/api/tools/calculator/call \
+  -H "Content-Type: application/json" \
+  -d '{"operation":"add","num1":10,"num2":5}'
+
+# Test via JSON-RPC
+curl -X POST http://localhost:8080/jsonrpc \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+```
+
+See `examples/mcp/http_demo/` for a complete working example.
 
 ## to test
 

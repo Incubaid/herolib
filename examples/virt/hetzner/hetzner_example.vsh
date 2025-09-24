@@ -1,40 +1,68 @@
-#!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
+#!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.virt.hetzner
+import freeflowuniverse.herolib.virt.hetznermanager
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.base
 import freeflowuniverse.herolib.builder
 import time
 import os
+import freeflowuniverse.herolib.core.playcmds
 
-console.print_header('Hetzner login.')
-
-// USE IF YOU WANT TO CONFIGURE THE HETZNER, ONLY DO THIS ONCE
-// hetzner.configure("test")!
-
-mut cl := hetzner.get('test')!
-
-for i in 0 .. 5 {
-	println('test cache, first time slow then fast')
-	cl.servers_list()!
+user := os.environ()['HETZNER_USER'] or {
+	println('HETZNER_USER not set')
+	exit(1)
+}
+passwd := os.environ()['HETZNER_PASSWORD'] or {
+	println('HETZNER_PASSWORD not set')
+	exit(1)
 }
 
-println(cl.servers_list()!)
+hs := '
+!!hetznermanager.configure
+	user:"${user}"
+	whitelist:"2111181, 2392178, 2545053, 2542166, 2550508, 2550378,2550253"
+	password:"${passwd}"
+	sshkey:"kristof"
+'
 
-mut serverinfo := cl.server_info_get(name: 'kristof2')!
+println(hs)
 
-println(serverinfo)
+playcmds.run(heroscript: hs)!
+
+console.print_header('Hetzner Test.')
+
+mut cl := hetznermanager.get()!
+// println(cl)
+
+// for i in 0 .. 5 {
+// 	println('test cache, first time slow then fast')
+// }
+
+// println(cl.servers_list()!)
+
+// mut serverinfo := cl.server_info_get(name: 'kristof2')!
+
+// println(serverinfo)
 
 // cl.server_reset(name:"kristof2",wait:true)!
 
-// cl.server_rescue(name:"kristof2",wait:true)!
-
-console.print_header('SSH login')
-mut b := builder.new()!
-mut n := b.node_new(ipaddr: serverinfo.server_ip)!
-
-// n.hero_install()!
-// n.hero_compile_debug()!
+// don't forget to specify the keyname needed
+// cl.server_rescue(name:"kristof2",wait:true, hero_install:true,sshkey_name:"kristof")!
 
 // mut ks:=cl.keys_get()!
 // println(ks)
+
+// console.print_header('SSH login')
+// mut b := builder.new()!
+// mut n := b.node_new(ipaddr: serverinfo.server_ip)!
+
+// this will put hero in debug mode on the system
+// n.hero_install(compile:true)!
+
+// n.shell("")!
+
+// cl.ubuntu_install(name: 'kristof2', wait: true, hero_install: true)!
+// cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true)!
+// cl.ubuntu_install(id:2550378, name: 'kristof21', wait: true, hero_install: true)!
+// cl.ubuntu_install(id:2550508, name: 'kristof22', wait: true, hero_install: true)!
+cl.ubuntu_install(id: 2550253, name: 'kristof23', wait: true, hero_install: true)!

@@ -22,7 +22,7 @@ if repos.len() > 0 {
     
     if repo_array.len() > 0 {
         let repo = repo_array[0];
-        print("\nRepository path: " + get_repo_path(repo));
+        print("\nRepository path: " + path(repo));
         
         // Check if the repository has changes
         let has_changes = has_changes(repo);

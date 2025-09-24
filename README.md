@@ -14,21 +14,17 @@ Herolib is an opinionated library primarily used by ThreeFold to automate cloud 
 The Hero tool can be installed with a single command:
 
 ```bash
-curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh > /tmp/install_hero.sh
-bash /tmp/install_hero.sh
-#do not forget to do the following this makes sure vtest and vrun exists
-bash install_herolib.vsh
+curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh | bash
 ```
 
 Hero will be installed in:
 - `/usr/local/bin` for Linux
 - `~/hero/bin` for macOS
 
-After installation on macOS, you may need to:
+After installation on macOS, you may need to do source see below or restart your terminal to ensure the `hero` command is available:
+
 ```bash
 source ~/.zprofile
-# Or copy to system bin directory
-cp ~/hero/bin/hero /usr/local/bin
 ```
 
 The Hero tool can be used to work with git, build documentation, interact with Hero AI, and more.
@@ -40,7 +36,13 @@ For development purposes, use the automated installation script:
 ```bash
 curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
+
+#do not forget to do the following this makes sure vtest and vrun exists
+cd ~/code/github/freeflowuniverse/herolib
+v install_herolib.vsh
+
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
+
 ```
 
 #### Installation Options
@@ -169,3 +171,8 @@ To generate documentation locally:
 cd ~/code/github/freeflowuniverse/herolib
 bash doc.sh
 ```
+
+
+<!-- Security scan triggered at 2025-09-02 01:58:41 -->
+
+<!-- Security scan triggered at 2025-09-09 05:33:18 -->

@@ -15,13 +15,12 @@ pub mut:
 pub fn decoder_new(data []u8) Decoder {
 	mut e := Decoder{}
 	e.data = data
-	// e.data = data.reverse()
 	return e
 }
 
 pub fn (mut d Decoder) get_string() !string {
 	n := d.get_u16()!
-	// THIS IS ALWAYS TRYE BECAUSE u16 is max 64KB
+	// THIS IS ALWAYS TRUE BECAUSE u16 is max 64KB
 	// if n > 64 * 1024 { // 64KB limit
 	// 	return error('string length ${n} exceeds 64KB limit')
 	// }

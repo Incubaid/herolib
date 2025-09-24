@@ -1,8 +1,0 @@
-
-!!hero_code.generate_client
-    name:'zinit_rpc'
-    classname:'ZinitRPC'
-    singleton:1
-    default:0
-	hasconfig:1
-    reset:0

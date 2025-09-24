@@ -32,7 +32,7 @@ pub fn (mut gs GitStructure) gitlocation_from_path(path string) !GitLocation {
 	provider := parts[0]
 	account := parts[1]
 	name := parts[2]
-	mut repo_path := if parts.len > 3 { parts[3..].join('/') } else { '' }
+	mut repo_path := if parts.len > 3 { parts[3..].join('/') } else { '' } // this is for relative path in repo
 
 	return GitLocation{
 		provider: provider

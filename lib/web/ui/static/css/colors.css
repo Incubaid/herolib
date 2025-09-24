@@ -1,0 +1,124 @@
+/* CSS Custom Properties for Theme Colors */
+
+/* Light Theme (Default) */
+:root {
+  /* Background Colors */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #e9ecef;
+  --bg-dark: #343a40;
+  
+  /* Text Colors */
+  --text-primary: #212529;
+  --text-secondary: #6c757d;
+  --text-muted: #6c757d;
+  --text-light: #ffffff;
+  --text-white-50: rgba(255, 255, 255, 0.5);
+  
+  /* Border Colors */
+  --border-primary: #e0e0e0;
+  --border-secondary: #dee2e6;
+  
+  /* Header Colors */
+  --header-bg: #343a40;
+  --header-text: #ffffff;
+  --header-text-muted: rgba(255, 255, 255, 0.5);
+  
+  /* Sidebar Colors */
+  --sidebar-bg: #f8f9fa;
+  --sidebar-border: #e0e0e0;
+  --sidebar-section-text: #6c757d;
+  
+  /* Menu Colors */
+  --menu-item-bg: transparent;
+  --menu-item-text: #212529;
+  --menu-item-hover-bg: #e9ecef;
+  --menu-item-hover-text: #212529;
+  --menu-toggle-text: #212529;
+  --menu-chevron-opacity: 0.6;
+  
+  /* Card Colors */
+  --card-bg: #ffffff;
+  --card-border: #dee2e6;
+  --card-shadow: rgba(0, 0, 0, 0.125);
+  
+  /* Interactive Elements */
+  --link-color: #0d6efd;
+  --link-hover-color: #0a58ca;
+  
+  /* Status Colors */
+  --success-color: #198754;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #0dcaf0;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  /* Background Colors */
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #2d2d2d;
+  --bg-tertiary: #404040;
+  --bg-dark: #000000;
+  
+  /* Text Colors */
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --text-muted: #888888;
+  --text-light: #ffffff;
+  --text-white-50: rgba(255, 255, 255, 0.5);
+  
+  /* Border Colors */
+  --border-primary: #404040;
+  --border-secondary: #555555;
+  
+  /* Header Colors */
+  --header-bg: #000000;
+  --header-text: #ffffff;
+  --header-text-muted: rgba(255, 255, 255, 0.5);
+  
+  /* Sidebar Colors */
+  --sidebar-bg: #2d2d2d;
+  --sidebar-border: #404040;
+  --sidebar-section-text: #b0b0b0;
+  
+  /* Menu Colors */
+  --menu-item-bg: transparent;
+  --menu-item-text: #ffffff;
+  --menu-item-hover-bg: #404040;
+  --menu-item-hover-text: #ffffff;
+  --menu-toggle-text: #ffffff;
+  --menu-chevron-opacity: 0.6;
+  
+  /* Card Colors */
+  --card-bg: #2d2d2d;
+  --card-border: #404040;
+  --card-shadow: rgba(0, 0, 0, 0.3);
+  
+  /* Interactive Elements */
+  --link-color: #66b3ff;
+  --link-hover-color: #4da6ff;
+  
+  /* Status Colors */
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --danger-color: #dc3545;
+  --info-color: #17a2b8;
+}
+
+/* Theme transition for smooth switching */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Utility classes for theme-aware styling */
+.bg-theme-primary { background-color: var(--bg-primary); }
+.bg-theme-secondary { background-color: var(--bg-secondary); }
+.bg-theme-tertiary { background-color: var(--bg-tertiary); }
+
+.text-theme-primary { color: var(--text-primary); }
+.text-theme-secondary { color: var(--text-secondary); }
+.text-theme-muted { color: var(--text-muted); }
+
+.border-theme-primary { border-color: var(--border-primary); }
+.border-theme-secondary { border-color: var(--border-secondary); }

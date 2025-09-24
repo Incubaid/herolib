@@ -6,7 +6,7 @@ see https://jina.ai/
 
 To get started
 
-```vlang
+```v
 
 
 import freeflowuniverse.herolib.clients. jina

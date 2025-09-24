@@ -1,0 +1,114 @@
+#!/usr/bin/env hero
+
+// Enhanced Declarative Tmux Test with Redis State Tracking
+// This demonstrates the new intelligent command management features
+
+// Ensure a test session exists
+!!tmux.session_ensure
+    name:"enhanced_test"
+
+// Ensure a 4-pane window exists
+!!tmux.window_ensure
+    name:"enhanced_test|demo"
+    cat:"4pane"
+
+// Configure panes with intelligent state management
+// The system will now:
+// 1. Check if commands have changed using MD5 hashing
+// 2. Verify if previous commands are still running
+// 3. Kill and restart only when necessary
+// 4. Ensure bash is the parent process
+// 5. Reset panes when needed
+// 6. Track all state in Redis
+
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|1"
+    label:"web_server"
+    cmd:"echo \"Starting web server...\" && python3 -m http.server 8000"
+    log:true
+    logpath:"/tmp/enhanced_logs"
+    logreset:true
+
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|2"
+    label:"monitor"
+    cmd:"echo \"Starting system monitor...\" && htop"
+    log:true
+    logpath:"/tmp/enhanced_logs"
+
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|3"
+    label:"logs"
+    cmd:"echo \"Monitoring logs...\" && tail -f /var/log/system.log"
+    log:true
+    logpath:"/tmp/enhanced_logs"
+
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|4"
+    label:"development"
+    cmd:"
+        echo \"Setting up development environment...\"
+        mkdir -p /tmp/dev_workspace
+        cd /tmp/dev_workspace
+        echo \"Development environment ready!\"
+        echo \"Current directory:\" && pwd
+        echo \"Available commands: ls, vim, git, etc.\"
+    "
+    log:true
+    logpath:"/tmp/enhanced_logs"
+
+// Test the intelligent state management by running the same commands again
+// The system should detect that commands haven't changed and skip re-execution
+// for commands that are still running
+
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|1"
+    label:"web_server"
+    cmd:"echo \"Starting web server...\" && python3 -m http.server 8000"
+    log:true
+    logpath:"/tmp/enhanced_logs"
+
+// Test command change detection by modifying a command slightly
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|2"
+    label:"monitor"
+    cmd:"echo \"Starting UPDATED system monitor...\" && htop"
+    log:true
+    logpath:"/tmp/enhanced_logs"
+
+// This should kill the previous htop and start a new one because the command changed
+
+// Test with a completely different command
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|3"
+    label:"network"
+    cmd:"echo \"Switching to network monitoring...\" && netstat -tuln"
+    log:true
+    logpath:"/tmp/enhanced_logs"
+
+// This should kill the tail command and start netstat
+
+// Test multi-line command with state tracking
+!!tmux.pane_ensure
+    name:"enhanced_test|demo|4"
+    label:"advanced_dev"
+    cmd:"
+        echo \"Advanced development setup...\"
+        cd /tmp/dev_workspace
+        echo \"Creating project structure...\"
+        mkdir -p src tests docs
+        echo \"Project structure created:\"
+        ls -la
+        echo \"Ready for development!\"
+    "
+    log:true
+    logpath:"/tmp/enhanced_logs"
+
+// The system will:
+// - Compare MD5 hash of this multi-line command with the previous one
+// - Detect that it's different
+// - Kill the previous command
+// - Execute this new command
+// - Store the new state in Redis
+// - Ensure bash is the parent process
+// - Enable logging with the tmux_logger binary

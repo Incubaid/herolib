@@ -2,7 +2,7 @@ module meilisearch_installer
 
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 import freeflowuniverse.herolib.core.httpconnection
 import freeflowuniverse.herolib.core.texttools
@@ -22,14 +22,14 @@ fn generate_master_key(length int) !string {
 	return key.string()
 }
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
-	mut res := []zinit.ZProcessNewArgs{}
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
+	mut res := []startupmanager.ZProcessNewArgs{}
 	mut installer := get()!
 	mut env := 'development'
 	if installer.production {
 		env = 'production'
 	}
-	res << zinit.ZProcessNewArgs{
+	res << startupmanager.ZProcessNewArgs{
 		name:        'meilisearch'
 		cmd:         'meilisearch --no-analytics --http-addr ${installer.host}:${installer.port} --env ${env} --db-path ${installer.path} --master-key ${installer.masterkey}'
 		startuptype: .zinit

@@ -1,0 +1,32 @@
+{
+  "openrpc": "1.2.6",
+  "info": {
+    "title": "Comment Service",
+    "description": "A simple service for managing comments.",
+    "version": "1.0.0"
+  },
+  "methods": [
+    {
+      "name": "add_comment",
+      "summary": "Add a new comment",
+      "params": [
+        {
+          "name": "text",
+          "description": "The content of the comment.",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "result": {
+        "name": "comment_id",
+        "description": "The ID of the newly created comment.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    }
+  ],
+  "components": {}
+}

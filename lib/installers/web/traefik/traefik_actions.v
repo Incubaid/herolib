@@ -4,14 +4,14 @@ import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 import os
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut installer := get()!
-	mut res := []zinit.ZProcessNewArgs{}
-	res << zinit.ZProcessNewArgs{
+	mut res := []startupmanager.ZProcessNewArgs{}
+	res << startupmanager.ZProcessNewArgs{
 		name: 'traefik'
 		cmd:  'traefik'
 	}

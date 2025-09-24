@@ -1,6 +1,6 @@
 module core
 
-// import freeflowuniverse.herolib.core.texttools
+import freeflowuniverse.herolib.core.texttools
 // import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.ui.console
 import json
@@ -480,4 +480,62 @@ pub fn exec_string(cmd Command) !string {
 	job.start = time.now()
 	job.cmd.scriptpath = cmd_to_script_path(job.cmd)!
 	return job.cmd.scriptpath
+}
+
+@[params]
+pub struct CommandFast {
+pub mut:
+	cmd                string
+	ignore_error       bool              // means if error will just exit and not raise, there will be no error reporting
+	work_folder        string            // location where cmd will be executed
+	environment        map[string]string // env variables
+	ignore_error_codes []int
+	debug              bool // if debug will put +ex in the script which is being executed and will make sure script stays
+	includeprofile     bool
+	notempty           bool
+}
+
+// execute something fast, make sure it returns an error if the result is empty
+// source the
+pub fn exec_fast(cmd_ CommandFast) !string {
+	mut cmd_str := texttools.dedent(cmd_.cmd)
+
+	mut toexecute := []string{}
+
+	if cmd_.debug {
+		// Add +ex for debug mode if it's a bash script
+		// This is a simplification, ideally we'd check if it's a bash script
+		// For now, assume it's a bash script if debug is true and prepend
+		toexecute << 'set -ex'
+	}
+
+	if cmd_.includeprofile {
+		toexecute << profile_path_source_and()!
+	}
+
+	for key, val in cmd_.environment {
+		toexecute << 'export ${key}=${val}'
+	}
+
+	if cmd_.work_folder.len > 0 {
+		toexecute << 'cd ${cmd_.work_folder}'
+	}
+
+	toexecute << cmd_str
+
+	mut cmd_str2 := toexecute.join('\n')
+
+	result := os.execute(cmd_str2)
+
+	if result.exit_code != 0 {
+		if !(cmd_.ignore_error || result.exit_code in cmd_.ignore_error_codes) {
+			return error("couldn't execute '${cmd_.cmd}', result code: ${result.exit_code}\n${result.output}")
+		}
+	}
+
+	if cmd_.notempty && result.output.len == 0 {
+		return error("couldn't execute '${cmd_.cmd}', the result is empty but notempty is true")
+	}
+
+	return result.output
 }

@@ -2,15 +2,15 @@ module actrunner
 
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.core
 import os
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
-	mut res := []zinit.ZProcessNewArgs{}
-	res << zinit.ZProcessNewArgs{
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
+	mut res := []startupmanager.ZProcessNewArgs{}
+	res << startupmanager.ZProcessNewArgs{
 		name:        'actrunner'
 		cmd:         'actrunner daemon'
 		startuptype: .zinit

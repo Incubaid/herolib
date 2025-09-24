@@ -8,7 +8,7 @@ pub fn play(mut plbook PlayBook) ! {
 	// mut sheet_name := ''
 	// first make sure we find a run action to know the name
 
-	mut my_actions := plbook.actions_find(actor: 'tfgridsimulation_farming')!
+	mut my_actions := plbook.find(filter: 'tfgridsimulation_farming.*')!
 
 	if my_actions.len == 0 {
 		return
@@ -37,7 +37,7 @@ pub fn play(mut plbook PlayBook) ! {
 }
 
 pub fn (mut s Simulator) play(mut plbook PlayBook) ! {
-	mut actions2 := plbook.actions_find(actor: 'tfgridsimulation_farming')!
+	mut actions2 := plbook.find(filter: 'tfgridsimulation_farming.*')!
 
 	if actions2.len == 0 {
 		// means nothing to do return quickly
@@ -93,7 +93,7 @@ pub fn (mut s Simulator) play(mut plbook PlayBook) ! {
 	}
 
 	// NOW ADD THE REGIONAL INTERNETS
-	mut actions3 := plbook.actions_find(actor: 'tfgridsimulation_farming')!
+	mut actions3 := plbook.find(filter: 'tfgridsimulation_farming.*')!
 	for action_ri in actions3 {
 		if action_ri.name == 'regional_internet_add' {
 			mut iname := action_ri.params.get('name')!
@@ -110,7 +110,7 @@ pub fn (mut s Simulator) play(mut plbook PlayBook) ! {
 	}
 
 	// now do the simulation, run it
-	mut actions4 := plbook.actions_find(actor: 'tfgridsimulation_farming')!
+	mut actions4 := plbook.find(filter: 'tfgridsimulation_farming.*')!
 	for action_ri in actions4 {
 		if action_ri.name == 'regional_internet_add' {
 			mut iname := action_ri.params.get('name')!

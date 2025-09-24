@@ -2,7 +2,7 @@
 
 this is how we want example scripts to be, see the first line
 
-```vlang
+```v
 #!/usr/bin/env -S v -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import freeflowuniverse.herolib...

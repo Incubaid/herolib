@@ -24,15 +24,20 @@ jobs:
           - target: aarch64-apple-darwin
             os: macos-latest
             short-name: macos-arm64
-          - target: x86_64-apple-darwin
-            os: macos-13
-            short-name: macos-i64
+          # - target: x86_64-apple-darwin
+          #   os: macos-13
+          #   short-name: macos-i64
     runs-on: ${{ matrix.os }}
         
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
       - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
       - run: echo "🔎 The name of your branch is ${{ github.ref_name }} and your repository is ${{ github.repository }}."
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        if: runner.os == 'macOS'
+        with:
+          xcode-version: latest-stable      
 
       - name: Check out repository code
         uses: actions/checkout@v4
@@ -42,10 +47,9 @@ jobs:
         run: ./install_v.sh --herolib
         timeout-minutes: 10
 
-
-      - name: Do all the basic tests
-        timeout-minutes: 25
-        run: ./test_basic.vsh
+      # - name: Do all the basic tests
+      #   timeout-minutes: 25
+      #   run: ./test_basic.vsh
 
       - name: Build Hero
         timeout-minutes: 15

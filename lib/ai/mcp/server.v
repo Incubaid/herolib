@@ -41,15 +41,16 @@ pub fn (mut s Server) start() ! {
 			continue
 		}
 
-		// Send the response
-		s.send(response)
+		// Send the response only if it's not empty (notifications return empty responses)
+		if response.len > 0 {
+			s.send(response)
+		}
 	}
 }
 
 // send sends a response to the client
 pub fn (mut s Server) send(response string) {
 	// Send the response
-	log.error('Sending response: ${response}')
 	println(response)
 	flush_stdout()
 }

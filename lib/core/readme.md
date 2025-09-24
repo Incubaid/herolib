@@ -27,7 +27,7 @@ The Core module provides fundamental system-level functionality for the Hero fra
 - **httpconnection**: HTTP client functionality
 - **logger**: Logging infrastructure
 - **pathlib**: Path manipulation and handling
-- **playbook**: Execution playbooks
+- **playbook**: Execution plbooks
 - **redisclient**: Redis database client
 - **rootpath**: Root path management
 - **smartid**: Identifier management

@@ -1,7 +1,7 @@
 module bizmodel
 
 import arrays
-import freeflowuniverse.herolib.core.playbook { Action, PlayBook }
+import freeflowuniverse.herolib.core.playbook
 import freeflowuniverse.herolib.ui.console
 
 // revenue_total calculates and aggregates the total revenue and cost of goods sold (COGS) for the business model
@@ -22,5 +22,4 @@ fn (mut sim BizModel) pl_total() ! {
 	// println(pl_total)
 
 	// if true{panic("sdsd")}
-
 }

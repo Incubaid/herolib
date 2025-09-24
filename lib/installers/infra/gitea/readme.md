@@ -1,29 +1,19 @@
-# gitea
+# Installer - Gitea Module
 
+This module provides heroscript actions for installing and managing Gitea.
 
+## Actions
 
-To get started
+### `gitea.install`
 
-```vlang
+Installs the Gitea Git service.
 
-import freeflowuniverse.herolib.installers.infra.gitea as gitea_installer
+**Parameters:**
 
+-   `reset` (bool): If true, force a reinstall even if Gitea is already detected. Default: `false`.
 
-//if you want to configure using heroscript
-gitea_installer.play(heroscript:'
-    !!gitea.configure name:test
-        passwd:'something'
-        domain: 'docs.info.com'
-    ')!
+**Example:**
 
-mut installer:= gitea_installer.get(name:'test')!
-installer.start()!
-
-
-```
-
-
-this will look for a configured mail & postgresql client both on instance name: "default", change in heroscript if needed
-
-- postgresql_client_name = "default"
-- mail_client_name = "default"
+```heroscript
+!!gitea.install
+reset: true

@@ -1,0 +1,1310 @@
+{
+    "openrpc": "1.0.0",
+    "info": {
+        "title": "Hero Filesystem API",
+        "version": "1.0.0",
+        "description": "API for managing filesystems, directories, files, blobs and symlinks in HeroFS"
+    },
+    "methods": [
+        {
+            "name": "fs_get",
+            "summary": "Get a filesystem by ID",
+            "description": "Retrieve a filesystem by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of filesystem to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "filesystem",
+                "description": "Filesystem object",
+                "schema": {
+                    "$ref": "#/components/schemas/Filesystem"
+                }
+            }
+        },
+        {
+            "name": "fs_set",
+            "summary": "Create or update a filesystem",
+            "description": "Create a new filesystem or update an existing one",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the filesystem",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the filesystem",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "quota_bytes",
+                    "description": "Quota in bytes for the filesystem",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "root_dir_id",
+                    "description": "ID of the root directory",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated filesystem",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "fs_delete",
+            "summary": "Delete a filesystem by ID",
+            "description": "Delete a filesystem by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of filesystem to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_list",
+            "summary": "List all filesystems",
+            "description": "List all filesystems in the system",
+            "params": [],
+            "result": {
+                "name": "filesystems",
+                "description": "List of all filesystem objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Filesystem"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_dir_get",
+            "summary": "Get a directory by ID",
+            "description": "Retrieve a directory by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of directory to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "directory",
+                "description": "Directory object",
+                "schema": {
+                    "$ref": "#/components/schemas/Directory"
+                }
+            }
+        },
+        {
+            "name": "fs_dir_set",
+            "summary": "Create or update a directory",
+            "description": "Create a new directory or update an existing one",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the directory",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "fs_id",
+                    "description": "ID of the filesystem",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "parent_id",
+                    "description": "ID of the parent directory (0 for root)",
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the directory",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "metadata",
+                    "description": "Metadata key-value pairs",
+                    "schema": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated directory",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "fs_dir_delete",
+            "summary": "Delete a directory by ID",
+            "description": "Delete a directory by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of directory to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_dir_list",
+            "summary": "List all directories",
+            "description": "List all directories in the system",
+            "params": [],
+            "result": {
+                "name": "directories",
+                "description": "List of all directory objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Directory"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_dir_move",
+            "summary": "Move a directory to a new parent",
+            "description": "Move a directory to a different parent directory",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of directory to move",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "parent_id",
+                    "description": "ID of new parent directory",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_dir_rename",
+            "summary": "Rename a directory",
+            "description": "Change the name of a directory",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of directory to rename",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "name",
+                    "description": "New name for the directory",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_dir_list_by_filesystem",
+            "summary": "List directories by filesystem",
+            "description": "List all directories in a specific filesystem",
+            "params": [
+                {
+                    "name": "fs_id",
+                    "description": "ID of filesystem to list directories for",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "directories",
+                "description": "List of directory objects in the filesystem",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Directory"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_dir_has_children",
+            "summary": "Check if directory has children",
+            "description": "Determine if a directory has any child directories or files",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of directory to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "has_children",
+                "description": "Whether the directory has children",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_file_get",
+            "summary": "Get a file by ID",
+            "description": "Retrieve a file by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of file to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "file",
+                "description": "File object",
+                "schema": {
+                    "$ref": "#/components/schemas/File"
+                }
+            }
+        },
+        {
+            "name": "fs_file_set",
+            "summary": "Create or update a file",
+            "description": "Create a new file or update an existing one",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the file",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "fs_id",
+                    "description": "ID of the filesystem",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "directories",
+                    "description": "IDs of directories containing this file",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "blobs",
+                    "description": "IDs of blobs that make up this file",
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "mime_type",
+                    "description": "MIME type of the file",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "metadata",
+                    "description": "Metadata key-value pairs",
+                    "schema": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated file",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "fs_file_delete",
+            "summary": "Delete a file by ID",
+            "description": "Delete a file by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of file to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_file_list",
+            "summary": "List all files",
+            "description": "List all files in the system",
+            "params": [],
+            "result": {
+                "name": "files",
+                "description": "List of all file objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/File"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_file_move",
+            "summary": "Move a file to new directories",
+            "description": "Move a file to different directories",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of file to move",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "directories",
+                    "description": "IDs of new directories to contain the file",
+                    "required": true,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_file_rename",
+            "summary": "Rename a file",
+            "description": "Change the name of a file",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of file to rename",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "name",
+                    "description": "New name for the file",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_file_update_metadata",
+            "summary": "Update file metadata",
+            "description": "Add or update a metadata key-value pair for a file",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of file to update",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "key",
+                    "description": "Metadata key",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "value",
+                    "description": "Metadata value",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_file_update_accessed",
+            "summary": "Update file access time",
+            "description": "Update the last accessed timestamp of a file",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of file to update",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_file_append_blob",
+            "summary": "Append a blob to a file",
+            "description": "Add a blob to a file's content",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of file to update",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "blob_id",
+                    "description": "ID of blob to append",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_file_list_by_directory",
+            "summary": "List files by directory",
+            "description": "List all files in a specific directory",
+            "params": [
+                {
+                    "name": "directory_id",
+                    "description": "ID of directory to list files for",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "files",
+                "description": "List of file objects in the directory",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/File"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_file_list_by_filesystem",
+            "summary": "List files by filesystem",
+            "description": "List all files in a specific filesystem",
+            "params": [
+                {
+                    "name": "fs_id",
+                    "description": "ID of filesystem to list files for",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "files",
+                "description": "List of file objects in the filesystem",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/File"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_file_list_by_mime_type",
+            "summary": "List files by MIME type",
+            "description": "List all files with a specific MIME type",
+            "params": [
+                {
+                    "name": "mime_type",
+                    "description": "MIME type to filter by",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "files",
+                "description": "List of file objects with the specified MIME type",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/File"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_blob_get",
+            "summary": "Get a blob by ID or hash",
+            "description": "Retrieve a blob by its ID or hash",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of blob to fetch",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "hash",
+                    "description": "Hash of blob to fetch",
+                    "required": false,
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "blob",
+                "description": "Blob object with base64-encoded data",
+                "schema": {
+                    "$ref": "#/components/schemas/Blob"
+                }
+            }
+        },
+        {
+            "name": "fs_blob_set",
+            "summary": "Create or update a blob",
+            "description": "Create a new blob or update an existing one with base64-encoded data",
+            "params": [
+                {
+                    "name": "data_base64",
+                    "description": "Base64-encoded binary data",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "mime_type",
+                    "description": "MIME type of the blob",
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "name",
+                    "description": "Name of the blob",
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated blob",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "fs_blob_delete",
+            "summary": "Delete a blob by ID",
+            "description": "Delete a blob by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of blob to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_symlink_get",
+            "summary": "Get a symlink by ID",
+            "description": "Retrieve a symlink by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of symlink to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "symlink",
+                "description": "Symlink object",
+                "schema": {
+                    "$ref": "#/components/schemas/Symlink"
+                }
+            }
+        },
+        {
+            "name": "fs_symlink_set",
+            "summary": "Create or update a symlink",
+            "description": "Create a new symlink or update an existing one",
+            "params": [
+                {
+                    "name": "name",
+                    "description": "Name of the symlink",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "fs_id",
+                    "description": "ID of the filesystem",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "parent_id",
+                    "description": "ID of the parent directory",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "target_id",
+                    "description": "ID of the target file or directory",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "target_type",
+                    "description": "Type of target ('file' or 'directory')",
+                    "required": true,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "description",
+                    "description": "Description of the symlink",
+                    "schema": {
+                        "type": "string"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated symlink",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "fs_symlink_delete",
+            "summary": "Delete a symlink by ID",
+            "description": "Delete a symlink by its ID",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of symlink to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_symlink_list",
+            "summary": "List all symlinks",
+            "description": "List all symlinks in the system",
+            "params": [],
+            "result": {
+                "name": "symlinks",
+                "description": "List of all symlink objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Symlink"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_symlink_is_broken",
+            "summary": "Check if symlink is broken",
+            "description": "Determine if a symlink points to a non-existent target",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of symlink to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "is_broken",
+                "description": "Whether the symlink is broken",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "fs_symlink_list_by_filesystem",
+            "summary": "List symlinks by filesystem",
+            "description": "List all symlinks in a specific filesystem",
+            "params": [
+                {
+                    "name": "fs_id",
+                    "description": "ID of filesystem to list symlinks for",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "symlinks",
+                "description": "List of symlink objects in the filesystem",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Symlink"
+                    }
+                }
+            }
+        },
+        {
+            "name": "fs_dir_list_contents",
+            "summary": "List directory contents with filtering",
+            "description": "List files, directories, and symlinks in a directory with optional filtering and recursion",
+            "params": [
+                {
+                    "name": "dir_id",
+                    "description": "ID of directory to list contents for",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "path",
+                    "description": "Absolute path to the directory",
+                    "required": false,
+                    "schema": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "name": "fs_id",
+                    "description": "ID of filesystem (required when using path)",
+                    "required": false,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                {
+                    "name": "recursive",
+                    "description": "Whether to list contents recursively",
+                    "required": false,
+                    "schema": {
+                        "type": "boolean",
+                        "default": false
+                    }
+                },
+                {
+                    "name": "include",
+                    "description": "Patterns to include (e.g. ['*.py', 'doc*'])",
+                    "required": false,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                {
+                    "name": "exclude",
+                    "description": "Patterns to exclude (e.g. ['*~', '.git'])",
+                    "required": false,
+                    "schema": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ],
+            "result": {
+                "name": "contents",
+                "description": "Directory contents with files, directories, and symlinks",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "directories": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Directory"
+                            }
+                        },
+                        "files": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/File"
+                            }
+                        },
+                        "symlinks": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/Symlink"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "components": {
+        "schemas": {
+            "Filesystem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "quota_bytes": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "used_bytes": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "root_dir_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                },
+                "required": [
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "name"
+                ]
+            },
+            "Directory": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "fs_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "parent_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "name",
+                    "fs_id"
+                ]
+            },
+            "File": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "accessed_at": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "fs_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "directories": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "blobs": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "mime_type": {
+                        "type": "string"
+                    },
+                    "size_bytes": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "metadata": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "required": [
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "accessed_at",
+                    "name",
+                    "fs_id",
+                    "directories",
+                    "blobs",
+                    "size_bytes"
+                ]
+            },
+            "Blob": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "mime_type": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "hash": {
+                        "type": "string"
+                    },
+                    "size_bytes": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "data_base64": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "hash",
+                    "size_bytes",
+                    "data_base64"
+                ]
+            },
+            "Symlink": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "created_at": {
+                        "type": "string"
+                    },
+                    "updated_at": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "fs_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "parent_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "target_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "target_type": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "name",
+                    "fs_id",
+                    "parent_id",
+                    "target_id",
+                    "target_type"
+                ]
+            }
+        }
+    }
+}

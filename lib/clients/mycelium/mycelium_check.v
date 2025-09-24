@@ -1,13 +1,8 @@
 module mycelium
 
 import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.installers.lang.rust
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui
 import os
-import time
 import json
 
 pub fn check() bool {
@@ -24,10 +19,8 @@ pub fn check() bool {
 	// }
 
 	// TODO: might be dangerous if that one goes out
-	ping_result := osal.ping(address: '40a:152c:b85b:9646:5b71:d03a:eb27:2462', retry: 2) or {
-		return false
-	}
-	if ping_result == .ok {
+	ping_result := osal.ping(address: '40a:152c:b85b:9646:5b71:d03a:eb27:2462') or { panic(err) }
+	if ping_result {
 		console.print_debug('could reach 40a:152c:b85b:9646:5b71:d03a:eb27:2462')
 		return true
 	}

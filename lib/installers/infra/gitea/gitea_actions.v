@@ -5,7 +5,7 @@ import freeflowuniverse.herolib.core
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import os
 
 fn installed() !bool {
@@ -30,16 +30,12 @@ fn install() ! {
 
 	mut url := ''
 	if core.is_linux_arm()! {
-		// https://github.com/go-gitea/gitea/releases/download/v1.23.2/gitea-1.23.2-linux-arm64.xz
 		url = '${baseurl}-linux-arm64.xz'
 	} else if core.is_linux_intel()! {
-		// https://github.com/go-gitea/gitea/releases/download/v1.23.2/gitea-1.23.2-linux-amd64.xz
 		url = '${baseurl}-linux-amd64.xz'
 	} else if core.is_osx_arm()! {
-		// https://github.com/go-gitea/gitea/releases/download/v1.23.2/gitea-1.23.2-darwin-10.12-arm64.xz
 		url = '${baseurl}-darwin-10.12-arm64.xz'
 	} else if core.is_osx_intel()! {
-		// https://github.com/go-gitea/gitea/releases/download/v1.23.2/gitea-1.23.2-darwin-10.12-amd64.xz
 		url = '${baseurl}-darwin-10.12-amd64.xz'
 	} else {
 		return error('unsported platform')
@@ -90,10 +86,10 @@ fn ulist_get() !ulist.UList {
 // uploads to S3 server if configured
 fn upload() ! {}
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut cfg := get()!
-	mut res := []zinit.ZProcessNewArgs{}
-	res << zinit.ZProcessNewArgs{
+	mut res := []startupmanager.ZProcessNewArgs{}
+	res << startupmanager.ZProcessNewArgs{
 		name: 'gitea'
 		cmd:  'gitea server'
 		env:  {
@@ -101,11 +97,12 @@ fn startupcmd() ![]zinit.ZProcessNewArgs {
 			'GITEA_CONFIG': cfg.config_path()
 		}
 	}
+
 	return res
 
-	// 	mut res := []zinit.ZProcessNewArgs{}
+	// 	mut res := []startupmanager.ZProcessNewArgs{}
 	// 	cfg := get()!
-	// 	res << zinit.ZProcessNewArgs{
+	// 	res << startupmanager.ZProcessNewArgs{
 	// 		name: 'gitea'
 	// 		// cmd:     'GITEA_WORK_DIR=${cfg.path} sudo -u git /var/lib/git/gitea web -c /etc/gitea_app.ini'
 	// 		cmd:     '
@@ -151,7 +148,7 @@ fn startupcmd() ![]zinit.ZProcessNewArgs {
 	// '
 	// 		workdir: cfg.path
 	// 	}
-	// 	res << zinit.ZProcessNewArgs{
+	// 	res << startupmanager.ZProcessNewArgs{
 	// 		name:    'restart_gitea'
 	// 		cmd:     'sleep 30 && zinit restart gitea && exit 1'
 	// 		after:   ['gitea']

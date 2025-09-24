@@ -40,10 +40,14 @@ struct ComplexStruct {
 	child ChildStruct
 }
 
-const blank_complex = '!!define.complex_struct'
-const partial_complex = '!!define.complex_struct id: 42 name: testcomplex'
+const blank_complex = '!!define.complex_struct
+!!define.child_struct'
+
+const partial_complex = '!!define.complex_struct id: 42 name: testcomplex
+!!define.child_struct'
+
 const full_complex = '!!define.complex_struct id: 42 name: testobject
-!!define.complex_struct.child text: child_text number: 24
+!!define.child_struct text: child_text number: 24
 '
 
 fn test_decode_complex() ! {
@@ -128,14 +132,14 @@ const person = Person{
 }
 
 fn test_decode() ! {
-	mut object := decode[Person]('')!
-	assert object == Person{}
-
-	object = decode[Person](person_heroscript)!
+	// Test decoding with proper person data
+	object := decode[Person](person_heroscript)!
 	assert object == person
 
-	// object = decode[ComplexStruct](full_complex) or {
-	// 	assert true
-	// 	ComplexStruct{}
-	// }
+	// Test that empty string fails as expected
+	decode[Person]('') or {
+		assert true // This should fail, which is correct
+		return
+	}
+	assert false // Should not reach here
 }

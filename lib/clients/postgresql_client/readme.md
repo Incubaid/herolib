@@ -59,14 +59,14 @@ println('Database and table setup completed successfully!')
 
 ### Configuration Parameters
 
-| Parameter | Description | Default Value |
-|-----------|-------------|---------------|
-| name | Unique identifier for this configuration | 'default' |
-| user | PostgreSQL user | 'root' |
-| port | PostgreSQL server port | 5432 |
-| host | PostgreSQL server host | 'localhost' |
-| password | PostgreSQL user password | '' |
-| dbname | Default database name | 'postgres' |
+| Parameter | Description                              | Default Value |
+| --------- | ---------------------------------------- | ------------- |
+| name      | Unique identifier for this configuration | 'default'     |
+| user      | PostgreSQL user                          | 'root'        |
+| port      | PostgreSQL server port                   | 5432          |
+| host      | PostgreSQL server host                   | 'localhost'   |
+| password  | PostgreSQL user password                 | ''            |
+| dbname    | Default database name                    | 'postgres'    |
 
 ## Database Operations
 
@@ -117,3 +117,19 @@ db_client.backup(dest: '/path/to/backup/dir')!
 
 Backups are created in custom PostgreSQL format (.bak files) which can be restored using pg_restore.
 
+
+## OS supporting
+
+OSX
+```
+## supporting
+
+brew install postgresql@17
+brew services start postgresql@17
+
+#if only the client is needed
+brew install libpq
+brew link --force libpq
+export PATH="/usr/local/opt/libpq/bin:$PATH"
+
+```

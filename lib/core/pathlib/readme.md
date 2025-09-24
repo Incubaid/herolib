@@ -75,7 +75,7 @@ mut pathlist_with_links := dir.list(
 
 // Don't ignore hidden files (those starting with . or _)
 mut pathlist_all := dir.list(
-    ignoredefault: false
+    ignore_default: false
 )!
 
 // Access the resulting paths

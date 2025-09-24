@@ -69,10 +69,6 @@ fn configure() ! {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_dumps(obj ${args.classname}) !string {
-    return encoderhero.encode[${args.classname} ](obj)!
-}
-
 pub fn heroscript_loads(heroscript string) !${args.classname} {
     mut obj := encoderhero.decode[${args.classname}](heroscript)!
     return obj

@@ -40,18 +40,20 @@ pub fn (action Action) str() string {
 // serialize to heroscript
 pub fn (action Action) heroscript() string {
 	mut out := ''
-	if action.comments.len > 0 {
-		out += texttools.indent(action.comments, '// ')
-	}
 
+	if action.comments.len > 0 {
+		// out += texttools.indent(action.comments, '// ')
+	}
 	if action.actiontype == .dal {
 		out += '!'
 	} else if action.actiontype == .sal {
 		out += '!!'
+	} else if action.actiontype == .wal {
+		out += '!!!!'
 	} else if action.actiontype == .macro {
 		out += '!!!'
 	} else {
-		panic('only action sal and macro supported for now')
+		panic('unsupported action type: ${action.actiontype}')
 	}
 
 	if action.actor != '' {

@@ -4,7 +4,7 @@ ${args.title}
 
 To get started
 
-```vlang
+```v
 
 @if args.cat == .installer
 

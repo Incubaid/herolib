@@ -6,12 +6,12 @@ import freeflowuniverse.herolib.osal.core as osal
 import os
 import freeflowuniverse.herolib.ui.console
 
-pub fn (mut self PostgresClient) check() ! {
+pub fn (mut self PostgresqlClient) check() ! {
 	mut db := self.db()!
 	db.exec('SELECT version();') or { return error('can\t select version from database.\n${self}') }
 }
 
-pub fn (mut self PostgresClient) exec(c_ string) ![]pg.Row {
+pub fn (mut self PostgresqlClient) exec(c_ string) ![]pg.Row {
 	mut db := self.db()!
 	mut c := c_
 	if !(c.trim_space().ends_with(';')) {
@@ -22,7 +22,7 @@ pub fn (mut self PostgresClient) exec(c_ string) ![]pg.Row {
 	}
 }
 
-pub fn (mut self PostgresClient) db_exists(name_ string) !bool {
+pub fn (mut self PostgresqlClient) db_exists(name_ string) !bool {
 	mut db := self.db()!
 	r := db.exec("SELECT datname FROM pg_database WHERE datname='${name_}';")!
 	if r.len == 1 {
@@ -35,7 +35,7 @@ pub fn (mut self PostgresClient) db_exists(name_ string) !bool {
 	return false
 }
 
-pub fn (mut self PostgresClient) db_create(name_ string) ! {
+pub fn (mut self PostgresqlClient) db_create(name_ string) ! {
 	name := texttools.name_fix(name_)
 	mut db := self.db()!
 	if !self.db_exists(name)! {
@@ -47,7 +47,7 @@ pub fn (mut self PostgresClient) db_create(name_ string) ! {
 	}
 }
 
-pub fn (mut self PostgresClient) db_delete(name_ string) ! {
+pub fn (mut self PostgresqlClient) db_delete(name_ string) ! {
 	mut db := self.db()!
 	name := texttools.name_fix(name_)
 	self.check()!
@@ -60,7 +60,7 @@ pub fn (mut self PostgresClient) db_delete(name_ string) ! {
 	}
 }
 
-pub fn (mut self PostgresClient) db_names() ![]string {
+pub fn (mut self PostgresqlClient) db_names() ![]string {
 	mut res := []string{}
 	sqlstr := "SELECT datname FROM pg_database WHERE datistemplate = false and datname != 'postgres' and datname != 'root';"
 	for row in self.exec(sqlstr)! {
@@ -77,7 +77,7 @@ pub mut:
 	dest   string
 }
 
-pub fn (mut self PostgresClient) backup(args BackupParams) ! {
+pub fn (mut self PostgresqlClient) backup(args BackupParams) ! {
 	if args.dest == '' {
 		return error('specify the destination please')
 	}

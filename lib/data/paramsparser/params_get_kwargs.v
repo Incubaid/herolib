@@ -12,7 +12,9 @@ pub fn (params &Params) get(key_ string) !string {
 			return p.value.trim(' ')
 		}
 	}
-	// print_backtrace()
+	$if debug {
+		print_backtrace()
+	}
 	return error('Did not find key:${key} in ${params}')
 }
 
@@ -156,7 +158,10 @@ pub fn (params &Params) get_int_default(key string, defval int) !int {
 }
 
 pub fn (params &Params) get_default_true(key string) bool {
-	mut r := params.get(key) or { '' }
+	mut r := ''
+	if params.exists(key) {
+		r = params.get(key) or { panic('bug') }
+	}
 	r = texttools.name_fix_no_underscore(r)
 	if r == '' || r == '1' || r == 'true' || r == 'y' || r == 'yes' {
 		return true
@@ -165,7 +170,10 @@ pub fn (params &Params) get_default_true(key string) bool {
 }
 
 pub fn (params &Params) get_default_false(key string) bool {
-	mut r := params.get(key) or { '' }
+	mut r := ''
+	if params.exists(key) {
+		r = params.get(key) or { panic('bug') }
+	}
 	r = texttools.name_fix_no_underscore(r)
 	if r == '' || r == '0' || r == 'false' || r == 'n' || r == 'no' {
 		return false

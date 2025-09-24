@@ -5,7 +5,7 @@ import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.core.pathlib
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.installers.infra.zinit
-import freeflowuniverse.herolib.osal.zinit as zinitmgmt
+import freeflowuniverse.herolib.osal.startupmanager as zinitmgmt
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.osal.screen
 import os

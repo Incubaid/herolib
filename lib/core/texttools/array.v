@@ -23,6 +23,25 @@ pub fn to_array_int(r string) []int {
 	return r2
 }
 
+// convert a:b ,c:d,e:f to dict with keys a,c,e and corresponding values b,d,f
+pub fn to_map(mapstring string) map[string]string {
+	mut result := map[string]string{}
+	mut mapstring_array := to_array(mapstring)
+	for item in mapstring_array {
+		if item.contains(':') {
+			parts := item.split(':')
+			if parts.len == 2 {
+				result[parts[0].trim_space()] = parts[1].trim_space().trim('\'"').trim_space()
+			} else {
+				panic('to_map: expected key:value pairs, got: ${item}')
+			}
+		} else {
+			panic('to_map: expected key:value pairs, got: ${item}')
+		}
+	}
+	return result
+}
+
 // intelligent way how to map a line to a map
 //```
 // r:=texttools.to_map("name,-,-,-,-,pid,-,-,-,-,path",
@@ -37,7 +56,7 @@ pub fn to_array_int(r string) []int {
 // 	"root   304   0.0  0.0 408185328   1360   ??  S    16Dec23   0:34.06 \n \n")
 // assert {'name': 'root', 'pid': '1360', 'path': ''} == r3
 //```
-pub fn to_map(mapstring string, line string, delimiter_ string) map[string]string {
+pub fn to_map_special(mapstring string, line string, delimiter_ string) map[string]string {
 	mapstring_array := split_smart(mapstring, '')
 	mut line_array := split_smart(line, '')
 	mut result := map[string]string{}
@@ -71,7 +90,7 @@ pub fn to_list_map(mapstring string, txt_ string, delimiter_ string) []map[strin
 	mut txt := remove_empty_lines(txt_)
 	txt = dedent(txt)
 	for line in txt.split_into_lines() {
-		result << to_map(mapstring, line, delimiter_)
+		result << to_map_special(mapstring, line, delimiter_)
 	}
 	return result
 }

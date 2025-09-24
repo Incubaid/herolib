@@ -13,98 +13,179 @@ pub mut:
 	name    string
 }
 
-// get session (session has windows) .
-// returns none if not found
-pub fn (mut t Tmux) session_get(name_ string) !&Session {
-	name := texttools.name_fix(name_)
-	for s in t.sessions {
-		if s.name == name {
-			return s
-		}
-	}
-	return error('Can not find session with name: \'${name_}\', out of loaded sessions.')
-}
-
-pub fn (mut t Tmux) session_exist(name_ string) bool {
-	name := texttools.name_fix(name_)
-	t.session_get(name) or { return false }
-	return true
-}
-
-pub fn (mut t Tmux) session_delete(name_ string) ! {
-	if !(t.session_exist(name_)) {
-		return
-	}
-	name := texttools.name_fix(name_)
-	mut i := 0
-	for mut s in t.sessions {
-		if s.name == name {
-			s.stop()!
-			break
-		}
-		i += 1
-	}
-	t.sessions.delete(i)
-}
-
 @[params]
-pub struct SessionCreateArgs {
+pub struct WindowArgs {
 pub mut:
-	name  string @[required]
+	name  string
+	cmd   string
+	env   map[string]string
 	reset bool
 }
 
-// create session, if reset will re-create
-pub fn (mut t Tmux) session_create(args SessionCreateArgs) !&Session {
-	name := texttools.name_fix(args.name)
-	if !(t.session_exist(name)) {
-		$if debug {
-			console.print_header(' tmux - create session: ${args}')
-		}
-		mut s2 := Session{
-			tmux: t // reference back
-			name: name
-		}
-		s2.create()!
-		t.sessions << &s2
-	}
-	mut s := t.session_get(name)!
-	if args.reset {
-		$if debug {
-			console.print_header(' tmux - session ${name} will be restarted.')
-		}
-		s.restart()!
-	}
-	t.scan()!
-	return s
+@[params]
+pub struct WindowGetArgs {
+pub mut:
+	name string
+	id   int
 }
 
 pub fn (mut s Session) create() ! {
-	res_opt := "-P -F '#\{window_id\}'"
-	cmd := "tmux new-session ${res_opt} -d -s ${s.name} 'sh'"
-	window_id_ := osal.execute_silent(cmd) or {
-		return error("Can't create tmux session ${s.name} \n${cmd}\n${err}")
+	// Check if session already exists
+	cmd_check := 'tmux has-session -t ${s.name}'
+	check_result := osal.exec(cmd: cmd_check, stdout: false, ignore_error: true) or {
+		// Session doesn't exist, this is expected
+		osal.Job{}
 	}
 
-	cmd3 := 'tmux set-option remain-on-exit on'
-	osal.execute_silent(cmd3) or { return error("Can't execute ${cmd3}\n${err}") }
+	if check_result.exit_code == 0 {
+		return error('duplicate session: ${s.name}')
+	}
 
-	window_id := window_id_.trim(' \n')
-	cmd2 := "tmux rename-window -t ${window_id} 'notused'"
-	osal.execute_silent(cmd2) or {
-		return error("Can't rename window ${window_id} to notused \n${cmd2}\n${err}")
+	// Create new session
+	cmd := 'tmux new-session -d -s ${s.name}'
+	osal.exec(cmd: cmd, stdout: false, name: 'tmux_session_create') or {
+		return error("Can't create session ${s.name}: ${err}")
 	}
 }
 
-pub fn (mut s Session) restart() ! {
-	s.stop()!
-	s.create()!
+// load info from reality
+pub fn (mut s Session) scan() ! {
+	// Get current windows from tmux for this session
+	cmd := "tmux list-windows -t ${s.name} -F '#{window_name}|#{window_id}|#{window_active}'"
+	result := osal.execute_silent(cmd) or {
+		if err.msg().contains('session not found') {
+			return
+		}
+		return error('Cannot list windows for session ${s.name}: ${err}')
+	}
+
+	mut current_windows := map[string]bool{}
+	for line in result.split_into_lines() {
+		line_trimmed := line.trim_space()
+		if line_trimmed.len == 0 {
+			continue
+		}
+		if line_trimmed.contains('|') {
+			parts := line_trimmed.split('|')
+			if parts.len >= 3 && parts[0].len > 0 && parts[1].len > 0 {
+				// Safely extract window name with additional validation
+				raw_window_name := parts[0].trim_space()
+				if raw_window_name.len == 0 {
+					continue
+				}
+
+				// Use safer name processing instead of texttools.name_fix
+				mut window_name := raw_window_name.to_lower().trim_space()
+				// Replace problematic characters with underscores
+				window_name = window_name.replace(' ', '_').replace('-', '_').replace('.',
+					'_')
+
+				// Remove any non-ASCII characters safely
+				mut safe_name := ''
+				for c in window_name {
+					if c.is_letter() || c.is_digit() || c == `_` {
+						safe_name += c.ascii_str()
+					}
+				}
+				window_name = safe_name
+
+				if window_name.len == 0 {
+					continue
+				}
+
+				window_id := parts[1].replace('@', '').int()
+				window_active := parts[2] == '1'
+
+				// Safe map assignment
+				current_windows[window_name] = true
+
+				// Update existing window or create new one
+				mut found := false
+				for mut w in s.windows {
+					if w.name.len > 0 && window_name.len > 0 && w.name == window_name {
+						w.id = window_id
+						w.active = window_active
+						w.scan()! // Scan panes for this window
+						found = true
+						break
+					}
+				}
+
+				if !found {
+					mut new_window := Window{
+						session: &s
+						name:    window_name
+						id:      window_id
+						active:  window_active
+						panes:   []&Pane{}
+						env:     map[string]string{}
+					}
+					new_window.scan()! // Scan panes for new window
+					s.windows << &new_window
+				}
+			}
+		}
+	}
+
+	// Remove windows that no longer exist in tmux
+	mut valid_windows := []&Window{}
+	for window in s.windows {
+		// Safety check: ensure window.name is valid
+		if window.name.len > 0 {
+			// Avoid map access entirely - check if window still exists by comparing with current windows
+			mut window_exists := false
+			for current_name, _ in current_windows {
+				if window.name == current_name {
+					window_exists = true
+					break
+				}
+			}
+			if window_exists {
+				valid_windows << window
+			}
+		}
+	}
+	s.windows = valid_windows
 }
 
-pub fn (mut s Session) stop() ! {
-	osal.execute_silent('tmux kill-session -t ${s.name}') or {
-		return error("Can't delete session ${s.name} - This may happen when session is not found: ${err}")
+// window_name is the name of the window in session main (will always be called session main)
+// cmd to execute e.g. bash file
+// environment arguments to use
+// reset, if reset it will create window even if it does already exist, will destroy it
+// ```
+// struct WindowArgs {
+// pub mut:
+// 	name    string
+// 	cmd		string
+// 	env		map[string]string	
+// 	reset	bool
+// }
+// ```
+pub fn (mut s Session) window_new(args WindowArgs) !&Window {
+	$if debug {
+		console.print_header(' start window: \n${args}')
 	}
+	namel := texttools.name_fix(args.name)
+	if s.window_exist(name: namel) {
+		if args.reset {
+			s.window_delete(name: namel)!
+		} else {
+			return error('cannot create new window it already exists, window ${namel} in session:${s.name}')
+		}
+	}
+	mut w := &Window{
+		session: &s
+		name:    namel
+		panes:   []&Pane{}
+		env:     args.env
+	}
+	s.windows << &w
+
+	// Create the window with the specified command
+	w.create(args.cmd)!
+	s.scan()!
+
+	return w
 }
 
 // get all windows as found in a session
@@ -117,7 +198,12 @@ pub fn (mut s Session) windows_get() []&Window {
 	return res
 }
 
-pub fn (mut s Session) windownames_get() []string {
+// List windows in a session
+pub fn (mut s Session) window_list() []&Window {
+	return s.windows
+}
+
+pub fn (mut s Session) window_names() []string {
 	mut res := []string{}
 	for _, window in s.windows {
 		res << window.name
@@ -133,7 +219,18 @@ pub fn (mut s Session) str() string {
 	return out
 }
 
-// pub fn (mut s Session) activate()! {	
+pub fn (mut s Session) stats() !ProcessStats {
+	mut total := ProcessStats{}
+	for mut window in s.windows {
+		stats := window.stats() or { continue }
+		total.cpu_percent += stats.cpu_percent
+		total.memory_bytes += stats.memory_bytes
+		total.memory_percent += stats.memory_percent
+	}
+	return total
+}
+
+// pub fn (mut s Session) activate()! {
 // 	active_session := s.tmux.redis.get('tmux:active_session') or { 'No active session found' }
 // 	if active_session != 'No active session found' && s.name != active_session {
 // 		s.tmuxexecutor.db.exec('tmux attach-session -t $active_session') or {
@@ -151,3 +248,130 @@ pub fn (mut s Session) str() string {
 // 		os.log('SESSION - Session: $s.name already activate ')
 // 	}
 // }
+
+fn (mut s Session) window_exist(args_ WindowGetArgs) bool {
+	mut args := args_
+	s.window_get(args) or { return false }
+	return true
+}
+
+pub fn (mut s Session) window_get(args_ WindowGetArgs) !&Window {
+	mut args := args_
+	if args.name.len == 0 {
+		return error('Window name cannot be empty')
+	}
+	args.name = texttools.name_fix_token(args.name)
+	for w in s.windows {
+		if w.name.len > 0 && w.name == args.name {
+			if (args.id > 0 && w.id == args.id) || args.id == 0 {
+				return w
+			}
+		}
+	}
+	return error('Cannot find window ${args.name} in session:${s.name}')
+}
+
+pub fn (mut s Session) window_delete(args_ WindowGetArgs) ! {
+	// $if debug { console.print_debug(" - window delete: $args_")}
+	mut args := args_
+	args.name = texttools.name_fix_token(args.name)
+	if !(s.window_exist(args)) {
+		return
+	}
+	mut i := 0
+	for mut w in s.windows {
+		if w.name == args.name {
+			if (args.id > 0 && w.id == args.id) || args.id == 0 {
+				// Enhanced cleanup: kill all processes before stopping the window
+				w.kill_all_processes() or {
+					console.print_debug('Failed to kill processes in window ${w.name}: ${err}')
+				}
+				w.stop()!
+				break
+			}
+		}
+		i += 1
+	}
+	s.windows.delete(i) // i is now the one in the list which needs to be removed
+}
+
+pub fn (mut s Session) restart() ! {
+	s.stop()!
+	s.create()!
+}
+
+pub fn (mut s Session) stop() ! {
+	// First, kill all processes in all windows and panes of this session
+	s.kill_all_processes()!
+
+	// Then kill the tmux session itself
+	osal.execute_silent('tmux kill-session -t ${s.name}') or { return }
+}
+
+// Kill all processes in all windows and panes of this session
+pub fn (mut s Session) kill_all_processes() ! {
+	console.print_debug('Killing all processes in session ${s.name}')
+
+	// Refresh session information to get current state
+	s.scan()!
+
+	// Kill processes in each window
+	for mut window in s.windows {
+		window.kill_all_processes() or {
+			console.print_debug('Failed to kill processes in window ${window.name}: ${err}')
+			// Continue with other windows even if one fails
+		}
+	}
+}
+
+// Run ttyd for this session so it can be accessed in the browser
+pub fn (mut s Session) run_ttyd(args TtydArgs) ! {
+	// Check if the port is available before starting ttyd
+	osal.port_check_available(args.port) or {
+		return error('Cannot start ttyd for session ${s.name}: ${err}')
+	}
+
+	target := '${s.name}'
+
+	// Add -W flag for write access if editable mode is enabled
+	mut ttyd_flags := '-p ${args.port}'
+	if args.editable {
+		ttyd_flags += ' -W'
+	}
+
+	cmd := 'nohup ttyd ${ttyd_flags} tmux attach -t ${target} >/dev/null 2>&1 &'
+
+	code := os.system(cmd)
+	if code != 0 {
+		return error('Failed to start ttyd on port ${args.port} for session ${s.name}')
+	}
+
+	mode_str := if args.editable { 'editable' } else { 'read-only' }
+	println('ttyd started for session ${s.name} at http://localhost:${args.port} (${mode_str} mode)')
+}
+
+// Backward compatibility method - runs ttyd in read-only mode
+pub fn (mut s Session) run_ttyd_readonly(port int) ! {
+	s.run_ttyd(port: port, editable: false)!
+}
+
+// Stop ttyd for this session by killing the process on the specified port
+pub fn (mut s Session) stop_ttyd(port int) ! {
+	// Kill any process running on the specified port
+	cmd := 'lsof -ti:${port} | xargs kill -9'
+	osal.execute_silent(cmd) or {
+		// Ignore error if no process is found on the port
+		// This is normal when no ttyd is running on that port
+	}
+	println('ttyd stopped for session ${s.name} on port ${port} (if it was running)')
+}
+
+// Stop all ttyd processes (kills all ttyd processes system-wide)
+pub fn stop_all_ttyd() ! {
+	cmd := 'pkill ttyd'
+	osal.execute_silent(cmd) or {
+		// Ignore error if no ttyd processes are found (exit code 1)
+		// This is normal when no ttyd processes are running
+	}
+	println('All ttyd processes stopped (if any were running)')
+}

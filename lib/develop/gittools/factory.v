@@ -1,36 +1,12 @@
 module gittools
 
 import os
-import json
 import freeflowuniverse.herolib.core.pathlib
+import freeflowuniverse.herolib.ui.console
 
 __global (
 	gsinstances map[string]&GitStructure
 )
-
-
-@[params]
-pub struct GetRepoArgs{
-pub mut:
-	path string //if used will check if path exists if yes, just return
-	git_url string
-	git_pull bool
-	git_reset bool
-}
-
-// get_repo_path implements the GitUrlResolver interface
-pub fn  get_repo_path(args GetRepoArgs) !string {
-	if os.exists(args.path){
-		return args.path
-	}
-	mut gs := get()!
-	mut repo := gs.get_repo(
-		url:  args.git_url
-		pull:  args.git_pull
-		reset: args.git_reset
-	)!
-	return repo.path()
-}
 
 pub fn reset() {
 	gsinstances = map[string]&GitStructure{} // they key is the redis_key (hash of coderoot)
@@ -39,14 +15,11 @@ pub fn reset() {
 @[params]
 pub struct GitStructureArgsNew {
 pub mut:
-	coderoot     string
-	light        bool = true // If true, clones only the last history for all branches (clone with only 1 level deep)
-	log          bool = true // If true, logs git commands/statements
-	debug        bool = true
-	ssh_key_name string // name of ssh key to be used when loading the gitstructure
-	ssh_key_path string
-	reload       bool
-	offline      bool = false
+	coderoot string
+	log      bool = true // If true, logs git commands/statements
+	debug    bool = true
+	reload   bool
+	offline  bool
 }
 
 // Retrieve or create a new GitStructure instance with the given configuration.
@@ -54,38 +27,6 @@ pub fn new(args_ GitStructureArgsNew) !&GitStructure {
 	mut args := args_
 	if args.coderoot == '' {
 		args.coderoot = '${os.home_dir()}/code'
-	}
-	mut cfg := GitStructureConfig{
-		coderoot:     args.coderoot
-		light:        args.light
-		log:          args.log
-		debug:        args.debug
-		ssh_key_name: args.ssh_key_name
-		ssh_key_path: args.ssh_key_path
-		offline:      args.offline
-	}
-
-	return get(coderoot: args.coderoot, reload: args.reload, cfg: cfg)
-}
-
-@[params]
-pub struct GitStructureArgGet {
-pub mut:
-	coderoot string
-	reload   bool
-	cfg      ?GitStructureConfig
-}
-
-// Retrieve a GitStructure instance based on the given arguments.
-pub fn get(args_ GitStructureArgGet) !&GitStructure {
-	mut args := args_
-	if args.coderoot == '' {
-		args.coderoot = '${os.home_dir()}/code'
-	}
-
-	// make sure coderoot exists
-	if !os.exists(args.coderoot) {
-		os.mkdir_all(args.coderoot)!
 	}
 
 	rediskey_ := cache_key(args.coderoot)
@@ -95,35 +36,30 @@ pub fn get(args_ GitStructureArgGet) !&GitStructure {
 		mut gs := gsinstances[rediskey_] or {
 			panic('Unexpected error: key not found in gsinstances')
 		}
-		gs.load(args.reload)!
 		return gs
+	} else {
+		console.print_debug('Loading GitStructure for ${args.coderoot}')
 	}
 
 	// Create and load the GitStructure instance.
 	mut gs := GitStructure{
 		key:      rediskey_
 		coderoot: pathlib.get_dir(path: args.coderoot, create: true)!
+		log:      args.log
+		debug:    args.debug
+		offline:  args.offline
 	}
 
-	mut cfg := args.cfg or {
-		mut cfg_ := GitStructureConfig{
-			coderoot: 'SKIP'
-		}
-		cfg_
-	}
-
-	if cfg.coderoot != 'SKIP' {
-		gs.config_ = cfg
-		gs.config_save()!
-		// println(gs.config()!)
+	if 'OFFLINE' in os.environ() {
+		gs.offline = true
 	}
 
 	gs.config()! // will load the config, don't remove
 
-	gs.load(false)!
-
-	if gs.repos.keys().len == 0 || args.reload {
+	if args.reload {
 		gs.load(true)!
+	} else {
+		gs.load(false)!
 	}
 
 	gsinstances[rediskey_] = &gs
@@ -151,12 +87,19 @@ pub mut:
 // 	git_pull  bool
 pub fn path(args_ GitPathGetArgs) !pathlib.Path {
 	mut args := args_
-	if args.path.trim_space() == '' && args.currentdir {
-		args.path = os.getwd()
+
+	if args.path != '' {
+		if os.exists(args.path) {
+			return pathlib.get(args.path)
+		} else {
+			if args.git_url == '' {
+				return error("can't resolve git repo path without url or existing path, ${args.path} does not exist.")
+			}
+		}
 	}
 
 	if args.git_url.len > 0 {
-		mut gs := get(coderoot: args.git_root)!
+		mut gs := new(coderoot: args.git_root)!
 		mut repo := gs.get_repo(
 			url:   args.git_url
 			pull:  args.git_pull

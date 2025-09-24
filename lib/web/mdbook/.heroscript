@@ -1,8 +1,0 @@
-
-!!hero_code.generate_client
-    name:'mdbook'
-    classname:'MDBooks'
-    singleton:0
-    default:1
-	hasconfig:1
-    reset:0

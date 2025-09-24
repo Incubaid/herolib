@@ -73,6 +73,13 @@ pub fn cmd_run_add_flags(mut cmd_run Command) {
 	})
 
 	cmd_run.add_flag(Flag{
+		flag:        .string
+		name:        'heroscript'
+		abbrev:      'h'
+		description: 'runs non interactive!'
+	})
+
+	cmd_run.add_flag(Flag{
 		flag:        .bool
 		name:        'reset'
 		abbrev:      'r'
@@ -125,7 +132,7 @@ pub fn plbook_code_get(cmd Command) !string {
 	pull := cmd.flags.get_bool('gitpull') or { false }
 	// interactive := !cmd.flags.get_bool('script') or { false }
 
-	mut gs := gittools.get(coderoot: coderoot)!
+	mut gs := gittools.new(coderoot: coderoot)!
 	if url.len > 0 {
 		mut repo := gs.get_repo(
 			pull:  pull
@@ -141,33 +148,40 @@ pub fn plbook_code_get(cmd Command) !string {
 	return path
 }
 
-// same as session_run_get but will also run the playbook
+// same as session_run_get but will also run the plbook
 pub fn plbook_run(cmd Command) !(&playbook.PlayBook, string) {
-	path := plbook_code_get(cmd)!
-	if path.len == 0 {
-		return error(cmd.help_message())
-	}
+	heroscript := cmd.flags.get_string('heroscript') or { '' }
+	mut path := ''
 
-	// add all actions inside to the playbook
-	mut plbook := playbook.new(path: path)!
+	mut plbook := if heroscript.len > 0 {
+		playbook.new(text: heroscript)!
+	} else {
+		path = plbook_code_get(cmd)!
+		if path.len == 0 {
+			return error(cmd.help_message())
+		}
+		// add all actions inside to the plbook
+		playbook.new(path: path)!
+	}
 
 	dagu := cmd.flags.get_bool('dagu') or { false }
 
-	playcmds.run(mut plbook, dagu)!
+	playcmds.run(plbook: plbook)!
 
 	// TODO: below gives Segmentation fault (core dumped)
 	// console.print_stdout(plbook.str())
 	return &plbook, path
 }
 
-fn plbook_edit_sourcetree(cmd Command) !(&playbook.PlayBook, string) {
+fn plbook_edit_sourcetree(cmd Command) !&playbook.PlayBook {
 	edit := cmd.flags.get_bool('edit') or { false }
 	treedo := cmd.flags.get_bool('sourcetree') or { false }
 
 	mut plbook, path := plbook_run(cmd)!
 
 	if path.len == 0 {
-		return error('path or url needs to be specified')
+		// THIS CAN HAPPEN IF RUNNING HEROSCRIPT STRAIGHT FROM STRING
+		// return error('path or url needs to be specified')
 	}
 
 	if treedo {
@@ -179,5 +193,5 @@ fn plbook_edit_sourcetree(cmd Command) !(&playbook.PlayBook, string) {
 		vscode_.open()!
 	}
 
-	return plbook, path
+	return plbook
 }

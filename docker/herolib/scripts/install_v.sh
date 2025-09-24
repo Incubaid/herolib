@@ -229,35 +229,35 @@ function hero_lib_get {
     fi    
 }
 
-function install_secp256k1 {
-    echo "Installing secp256k1..."
-    if [[ "${OSNAME}" == "darwin"* ]]; then
-        brew install secp256k1
-    elif [[ "${OSNAME}" == "ubuntu" ]]; then
-        # Install build dependencies
-        apt-get install -y build-essential wget autoconf libtool
+# function install_secp256k1 {
+#     echo "Installing secp256k1..."
+#     if [[ "${OSNAME}" == "darwin"* ]]; then
+#         brew install secp256k1
+#     elif [[ "${OSNAME}" == "ubuntu" ]]; then
+#         # Install build dependencies
+#         apt-get install -y build-essential wget autoconf libtool
 
-        # Download and extract secp256k1
-        cd "${DIR_BUILD}"
-        wget https://github.com/bitcoin-core/secp256k1/archive/refs/tags/v0.3.2.tar.gz
-        tar -xvf v0.3.2.tar.gz
+#         # Download and extract secp256k1
+#         cd "${DIR_BUILD}"
+#         wget https://github.com/bitcoin-core/secp256k1/archive/refs/tags/v0.3.2.tar.gz
+#         tar -xvf v0.3.2.tar.gz
 
-        # Build and install
-        cd secp256k1-0.3.2/
-        ./autogen.sh
-        ./configure
-        make -j 5
-        make install
+#         # Build and install
+#         cd secp256k1-0.3.2/
+#         ./autogen.sh
+#         ./configure
+#         make -j 5
+#         make install
 
-        # Cleanup
-        cd ..
-        rm -rf secp256k1-0.3.2 v0.3.2.tar.gz
-    else
-        echo "secp256k1 installation not implemented for ${OSNAME}"
-        exit 1
-    fi
-    echo "secp256k1 installation complete!"
-}
+#         # Cleanup
+#         cd ..
+#         rm -rf secp256k1-0.3.2 v0.3.2.tar.gz
+#     else
+#         echo "secp256k1 installation not implemented for ${OSNAME}"
+#         exit 1
+#     fi
+#     echo "secp256k1 installation complete!"
+# }
 
 
 remove_all() {

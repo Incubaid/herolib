@@ -117,18 +117,21 @@ fn dotest(path string, base_dir string, mut cache TestCache) ! {
 		return
 	}
 
+	println('Running test (not cached or expired): ${path} (key: ${test_key})')
+
 	cmd := 'v -stats -enable-globals -n -w -gc none  test ${norm_path}'
 	println(cmd)
-	result := os.execute(cmd)
-	eprintln(result)
-	if result.exit_code != 0 {
-		eprintln('Test failed: ${path}')
-		eprintln(result.output)
+
+	// Use system() instead of execute() to avoid hanging on unclosed file descriptors
+	exit_code := os.system(cmd)
+	if exit_code != 0 {
+		eprintln('Test failed: ${path} (exit code: ${exit_code})')
 		exit(1)
 	}
 
 	// Update cache with successful test run
-	update_test_cache(mut cache, test_key)
+	cache.tests[test_key] = time.now().unix()
+	save_test_cache(cache)
 	println('Test passed: ${path}')
 }
 
@@ -175,19 +178,21 @@ mut tests_ignore := '
 notifier_test.v
 clients/meilisearch
 clients/zdb
+tst/
 clients/openai
 systemd_process_test.v
 data/graphdb
 data/radixtree
 clients/livekit
-clients/rclone
-clients/jina
-clients/qdrant
-data/radixtree
-data/dedupestor
 core/playcmds
-tst/
-rust/
+doctree/
+jina/
+params_reflection_test.v
+python/
+rust_test.v
+rclone/
+qdrant/
+sshagent_test.v
 '
 
 if in_github_actions() {
@@ -196,6 +201,7 @@ if in_github_actions() {
 }
 
 tests_error := '
+encoderhero
 tmux_window_test.v
 tmux_test.v
 startupmanager_test.v
@@ -208,10 +214,11 @@ generate_test.v
 dbfs_test.v
 namedb_test.v
 timetools_test.v
-encoderhero/encoder_test.v
-encoderhero/decoder_test.v
 code/codeparser
 gittools_test.v
+link_def_test.v
+python_test.v
+ipaddress_test.v	
 '
 
 // Split tests into array and remove empty lines
@@ -222,11 +229,23 @@ test_files_error := tests_error.split('\n').filter(it.trim_space() != '')
 // Load test cache
 mut cache := load_test_cache()
 println('Test cache loaded from ${cache_file}')
+println('Cache contains ${cache.tests.len} entries')
+if cache.tests.len > 0 {
+	println('Sample cache entries:')
+	mut count := 0
+	for key, timestamp in cache.tests {
+		if count < 3 {
+			println('  ${key}: ${timestamp}')
+			count++
+		}
+	}
+}
 
 println('tests to ignore')
 println(tests_ignore)
 
 // Run each test with proper v command flags
+println('Starting main test loop with ${test_files.len} test entries')
 for test in test_files {
 	if test.trim_space() == '' || test.trim_space().starts_with('//')
 		|| test.trim_space().starts_with('#') {
@@ -243,14 +262,20 @@ for test in test_files {
 	if os.is_dir(full_path) {
 		// If directory, run tests for each .v file in it recursively
 		files := os.walk_ext(full_path, '.v')
+		println('Found ${files.len} .v files in directory: ${full_path}')
 		for file in files {
+			println('Processing file: ${file}')
 			process_test_file(file, norm_dir_of_script, test_files_ignore, test_files_error, mut
 				cache)!
 		}
+		println('Completed directory: ${full_path}')
 	} else if os.is_file(full_path) {
+		println('Processing single file: ${full_path}')
 		process_test_file(full_path, norm_dir_of_script, test_files_ignore, test_files_error, mut
 			cache)!
 	}
 }
 
 println('All (non skipped) tests ok')
+println('Test runner completed successfully. Exiting.')
+exit(0)

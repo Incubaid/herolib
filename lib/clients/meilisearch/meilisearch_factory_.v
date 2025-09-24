@@ -1,9 +1,9 @@
 module meilisearch
 
 import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook
+import freeflowuniverse.herolib.core.playbook { PlayBook }
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.data.encoderhero
+import json
 
 __global (
 	meilisearch_global  map[string]&MeilisearchClient
@@ -15,92 +15,122 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name string
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
 }
 
-fn args_get(args_ ArgsGet) ArgsGet {
-	mut model := args_
-	if model.name == '' {
-		model.name = meilisearch_default
+pub fn new(args ArgsGet) !&MeilisearchClient {
+	mut obj := MeilisearchClient{
+		name: args.name
 	}
-	if model.name == '' {
-		model.name = 'default'
-	}
-	return model
+	set(obj)!
+	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&MeilisearchClient {
-	mut args := args_get(args_)
-	if args.name !in meilisearch_global {
-		if args.name == 'default' {
-			if !config_exists(args) {
-				if default {
-					mut context := base.context() or { panic('bug') }
-					context.hero_config_set('meilisearch', model.name, heroscript_default()!)!
-				}
+pub fn get(args ArgsGet) !&MeilisearchClient {
+	mut context := base.context()!
+	meilisearch_default = args.name
+	if args.fromdb || args.name !in meilisearch_global {
+		mut r := context.redis()!
+		if r.hexists('context:meilisearch', args.name)! {
+			data := r.hget('context:meilisearch', args.name)!
+			if data.len == 0 {
+				return error('MeilisearchClient with name: meilisearch does not exist, prob bug.')
 			}
-			load(args)!
+			mut obj := json.decode(MeilisearchClient, data)!
+			set_in_mem(obj)!
+		} else {
+			if args.create {
+				new(args)!
+			} else {
+				return error("MeilisearchClient with name 'meilisearch' does not exist")
+			}
 		}
+		return get(name: args.name)! // no longer from db nor create
 	}
 	return meilisearch_global[args.name] or {
-		println(meilisearch_global)
-		panic('could not get config for ${args.name} with name:${model.name}')
+		return error('could not get config for meilisearch with name:meilisearch')
 	}
 }
 
-// set the model in mem and the config on the filesystem
+// register the config for the future
 pub fn set(o MeilisearchClient) ! {
-	mut o2 := obj_init(o)!
-	meilisearch_global[o.name] = &o2
-	meilisearch_default = o.name
-}
-
-// check we find the config on the filesystem
-pub fn exists(args_ ArgsGet) bool {
-	mut model := args_get(args_)
-	mut context := base.context() or { panic('bug') }
-	return context.hero_config_exists('meilisearch', model.name)
-}
-
-// load the config error if it doesn't exist
-pub fn load(args_ ArgsGet) ! {
-	mut model := args_get(args_)
+	mut o2 := set_in_mem(o)!
+	meilisearch_default = o2.name
 	mut context := base.context()!
-	mut heroscript := context.hero_config_get('meilisearch', model.name)!
-	play(heroscript: heroscript)!
+	mut r := context.redis()!
+	r.hset('context:meilisearch', o2.name, json.encode(o2))!
 }
 
-// save the config to the filesystem in the context
-pub fn save(o MeilisearchClient) ! {
+// does the config exists?
+pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
-	heroscript := encoderhero.encode[MeilisearchClient](o)!
-	context.hero_config_set('meilisearch', model.name, heroscript)!
+	mut r := context.redis()!
+	return r.hexists('context:meilisearch', args.name)!
+}
+
+pub fn delete(args ArgsGet) ! {
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hdel('context:meilisearch', args.name)!
 }
 
 @[params]
-pub struct PlayArgs {
+pub struct ArgsList {
 pub mut:
-	heroscript string // if filled in then plbook will be made out of it
-	plbook     ?playbook.PlayBook
-	reset      bool
+	fromdb bool // will load from filesystem
 }
 
-pub fn play(args_ PlayArgs) ! {
-	mut model := args_
-
-	if model.heroscript == '' {
-		model.heroscript = heroscript_default()!
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&MeilisearchClient {
+	mut res := []&MeilisearchClient{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		meilisearch_global = map[string]&MeilisearchClient{}
+		meilisearch_default = ''
 	}
-	mut plbook := model.plbook or { playbook.new(text: model.heroscript)! }
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:meilisearch')!
 
-	mut configure_actions := plbook.find(filter: 'meilisearch.configure')!
-	if configure_actions.len > 0 {
-		for config_action in configure_actions {
-			mut p := config_action.params
-			mycfg := cfg_play(p)!
-			console.print_debug('install action meilisearch.configure\n${mycfg}')
-			set(mycfg)!
-			save(mycfg)!
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in meilisearch_global {
+			res << client
 		}
 	}
+	return res
+}
+
+// only sets in mem, does not set as config
+fn set_in_mem(o MeilisearchClient) !MeilisearchClient {
+	mut o2 := obj_init(o)!
+	meilisearch_global[o2.name] = &o2
+	meilisearch_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'meilisearch.') {
+		return
+	}
+	mut install_actions := plbook.find(filter: 'meilisearch.configure')!
+	if install_actions.len > 0 {
+		for install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+		}
+	}
+}
+
+// switch instance to be used for meilisearch
+pub fn switch(name string) {
+	meilisearch_default = name
 }

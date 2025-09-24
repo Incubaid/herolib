@@ -13,7 +13,7 @@ pub mut:
 	name  string
 }
 
-// adds all action elements to a playbook, calls playmacros.play on the playbook,
+// adds all action elements to a playbook, calls playmacros.play on the plbook,
 // which processes the macros, then reprocesses every page with the actions' new content
 pub fn (mut tree Tree) process_actions_and_macros() ! {
 	console.print_green('Processing actions and macros')

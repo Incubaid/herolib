@@ -3,7 +3,6 @@ module base
 import freeflowuniverse.herolib.data.ourtime
 // import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.dbfs
 import freeflowuniverse.herolib.core.logger
 import json
 import freeflowuniverse.herolib.core.pathlib
@@ -32,16 +31,6 @@ pub mut:
 // 	return 'hero:sessions:${self.guid()}'
 // }
 
-// get db of the session, is unique per session
-pub fn (mut self Session) db_get() !dbfs.DB {
-	return self.context.db_get('session_${self.name}')!
-}
-
-// get the db of the config, is unique per context
-pub fn (mut self Session) db_config_get() !dbfs.DB {
-	return self.context.db_get('config')!
-}
-
 // load the params from redis
 pub fn (mut self Session) load() ! {
 	mut r := self.context.redis()!
@@ -68,6 +57,13 @@ pub fn (mut self Session) save() ! {
 pub fn (mut self Session) env_set(key string, value string) ! {
 	self.env[key] = value
 	self.save()!
+}
+
+pub fn (mut self Session) env_set_once(key string, value string) ! {
+	if key in self.env {
+		return error("env variable '${key}' already exists in session '${self.name}'")
+	}
+	self.env_set(key, value)!
 }
 
 // Get an environment variable

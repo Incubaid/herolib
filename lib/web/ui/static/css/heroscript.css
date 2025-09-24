@@ -1,0 +1,529 @@
+/* HeroScript Editor Specific Styles */
+
+/* Full height layout for editor */
+.main .container-fluid {
+  height: calc(100vh - 44px - 2rem); /* Account for header and padding */
+}
+
+/* Resizable container layout */
+.resizable-container {
+  display: flex;
+  height: calc(100% - 60px); /* Account for header section */
+  gap: 0;
+  position: relative;
+}
+
+.editor-panel {
+  flex: 1;
+  min-width: 300px;
+  max-width: calc(100% - 250px); /* Ensure logs panel has minimum space */
+  display: flex;
+  flex-direction: column;
+}
+
+.logs-panel {
+  width: 350px;
+  min-width: 200px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Resize handle styles */
+.resize-handle {
+  background-color: var(--border-primary);
+  position: relative;
+  cursor: col-resize;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.resize-handle.horizontal {
+  width: 4px;
+  min-width: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resize-handle:hover {
+  background-color: var(--link-color);
+}
+
+.resize-handle.dragging {
+  background-color: var(--link-color);
+}
+
+.resize-handle-line {
+  width: 2px;
+  height: 40px;
+  background-color: var(--border-secondary);
+  border-radius: 1px;
+  transition: background-color 0.2s ease;
+}
+
+.resize-handle:hover .resize-handle-line,
+.resize-handle.dragging .resize-handle-line {
+  background-color: white;
+}
+
+/* Prevent text selection during resize */
+.resizing {
+  user-select: none;
+  pointer-events: none;
+}
+
+.resizing * {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Editor Panel Styles */
+#editor-container {
+  position: relative;
+  background-color: var(--bg-primary);
+  height: 100%;
+}
+
+#script-editor {
+  border: none;
+  resize: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 1.5rem;
+  border-radius: 0;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  outline: none;
+  box-shadow: none;
+  white-space: pre;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  min-height: 500px;
+  height: 100%;
+}
+
+/* Highlighted overlay for syntax highlighting */
+.highlighted-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  line-height: 1.6;
+  padding: 1.5rem;
+  margin: 0;
+  border: none;
+  background: transparent;
+  white-space: pre;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow: hidden;
+  z-index: 1;
+}
+
+#script-editor:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--link-color);
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+#script-editor::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* Simple syntax highlighting for basic keywords */
+.hljs {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  padding: 1.5rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Dark theme syntax highlighting */
+[data-theme="dark"] .hljs {
+  background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .hljs-keyword {
+  color: #569cd6;
+}
+
+[data-theme="dark"] .hljs-string {
+  color: #ce9178;
+}
+
+[data-theme="dark"] .hljs-comment {
+  color: #6a9955;
+}
+
+[data-theme="dark"] .hljs-number {
+  color: #b5cea8;
+}
+
+[data-theme="dark"] .hljs-function {
+  color: #dcdcaa;
+}
+
+/* Light theme syntax highlighting */
+[data-theme="light"] .hljs-keyword {
+  color: #0000ff;
+}
+
+[data-theme="light"] .hljs-string {
+  color: #a31515;
+}
+
+[data-theme="light"] .hljs-comment {
+  color: #008000;
+}
+
+[data-theme="light"] .hljs-number {
+  color: #098658;
+}
+
+[data-theme="light"] .hljs-function {
+  color: #795e26;
+}
+
+/* Logs Panel Styles */
+#logs-container {
+  background-color: var(--bg-secondary);
+  border-radius: 0;
+}
+
+#logs-content {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Log Entry Styles */
+.log-entry {
+  display: block;
+  margin-bottom: 0.25rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+/* Compact log format: cat: message */
+.log-entry.compact {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.log-entry.compact .log-category {
+  font-weight: 600;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.log-entry.compact .log-message {
+  color: var(--text-primary);
+  flex: 1;
+}
+
+/* Legacy log entry styles (for backward compatibility) */
+.log-entry .timestamp {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-right: 0.5rem;
+}
+
+.log-entry .level {
+  display: inline-block;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-right: 0.5rem;
+  min-width: 50px;
+  text-align: center;
+}
+
+.log-entry .level.info {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.log-entry .level.success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.log-entry .level.warning {
+  background-color: var(--warning-color);
+  color: black;
+}
+
+.log-entry .level.error {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.log-entry .level.debug {
+  background-color: var(--text-muted);
+  color: white;
+}
+
+.log-entry .message {
+  color: var(--text-primary);
+}
+
+.log-entry.system {
+  background-color: var(--bg-tertiary);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--border-secondary);
+}
+
+.log-entry.error {
+  background-color: rgba(220, 53, 69, 0.1);
+  border-left: 3px solid var(--danger-color);
+  padding-left: 0.75rem;
+}
+
+.log-entry.warning {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid var(--warning-color);
+  padding-left: 0.75rem;
+}
+
+/* Card Header Styles */
+.card-header {
+  background-color: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-primary);
+  padding: 0.75rem 1rem;
+}
+
+.card-header h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+/* Control Buttons */
+.editor-controls select {
+  width: 120px;
+}
+
+.log-controls .badge {
+  font-size: 0.7rem;
+}
+
+#connection-status.bg-success {
+  background-color: var(--success-color) !important;
+}
+
+#connection-status.bg-danger {
+  background-color: var(--danger-color) !important;
+}
+
+#connection-status.bg-warning {
+  background-color: var(--warning-color) !important;
+  color: black !important;
+}
+
+/* Auto-scroll button states */
+#auto-scroll[data-active="true"] {
+  background-color: var(--link-color);
+  border-color: var(--link-color);
+  color: white;
+}
+
+#auto-scroll[data-active="false"] {
+  background-color: transparent;
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+/* Action Buttons */
+.btn-primary {
+  background-color: var(--link-color);
+  border-color: var(--link-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--link-hover-color);
+  border-color: var(--link-hover-color);
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+}
+
+.btn-outline-secondary {
+  border-color: var(--border-primary);
+  color: var(--text-secondary);
+}
+
+.btn-outline-secondary:hover {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-secondary);
+  color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .resizable-container {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .editor-panel {
+    height: 65vh;
+    margin-bottom: 1rem;
+    max-width: none;
+    min-width: auto;
+  }
+  
+  .logs-panel {
+    height: 35vh;
+    margin-bottom: 0;
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .resize-handle.horizontal {
+    display: none; /* Hide horizontal resize handle on mobile */
+  }
+  
+  #script-editor {
+    font-size: 14px;
+    padding: 1rem;
+    min-height: 300px;
+  }
+  
+  .d-flex.align-items-center.mb-3 {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  
+  .ms-auto {
+    margin-top: 1rem !important;
+    margin-left: 0 !important;
+  }
+}
+
+/* Medium screens - vertical layout with resizable height */
+@media (min-width: 769px) and (max-width: 1200px) {
+  .resizable-container {
+    flex-direction: column;
+    height: calc(100% - 60px);
+  }
+  
+  .editor-panel {
+    flex: 1;
+    min-height: 300px;
+    max-height: calc(100% - 200px);
+    max-width: none;
+    min-width: auto;
+  }
+  
+  .logs-panel {
+    height: 250px;
+    min-height: 150px;
+    max-height: 400px;
+    width: 100%;
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .resize-handle.horizontal {
+    display: none;
+  }
+  
+  .resize-handle.vertical {
+    display: flex;
+    width: 100%;
+    height: 4px;
+    min-height: 4px;
+    cursor: row-resize;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .resize-handle.vertical .resize-handle-line {
+    width: 40px;
+    height: 2px;
+  }
+}
+
+/* Loading States */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loading-spinner {
+  color: white;
+  font-size: 2rem;
+}
+
+/* Scrollbar Styling */
+#logs-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#logs-container::-webkit-scrollbar-track {
+  background-color: var(--bg-tertiary);
+}
+
+#logs-container::-webkit-scrollbar-thumb {
+  background-color: var(--border-primary);
+  border-radius: 4px;
+}
+
+#logs-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-secondary);
+}
+
+/* Animation for new log entries */
+@keyframes slideInLog {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.log-entry.new {
+  animation: slideInLog 0.3s ease-out;
+}
+
+/* Focus indicators for accessibility */
+.btn:focus,
+.form-select:focus,
+#script-editor:focus {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+}

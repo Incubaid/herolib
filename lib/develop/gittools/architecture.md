@@ -85,22 +85,36 @@ site:key                       → config JSON
 site:key:repos:<provider:acct:name> → GitRepo JSON
 ```
 
-### 4.2 GitRepo (excerpt)
+### 4.2 GitRepo & GitStatus
+
+The state of a repository is captured in a single, unified `GitStatus` struct. This struct represents the *current* state of the repository after a `status_update()` operation and does not contain any "desired" or "wanted" state. State changes are performed through imperative function calls (e.g., `repo.branch_switch('main')`).
 
 ```v
 pub struct GitRepo {
-    provider string // e.g. github
-    account  string // org/user
-    name     string // repo name
-    status_remote GitRepoStatusRemote
-    status_local  GitRepoStatusLocal
-    status_wanted GitRepoStatusWanted
-    last_load     int    // epoch
-    has_changes   bool
+	provider     string
+	account      string
+	name         string
+	config       GitRepoConfig
+	status       GitStatus  // Unified CURRENT status object
+}
+
+pub struct GitStatus {
+pub mut:
+	// Combined local & remote state from `git fetch`
+	branches map[string]string // branch name -> commit hash
+	tags     map[string]string // tag name -> commit hash
+
+	// Current local state
+	branch   string // current checked-out branch
+	tag      string // current checked-out tag (if any)
+	ahead    int    // commits ahead of remote
+	behind   int    // commits behind remote
+
+	// Overall status
+	has_changes bool   // true if uncommitted changes exist
+	error       string // holds error messages from status updates
 }
 ```
-
-Status structs separate **remote**, **local** and **desired** state, enabling `need_*` predicates to remain trivial.
 
 ---
 

@@ -1,8 +1,9 @@
 module openai
 
 import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook
-// import freeflowuniverse.herolib.ui.console
+import freeflowuniverse.herolib.core.playbook { PlayBook }
+import freeflowuniverse.herolib.ui.console
+import json
 
 __global (
 	openai_global  map[string]&OpenAI
@@ -14,83 +15,111 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name string
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
 }
 
-fn args_get(args_ ArgsGet) ArgsGet {
-	mut args := args_
-	if args.name == '' {
-		args.name = 'default'
-	}
-	return args
-}
-
-pub fn get(args_ ArgsGet) !&OpenAI {
-	mut context := base.context()!
-	mut args := args_get(args_)
+pub fn new(args ArgsGet) !&OpenAI {
 	mut obj := OpenAI{
 		name: args.name
 	}
-	if args.name !in openai_global {
-		if !exists(args)! {
-			set(obj)!
+	set(obj)!
+	return get(name: args.name)!
+}
+
+pub fn get(args ArgsGet) !&OpenAI {
+	mut context := base.context()!
+	openai_default = args.name
+	if args.fromdb || args.name !in openai_global {
+		mut r := context.redis()!
+		if r.hexists('context:openai', args.name)! {
+			data := r.hget('context:openai', args.name)!
+			if data.len == 0 {
+				return error('OpenAI with name: openai does not exist, prob bug.')
+			}
+			mut obj := json.decode(OpenAI, data)!
+			set_in_mem(obj)!
 		} else {
-			heroscript := context.hero_config_get('openai', args.name)!
-			mut obj_ := heroscript_loads(heroscript)!
-			set_in_mem(obj_)!
+			if args.create {
+				new(args)!
+			} else {
+				return error("OpenAI with name 'openai' does not exist")
+			}
 		}
+		return get(name: args.name)! // no longer from db nor create
 	}
 	return openai_global[args.name] or {
-		println(openai_global)
-		// bug if we get here because should be in globals
-		panic('could not get config for openai with name, is bug, was for: ${args.name}')
+		return error('could not get config for openai with name:openai')
 	}
 }
 
 // register the config for the future
 pub fn set(o OpenAI) ! {
-	set_in_mem(o)!
+	mut o2 := set_in_mem(o)!
+	openai_default = o2.name
 	mut context := base.context()!
-	heroscript := heroscript_dumps(o)!
-	context.hero_config_set('openai', o.name, heroscript)!
+	mut r := context.redis()!
+	r.hset('context:openai', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
-pub fn exists(args_ ArgsGet) !bool {
+pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
-	mut args := args_get(args_)
-	return context.hero_config_exists('openai', args.name)
+	mut r := context.redis()!
+	return r.hexists('context:openai', args.name)!
 }
 
-pub fn delete(args_ ArgsGet) ! {
-	mut args := args_get(args_)
+pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
-	context.hero_config_delete('openai', args.name)!
-	if args.name in openai_global {
-		// del openai_global[args.name]
-	}
-}
-
-// only sets in mem, does not set as config
-fn set_in_mem(o OpenAI) ! {
-	mut o2 := obj_init(o)!
-	openai_global[o.name] = &o2
-	openai_default = o.name
+	mut r := context.redis()!
+	r.hdel('context:openai', args.name)!
 }
 
 @[params]
-pub struct PlayArgs {
+pub struct ArgsList {
 pub mut:
-	heroscript string // if filled in then plbook will be made out of it
-	plbook     ?playbook.PlayBook
-	reset      bool
+	fromdb bool // will load from filesystem
 }
 
-pub fn play(args_ PlayArgs) ! {
-	mut args := args_
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&OpenAI {
+	mut res := []&OpenAI{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		openai_global = map[string]&OpenAI{}
+		openai_default = ''
+	}
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:openai')!
 
-	mut plbook := args.plbook or { playbook.new(text: args.heroscript)! }
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in openai_global {
+			res << client
+		}
+	}
+	return res
+}
 
+// only sets in mem, does not set as config
+fn set_in_mem(o OpenAI) !OpenAI {
+	mut o2 := obj_init(o)!
+	openai_global[o2.name] = &o2
+	openai_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'openai.') {
+		return
+	}
 	mut install_actions := plbook.find(filter: 'openai.configure')!
 	if install_actions.len > 0 {
 		for install_action in install_actions {
@@ -104,11 +133,4 @@ pub fn play(args_ PlayArgs) ! {
 // switch instance to be used for openai
 pub fn switch(name string) {
 	openai_default = name
-}
-
-// helpers
-
-@[params]
-pub struct DefaultConfigArgs {
-	instance string = 'default'
 }

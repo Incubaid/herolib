@@ -4,15 +4,16 @@ import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.osal.zinit
+import freeflowuniverse.herolib.osal.startupmanager
 import freeflowuniverse.herolib.installers.ulist
+import freeflowuniverse.herolib.libarchive.zinit as zinit_lib
 import freeflowuniverse.herolib.core.httpconnection
 import os
 import json
 
-fn startupcmd() ![]zinit.ZProcessNewArgs {
-	mut res := []zinit.ZProcessNewArgs{}
-	res << zinit.ZProcessNewArgs{
+fn startupcmd() ![]startupmanager.ZProcessNewArgs {
+	mut res := []startupmanager.ZProcessNewArgs{}
+	res << startupmanager.ZProcessNewArgs{
 		name:        'garage_s3'
 		cmd:         'garage_s3 -c /var/garage/config.toml server'
 		startuptype: .zinit
@@ -153,16 +154,16 @@ fn destroy() ! {
 		return error('failed to uninstall garage_s3: ${res.output}')
 	}
 
-	mut zinit_factory := zinit.new()!
+	// mut zinit_factory := zinit_lib.Zinit{}
 
-	if zinit_factory.exists('garage_s3') {
-		zinit_factory.stop('garage_s3') or {
-			return error('Could not stop garage_s3 service due to: ${err}')
-		}
-		zinit_factory.delete('garage_s3') or {
-			return error('Could not delete garage_s3 service due to: ${err}')
-		}
-	}
+	// if zinit_factory.exists('garage_s3'){
+	// 	zinit_factory.stop('garage_s3') or {
+	// 		return error('Could not stop garage_s3 service due to: ${err}')
+	// 	}
+	// 	zinit_factory.delete('garage_s3') or {
+	// 		return error('Could not delete garage_s3 service due to: ${err}')
+	// 	}
+	// }
 
 	console.print_header('garage_s3 is uninstalled')
 }

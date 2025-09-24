@@ -7,7 +7,7 @@ import os
 
 pub fn configure() ! {
 	mut args := get()!
-	mut gs := gittools.get()!
+	mut gs := gittools.new()!
 	mut repo_path := ''
 
 	set_global_dns()

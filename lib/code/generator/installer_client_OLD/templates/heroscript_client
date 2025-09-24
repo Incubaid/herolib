@@ -1,7 +1,0 @@
-!!hero_code.generate_client
-    name: "${model.name}"
-    classname: "${model.classname}"
-    hasconfig: ${model.hasconfig}
-    singleton: ${model.singleton}
-    default: ${model.default}
-    title: "${model.title}"

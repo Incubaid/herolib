@@ -5,7 +5,8 @@ import freeflowuniverse.herolib.core.texttools
 // import freeflowuniverse.herolib.screen
 import os
 import time
-import freeflowuniverse.herolib.ui.console
+// import freeflowuniverse.herolib.ui.console
+import freeflowuniverse.herolib.osal.core as osal
 
 @[heap]
 pub struct ScreensFactory {
@@ -54,11 +55,12 @@ pub fn (mut self ScreensFactory) scan() ! {
 		return
 	}
 	// there is stuff to parses
-
+	// println(res.output)
 	res1 := texttools.remove_empty_lines(res.output)
 		.split_into_lines()
 		.filter(it.starts_with(' ') || it.starts_with('\t'))
 		.join_lines()
+	// println(res1)
 	mut res2 := texttools.to_list_map('pre,state', res1, '').map(init_screen_object(it))
 	for mut item in res2 {
 		if self.exists(item.name) {
@@ -105,7 +107,6 @@ pub fn (mut self ScreensFactory) add(args_ ScreenAddArgs) !Screen {
 	mut myscreen := self.get(args.name) or {
 		return error('couldnt start screen with name ${args.name}, was not found afterwards.\ncmd:${args.cmd}\nScreens found.\n${self.str()}')
 	}
-
 	if args.attach {
 		myscreen.attach()!
 	}
@@ -137,15 +138,18 @@ pub fn (mut self ScreensFactory) start(name string) ! {
 		return error("can't start screen with name:${name}, couldn't find.\nScreens found.\n${self.str()}")
 	}
 	s.start_()!
+
+	osal.sleep(1)
+
 	for {
 		self.scan()!
+
 		mut s2 := self.get(name) or {
 			return error('couldnt start screen with name ${name}, was not found in screen scan.\ncmd:\n${s.cmd}\nScreens found.\n${self.str()}')
 		}
 		if s2.pid > 0 {
 			return
 		}
-		console.print_debug(s2.str())
 		time.sleep(100000)
 	}
 }

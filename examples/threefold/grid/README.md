@@ -6,7 +6,7 @@ To be able to run examples you need to install updated version of `griddriver`.
 
 Create some `griddriver_install.vsh` file containing following code:
 
-```vlang
+```v
 #!/usr/bin/env -S v -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import freeflowuniverse.herolib.installers.tfgrid.griddriver as griddriverinstaller

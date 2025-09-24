@@ -1,6 +1,5 @@
 #!/usr/bin/env -S v -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib...
 import compress.gzip
 
 // Define some sample data to compress
@@ -18,12 +17,12 @@ println('Compressed Data Length: ${compressed_data.len}')
 // Decompress the data
 decompressed_data := gzip.decompress(compressed_data)!
 
-println('Decompressed Data: "${decompressed_data.string()}"')
+println('Decompressed Data: "${decompressed_data.bytestr()}"')
 println('Decompressed Data Length: ${decompressed_data.len}')
 
 // Verify if the decompressed data matches the original data
 if data.bytes() == decompressed_data {
-    println('Compression and decompression successful! Data matches.')
+	println('Compression and decompression successful! Data matches.')
 } else {
-    println('Error: Decompressed data does not match original data.')
+	println('Error: Decompressed data does not match original data.')
 }

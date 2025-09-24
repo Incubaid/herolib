@@ -1,0 +1,92 @@
+name: Release Hero
+
+permissions:
+  contents: write
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    timeout-minutes: 60
+    if: startsWith(github.ref, 'refs/tags/')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            short-name: linux-i64
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            short-name: linux-arm64
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            short-name: macos-arm64
+          # - target: x86_64-apple-darwin
+          #   os: macos-13
+          #   short-name: macos-i64
+    runs-on: ${{ matrix.os }}
+        
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref_name }} and your repository is ${{ github.repository }}."
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        if: runner.os == 'macOS'
+        with:
+          xcode-version: latest-stable
+
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Setup V & Herolib
+        id: setup
+        run: ./install_v.sh --herolib
+        timeout-minutes: 10
+
+      # - name: Do all the basic tests
+      #   timeout-minutes: 25
+      #   run: ./test_basic.vsh
+
+      - name: Build Hero
+        timeout-minutes: 15
+        run: |
+          set -e
+          v -w -d use_openssl -enable-globals cli/hero.v -o cli/hero-${{ matrix.target }}
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: hero-${{ matrix.target }}
+          path: cli/hero-${{ matrix.target }}        
+
+  release_hero:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: cli/bins
+          merge-multiple: true
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          draft: false
+          fail_on_unmatched_files: true
+          generate_release_notes: true
+          files: cli/bins/*

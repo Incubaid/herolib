@@ -5,9 +5,9 @@ import freeflowuniverse.herolib.biz.bizmodel
 
 bizmodel_name := 'test'
 export_path := '${os.home_dir}/Downloads/bizmodel'
-playbook_path := os.dir(@FILE) + '/exampledata'
+plbook_path := os.dir(@FILE) + '/exampledata'
 
-mut model := bizmodel.generate(bizmodel_name, playbook_path)!
+mut model := bizmodel.generate(bizmodel_name, plbook_path)!
 
 // Export to CSV
 model.export_csv(
