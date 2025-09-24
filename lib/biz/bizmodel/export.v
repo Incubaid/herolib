@@ -23,8 +23,8 @@ pub fn (b BizModel) export(args ExportArgs) ! {
 	)!
 
 	b.write_introduction(args)!
-	// b.write_operational_plan(args)!
-	// b.write_revenue_model(args)!
+	b.write_operational_plan(args)!
+	b.write_revenue_model(args)!
 	// b.write_cost_structure(args)!
 	// b.export_summary()
 	// b.export_business_description()
@@ -44,6 +44,7 @@ pub fn (model BizModel) write_introduction(args ExportArgs) ! {
 }
 
 pub fn (model BizModel) write_operational_plan(args ExportArgs) ! {
+	mut sim:=model
 	mut dir := pathlib.get_dir(path: '${args.path}/operational_plan')!
 	mut ops_page := pathlib.get_file(path: '${dir.path}/operational_plan.md')!
 	ops_page.write('# Operational Plan')!
@@ -64,7 +65,17 @@ pub fn (model BizModel) write_operational_plan(args ExportArgs) ! {
 	}
 
 	mut depts_dir := pathlib.get_dir(path: '${dir.path}/departments')!
+
+	mut employee_names := map[string]string{}
+	for _, empl in sim.employees {
+		employee_names[empl.name] = empl.name
+		if empl.page.len > 0 {
+			employee_names[empl.name] = '[${empl.name}](${empl.page})'
+		}
+	}
+
 	for key, department in model.departments {
+		dept := department
 		mut dept_page := pathlib.get_file(
 			path: '${depts_dir.path}/${texttools.snake_case(department.name)}.md'
 		)!
