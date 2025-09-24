@@ -298,8 +298,7 @@ pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext ma
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			args := db.decode_generic[RegistrationDeskArg](params)!
-			mut o := f.registration_desk.new(args)!
+			mut o := db.decode_generic[RegistrationDesk](params)!
 			o = f.registration_desk.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

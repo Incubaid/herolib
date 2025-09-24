@@ -258,8 +258,7 @@ pub fn group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]str
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			args := db.decode_generic[GroupArg](params)!
-			mut o := f.group.new(args)!
+			mut o := db.decode_generic[Group](params)!
 			o = f.group.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

@@ -324,8 +324,7 @@ pub fn project_issue_handle(mut f ModelsFactory, rpcid int, servercontext map[st
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			args := db.decode_generic[ProjectIssueArg](params)!
-			mut o := f.project_issue.new(args)!
+			mut o := db.decode_generic[ProjectIssue](params)!
 			o = f.project_issue.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
