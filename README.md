@@ -2,8 +2,8 @@
 
 Herolib is an opinionated library primarily used by ThreeFold to automate cloud environments. It provides a comprehensive set of tools and utilities for cloud automation, git operations, documentation building, and more.
 
-[![Build on Linux & Run tests](https://github.com/freeflowuniverse/herolib/actions/workflows/test.yml/badge.svg)](https://github.com/freeflowuniverse/herolib/actions/workflows/test.yml)
-[![Deploy Documentation to Pages](https://github.com/freeflowuniverse/herolib/actions/workflows/documentation.yml/badge.svg)](https://github.com/freeflowuniverse/herolib/actions/workflows/documentation.yml)
+[![Build on Linux & Run tests](https://github.com/incubaid/herolib/actions/workflows/test.yml/badge.svg)](https://github.com/incubaid/herolib/actions/workflows/test.yml)
+[![Deploy Documentation to Pages](https://github.com/incubaid/herolib/actions/workflows/documentation.yml/badge.svg)](https://github.com/incubaid/herolib/actions/workflows/documentation.yml)
 
 > [Complete Documentation](https://freeflowuniverse.github.io/herolib/)
 
@@ -14,7 +14,7 @@ Herolib is an opinionated library primarily used by ThreeFold to automate cloud 
 The Hero tool can be installed with a single command:
 
 ```bash
-curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh | bash
+curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_hero.sh | bash
 ```
 
 Hero will be installed in:
@@ -34,7 +34,7 @@ The Hero tool can be used to work with git, build documentation, interact with H
 For development purposes, use the automated installation script:
 
 ```bash
-curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
 
 #do not forget to do the following this makes sure vtest and vrun exists
@@ -90,7 +90,7 @@ Herolib provides a wide range of functionality:
 - System management utilities
 - And much more
 
-Check the [cookbook](https://github.com/freeflowuniverse/herolib/tree/development/cookbook) for examples and use cases.
+Check the [cookbook](https://github.com/incubaid/herolib/tree/development/cookbook) for examples and use cases.
 
 ## Testing
 
@@ -160,7 +160,7 @@ This is caused by incompatibility between TCC and the half precision math functi
 ## Additional Resources
 
 - [Complete Documentation](https://freeflowuniverse.github.io/herolib/)
-- [Cookbook Examples](https://github.com/freeflowuniverse/herolib/tree/development/cookbook)
+- [Cookbook Examples](https://github.com/incubaid/herolib/tree/development/cookbook)
 - [AI Prompts](aiprompts/starter/0_start_here.md)
 
 ## Generating Documentation

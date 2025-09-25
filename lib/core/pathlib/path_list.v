@@ -35,7 +35,7 @@ pub mut:
 // ignore_default bool = true // ignore files starting with . and _
 // dirs_only     bool
 //
-// example see https://github.com/freeflowuniverse/herolib/blob/development/examples/core/pathlib/examples/list/path_list.v
+// example see https://github.com/incubaid/herolib/blob/development/examples/core/pathlib/examples/list/path_list.v
 //
 // e.g. p.list(regex:[r'.*\.v$'])!  //notice the r in front of string, this is regex for all files ending with .v
 //

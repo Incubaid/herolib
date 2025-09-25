@@ -34,7 +34,7 @@ fn install_(args InstallArgs) ! {
 	mut repo := gs.get_repo(
 		pull:  args.git_pull
 		reset: args.git_reset
-		url:   'https://github.com/freeflowuniverse/herolib/tree/development/lib'
+		url:   'https://github.com/incubaid/herolib/tree/development/lib'
 	)!
 
 	// mut repo2 := gs.get_repo(
@@ -48,7 +48,7 @@ fn install_(args InstallArgs) ! {
 
 	mut path1p := pathlib.get_dir(path: path1, create: false)!
 	// mut path2p := pathlib.get_dir(path: path2, create: false)!
-	path1p.link('${os.home_dir()}/.vmodules/freeflowuniverse/herolib', true)!
+	path1p.link('${os.home_dir()}/.vmodules/incubaid/herolib', true)!
 	// path2p.link('${os.home_dir()}/.vmodules/freeflowuniverse/webcomponents', true)!
 
 	// hero_compile()!
@@ -83,7 +83,7 @@ pub fn install(args InstallArgs) ! {
 	cmd := '
 		cd /tmp
 		export TERM=xterm
-		curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh | bash
+		curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_hero.sh | bash
 		'
 	osal.execute_stdout(cmd) or { return error('Cannot install hero.\n${err}') }
 	osal.done_set('install_hero', 'OK')!
@@ -101,7 +101,7 @@ pub fn compile(args InstallArgs) ! {
 	cmd := "
 		cd /tmp
 		export TERM=xterm
-		curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+		curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
 		bash /tmp/install_v.sh --herolib 
 		"
 	osal.execute_stdout(cmd) or { return error('Cannot install hero.\n${err}') }

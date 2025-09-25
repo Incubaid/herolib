@@ -4,6 +4,7 @@ import os
 import freeflowuniverse.herolib.biz.spreadsheet
 import freeflowuniverse.herolib.data.ourtime
 
+@[heap]
 pub struct BizModel {
 pub mut:
 	name        string
@@ -16,6 +17,7 @@ pub mut:
 	products    map[string]&Product
 }
 
+@[heap]
 pub struct Employee {
 pub:
 	name                 string
@@ -33,6 +35,7 @@ pub:
 	start_date           ?ourtime.OurTime
 }
 
+@[heap]
 pub struct Department {
 pub:
 	name             string

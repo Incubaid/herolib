@@ -57,10 +57,10 @@ pub fn (mut node Node) hero_install(args HeroInstallArgs) ! {
 
 	mut todo := []string{}
 	if !args.compile {
-		todo << 'curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh > /tmp/install.sh'
+		todo << 'curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_hero.sh > /tmp/install.sh'
 		todo << 'bash /tmp/install.sh'
 	} else {
-		todo << "curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh"
+		todo << "curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh"
 		if args.v_analyzer {
 			todo << 'bash /tmp/install_v.sh --analyzer --herolib '
 		} else {

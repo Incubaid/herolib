@@ -8,7 +8,7 @@ version='1.0.33'
 
 
 # Base URL for GitHub releases
-base_url="https://github.com/freeflowuniverse/herolib/releases/download/v${version}"
+base_url="https://github.com/incubaid/herolib/releases/download/v${version}"
 
 # Select the URL based on the platform
 if [[ "$os_name" == "Linux" && "$arch_name" == "x86_64" ]]; then

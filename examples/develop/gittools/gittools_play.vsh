@@ -20,7 +20,7 @@ heroscript := "
     recursive:false
 
 !!git.clone
-    url:'https://github.com/freeflowuniverse/herolib.git'
+    url:'https://github.com/incubaid/herolib.git'
     light:true
     recursive:false
 
