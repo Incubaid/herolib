@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -11,13 +11,13 @@ import json
 pub struct Profile {
 	db.Base
 pub mut:
-	user_id u32 // a user can have more than one profile
-	summary string
+	user_id  u32 // a user can have more than one profile
+	summary  string
 	headline string
 	location string
 	industry string
 	// urls to profile pictures
-	picture_url      string
+	picture_url          string
 	background_image_url string
 	// contact info
 	email   string
@@ -109,79 +109,77 @@ pub fn (self Profile) example(methodname string) (string, string) {
 }
 
 pub fn (self Profile) dump(mut e encoder.Encoder) ! {
-    e.add_u32(self.user_id)
-    e.add_string(self.summary)
-    e.add_string(self.headline)
-    e.add_string(self.location)
-    e.add_string(self.industry)
-    e.add_string(self.picture_url)
-    e.add_string(self.background_image_url)
-    e.add_string(self.email)
-    e.add_string(self.phone)
-    e.add_string(self.website)
-    e.add_string(json.encode_pretty(self.experience))
-    e.add_string(json.encode_pretty(self.education))
-    e.add_list_string(self.skills)
-    e.add_list_string(self.languages)
+	e.add_u32(self.user_id)
+	e.add_string(self.summary)
+	e.add_string(self.headline)
+	e.add_string(self.location)
+	e.add_string(self.industry)
+	e.add_string(self.picture_url)
+	e.add_string(self.background_image_url)
+	e.add_string(self.email)
+	e.add_string(self.phone)
+	e.add_string(self.website)
+	e.add_string(json.encode_pretty(self.experience))
+	e.add_string(json.encode_pretty(self.education))
+	e.add_list_string(self.skills)
+	e.add_list_string(self.languages)
 }
-
 
 fn (mut self DBProfile) load(mut o Profile, mut e encoder.Decoder) ! {
-    o.user_id = e.get_u32()!
-    o.summary = e.get_string()!
-    o.headline = e.get_string()!
-    o.location = e.get_string()!
-    o.industry = e.get_string()!
-    o.picture_url = e.get_string()!
-    o.background_image_url = e.get_string()!
-    o.email = e.get_string()!
-    o.phone = e.get_string()!
-    o.website = e.get_string()!
-    o.experience = json.decode([]Experience, e.get_string()!)!
-    o.education = json.decode([]Education, e.get_string()!)!
-    o.skills = e.get_list_string()!
-    o.languages = e.get_list_string()!
+	o.user_id = e.get_u32()!
+	o.summary = e.get_string()!
+	o.headline = e.get_string()!
+	o.location = e.get_string()!
+	o.industry = e.get_string()!
+	o.picture_url = e.get_string()!
+	o.background_image_url = e.get_string()!
+	o.email = e.get_string()!
+	o.phone = e.get_string()!
+	o.website = e.get_string()!
+	o.experience = json.decode([]Experience, e.get_string()!)!
+	o.education = json.decode([]Education, e.get_string()!)!
+	o.skills = e.get_list_string()!
+	o.languages = e.get_list_string()!
 }
-
 
 @[params]
 pub struct ProfileArg {
 pub mut:
-	name        string
-	description string
-	user_id u32 // a user can have more than one profile
-	summary string
-	headline string
-	location string
-	industry string
-	picture_url      string
+	name                 string
+	description          string
+	user_id              u32 // a user can have more than one profile
+	summary              string
+	headline             string
+	location             string
+	industry             string
+	picture_url          string
 	background_image_url string
-	email   string
-	phone   string
-	website string
-	experience []Experience
-	education  []Education
-	skills     []string
-	languages  []string
+	email                string
+	phone                string
+	website              string
+	experience           []Experience
+	education            []Education
+	skills               []string
+	languages            []string
 }
 
 // get new profile, not from the DB
 pub fn (mut self DBProfile) new(args ProfileArg) !Profile {
 	mut o := Profile{
-		user_id: args.user_id
-		summary: args.summary
-		headline: args.headline
-		location: args.location
-		industry: args.industry
-		picture_url: args.picture_url
+		user_id:              args.user_id
+		summary:              args.summary
+		headline:             args.headline
+		location:             args.location
+		industry:             args.industry
+		picture_url:          args.picture_url
 		background_image_url: args.background_image_url
-		email: args.email
-		phone: args.phone
-		website: args.website
-		experience: args.experience
-		education: args.education
-		skills: args.skills
-		languages: args.languages
+		email:                args.email
+		phone:                args.phone
+		website:              args.website
+		experience:           args.experience
+		education:            args.education
+		skills:               args.skills
+		languages:            args.languages
 	}
 
 	// Set base fields
@@ -227,8 +225,8 @@ pub fn profile_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 		}
 		'set' {
 			mut o := db.decode_generic[Profile](params)!
-			o=f.profile.set(o)!
-			return new_response_int(rpcid,int(o.id))
+			o = f.profile.set(o)!
+			return new_response_int(rpcid, int(o.id))
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -244,9 +242,8 @@ pub fn profile_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '') // no params
 			res := f.profile.list()!
-			return new_response(req.id, json.encode_pretty(res))
+			return new_response(rpcid, json.encode_pretty(res))
 		}
 		else {
 			println('Method not found on profile: ${method}')

@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -54,7 +54,7 @@ pub mut:
 @[params]
 pub struct ProjectListArg {
 pub mut:
-	status ProjectStatus
+	status ?ProjectStatus // Optional status filter
 	limit  int = 100 // Default limit is 100
 }
 
@@ -244,20 +244,17 @@ pub fn (mut self DBProject) get(id u32) !Project {
 }
 
 pub fn (mut self DBProject) list(args ProjectListArg) ![]Project {
-	// Require at least one parameter to be provided
-	if args.status == .planning {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all projects from the database
 	all_projects := self.db.list[Project]()!.map(self.get(it)!)
 
 	// Apply filters
 	mut filtered_projects := []Project{}
 	for project in all_projects {
-		// Filter by status if provided (status is not planning)
-		if args.status != .planning && project.status != args.status {
-			continue
+		// Filter by status if provided
+		if status := args.status {
+			if project.status != status {
+				continue
+			}
 		}
 
 		filtered_projects << project
@@ -274,7 +271,6 @@ pub fn (mut self DBProject) list(args ProjectListArg) ![]Project {
 
 	return filtered_projects
 }
-
 
 pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
@@ -302,9 +298,9 @@ pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.project.list()!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[ProjectListArg](params)!
+			res := f.project.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

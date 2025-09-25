@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -20,7 +20,7 @@ pub mut:
 
 pub struct GroupMember {
 pub mut:
-	user_id   u32 //are users as defined in ledger, each user needs to exist in the generic ledger
+	user_id   u32 // are users as defined in ledger, each user needs to exist in the generic ledger
 	role      GroupRole
 	joined_at i64
 }
@@ -160,7 +160,7 @@ pub fn (mut self DBGroup) new(args GroupArg) !Group {
 
 pub fn (mut self DBGroup) set(o_ Group) !Group {
 	// Save the group first to get its ID if it's new
-	mut o:=o_
+	mut o := o_
 	o = self.db.set[Group](o)!
 
 	// If this group has a parent, add it to the parent's subgroups
@@ -204,11 +204,6 @@ pub fn (mut self DBGroup) get(id u32) !Group {
 }
 
 pub fn (mut self DBGroup) list(args GroupListArg) ![]Group {
-	// Require at least one parameter to be provided
-	if !args.is_public && args.parent_group == 0 {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all groups from the database
 	mut all_groups := self.db.list[Group]()!
 	mut groups := []Group{}
@@ -255,7 +250,6 @@ pub fn (mut self Group) add_member(user_id u32, role GroupRole) {
 
 // CUSTOM FEATURES FOR GROUP
 
-
 pub fn group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
@@ -282,9 +276,9 @@ pub fn group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]str
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.group.list()!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[GroupListArg](params)!
+			res := f.group.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

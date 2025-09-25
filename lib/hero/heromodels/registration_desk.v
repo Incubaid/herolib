@@ -3,24 +3,24 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
 @[heap]
 pub struct RegistrationDesk {
-	db.Base	
+	db.Base
 pub mut:
 	name                string
-	description         string //probably in markdown
+	description         string                       // probably in markdown
 	fs_items            []RegistrationFileAttachment // link to docs
-	white_list          []u32 // users who can enter, if 1 specified then people need to be in this list
-	white_list_accepted []u32 // if in this list automatically accepted
-	required_list          []u32 // users who must be part of the event
-	black_list          []u32 // users not allowed
-	start_time          u64   // time when users can start registration
-	end_time            u64   // time when registration desk stops
-	acceptance_required bool  // if set then admins need to approve
+	white_list          []u32                        // users who can enter, if 1 specified then people need to be in this list
+	white_list_accepted []u32                        // if in this list automatically accepted
+	required_list       []u32                        // users who must be part of the event
+	black_list          []u32                        // users not allowed
+	start_time          u64  // time when users can start registration
+	end_time            u64  // time when registration desk stops
+	acceptance_required bool // if set then admins need to approve
 	registrations       []Registration
 }
 
@@ -100,7 +100,7 @@ pub fn (self RegistrationDesk) example(methodname string) (string, string) {
 pub fn (self RegistrationDesk) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.name)
 	e.add_string(self.description)
-	
+
 	// Encode fs_items array (RegistrationFileAttachment objects)
 	e.add_u16(u16(self.fs_items.len))
 	for fs_item in self.fs_items {
@@ -108,7 +108,7 @@ pub fn (self RegistrationDesk) dump(mut e encoder.Encoder) ! {
 		e.add_string(fs_item.cat)
 		e.add_bool(fs_item.public)
 	}
-	
+
 	e.add_list_u32(self.white_list)
 	e.add_list_u32(self.white_list_accepted)
 	e.add_list_u32(self.black_list)
@@ -130,7 +130,7 @@ pub fn (self RegistrationDesk) dump(mut e encoder.Encoder) ! {
 pub fn (mut self DBRegistrationDesk) load(mut o RegistrationDesk, mut e encoder.Decoder) ! {
 	o.name = e.get_string()!
 	o.description = e.get_string()!
-	
+
 	// Decode fs_items array (RegistrationFileAttachment objects)
 	fs_items_len := e.get_u16()!
 	mut fs_items := []RegistrationFileAttachment{}
@@ -146,7 +146,7 @@ pub fn (mut self DBRegistrationDesk) load(mut o RegistrationDesk, mut e encoder.
 		}
 	}
 	o.fs_items = fs_items
-	
+
 	o.white_list = e.get_list_u32()!
 	o.white_list_accepted = e.get_list_u32()!
 	o.black_list = e.get_list_u32()!
@@ -178,18 +178,18 @@ pub fn (mut self DBRegistrationDesk) load(mut o RegistrationDesk, mut e encoder.
 @[params]
 pub struct RegistrationDeskArg {
 pub mut:
-	name               string
-	description        string
-	fs_items           []u32 // IDs of linked files or dirs
-	white_list         []u32 // users who can enter, if 1 specified then people need to be in this list
-	white_list_accepted []u32 // if in this list automatically accepted
-	black_list         []u32 // users not allowed
-	start_time         string // use ourtime module to go from string to epoch
-	end_time           string // use ourtime module to go from string to epoch
-	acceptance_required bool  // if set then admins need to approve
-	securitypolicy     u32
-	tags               []string
-	messages           []db.MessageArg
+	name                string
+	description         string
+	fs_items            []u32  // IDs of linked files or dirs
+	white_list          []u32  // users who can enter, if 1 specified then people need to be in this list
+	white_list_accepted []u32  // if in this list automatically accepted
+	black_list          []u32  // users not allowed
+	start_time          string // use ourtime module to go from string to epoch
+	end_time            string // use ourtime module to go from string to epoch
+	acceptance_required bool   // if set then admins need to approve
+	securitypolicy      u32
+	tags                []string
+	messages            []db.MessageArg
 }
 
 pub fn (mut self DBRegistrationDesk) new(args RegistrationDeskArg) !RegistrationDesk {
@@ -198,7 +198,7 @@ pub fn (mut self DBRegistrationDesk) new(args RegistrationDeskArg) !Registration
 	for fs_item_id in args.fs_items {
 		fs_attachments << RegistrationFileAttachment{
 			fs_item: fs_item_id
-			cat:     ""
+			cat:     ''
 			public:  false
 		}
 	}
@@ -259,11 +259,6 @@ pub mut:
 }
 
 pub fn (mut self DBRegistrationDesk) list(args RegistrationDeskListArg) ![]RegistrationDesk {
-	// Require at least one parameter to be provided
-	if args.name == '' && args.description == '' {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all registration desks from the database
 	all_desks := self.db.list[RegistrationDesk]()!.map(self.get(it)!)
 
@@ -321,9 +316,9 @@ pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext ma
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.registration_desk.list(RegistrationDeskListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[RegistrationDeskListArg](params)!
+			res := f.registration_desk.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

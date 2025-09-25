@@ -3,6 +3,7 @@ module logger
 import os
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.ui.console
 
 @[params]
 pub struct LogItemArgs {
@@ -77,10 +78,10 @@ fn (mut l Logger) write_to_console(args LogItemArgs, t ourtime.OurTime) ! {
 
 	for i, line in lines {
 		if i == 0 {
-			println('${timestamp} [${error_indicator}] [${category}] ${line}')
+			console.print_info('${timestamp} [${error_indicator}] [${category}] ${line}')
 		} else {
 			// Indent continuation lines
-			println('${timestamp} [${error_indicator}] [${category}]   ${line}')
+			console.print_info('${timestamp} [${error_indicator}] [${category}]   ${line}')
 		}
 	}
 }

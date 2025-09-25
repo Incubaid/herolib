@@ -4,11 +4,17 @@ import freeflowuniverse.herolib.crypt.herocrypt
 import freeflowuniverse.herolib.schemas.openrpc
 import freeflowuniverse.herolib.ui.console
 import freeflowuniverse.herolib.core.logger
+import freeflowuniverse.herolib.osal.core as osal
 import time
 import veb
 
 // Create a new HeroServer instance
 pub fn new(config HeroServerConfig) !&HeroServer {
+	// Check if the port is available
+	osal.port_check_available(config.port) or {
+		return error('Port ${config.port} is already in use')
+	}
+
 	// Initialize crypto client
 	crypto_client := if c := config.crypto_client {
 		c
@@ -35,8 +41,6 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 		logger:          server_logger
 		start_time:      time.now().unix()
 	}
-
-	console.print_header('HeroServer created on port ${server.port}')
 	return server
 }
 
@@ -48,18 +52,18 @@ pub fn (mut server HeroServer) register_handler(handler_type string, handler &op
 
 // Start the server
 pub fn (mut server HeroServer) start() ! {
+	// Print server info
 	if server.cors_enabled {
 		console.print_item('CORS enabled for origins: ${server.allowed_origins}')
 	}
 
 	// Start VEB server
-	handler_name := server.handlers.keys()[0]
 	console.print_item('Server starting on http://${server.host}:${server.port}')
 	console.print_item('HTML Homepage: http://${server.host}:${server.port}/')
-	console.print_item('JSON Info: http://${server.host}:${server.port}/json/${handler_name}')
-	console.print_item('Documentation: http://${server.host}:${server.port}/doc/${handler_name}')
-	console.print_item('Markdown Docs: http://${server.host}:${server.port}/md/${handler_name}')
-	console.print_item('API Endpoint: http://${server.host}:${server.port}/api/${handler_name}')
+	console.print_item('JSON Info: http://${server.host}:${server.port}/json/{handler_name}')
+	console.print_item('Documentation: http://${server.host}:${server.port}/doc/{handler_name}')
+	console.print_item('Markdown Docs: http://${server.host}:${server.port}/md/{handler_name}')
+	console.print_item('API Endpoint: http://${server.host}:${server.port}/api/{handler_name}')
 
 	veb.run[HeroServer, Context](mut server, server.port)
 }

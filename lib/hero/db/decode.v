@@ -2,13 +2,32 @@ module db
 
 import x.json2
 import json
+import strconv
 
 pub fn decode_int(data string) !int {
-	return json2.decode[int](data) or { return error('Failed to decode int: ${data}') }
+	// Try JSON decode first (for proper JSON numbers like "123")
+	if result := json2.decode[int](data) {
+		return result
+	}
+	// If that fails, try parsing as a string number (for quoted strings like "\"123\"")
+	trimmed := data.trim_space().trim('"')
+	parsed_int := strconv.parse_int(trimmed, 10, 32) or {
+		return error('Failed to decode int: ${data}')
+	}
+	return int(parsed_int)
 }
 
 pub fn decode_u32(data string) !u32 {
-	return json2.decode[u32](data) or { return error('Failed to decode u32: ${data}') }
+	// Try JSON decode first (for proper JSON numbers like "123")
+	if result := json2.decode[u32](data) {
+		return result
+	}
+	// If that fails, try parsing as a string number (for quoted strings like "\"123\"")
+	trimmed := data.trim_space().trim('"')
+	parsed_uint := strconv.parse_uint(trimmed, 10, 32) or {
+		return error('Failed to decode u32: ${data}')
+	}
+	return u32(parsed_uint)
 }
 
 pub fn decode_bool(data string) !bool {
@@ -16,10 +35,6 @@ pub fn decode_bool(data string) !bool {
 }
 
 pub fn decode_generic[T](data string) !T {
-	mut r := json.decode(T, data) or { 
-		println('Failed to decode T: \n***\n${data}\n***\n${err}')
-		println(T{})
-		return error('Failed to decode T: ${data}\n${err}') 
-	}
+	mut r := json.decode(T, data) or { return error('Failed to decode T: ${data}\n${err}') }
 	return r
 }

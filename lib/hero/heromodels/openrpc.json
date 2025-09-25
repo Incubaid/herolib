@@ -16,6 +16,7 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
+                        "example": 1,
                         "minimum": 0
                     }
                 }
@@ -40,6 +41,50 @@
                     "schema": {
                         "$ref": "#/components/schemas/Calendar"
                     }
+                },
+                {
+                    "name": "events",
+                    "description": "Array of event IDs to add to the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "array",
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "color",
+                    "description": "Hex color code for the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "#FF0000"
+                    }
+                },
+                {
+                    "name": "timezone",
+                    "description": "Timezone for the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "UTC"
+                    }
+                },
+                {
+                    "name": "is_public",
+                    "description": "Whether the calendar is public",
+                    "required": false,
+                    "schema": {
+                        "type": "boolean",
+                        "example": true
+                    }
                 }
             ],
             "result": {
@@ -62,7 +107,8 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "example": 1
                     }
                 }
             ],
@@ -85,7 +131,8 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "example": 1
                     }
                 }
             ],
@@ -124,7 +171,8 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "example": 1
                     }
                 }
             ],
@@ -170,7 +218,8 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "example": 1
                     }
                 }
             ],
@@ -193,7 +242,8 @@
                     "required": true,
                     "schema": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "example": 1
                     }
                 }
             ],
@@ -1414,37 +1464,58 @@
         "schemas": {
             "Base": {
                 "type": "object",
+                "description": "Base properties inherited by all model objects",
                 "properties": {
                     "id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Unique identifier",
+                        "example": 1
                     },
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Object name",
+                        "example": "My Object"
                     },
                     "description": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Object description",
+                        "example": "A sample object description"
                     },
                     "created_at": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp when created",
+                        "example": 1704110400
                     },
                     "updated_at": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp when last updated",
+                        "example": 1704110400
                     },
                     "securitypolicy": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Security policy ID",
+                        "example": 1
                     },
                     "tags": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Tags ID",
+                        "example": 1
                     },
                     "messages": {
                         "type": "array",
+                        "description": "Associated message IDs",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
                     }
                 }
             },
@@ -1459,19 +1530,31 @@
                 "properties": {
                     "events": {
                         "type": "array",
+                        "description": "IDs of calendar events",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
                     },
                     "color": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Hex color code for the calendar",
+                        "example": "#FF0000"
                     },
                     "timezone": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Timezone for the calendar",
+                        "example": "UTC"
                     },
                     "is_public": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether the calendar is public",
+                        "example": true
                     }
                 }
             },
@@ -1485,105 +1568,257 @@
                 ],
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Event title",
+                        "example": "Team Meeting"
                     },
                     "start_time": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp for event start",
+                        "example": 1704110400
                     },
                     "end_time": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp for event end",
+                        "example": 1704114000
                     },
-                    "location": {
-                        "type": "string"
+                    "registration_desks": {
+                        "type": "array",
+                        "description": "IDs of registration desks for tracking invitees",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            1,
+                            2
+                        ]
                     },
                     "attendees": {
                         "type": "array",
+                        "description": "List of event attendees",
                         "items": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
+                            "$ref": "#/components/schemas/Attendee"
+                        },
+                        "example": []
                     },
-                    "fs_items": {
+                    "docs": {
                         "type": "array",
+                        "description": "Linked documents for the event",
                         "items": {
-                            "type": "integer",
-                            "minimum": 0
-                        }
+                            "$ref": "#/components/schemas/EventDoc"
+                        },
+                        "example": []
                     },
                     "calendar_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the associated calendar",
+                        "example": 1
                     },
                     "status": {
                         "type": "string",
+                        "description": "Current status of the event",
                         "enum": [
                             "draft",
                             "published",
                             "cancelled",
                             "completed"
-                        ]
+                        ],
+                        "example": "published"
                     },
                     "is_all_day": {
-                        "type": "boolean"
-                    },
-                    "is_recurring": {
-                        "type": "boolean"
-                    },
-                    "recurrence": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/components/schemas/RecurrenceRule"
-                        }
+                        "type": "boolean",
+                        "description": "Whether this is an all-day event",
+                        "example": false
                     },
                     "reminder_mins": {
                         "type": "array",
+                        "description": "Minutes before event for reminders",
                         "items": {
                             "type": "integer"
-                        }
+                        },
+                        "example": [
+                            15,
+                            60
+                        ]
                     },
                     "color": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Hex color code for the event",
+                        "example": "#0000FF"
                     },
                     "timezone": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Timezone for the event",
+                        "example": "UTC"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "Event priority level",
+                        "enum": [
+                            "low",
+                            "normal",
+                            "urgent"
+                        ],
+                        "example": "normal"
+                    },
+                    "public": {
+                        "type": "boolean",
+                        "description": "Whether the event is public",
+                        "example": true
+                    },
+                    "locations": {
+                        "type": "array",
+                        "description": "Event locations",
+                        "items": {
+                            "$ref": "#/components/schemas/EventLocation"
+                        },
+                        "example": []
+                    },
+                    "is_template": {
+                        "type": "boolean",
+                        "description": "Whether this is a template event",
+                        "example": false
                     }
                 }
             },
-            "RecurrenceRule": {
-                "title": "RecurrenceRule",
-                "description": "A recurrence rule for calendar events",
+            "Attendee": {
+                "title": "Attendee",
+                "description": "An event attendee",
                 "type": "object",
                 "properties": {
-                    "frequency": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the user",
+                        "example": 123
+                    },
+                    "status_latest": {
                         "type": "string",
+                        "description": "Latest attendance status",
                         "enum": [
-                            "none",
-                            "daily",
-                            "weekly",
-                            "monthly",
-                            "yearly"
-                        ]
+                            "invited",
+                            "accepted",
+                            "declined",
+                            "tentative"
+                        ],
+                        "example": "accepted"
                     },
-                    "interval": {
-                        "type": "integer"
+                    "attendance_required": {
+                        "type": "boolean",
+                        "description": "Whether attendance is required",
+                        "example": true
                     },
-                    "until": {
-                        "type": "integer"
+                    "admin": {
+                        "type": "boolean",
+                        "description": "Whether user can manage the event",
+                        "example": false
                     },
-                    "count": {
-                        "type": "integer"
+                    "organizer": {
+                        "type": "boolean",
+                        "description": "Whether user is an organizer",
+                        "example": false
                     },
-                    "by_weekday": {
+                    "location": {
+                        "type": "string",
+                        "description": "Optional location for this attendee",
+                        "example": "Conference Room A"
+                    },
+                    "log": {
                         "type": "array",
+                        "description": "Attendance status log",
                         "items": {
-                            "type": "integer"
-                        }
+                            "$ref": "#/components/schemas/AttendeeLog"
+                        },
+                        "example": []
+                    }
+                }
+            },
+            "AttendeeLog": {
+                "title": "AttendeeLog",
+                "description": "An attendance status log entry",
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unix timestamp of status change",
+                        "example": 1704110400
                     },
-                    "by_monthday": {
+                    "status": {
+                        "type": "string",
+                        "description": "Attendance status",
+                        "enum": [
+                            "invited",
+                            "accepted",
+                            "declined",
+                            "tentative"
+                        ],
+                        "example": "accepted"
+                    },
+                    "remark": {
+                        "type": "string",
+                        "description": "Optional remark about status change",
+                        "example": "Looking forward to it!"
+                    }
+                }
+            },
+            "EventDoc": {
+                "title": "EventDoc",
+                "description": "A document linked to an event",
+                "type": "object",
+                "properties": {
+                    "fs_item": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "File system item ID",
+                        "example": 456
+                    },
+                    "cat": {
+                        "type": "string",
+                        "description": "Document category (lowercase)",
+                        "example": "agenda"
+                    },
+                    "public": {
+                        "type": "boolean",
+                        "description": "Whether document is public",
+                        "example": true
+                    }
+                }
+            },
+            "EventLocation": {
+                "title": "EventLocation",
+                "description": "An event location",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Location name",
+                        "example": "Conference Room A"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Location description",
+                        "example": "Main building, 2nd floor"
+                    },
+                    "cat": {
+                        "type": "string",
+                        "description": "Location category",
+                        "enum": [
+                            "online",
+                            "physical",
+                            "hybrid"
+                        ],
+                        "example": "physical"
+                    },
+                    "docs": {
                         "type": "array",
+                        "description": "Documents for this location",
                         "items": {
-                            "type": "integer"
-                        }
+                            "$ref": "#/components/schemas/EventDoc"
+                        },
+                        "example": []
                     }
                 }
             },
@@ -1598,22 +1833,30 @@
                 "properties": {
                     "chat_type": {
                         "type": "string",
+                        "description": "Type of chat group",
                         "enum": [
                             "public_channel",
                             "private_channel",
                             "direct_message",
                             "group_message"
-                        ]
+                        ],
+                        "example": "public_channel"
                     },
                     "last_activity": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp of last activity",
+                        "example": 1704110400
                     },
                     "is_archived": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether the chat group is archived",
+                        "example": false
                     },
                     "group_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Associated group ID",
+                        "example": 1
                     }
                 }
             },
@@ -1627,31 +1870,45 @@
                 ],
                 "properties": {
                     "content": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Message content",
+                        "example": "Hello everyone! How is the project going?"
                     },
                     "chat_group_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the chat group",
+                        "example": 1
                     },
                     "sender_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the message sender",
+                        "example": 123
                     },
                     "parent_messages": {
                         "type": "array",
+                        "description": "Links to parent messages (replies, references)",
                         "items": {
                             "$ref": "#/components/schemas/MessageLink"
-                        }
+                        },
+                        "example": []
                     },
                     "fs_files": {
                         "type": "array",
+                        "description": "File system item IDs attached to message",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            201,
+                            202
+                        ]
                     },
                     "message_type": {
                         "type": "string",
+                        "description": "Type of message",
                         "enum": [
                             "text",
                             "image",
@@ -1660,30 +1917,40 @@
                             "video",
                             "system",
                             "announcement"
-                        ]
+                        ],
+                        "example": "text"
                     },
                     "status": {
                         "type": "string",
+                        "description": "Message delivery status",
                         "enum": [
                             "sent",
                             "delivered",
                             "read",
                             "failed",
                             "deleted"
-                        ]
+                        ],
+                        "example": "delivered"
                     },
                     "reactions": {
                         "type": "array",
+                        "description": "User reactions to the message",
                         "items": {
                             "$ref": "#/components/schemas/MessageReaction"
-                        }
+                        },
+                        "example": []
                     },
                     "mentions": {
                         "type": "array",
+                        "description": "User IDs mentioned in the message",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            456,
+                            789
+                        ]
                     }
                 }
             },
@@ -1694,16 +1961,20 @@
                 "properties": {
                     "message_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the linked message",
+                        "example": 456
                     },
                     "link_type": {
                         "type": "string",
+                        "description": "Type of link relationship",
                         "enum": [
                             "reply",
                             "reference",
                             "forward",
                             "quote"
-                        ]
+                        ],
+                        "example": "reply"
                     }
                 }
             },
@@ -1714,13 +1985,19 @@
                 "properties": {
                     "user_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the user who reacted",
+                        "example": 123
                     },
                     "emoji": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Emoji used for reaction",
+                        "example": "👍"
                     },
                     "timestamp": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp when reaction was added",
+                        "example": 1704110400
                     }
                 }
             },
@@ -1735,48 +2012,77 @@
                 "properties": {
                     "emails": {
                         "type": "array",
+                        "description": "Email addresses",
                         "items": {
                             "type": "string"
-                        }
+                        },
+                        "example": [
+                            "john.doe@example.com",
+                            "john@company.com"
+                        ]
                     },
                     "user_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Associated user ID",
+                        "example": 123
                     },
                     "phones": {
                         "type": "array",
+                        "description": "Phone numbers",
                         "items": {
                             "type": "string"
-                        }
+                        },
+                        "example": [
+                            "+1-555-123-4567",
+                            "+1-555-987-6543"
+                        ]
                     },
                     "addresses": {
                         "type": "array",
+                        "description": "Physical addresses",
                         "items": {
                             "type": "string"
-                        }
+                        },
+                        "example": [
+                            "123 Main St, City, State 12345"
+                        ]
                     },
                     "avatar_url": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "URL to avatar image",
+                        "example": "https://example.com/avatar.jpg"
                     },
                     "bio": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Biography or description",
+                        "example": "Software Engineer with 5 years experience"
                     },
                     "timezone": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Timezone",
+                        "example": "UTC"
                     },
                     "status": {
                         "type": "string",
+                        "description": "Contact status",
                         "enum": [
                             "active",
                             "inactive"
-                        ]
+                        ],
+                        "example": "active"
                     },
                     "profile_ids": {
                         "type": "array",
+                        "description": "Associated profile IDs",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            1,
+                            2
+                        ]
                     }
                 }
             },
@@ -1791,23 +2097,34 @@
                 "properties": {
                     "members": {
                         "type": "array",
+                        "description": "Group members",
                         "items": {
                             "$ref": "#/components/schemas/GroupMember"
-                        }
+                        },
+                        "example": []
                     },
                     "subgroups": {
                         "type": "array",
+                        "description": "IDs of child groups",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            10,
+                            11
+                        ]
                     },
                     "parent_group": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of parent group",
+                        "example": 5
                     },
                     "is_public": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether the group is public",
+                        "example": true
                     }
                 }
             },
@@ -1818,19 +2135,25 @@
                 "properties": {
                     "user_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the user",
+                        "example": 123
                     },
                     "role": {
                         "type": "string",
+                        "description": "Member role in the group",
                         "enum": [
                             "reader",
                             "writer",
                             "admin",
                             "owner"
-                        ]
+                        ],
+                        "example": "writer"
                     },
                     "joined_at": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp when user joined",
+                        "example": 1704110400
                     }
                 }
             },
@@ -1844,38 +2167,58 @@
                 ],
                 "properties": {
                     "subject": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Message subject",
+                        "example": "Project Update - Week 1"
                     },
                     "message": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Message content",
+                        "example": "Here's the weekly project update with current progress and next steps."
                     },
                     "parent": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of parent message (for replies)",
+                        "example": 456
                     },
                     "author": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of message author",
+                        "example": 123
                     },
                     "to": {
                         "type": "array",
+                        "description": "IDs of primary recipients",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            789,
+                            101
+                        ]
                     },
                     "cc": {
                         "type": "array",
+                        "description": "IDs of CC recipients",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            102,
+                            103
+                        ]
                     },
                     "send_log": {
                         "type": "array",
+                        "description": "Log of message delivery attempts",
                         "items": {
                             "$ref": "#/components/schemas/SendLog"
-                        }
+                        },
+                        "example": []
                     }
                 }
             },
@@ -1886,29 +2229,42 @@
                 "properties": {
                     "to": {
                         "type": "array",
+                        "description": "IDs of recipients in this send attempt",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            789,
+                            101
+                        ]
                     },
                     "cc": {
                         "type": "array",
+                        "description": "IDs of CC recipients in this send attempt",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            102
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "description": "Delivery status",
                         "enum": [
                             "sent",
                             "received",
                             "acknowledged"
-                        ]
+                        ],
+                        "example": "sent"
                     },
                     "timestamp": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Unix timestamp of send attempt",
+                        "example": 1704110400
                     }
                 }
             },
@@ -2146,38 +2502,54 @@
                 "properties": {
                     "swimlanes": {
                         "type": "array",
+                        "description": "Project swimlanes for organizing work",
                         "items": {
                             "$ref": "#/components/schemas/Swimlane"
-                        }
+                        },
+                        "example": []
                     },
                     "milestones": {
                         "type": "array",
+                        "description": "Project milestones",
                         "items": {
                             "$ref": "#/components/schemas/Milestone"
-                        }
+                        },
+                        "example": []
                     },
                     "fs_files": {
                         "type": "array",
+                        "description": "File system item IDs associated with project",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            101,
+                            102,
+                            103
+                        ]
                     },
                     "status": {
                         "type": "string",
+                        "description": "Current project status",
                         "enum": [
                             "planning",
                             "active",
                             "on_hold",
                             "completed",
                             "cancelled"
-                        ]
+                        ],
+                        "example": "active"
                     },
                     "start_date": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp for project start date",
+                        "example": 1704110400
                     },
                     "end_date": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp for project end date",
+                        "example": 1706788800
                     }
                 }
             },
@@ -2187,19 +2559,29 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Swimlane name",
+                        "example": "To Do"
                     },
                     "description": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Swimlane description",
+                        "example": "Tasks that need to be started"
                     },
                     "order": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Display order",
+                        "example": 1
                     },
                     "color": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Hex color code",
+                        "example": "#FF0000"
                     },
                     "is_done": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether this swimlane represents completed work",
+                        "example": false
                     }
                 }
             },
@@ -2209,23 +2591,37 @@
                 "type": "object",
                 "properties": {
                     "name": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Milestone name",
+                        "example": "Phase 1 Complete"
                     },
                     "description": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Milestone description",
+                        "example": "Complete all Phase 1 deliverables"
                     },
                     "due_date": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp for due date",
+                        "example": 1706788800
                     },
                     "completed": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether milestone is completed",
+                        "example": false
                     },
                     "issues": {
                         "type": "array",
+                        "description": "Issue IDs associated with this milestone",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
                     }
                 }
             },
@@ -2239,14 +2635,19 @@
                 ],
                 "properties": {
                     "title": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Issue title",
+                        "example": "Implement user authentication system"
                     },
                     "project_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the associated project",
+                        "example": 1
                     },
                     "issue_type": {
                         "type": "string",
+                        "description": "Type of issue",
                         "enum": [
                             "task",
                             "story",
@@ -2254,10 +2655,12 @@
                             "question",
                             "epic",
                             "subtask"
-                        ]
+                        ],
+                        "example": "task"
                     },
                     "priority": {
                         "type": "string",
+                        "description": "Issue priority level",
                         "enum": [
                             "lowest",
                             "low",
@@ -2265,10 +2668,12 @@
                             "high",
                             "highest",
                             "critical"
-                        ]
+                        ],
+                        "example": "medium"
                     },
                     "status": {
                         "type": "string",
+                        "description": "Current issue status",
                         "enum": [
                             "open",
                             "in_progress",
@@ -2277,48 +2682,76 @@
                             "testing",
                             "done",
                             "closed"
-                        ]
+                        ],
+                        "example": "open"
                     },
                     "swimlane": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Swimlane name for organization",
+                        "example": "To Do"
                     },
                     "assignees": {
                         "type": "array",
+                        "description": "IDs of users assigned to this issue",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            123,
+                            456
+                        ]
                     },
                     "reporter": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of user who reported the issue",
+                        "example": 789
                     },
                     "milestone": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "Milestone name",
+                        "example": "Phase 1 Complete"
                     },
                     "deadline": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Unix timestamp for deadline",
+                        "example": 1706788800
                     },
                     "estimate": {
-                        "type": "integer"
+                        "type": "integer",
+                        "description": "Estimated hours to complete",
+                        "example": 8
                     },
                     "fs_files": {
                         "type": "array",
+                        "description": "File system item IDs attached to issue",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            301,
+                            302
+                        ]
                     },
                     "parent_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of parent issue (for subtasks)",
+                        "example": 10
                     },
                     "children": {
                         "type": "array",
+                        "description": "IDs of child issues (subtasks)",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            11,
+                            12
+                        ]
                     }
                 }
             },
@@ -2333,54 +2766,83 @@
                 "properties": {
                     "fs_items": {
                         "type": "array",
+                        "description": "File attachments for registration",
                         "items": {
                             "$ref": "#/components/schemas/RegistrationFileAttachment"
-                        }
+                        },
+                        "example": []
                     },
                     "white_list": {
                         "type": "array",
+                        "description": "User IDs allowed to register",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            123,
+                            456,
+                            789
+                        ]
                     },
                     "white_list_accepted": {
                         "type": "array",
+                        "description": "User IDs from whitelist who have been accepted",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            123,
+                            456
+                        ]
                     },
                     "required_list": {
                         "type": "array",
+                        "description": "User IDs required to register",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            123
+                        ]
                     },
                     "black_list": {
                         "type": "array",
+                        "description": "User IDs blocked from registration",
                         "items": {
                             "type": "integer",
                             "minimum": 0
-                        }
+                        },
+                        "example": [
+                            999
+                        ]
                     },
                     "start_time": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration opens",
+                        "example": 1704110400
                     },
                     "end_time": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration closes",
+                        "example": 1706788800
                     },
                     "acceptance_required": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether registrations require manual acceptance",
+                        "example": true
                     },
                     "registrations": {
                         "type": "array",
+                        "description": "List of registrations",
                         "items": {
                             "$ref": "#/components/schemas/Registration"
-                        }
+                        },
+                        "example": []
                     }
                 }
             },
@@ -2391,13 +2853,19 @@
                 "properties": {
                     "fs_item": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "File system item ID",
+                        "example": 401
                     },
                     "cat": {
-                        "type": "string"
+                        "type": "string",
+                        "description": "File category",
+                        "example": "document"
                     },
                     "public": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether file is publicly accessible",
+                        "example": false
                     }
                 }
             },
@@ -2408,22 +2876,32 @@
                 "properties": {
                     "user_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of the registered user",
+                        "example": 123
                     },
                     "accepted": {
-                        "type": "boolean"
+                        "type": "boolean",
+                        "description": "Whether registration has been accepted",
+                        "example": true
                     },
                     "accepted_by": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "ID of user who accepted the registration",
+                        "example": 456
                     },
                     "timestamp": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration was submitted",
+                        "example": 1704110400
                     },
                     "timestamp_acceptation": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration was accepted",
+                        "example": 1704196800
                     }
                 }
             },
@@ -2438,26 +2916,37 @@
                 "properties": {
                     "user_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "User ID from ledger system",
+                        "example": 456
                     },
                     "contact_id": {
                         "type": "integer",
-                        "minimum": 0
+                        "minimum": 0,
+                        "description": "Associated contact ID",
+                        "example": 123
                     },
                     "status": {
                         "type": "string",
+                        "description": "User status",
                         "enum": [
                             "active",
                             "inactive",
                             "suspended",
                             "pending"
-                        ]
+                        ],
+                        "example": "active"
                     },
                     "profile_ids": {
                         "type": "array",
+                        "description": "Associated profile IDs",
                         "items": {
                             "type": "string"
-                        }
+                        },
+                        "example": [
+                            "profile_1",
+                            "profile_2"
+                        ]
                     }
                 }
             }

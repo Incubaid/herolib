@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -15,7 +15,7 @@ pub mut:
 	chat_type     ChatType
 	last_activity i64
 	is_archived   bool
-	group_id u32 //group linked to this chat group
+	group_id      u32 // group linked to this chat group
 }
 
 pub enum ChatType {
@@ -162,7 +162,6 @@ pub fn (mut self DBChatGroup) list() ![]ChatGroup {
 	return self.db.list[ChatGroup]()!.map(self.get(it)!)
 }
 
-
 pub fn chat_group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
@@ -189,9 +188,8 @@ pub fn chat_group_handle(mut f ModelsFactory, rpcid int, servercontext map[strin
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
 			res := f.chat_group.list()!
-			return new_response(req.id, json.encode(res))
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

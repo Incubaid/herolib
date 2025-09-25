@@ -29,7 +29,7 @@ pub mut:
 	description      string
 	params           []DocParam
 	result           DocParam
-	example_call     string
+	example_request  string
 	example_response string
 	endpoint_url     string
 	curl_example     string
@@ -105,13 +105,17 @@ pub fn doc_spec_from_openrpc_with_config(openrpc_spec openrpc.OpenRPC, config Do
 fn process_method(method openrpc.Method, config DocConfig) !DocMethod {
 	// Convert parameters
 	doc_params := process_parameters(method.params)!
+	example_request := generate_request_example(doc_params)!
 
 	// Convert result
 	doc_result := process_result(method.result)!
+	example_response := if doc_result.example.len > 0 {
+		doc_result.example
+	} else {
+		generate_response_example(doc_result)!
+	}
 
-	// Generate examples
-	example_call := generate_example_call(doc_params)
-	example_response := generate_example_response(doc_result)
+	// example_call := generate_example_call(doc_params)
 
 	doc_method := DocMethod{
 		name:             method.name
@@ -119,12 +123,14 @@ fn process_method(method openrpc.Method, config DocConfig) !DocMethod {
 		description:      method.description
 		params:           doc_params
 		result:           doc_result
-		endpoint_url:     '${config.base_url}/api/${config.handler_type}'
-		example_call:     example_call
 		example_response: example_response
-		curl_example:     generate_curl_example_jsonrpc(method.name, doc_params, config.base_url,
-			config.handler_type)
+		example_request:  example_request
 	}
+
+	// endpoint_url: '${config.base_url}/api/${config.handler_type}'
+	// example_call:     example_call
+	// curl_example:     generate_curl_example_jsonrpc(method.name, doc_params, config.base_url,
+	// 	config.handler_type)
 
 	return doc_method
 }
@@ -136,7 +142,7 @@ fn process_parameters(params []openrpc.ContentDescriptorRef) ![]DocParam {
 	for param in params {
 		if param is openrpc.ContentDescriptor {
 			type_info := extract_type_from_schema(param.schema)
-			example := generate_example_from_schema(param.schema, param.name)
+			example := extract_example_from_schema(param.schema)
 
 			doc_params << DocParam{
 				name:        param.name
@@ -157,14 +163,14 @@ fn process_result(result openrpc.ContentDescriptorRef) !DocParam {
 
 	if result is openrpc.ContentDescriptor {
 		type_info := extract_type_from_schema(result.schema)
-		example := generate_example_from_schema(result.schema, result.name)
+		example := extract_example_from_schema(result.schema)
 
 		doc_result = DocParam{
 			name:        result.name
 			description: result.description
 			type_info:   type_info
-			required:    false // Results are never required
-			example:     example
+			// required:    false // Results are never required
+			example: example
 		}
 	}
 
@@ -184,7 +190,7 @@ fn create_auth_info_with_config(enabled bool) AuthDocInfo {
 }
 
 // extract_type_from_schema extracts the JSON Schema type from a SchemaRef.
-// Returns the type string (e.g., 'string', 'object', 'array') or 'reference'/'unknown' for edge cases.
+// Returns detailed type string (e.g., 'string', 'array[integer]', 'object') for better example generation.
 fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 	schema := match schema_ref {
 		jsonschema.Schema {
@@ -196,15 +202,37 @@ fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 	}
 
 	if schema.typ.len > 0 {
+		// For arrays, include the item type if available
+		if schema.typ == 'array' {
+			if items := schema.items {
+				// Handle single schema reference (most common case)
+				if items is jsonschema.SchemaRef {
+					item_type := extract_type_from_schema(items)
+					return 'array[${item_type}]'
+				}
+				// Handle array of schema references (tuple validation)
+				if items is []jsonschema.SchemaRef {
+					if items.len > 0 {
+						item_type := extract_type_from_schema(items[0])
+						return 'array[${item_type}]'
+					}
+				}
+			}
+		}
+		// For objects with additionalProperties, include the value type
+		if schema.typ == 'object' {
+			if additional := schema.additional_properties {
+				value_type := extract_type_from_schema(additional)
+				return 'object[${value_type}]'
+			}
+		}
 		return schema.typ
 	}
 	return 'unknown'
 }
 
-// generate_example_from_schema creates an example value for a parameter or result.
-// Uses the jsonschema.Schema.example_value() method with parameter name customization for strings.
-// Returns properly formatted JSON values based on the schema type.
-fn generate_example_from_schema(schema_ref jsonschema.SchemaRef, param_name string) string {
+// extract_example_from_schema extracts the example value from a SchemaRef
+fn extract_example_from_schema(schema_ref jsonschema.SchemaRef) string {
 	schema := match schema_ref {
 		jsonschema.Schema {
 			schema_ref
@@ -214,40 +242,22 @@ fn generate_example_from_schema(schema_ref jsonschema.SchemaRef, param_name stri
 		}
 	}
 
-	// Use the improved example_value() method from jsonschema module
-	example := schema.example_value()
-
-	// For string types without explicit examples, customize with parameter name
-	if example == '"example_value"' && schema.typ == 'string' && param_name != '' {
-		return '"example_${param_name}"'
+	if schema.example.str() != '' {
+		return schema.example.str()
 	}
-
-	return example
+	return ''
 }
 
-// generate_example_call creates a formatted JSON example for method calls.
-// Combines all parameter examples into a properly formatted JSON object.
-fn generate_example_call(params []DocParam) string {
-	if params.len == 0 {
-		return '{}'
+// generate_example_from_schema creates an example value for a parameter or result
+fn generate_example_from_schema(schema_ref jsonschema.SchemaRef, param_name string) string {
+	match schema_ref {
+		jsonschema.Schema {
+			return '"example_value"'
+		}
+		jsonschema.Reference {
+			return '"reference_value"'
+		}
 	}
-
-	mut call_parts := []string{}
-	for param in params {
-		call_parts << '"${param.name}": ${param.example}'
-	}
-
-	return '{\n  ${call_parts.join(',\n  ')}\n}'
-}
-
-// generate_example_response creates a formatted JSON example for method responses.
-// Wraps the result example in a standard {"result": ...} format.
-fn generate_example_response(result DocParam) string {
-	if result.name == '' {
-		return '{"result": "success"}'
-	}
-
-	return '{"result": ${result.example}}'
 }
 
 // Create authentication documentation info
@@ -289,42 +299,4 @@ fn create_auth_info() AuthDocInfo {
 			},
 		]
 	}
-}
-
-// generate_jsonrpc_example_call creates a complete JSON-RPC request example
-fn generate_jsonrpc_example_call(method_name string, params []DocParam) string {
-	params_obj := if params.len == 0 {
-		'{}'
-	} else {
-		mut call_parts := []string{}
-		for param in params {
-			call_parts << '"${param.name}": ${param.example}'
-		}
-		'{\n    ${call_parts.join(',\n    ')}\n  }'
-	}
-
-	return '{\n  "jsonrpc": "2.0",\n  "method": "${method_name}",\n  "params": ${params_obj},\n  "id": 1\n}'
-}
-
-// generate_curl_example_jsonrpc creates a curl command with proper JSON-RPC format
-fn generate_curl_example_jsonrpc(method_name string, params []DocParam, base_url string, handler_name string) string {
-	endpoint := '${base_url}/api/${handler_name}'
-	jsonrpc_request := generate_jsonrpc_example_call(method_name, params)
-
-	mut curl_cmd := 'curl -X POST ${endpoint} \\\n'
-	curl_cmd += '  -H "Content-Type: application/json" \\\n'
-	curl_cmd += '  -d \'${jsonrpc_request}\''
-
-	return curl_cmd
-}
-
-// generate_curl_example creates a curl command for the given method (legacy)
-pub fn generate_curl_example(method DocMethod, base_url string, handler_name string) string {
-	endpoint := '${base_url}/api/${handler_name}'
-
-	mut curl_cmd := 'curl -X POST ${endpoint} \\\n'
-	curl_cmd += '  -H "Content-Type: application/json" \\\n'
-	curl_cmd += '  -d \'${method.example_call}\''
-
-	return curl_cmd
 }

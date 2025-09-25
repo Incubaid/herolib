@@ -3,36 +3,36 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
 // Planning, how do people or teams want to plan their time
-//acls can be used to define who can change this planning
+// acls can be used to define who can change this planning
 @[heap]
 pub struct Planning {
 	db.Base
 pub mut:
-	color              string // Hex color code
-	timezone           string
-	is_public          bool
-	calendar_template_id        u32              // link to calendarid which is relevant for this planning, this calendar event will be a template
-	registration_desk_id u32 //to arrange how we let people register, and track registrations
-	autoschedule_rules []PlanningRecurrenceRule // will automatically schedule, uses calendar_id as template
-	invite_rules       []PlanningRecurrenceRule // times in which people can invite themselves
-	attendees_required []u32 
-	attendees_optional []u32 //if we want to specify upfront
+	color                string // Hex color code
+	timezone             string
+	is_public            bool
+	calendar_template_id u32                      // link to calendarid which is relevant for this planning, this calendar event will be a template
+	registration_desk_id u32                      // to arrange how we let people register, and track registrations
+	autoschedule_rules   []PlanningRecurrenceRule // will automatically schedule, uses calendar_id as template
+	invite_rules         []PlanningRecurrenceRule // times in which people can invite themselves
+	attendees_required   []u32
+	attendees_optional   []u32 // if we want to specify upfront
 }
 
 pub struct PlanningRecurrenceRule {
 pub mut:
-	until       u64   // End date (Unix timestamp)
-	by_weekday  []u8  // Days of week (0=Sunday)
-	by_monthday []u8  // Days of month
-	hour_from   u8    // Start hour (0-23)
-	hour_to     u8    // End hour (0-23)
-	duration    int   // Duration in minutes
-	priority    u8    // Priority level (0-10)
+	until       u64  // End date (Unix timestamp)
+	by_weekday  []u8 // Days of week (0=Sunday)
+	by_monthday []u8 // Days of month
+	hour_from   u8   // Start hour (0-23)
+	hour_to     u8   // End hour (0-23)
+	duration    int  // Duration in minutes
+	priority    u8   // Priority level (0-10)
 }
 
 pub fn (self PlanningRecurrenceRule) dump(mut e encoder.Encoder) ! {
@@ -127,13 +127,13 @@ pub fn (self Planning) dump(mut e encoder.Encoder) ! {
 	e.add_bool(self.is_public)
 	e.add_u32(self.calendar_template_id)
 	e.add_u32(self.registration_desk_id)
-	
+
 	// Encode autoschedule_rules array
 	e.add_u16(u16(self.autoschedule_rules.len))
 	for rule in self.autoschedule_rules {
 		rule.dump(mut e)!
 	}
-	
+
 	// Encode invite_rules array
 	e.add_u16(u16(self.invite_rules.len))
 	for rule in self.invite_rules {
@@ -153,7 +153,7 @@ fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 	o.is_public = e.get_bool()!
 	o.calendar_template_id = e.get_u32()!
 	o.registration_desk_id = e.get_u32()!
-	
+
 	// Decode autoschedule_rules array
 	autoschedule_rules_len := e.get_u16()!
 	mut autoschedule_rules := []PlanningRecurrenceRule{}
@@ -163,7 +163,7 @@ fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 		autoschedule_rules << rule
 	}
 	o.autoschedule_rules = autoschedule_rules
-	
+
 	// Decode invite_rules array
 	invite_rules_len := e.get_u16()!
 	mut invite_rules := []PlanningRecurrenceRule{}
@@ -246,12 +246,6 @@ pub fn (mut self DBPlanning) get(id u32) !Planning {
 }
 
 pub fn (mut self DBPlanning) list(args PlanningListArg) ![]Planning {
-	// Require at least one parameter to be provided
-	// Require at least one parameter to be provided
-	if !args.is_public && args.calendar_template_id == 0 && args.registration_desk_id == 0 {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all plannings from the database
 	all_plannings := self.db.list[Planning]()!.map(self.get(it)!)
 
@@ -264,12 +258,14 @@ pub fn (mut self DBPlanning) list(args PlanningListArg) ![]Planning {
 		}
 
 		// Filter by calendar_template_id if provided
-		if args.calendar_template_id != 0 && planning.calendar_template_id != args.calendar_template_id {
+		if args.calendar_template_id != 0
+			&& planning.calendar_template_id != args.calendar_template_id {
 			continue
 		}
 
 		// Filter by registration_desk_id if provided
-		if args.registration_desk_id != 0 && planning.registration_desk_id != args.registration_desk_id {
+		if args.registration_desk_id != 0
+			&& planning.registration_desk_id != args.registration_desk_id {
 			continue
 		}
 
@@ -314,9 +310,9 @@ pub fn planning_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.planning.list(PlanningListArg{})!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[PlanningListArg](params)!
+			res := f.planning.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,

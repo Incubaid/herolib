@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true, new_response_int }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -12,9 +12,9 @@ import json
 pub struct User {
 	db.Base
 pub mut:
-	user_id    u32 // id as is set in ledger, if 0 then we don't know
-	contact_id u32 // if we have separate content info for this person
-	status     UserStatus
+	user_id     u32 // id as is set in ledger, if 0 then we don't know
+	contact_id  u32 // if we have separate content info for this person
+	status      UserStatus
 	profile_ids []string
 }
 
@@ -120,9 +120,9 @@ pub mut:
 // get new user, not from the DB
 pub fn (mut self DBUser) new(args UserArg) !User {
 	mut o := User{
-		user_id:    args.user_id
-		contact_id: args.contact_id
-		status:     args.status
+		user_id:     args.user_id
+		contact_id:  args.contact_id
+		status:      args.status
 		profile_ids: args.profile_ids
 	}
 
@@ -157,22 +157,12 @@ pub fn (mut self DBUser) get(id u32) !User {
 }
 
 pub fn (mut self DBUser) list(args UserListArg) ![]User {
-	// Require at least one parameter to be provided
-	if args.status == .active {
-		return error('At least one filter parameter must be provided')
-	}
-
 	// Get all users from the database
 	all_users := self.db.list[User]()!.map(self.get(it)!)
 
-	// Apply filters
+	// Apply filters - return all users if no specific status filter is provided
 	mut filtered_users := []User{}
 	for user in all_users {
-		// Filter by status if provided (status is not active)
-		if args.status != .active && user.status != args.status {
-			continue
-		}
-
 		filtered_users << user
 	}
 
@@ -187,7 +177,6 @@ pub fn (mut self DBUser) list(args UserListArg) ![]User {
 
 	return filtered_users
 }
-
 
 pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
@@ -215,9 +204,9 @@ pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]stri
 			}
 		}
 		'list' {
-			req := jsonrpc.new_request(method, '')
-			res := f.user.list()!
-			return new_response(req.id, json.encode(res))
+			args := db.decode_generic[UserListArg](params)!
+			res := f.user.list(args)!
+			return new_response(rpcid, json.encode(res))
 		}
 		else {
 			return new_error(rpcid,
