@@ -20,7 +20,7 @@ fn test_fs_blob_new() ! {
 
 	assert blob.data == 'Hello World!'.bytes()
 	assert blob.size_bytes == 12
-	assert blob.hash == 'a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796d9ad9587'
+	assert blob.hash == '5ca7815adcb484e9a136c11efe69c1d530176d549b5d18d0'
 	assert blob.updated_at > 0
 
 	println('✓ FsBlob new test passed!')

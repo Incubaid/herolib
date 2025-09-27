@@ -1,6 +1,6 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.hero.herofs { new_test }
 
 fn test_cleanup() ! {
 	delete_fs_test()!
@@ -14,7 +14,7 @@ fn test_basic() ! {
 	test_cleanup()!
 
 	// Initialize the HeroFS factory for test purposes
-	mut fs_factory := new()!
+	mut fs_factory := new_test()!
 
 	// Create a new filesystem
 	mut test_fs := fs_factory.fs.new_get_set(
@@ -22,7 +22,7 @@ fn test_basic() ! {
 		description: 'Filesystem for testing FsBlobMembership functionality'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	
+
 	assert test_fs.id > 0
 	assert test_fs.root_dir_id > 0
 
@@ -55,7 +55,7 @@ fn test_filesystem_operations() ! {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut fs_factory := new()!
+	mut fs_factory := new_test()!
 
 	// Create filesystems for testing
 	mut fs1 := fs_factory.fs.new_get_set(
@@ -127,7 +127,7 @@ fn test_validation() ! {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut fs_factory := new()!
+	mut fs_factory := new_test()!
 
 	// Create a filesystem for validation tests
 	mut test_fs := fs_factory.fs.new_get_set(
