@@ -208,7 +208,7 @@ function myplatform {
         elif [ -e /etc/os-release ]; then
         # Read the ID field from the /etc/os-release file
         export OSNAME=$(grep '^ID=' /etc/os-release | cut -d= -f2)
-        if [ "${os_id,,}" == "ubuntu" ]; then
+        if [ "${OSNAME,,}" == "ubuntu" ]; then
             export OSNAME="ubuntu"
         fi
         if [ "${OSNAME}" == "archarm" ]; then
