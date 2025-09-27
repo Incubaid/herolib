@@ -61,10 +61,13 @@ pub fn from_openrpc(openrpc_spec openrpc.OpenRPC, config IntermediateConfig) !In
 		return error('handler_type cannot be empty')
 	}
 
+	// Process schemas
+	mut schemas_map := process_schemas(openrpc_spec.components.schemas)!
+
 	mut intermediate_spec := IntermediateSpec{
 		info:      openrpc_spec.info
 		methods:   []IntermediateMethod{}
-		schemas:   process_schemas(openrpc_spec.components.schemas)!
+		schemas:   schemas_map
 		base_url:  config.base_url
 	}
 
@@ -183,7 +186,10 @@ fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 
 
 fn process_schemas(schemas map[string]jsonschema.SchemaRef) !map[string]IntermediateSchema {
+    // Initialize the map with a known size if possible
     mut intermediate_schemas := map[string]IntermediateSchema{}
+    
+    // Process each schema in the map
     for name, schema_ref in schemas {
         if schema_ref is jsonschema.Schema {
             schema := schema_ref as jsonschema.Schema

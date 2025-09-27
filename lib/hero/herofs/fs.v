@@ -22,7 +22,7 @@ pub mut:
 pub struct DBFs {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &ModelsFactory = unsafe { nil } @[skip; str: skip]
+	factory &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self Fs) type_name() string {
@@ -268,7 +268,7 @@ pub fn (mut self DBFs) check_quota(id u32, additional_bytes u64) !bool {
 	return (fs.used_bytes + additional_bytes) <= fs.quota_bytes
 }
 
-pub fn fs_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+pub fn fs_handle(mut f FSFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
 			id := db.decode_u32(params)!

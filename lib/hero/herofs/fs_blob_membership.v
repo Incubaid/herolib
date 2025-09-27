@@ -19,7 +19,7 @@ pub mut:
 pub struct DBFsBlobMembership {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &ModelsFactory = unsafe { nil } @[skip; str: skip]
+	factory &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsBlobMembership) type_name() string {
@@ -257,7 +257,7 @@ pub fn (self FsBlobMembership) example(methodname string) (string, string) {
 	}
 }
 
-pub fn fs_blob_membership_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+pub fn fs_blob_membership_handle(mut f FSFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
 			hash := db.decode_string(params)!
