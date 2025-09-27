@@ -2,16 +2,18 @@ export interface CalendarEvent {
   title?: string;
   start_time?: number;
   end_time?: number;
-  location?: string;
+  registration_desks?: any[];
   attendees?: any[];
-  fs_items?: any[];
+  docs?: any[];
   calendar_id?: number;
   status?: string;
   is_all_day?: boolean;
-  is_recurring?: boolean;
-  recurrence?: any[];
   reminder_mins?: any[];
   color?: string;
   timezone?: string;
+  priority?: string;
+  public?: boolean;
+  locations?: any[];
+  is_template?: boolean;
   // Properties from Base are inherited
 }

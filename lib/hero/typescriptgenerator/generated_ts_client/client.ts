@@ -4,7 +4,10 @@ import fetch from 'node-fetch';
 import { Base } from './Base';
 import { Calendar } from './Calendar';
 import { CalendarEvent } from './CalendarEvent';
-import { RecurrenceRule } from './RecurrenceRule';
+import { Attendee } from './Attendee';
+import { AttendeeLog } from './AttendeeLog';
+import { EventDoc } from './EventDoc';
+import { EventLocation } from './EventLocation';
 import { ChatGroup } from './ChatGroup';
 import { ChatMessage } from './ChatMessage';
 import { MessageLink } from './MessageLink';
@@ -65,7 +68,7 @@ export class HeroModelsClient {
         return this.send('calendar_get', params);
     }
 
-    async calendar_set(params: { calendar: Calendar }): Promise<number> {
+    async calendar_set(params: { calendar: Calendar, events: any[], color: string, timezone: string, is_public: boolean }): Promise<number> {
         return this.send('calendar_set', params);
     }
 
