@@ -1,5 +1,8 @@
 module herofs
 
+import freeflowuniverse.herolib.hero.db
+
+
 // CopyOptions provides options for copy operations
 @[params]
 pub struct CopyOptions {

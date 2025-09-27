@@ -301,6 +301,7 @@ pub fn fs_handle(mut f FSFactory, rpcid int, servercontext map[string]string, us
 			res := f.fs.list(args)!
 			return new_response(rpcid, json.encode(res))
 		}
+		
 		else {
 			console.print_stderr('Method not found on fs: ${method}')
 			return new_error(rpcid,
