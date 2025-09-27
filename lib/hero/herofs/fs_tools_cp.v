@@ -1,7 +1,7 @@
 module herofs
 
 import freeflowuniverse.herolib.hero.db
-
+import os
 
 // CopyOptions provides options for copy operations
 @[params]
@@ -9,7 +9,7 @@ pub struct CopyOptions {
 pub mut:
 	recursive  bool = true // Copy directories recursively
 	overwrite  bool // Overwrite existing files at destination
-	copy_blobs bool = true // Create new blob copies (true) or reference same blobs (false)
+	copy_blobs bool // Create new blob copies (true) or reference same blobs (false)
 }
 
 // cp copies files and directories from source path to destination
@@ -25,11 +25,7 @@ pub mut:
 // fs.cp('/src/*.v', '/backup/', FindOptions{recursive: true}, CopyOptions{overwrite: true})!
 // ```
 pub fn (mut self Fs) cp(src_path string, dest_path string, find_opts FindOptions, copy_opts CopyOptions) ! {
-	// Try to find items using the find function first
-	mut items := []FindResult{}
-
-	// If find fails, try to get the item directly by path
-	items = self.find(src_path, find_opts) or {
+    mut items := self.find(src_path, find_opts) or {
 		// Try to get specific file, directory, or symlink by exact path
 		mut direct_items := []FindResult{}
 
@@ -58,197 +54,229 @@ pub fn (mut self Fs) cp(src_path string, dest_path string, find_opts FindOptions
 			return error('Source path "${src_path}" not found')
 		}
 		direct_items
-	}
+    }
 
-	if items.len == 0 {
-		return error('No items found matching pattern: ${src_path}')
-	}
+    if items.len == 0 {
+        return error('No items found matching pattern: ${src_path}')
+    }
 
-	// Determine destination directory
-	mut dest_dir_id := u32(0)
+	is_dest_dir := dest_path.ends_with('/') || self.get_dir_by_absolute_path(dest_path) or { FsDir{} } != FsDir{}
 
-	// Check if destination is an existing directory
-	if dest_dir := self.get_dir_by_absolute_path(dest_path) {
-		dest_dir_id = dest_dir.id
-	} else {
-		// If destination doesn't exist as directory, treat it as a directory path to create
-		// or as a parent directory if it looks like a file path
-		mut dir_to_create := dest_path
-		if !dest_path.ends_with('/') && items.len == 1 && items[0].result_type == .file {
-			// Single file copy to a specific filename - use parent directory
-			path_parts := dest_path.trim_left('/').split('/')
-			if path_parts.len > 1 {
-				dir_to_create = '/' + path_parts[..path_parts.len - 1].join('/')
-			} else {
-				dir_to_create = '/'
-			}
-		}
+    if items.len > 1 && !is_dest_dir {
+        return error('Cannot copy multiple items to a single file path: ${dest_path}')
+    }
 
-		// Create the destination directory if it doesn't exist
-		if dir_to_create != '/' {
-			self.factory.fs_dir.create_path(self.id, dir_to_create)!
-		}
-		dest_dir_id = self.get_dir_by_absolute_path(dir_to_create)!.id
-	}
-
-	// Copy each found item
-	for item in items {
-		match item.result_type {
-			.file {
-				self.copy_file(item.id, dest_dir_id, copy_opts)!
-			}
-			.directory {
-				if copy_opts.recursive {
-					self.copy_directory(item.id, dest_dir_id, copy_opts)!
-				}
-			}
-			.symlink {
-				self.copy_symlink(item.id, dest_dir_id, copy_opts)!
-			}
-		}
-	}
+    for item in items {
+        match item.result_type {
+            .file {
+                self.copy_file(item.id, dest_path, copy_opts)!
+            }
+            .directory {
+                if !copy_opts.recursive {
+                    return error('Cannot copy directory "${item.path}" without recursive option')
+                }
+                self.copy_directory(item.id, dest_path, copy_opts)!
+            }
+            .symlink {
+                self.copy_symlink(item.id, dest_path, copy_opts)!
+            }
+        }
+    }
 }
 
-// copy_file copies a single file to a destination directory
-fn (mut self Fs) copy_file(file_id u32, dest_dir_id u32, opts CopyOptions) ! {
-	original_file := self.factory.fs_file.get(file_id)!
+// copy_file copies a single file to a destination path
+fn (mut self Fs) copy_file(file_id u32, dest_path string, opts CopyOptions) ! {
+    original_file := self.factory.fs_file.get(file_id)!
+    
+    is_dest_dir := dest_path.ends_with('/') || self.get_dir_by_absolute_path(dest_path) or { FsDir{} } != FsDir{}
+    
+	dest_dir_id := if is_dest_dir {
+		self.factory.fs_dir.create_path(self.id, dest_path)!
+	} else {
+		self.factory.fs_dir.create_path(self.id, os.dir(dest_path))!
+	}
+	
+    file_name := if is_dest_dir { original_file.name } else { os.file_name(dest_path) }
+
 	dest_dir := self.factory.fs_dir.get(dest_dir_id)!
+    if existing_file_id := self.find_file_in_dir(file_name, dest_dir) {
+        if !opts.overwrite {
+            return error('File "${file_name}" already exists in destination')
+        }
+        self.factory.fs_file.delete(existing_file_id)!
+    }
 
-	// Check if file already exists in destination
-	for existing_file_id in dest_dir.files {
-		existing_file := self.factory.fs_file.get(existing_file_id)!
-		if existing_file.name == original_file.name {
-			if !opts.overwrite {
-				return error('File "${original_file.name}" already exists in destination directory')
-			}
-			// Remove existing file
-			self.factory.fs_file.delete(existing_file_id)!
-			break
-		}
-	}
+    mut new_blob_ids := []u32{}
+    if opts.copy_blobs {
+        for blob_id in original_file.blobs {
+            o_blob := self.factory.fs_blob.get(blob_id)!
+            mut n_blob := self.factory.fs_blob.new(data: o_blob.data)!
+            n_blob = self.factory.fs_blob.set(n_blob)!
+            new_blob_ids << n_blob.id
+        }
+    } else {
+        new_blob_ids = original_file.blobs.clone()
+    }
 
-	// Create new blobs or reference existing ones
-	mut new_blob_ids := []u32{}
-	if opts.copy_blobs {
-		// Create new blob copies
-		for blob_id in original_file.blobs {
-			original_blob := self.factory.fs_blob.get(blob_id)!
-			mut new_blob := self.factory.fs_blob.new(data: original_blob.data)!
-			new_blob = self.factory.fs_blob.set(new_blob)!
-			new_blob_ids << new_blob.id
-		}
-	} else {
-		// Reference the same blobs
-		new_blob_ids = original_file.blobs.clone()
-	}
-
-	// Create new file
-	mut new_file := self.factory.fs_file.new(
-		name:      original_file.name
-		fs_id:     self.id
-		blobs:     new_blob_ids
-		mime_type: original_file.mime_type
-		metadata:  original_file.metadata.clone()
-	)!
-
-	new_file = self.factory.fs_file.set(new_file)!
-	self.factory.fs_file.add_to_directory(new_file.id, dest_dir_id)!
+    mut new_file := self.factory.fs_file.new(
+        name:      file_name,
+        fs_id:     self.id,
+        blobs:     new_blob_ids,
+        mime_type: original_file.mime_type,
+        metadata:  original_file.metadata.clone(),
+    )!
+    new_file = self.factory.fs_file.set(new_file)!
+    self.factory.fs_file.add_to_directory(new_file.id, dest_dir_id)!
 }
 
-// copy_directory copies a directory and optionally its contents recursively
-fn (mut self Fs) copy_directory(dir_id u32, dest_parent_id u32, opts CopyOptions) ! {
-	original_dir := self.factory.fs_dir.get(dir_id)!
-	dest_parent := self.factory.fs_dir.get(dest_parent_id)!
+// copy_directory copies a directory and its contents recursively to a destination path
+fn (mut self Fs) copy_directory(dir_id u32, dest_path string, opts CopyOptions) ! {
+    original_dir := self.factory.fs_dir.get(dir_id)!
 
-	// Check if directory already exists in destination
-	for existing_dir_id in dest_parent.directories {
-		existing_dir := self.factory.fs_dir.get(existing_dir_id)!
-		if existing_dir.name == original_dir.name {
-			if !opts.overwrite {
-				return error('Directory "${original_dir.name}" already exists in destination')
-			}
-			// For directories, we merge rather than replace when overwrite is true
-			if opts.recursive {
-				// Copy contents into existing directory
-				self.copy_directory_contents(dir_id, existing_dir_id, opts)!
-			}
+    is_dest_dir := dest_path.ends_with('/') || self.get_dir_by_absolute_path(dest_path) or { FsDir{} } != FsDir{}
+	
+    dest_dir_name := if is_dest_dir { original_dir.name } else { os.file_name(dest_path) }
+    
+    parent_dest_dir_id := if is_dest_dir {
+        self.factory.fs_dir.create_path(self.id, dest_path)!
+    } else {
+        self.factory.fs_dir.create_path(self.id, os.dir(dest_path))!
+    }
+
+	parent_dest_dir := self.factory.fs_dir.get(parent_dest_dir_id)!
+    if existing_dir_id := self.find_dir_in_dir(dest_dir_name, parent_dest_dir) {
+		if opts.recursive {
+			self.copy_directory_contents(dir_id, existing_dir_id, opts)!
 			return
 		}
-	}
 
-	// Create new directory
-	mut new_dir := self.factory.fs_dir.new(
-		name:        original_dir.name
-		fs_id:       self.id
-		parent_id:   dest_parent_id
-		description: original_dir.description
-	)!
+        if !opts.overwrite {
+            return error('Directory "${dest_dir_name}" already exists in destination')
+        }
+        self.factory.fs_dir.delete(existing_dir_id)!
+    }
+    
+    mut new_dir := self.factory.fs_dir.new(
+        name:        dest_dir_name,
+        fs_id:       self.id,
+        parent_id:   parent_dest_dir_id,
+        description: original_dir.description,
+    )!
+    new_dir = self.factory.fs_dir.set(new_dir)!
 
-	self.factory.fs_dir.set(new_dir)!
-
-	// Add to parent's directories list
-	mut parent := self.factory.fs_dir.get(dest_parent_id)!
-	parent.directories << new_dir.id
-	self.factory.fs_dir.set(parent)!
-
-	// Copy contents if recursive
-	if opts.recursive {
-		self.copy_directory_contents(dir_id, new_dir.id, opts)!
-	}
+    mut parent_dir := self.factory.fs_dir.get(parent_dest_dir_id)!
+    if new_dir.id !in parent_dir.directories {
+        parent_dir.directories << new_dir.id
+        self.factory.fs_dir.set(parent_dir)!
+    }
+    
+    self.copy_directory_contents(dir_id, new_dir.id, opts)!
 }
 
-// copy_directory_contents copies all contents of a directory to another directory
+// copy_directory_contents copies the contents of one directory to another
 fn (mut self Fs) copy_directory_contents(src_dir_id u32, dest_dir_id u32, opts CopyOptions) ! {
-	src_dir := self.factory.fs_dir.get(src_dir_id)!
+    src_dir := self.factory.fs_dir.get(src_dir_id)!
+	
+    for file_id in src_dir.files {
+        self.copy_file(file_id, dest_dir_id.str(), opts)!
+    }
 
-	// Copy all files
-	for file_id in src_dir.files {
-		self.copy_file(file_id, dest_dir_id, opts)!
-	}
+    for subdir_id in src_dir.directories {
+        self.copy_directory(subdir_id, dest_dir_id.str(), opts)!
+    }
 
-	// Copy all symlinks
-	for symlink_id in src_dir.symlinks {
-		self.copy_symlink(symlink_id, dest_dir_id, opts)!
-	}
-
-	// Copy all subdirectories recursively
-	for subdir_id in src_dir.directories {
-		self.copy_directory(subdir_id, dest_dir_id, opts)!
-	}
+    for symlink_id in src_dir.symlinks {
+        self.copy_symlink(symlink_id, dest_dir_id.str(), opts)!
+    }
 }
 
-// copy_symlink copies a symbolic link to a destination directory
-fn (mut self Fs) copy_symlink(symlink_id u32, dest_dir_id u32, opts CopyOptions) ! {
-	original_symlink := self.factory.fs_symlink.get(symlink_id)!
-	dest_dir := self.factory.fs_dir.get(dest_dir_id)!
+// copy_symlink copies a symbolic link to a destination path
+fn (mut self Fs) copy_symlink(symlink_id u32, dest_path string, opts CopyOptions) ! {
+    original_symlink := self.factory.fs_symlink.get(symlink_id)!
+    
+    is_dest_dir := dest_path.ends_with('/') || self.get_dir_by_absolute_path(dest_path) or { FsDir{} } != FsDir{}
+    
+	dest_dir_id := if is_dest_dir {
+		self.factory.fs_dir.create_path(self.id, dest_path)!
+	} else {
+		self.factory.fs_dir.create_path(self.id, os.dir(dest_path))!
+	}
 
-	// Check if symlink already exists in destination
-	for existing_symlink_id in dest_dir.symlinks {
-		existing_symlink := self.factory.fs_symlink.get(existing_symlink_id)!
-		if existing_symlink.name == original_symlink.name {
-			if !opts.overwrite {
-				return error('Symlink "${original_symlink.name}" already exists in destination directory')
-			}
-			// Remove existing symlink
-			self.factory.fs_symlink.delete(existing_symlink_id)!
+    symlink_name := if is_dest_dir { original_symlink.name } else { os.file_name(dest_path) }
+
+	dest_dir := self.factory.fs_dir.get(dest_dir_id)!
+    if existing_symlink_id := self.find_symlink_in_dir(symlink_name, dest_dir) {
+        if !opts.overwrite {
+            return error('Symlink "${symlink_name}" already exists')
+        }
+        self.factory.fs_symlink.delete(existing_symlink_id)!
+    }
+    
+    mut new_symlink := self.factory.fs_symlink.new(
+        name:        symlink_name,
+        fs_id:       self.id,
+        parent_id:   dest_dir_id,
+        target_id:   original_symlink.target_id,
+        target_type: original_symlink.target_type,
+        description: original_symlink.description,
+    )!
+    new_symlink = self.factory.fs_symlink.set(new_symlink)!
+
+    mut parent := self.factory.fs_dir.get(dest_dir_id)!
+    parent.symlinks << new_symlink.id
+    self.factory.fs_dir.set(parent)!
+}
+
+// find_file_in_dir finds a file in a directory by name and returns its ID
+fn (mut self Fs) find_file_in_dir(file_name string, dir FsDir) ?u32 {
+    for file_id in dir.files {
+        file := self.factory.fs_file.get(file_id) or { continue }
+        if file.name == file_name {
+            return file_id
+        }
+    }
+    return none
+}
+
+// find_dir_in_dir finds a directory in a directory by name and returns its ID
+fn (mut self Fs) find_dir_in_dir(dir_name string, dir FsDir) ?u32 {
+    for did in dir.directories {
+        d := self.factory.fs_dir.get(did) or { continue }
+        if d.name == dir_name {
+            return did
+        }
+    }
+    return none
+}
+
+// find_symlink_in_dir finds a symlink in a directory by name and returns its ID
+fn (mut self Fs) find_symlink_in_dir(symlink_name string, dir FsDir) ?u32 {
+    for symlink_id in dir.symlinks {
+        symlink := self.factory.fs_symlink.get(symlink_id) or { continue }
+        if symlink.name == symlink_name {
+            return symlink_id
+        }
+    }
+    return none
+}
+
+// get_dir_path returns the absolute path for a given directory ID.
+pub fn (mut self Fs) get_dir_path(dir_id u32) !string {
+	if dir_id == self.root_dir_id {
+		return '/'
+	}
+	mut path := ''
+	mut current_id := dir_id
+	for {
+		dir := self.factory.fs_dir.get(current_id)!
+		if dir.id == self.root_dir_id {
 			break
 		}
+		path = '/' + dir.name + path
+		if dir.parent_id == 0 {
+			break
+		}
+		current_id = dir.parent_id
 	}
-
-	// Create new symlink
-	mut new_symlink := self.factory.fs_symlink.new(
-		name:        original_symlink.name
-		fs_id:       self.id
-		parent_id:   dest_dir_id
-		target_id:   original_symlink.target_id
-		target_type: original_symlink.target_type
-		description: original_symlink.description
-	)!
-
-	self.factory.fs_symlink.set(new_symlink)!
-
-	// Add to parent directory's symlinks list
-	mut parent := self.factory.fs_dir.get(dest_dir_id)!
-	parent.symlinks << new_symlink.id
-	self.factory.fs_dir.set(parent)!
+	return if path == '' { '/' } else { path }
 }
