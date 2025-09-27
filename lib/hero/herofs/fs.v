@@ -2,6 +2,7 @@ module herofs
 
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import freeflowuniverse.herolib.ui.console
@@ -137,6 +138,7 @@ pub fn (mut self DBFs) new(args FsArg) !Fs {
 	if args.messages.len > 0 {
 		o.messages = self.db.messages_get(args.messages)!
 	}
+	o.updated_at = ourtime.now().unix()
 
 	return o
 }
