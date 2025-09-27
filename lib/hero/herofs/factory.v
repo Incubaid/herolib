@@ -5,7 +5,7 @@ import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.core.redisclient
 
 @[heap]
-pub struct ModelsFactory {
+pub struct FSFactory {
 pub mut:
 	fs                 DBFs
 	fs_blob            DBFsBlob
@@ -21,9 +21,9 @@ pub mut:
 	redis ?&redisclient.Redis
 }
 
-pub fn new(args DBArgs) !ModelsFactory {
+pub fn new(args DBArgs) !FSFactory {
 	mut mydb := db.new(redis: args.redis)!
-	mut f := ModelsFactory{
+	mut f := FSFactory{
 		fs:                 DBFs{db: &mydb}
 		fs_blob:            DBFsBlob{db: &mydb}
 		fs_blob_membership: DBFsBlobMembership{db: &mydb}

@@ -24,7 +24,7 @@ pub mut:
 pub struct DBFsFile {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &ModelsFactory = unsafe { nil } @[skip; str: skip]
+	factory &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsFile) type_name() string {
@@ -365,7 +365,7 @@ pub fn (self FsFile) example(methodname string) (string, string) {
 	}
 }
 
-pub fn fs_file_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+pub fn fs_file_handle(mut f FSFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
