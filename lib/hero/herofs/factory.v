@@ -24,12 +24,24 @@ pub mut:
 pub fn new(args DBArgs) !FSFactory {
 	mut mydb := db.new(redis: args.redis)!
 	mut f := FSFactory{
-		fs:                 DBFs{db: &mydb}
-		fs_blob:            DBFsBlob{db: &mydb}
-		fs_blob_membership: DBFsBlobMembership{db: &mydb}
-		fs_dir:             DBFsDir{db: &mydb}
-		fs_file:            DBFsFile{db: &mydb}
-		fs_symlink:         DBFsSymlink{db: &mydb}
+		fs:                 DBFs{
+			db: &mydb
+		}
+		fs_blob:            DBFsBlob{
+			db: &mydb
+		}
+		fs_blob_membership: DBFsBlobMembership{
+			db: &mydb
+		}
+		fs_dir:             DBFsDir{
+			db: &mydb
+		}
+		fs_file:            DBFsFile{
+			db: &mydb
+		}
+		fs_symlink:         DBFsSymlink{
+			db: &mydb
+		}
 	}
 	f.fs.factory = &f
 	f.fs_blob.factory = &f
@@ -40,6 +52,13 @@ pub fn new(args DBArgs) !FSFactory {
 	return f
 }
 
+pub fn new_test() !FSFactory {
+	mut mydb := db.new_test()!
+	mut f := new(redisclient: mydb.redis)!
+	f.fs.db.redis.flushdb()!
+	return f
+}
+
 // Convenience function for creating a filesystem
 pub fn new_fs(args FsArg) !Fs {
 	mut f := new()!
@@ -47,11 +66,14 @@ pub fn new_fs(args FsArg) !Fs {
 }
 
 pub fn new_fs_test() !Fs {
-	mut f := new()!
+	mut mydb := db.new_test()!
+	mut f := new(redisclient: mydb.redis)!
+	f.fs.db.redis.flushdb()!
 	return f.fs.new_get_set(name: 'test')!
 }
 
 pub fn delete_fs_test() ! {
-	mut fs_factory := new()!
-	fs_factory.fs.db.redis.flushdb()!
+	mut mydb := db.new_test()!
+	mut f := new(redisclient: mydb.redis)!
+	f.fs.db.redis.flushdb()!
 }

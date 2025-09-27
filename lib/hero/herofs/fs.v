@@ -2,7 +2,6 @@ module herofs
 
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.hero.heromodels
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import freeflowuniverse.herolib.ui.console

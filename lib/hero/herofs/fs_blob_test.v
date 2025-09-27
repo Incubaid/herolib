@@ -3,16 +3,15 @@ module herofs
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
-import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.schemas.jsonrpc
+import freeflowuniverse.herolib.hero.user
 import json
 import freeflowuniverse.herolib.hero.herofs { FsBlob }
 
 fn test_fs_blob_new() ! {
-	mut mydb := db.new_test()!
-	mut db_fs_blob := DBFsBlob{
-		db: &mydb
-	}
+	// TODO: do it for each test and call it like this
+	mut factory := new_test()!
+	mut db_fs_blob := factory.fs_blob
 
 	mut args := FsBlobArg{
 		data: 'Hello World!'.bytes()
@@ -58,9 +57,9 @@ fn test_fs_blob_crud_operations() ! {
 
 	final_blob := db_fs_blob.get(original_id)!
 	assert final_blob.data == 'Updated CRUD Test Data'.bytes()
-	
+
 	mut expected_blob_for_hash := FsBlob{
-		data: 'Updated CRUD Test Data'.bytes()
+		data:       'Updated CRUD Test Data'.bytes()
 		size_bytes: 'Updated CRUD Test Data'.len
 	}
 	expected_blob_for_hash.calculate_hash()
@@ -91,9 +90,9 @@ fn test_fs_blob_encoding_decoding() ! {
 
 	assert retrieved_blob.data == 'Encoding Decoding Test'.bytes()
 	assert retrieved_blob.size_bytes == 'Encoding Decoding Test'.len
-	
+
 	mut expected_blob_for_hash := FsBlob{
-		data: 'Encoding Decoding Test'.bytes()
+		data:       'Encoding Decoding Test'.bytes()
 		size_bytes: 'Encoding Decoding Test'.len
 	}
 	expected_blob_for_hash.calculate_hash()
@@ -239,7 +238,7 @@ fn test_fs_blob_handle_get() ! {
 	}
 
 	params := json.encode(blob.id)
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'get', params)!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'get', params)!
 	assert resp.result.string() == json.encode(blob)
 
 	println('✓ FsBlob handle get test passed!')
@@ -261,7 +260,7 @@ fn test_fs_blob_handle_set() ! {
 	mut blob := db_fs_blob.new(args)!
 
 	params := json.encode(blob)
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'set', params)!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'set', params)!
 	assert resp.result.int() == 1 // Assuming ID 1 for the first set operation
 
 	println('✓ FsBlob handle set test passed!')
@@ -284,7 +283,7 @@ fn test_fs_blob_handle_delete() ! {
 	}
 
 	params := json.encode(blob.id)
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'delete', params)!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'delete', params)!
 	assert resp.result.string() == 'true'
 
 	exists := db_fs_blob.exist(blob.id)!
@@ -310,11 +309,11 @@ fn test_fs_blob_handle_exist() ! {
 	}
 
 	params := json.encode(blob.id)
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'exist', params)!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'exist', params)!
 	assert resp.result.string() == 'true'
 
 	db_fs_blob.delete(blob.id)!
-	resp_false := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'exist', params)!
+	resp_false := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'exist', params)!
 	assert resp_false.result.string() == 'false'
 
 	println('✓ FsBlob handle exist test passed!')
@@ -342,7 +341,7 @@ fn test_fs_blob_handle_list() ! {
 		fs_blob: db_fs_blob
 	}
 
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'list', '{}')!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'list', '{}')!
 	mut expected_list := [FsBlob(blob1), FsBlob(blob2)]
 	assert resp.result.string() == json.encode(expected_list)
 
@@ -366,7 +365,7 @@ fn test_fs_blob_handle_get_by_hash() ! {
 	}
 
 	params := json.encode(blob.hash)
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'get_by_hash', params)!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'get_by_hash', params)!
 	assert resp.result.string() == json.encode(blob)
 
 	println('✓ FsBlob handle get_by_hash test passed!')
@@ -389,7 +388,8 @@ fn test_fs_blob_handle_exists_by_hash() ! {
 	}
 
 	params := json.encode(blob.hash)
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'exists_by_hash', params)!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'exists_by_hash',
+		params)!
 	assert resp.result.string() == 'true'
 
 	println('✓ FsBlob handle exists_by_hash test passed!')
@@ -412,7 +412,7 @@ fn test_fs_blob_handle_verify() ! {
 	}
 
 	params := json.encode(blob.hash)
-	resp := fs_blob_handle(mut f, 1, map[string]string{}, user.UserRef{}, 'verify', params)!
+	resp := fs_blob_handle(mut f, 1, map[string]string{}, UserRef{}, 'verify', params)!
 	assert resp.result.string() == 'true'
 
 	println('✓ FsBlob handle verify test passed!')
