@@ -54,7 +54,7 @@ pub fn new(args DBArgs) !FSFactory {
 
 pub fn new_test() !FSFactory {
 	mut mydb := db.new_test()!
-	mut f := new(redisclient: mydb.redis)!
+	mut f := new(redis: mydb.redis)!
 	f.fs.db.redis.flushdb()!
 	return f
 }
@@ -67,13 +67,13 @@ pub fn new_fs(args FsArg) !Fs {
 
 pub fn new_fs_test() !Fs {
 	mut mydb := db.new_test()!
-	mut f := new(redisclient: mydb.redis)!
+	mut f := new(redis: mydb.redis)!
 	f.fs.db.redis.flushdb()!
 	return f.fs.new_get_set(name: 'test')!
 }
 
 pub fn delete_fs_test() ! {
 	mut mydb := db.new_test()!
-	mut f := new(redisclient: mydb.redis)!
+	mut f := new(redis: mydb.redis)!
 	f.fs.db.redis.flushdb()!
 }
