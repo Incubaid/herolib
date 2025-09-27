@@ -2,21 +2,19 @@ module herofs
 
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
-import freeflowuniverse.herolib.hero.user
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
 import json
-import freeflowuniverse.herolib.hero.heromodels
 
 // Fs represents a filesystem, is the top level container for files and directories and symlinks, blobs are used over filesystems
 @[heap]
 pub struct Fs {
 	db.Base
 pub mut:
-	name        string
 	root_dir_id u32 // ID of root directory
 	quota_bytes u64 // Storage quota in bytes
 	used_bytes  u64 // Current usage in bytes
-	factory     &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 // We only keep the root directory ID here, other directories can be found by querying parent_id in FsDir
@@ -24,7 +22,7 @@ pub mut:
 pub struct DBFs {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory &ModelsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self Fs) type_name() string {
@@ -59,10 +57,10 @@ pub fn (self Fs) description(methodname string) string {
 pub fn (self Fs) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"name": "myfs"}', '1'
+			return '{"fs": {"name": "myfs", "description": "My filesystem", "quota_bytes": 1073741824}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"id":1, "name": "myfs"...}'
+			return '{"id": 1}', '{"name": "myfs", "description": "My filesystem", "quota_bytes": 1073741824, "used_bytes": 0}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -71,7 +69,7 @@ pub fn (self Fs) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"id":1, "name": "myfs"...}]'
+			return '{}', '[{"name": "myfs", "description": "My filesystem", "quota_bytes": 1073741824, "used_bytes": 0}]'
 		}
 		else {
 			return '{}', '{}'
@@ -80,14 +78,14 @@ pub fn (self Fs) example(methodname string) (string, string) {
 }
 
 pub fn (self Fs) dump(mut e encoder.Encoder) ! {
-	e.add_string(self.name)
+	// e.add_string(self.name)
 	e.add_u32(self.root_dir_id)
 	e.add_u64(self.quota_bytes)
 	e.add_u64(self.used_bytes)
 }
 
 fn (mut self DBFs) load(mut o Fs, mut e encoder.Decoder) ! {
-	o.name = e.get_string()!
+	// o.name = e.get_string()!
 	o.root_dir_id = e.get_u32()!
 	o.quota_bytes = e.get_u64()!
 	o.used_bytes = e.get_u64()!
@@ -115,7 +113,7 @@ pub mut:
 pub fn (mut self DBFs) new(args FsArg) !Fs {
 	mut o := Fs{
 		name:    args.name
-		factory: self.factory
+		//factory: self.factory
 	}
 
 	if args.description != '' {
@@ -149,7 +147,7 @@ pub fn (mut self DBFs) new_get_set(args_ FsArg) !Fs {
 
 	mut o := Fs{
 		name:    args.name
-		factory: self.factory
+		//factory: self.factory
 	}
 
 	myid := self.db.redis.hget('fs:names', args.name)!
@@ -242,7 +240,7 @@ pub fn (mut self DBFs) get(id u32) !Fs {
 	mut o, data := self.db.get_data[Fs](id)!
 	mut e_decoder := encoder.decoder_new(data)
 	self.load(mut o, mut e_decoder)!
-	o.factory = self.factory
+	//o.factory = self.factory
 	return o
 }
 
@@ -270,7 +268,7 @@ pub fn (mut self DBFs) check_quota(id u32, additional_bytes u64) !bool {
 	return (fs.used_bytes + additional_bytes) <= fs.quota_bytes
 }
 
-pub fn fs_handle(mut f heromodels.ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+pub fn fs_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
@@ -301,6 +299,7 @@ pub fn fs_handle(mut f heromodels.ModelsFactory, rpcid int, servercontext map[st
 			return new_response(rpcid, json.encode(res))
 		}
 		else {
+			console.print_stderr('Method not found on fs: ${method}')
 			return new_error(rpcid,
 				code:    32601
 				message: 'Method ${method} not found on fs'

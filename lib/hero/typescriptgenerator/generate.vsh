@@ -4,8 +4,8 @@ import freeflowuniverse.herolib.hero.typescriptgenerator
 import freeflowuniverse.herolib.schemas.openrpc
 import os
 
-const openrpc_path = os.dir(@FILE) + '/../../heromodels/openrpc.json'
-const output_dir = os.dir(@FILE) + '/generated_ts_client'
+const openrpc_path = os.dir(@FILE) + '/../../hero/heromodels/openrpc.json'
+const output_dir = os.expand_tilde_to_home('~/code/heromodels/generated')
 
 fn main() {
     spec_text := os.read_file(openrpc_path) or {
@@ -20,6 +20,7 @@ fn main() {
 
     config := typescriptgenerator.IntermediateConfig{
         base_url: 'http://localhost:8086/api/heromodels'
+        handler_type: 'heromodels'
     }
 
     intermediate_spec := typescriptgenerator.from_openrpc(openrpc_spec, config) or {

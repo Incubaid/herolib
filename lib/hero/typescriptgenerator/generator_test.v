@@ -20,6 +20,7 @@ fn test_generate_typescript_client() {
 
     config := IntermediateConfig{
         base_url: 'http://localhost:8086/api/heromodels'
+        handler_type: 'heromodels'
     }
 
     intermediate_spec := from_openrpc(openrpc_spec, config) or {

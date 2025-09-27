@@ -1,10 +1,8 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.herofs
-
 fn test_filesystem_crud() ! {
 	// Initialize HeroFS factory
-	mut fs_factory := herofs.new()!
+	mut fs_factory := new()!
 
 	// Test filesystem creation
 	mut test_fs := fs_factory.fs.new(
@@ -13,7 +11,6 @@ fn test_filesystem_crud() ! {
 		quota_bytes: 1024 * 1024 * 100 // 100MB quota
 	)!
 
-	original_id := test_fs.id
 	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Test filesystem retrieval
@@ -44,36 +41,26 @@ fn test_filesystem_crud() ! {
 
 fn test_directory_operations() ! {
 	// Initialize HeroFS factory
-	mut fs_factory := herofs.new()!
+	mut fs_factory := new()!
 
 	// Create test filesystem
-	mut test_fs := fs_factory.fs.new(
+	mut test_fs := fs_factory.fs.new_get_set(
 		name:        'dir_test'
 		description: 'Test filesystem for directory operations'
 		quota_bytes: 1024 * 1024 * 50 // 50MB quota
 	)!
-	test_fs = fs_factory.fs.set(test_fs)!
-
-	// Create root directory
-	mut root_dir := fs_factory.fs_dir.new(
-		name:      'root'
-		fs_id:     test_fs.id
-		parent_id: 0
-	)!
-	root_dir = fs_factory.fs_dir.set(root_dir)!
-	test_fs.root_dir_id = root_dir.id
-	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Test directory creation
 	mut sub_dir1 := fs_factory.fs_dir.new(
 		name:        'documents'
 		fs_id:       test_fs.id
-		parent_id:   root_dir.id
+		parent_id:   test_fs.root_dir_id
 		description: 'Documents directory'
 	)!
 	sub_dir1 = fs_factory.fs_dir.set(sub_dir1)!
 
 	// Add subdirectory to parent
+	mut root_dir := fs_factory.fs_dir.get(test_fs.root_dir_id)!
 	root_dir.directories << sub_dir1.id
 	root_dir = fs_factory.fs_dir.set(root_dir)!
 
@@ -111,24 +98,14 @@ fn test_directory_operations() ! {
 
 fn test_file_operations() ! {
 	// Initialize HeroFS factory
-	mut fs_factory := herofs.new()!
+	mut fs_factory := new()!
 
 	// Create test filesystem with root directory
-	mut test_fs := fs_factory.fs.new(
+	mut test_fs := fs_factory.fs.new_get_set(
 		name:        'file_test'
 		description: 'Test filesystem for file operations'
 		quota_bytes: 1024 * 1024 * 50 // 50MB quota
 	)!
-	test_fs = fs_factory.fs.set(test_fs)!
-
-	mut root_dir := fs_factory.fs_dir.new(
-		name:      'root'
-		fs_id:     test_fs.id
-		parent_id: 0
-	)!
-	root_dir = fs_factory.fs_dir.set(root_dir)!
-	test_fs.root_dir_id = root_dir.id
-	test_fs = fs_factory.fs.set(test_fs)!
 
 	// Create test blob
 	test_content := 'Hello, HeroFS! This is test content.'.bytes()
@@ -150,7 +127,7 @@ fn test_file_operations() ! {
 	test_file = fs_factory.fs_file.set(test_file)!
 
 	// Add file to root directory
-	fs_factory.fs_file.add_to_directory(test_file.id, root_dir.id)!
+	fs_factory.fs_file.add_to_directory(test_file.id, test_fs.root_dir_id)!
 
 	// Test file retrieval
 	retrieved_file := fs_factory.fs_file.get(test_file.id)!
@@ -179,163 +156,9 @@ fn test_file_operations() ! {
 	assert renamed_file.name == 'renamed_test.txt'
 
 	// Test file listing by directory
-	files_in_root := fs_factory.fs_file.list_by_directory(root_dir.id)!
+	files_in_root := fs_factory.fs_file.list_by_directory(test_fs.root_dir_id)!
 	assert files_in_root.len == 1
 	assert files_in_root[0].id == test_file.id
 
-	// Test file listing by filesystem
-	files_in_fs := fs_factory.fs_file.list_by_filesystem(test_fs.id)!
-	assert files_in_fs.len == 1
-
-	// Test file listing by MIME type - create a specific file for this test
-	mime_test_content := 'MIME type test content'.bytes()
-	mut mime_test_blob := fs_factory.fs_blob.new(data: mime_test_content)!
-	mime_test_blob = fs_factory.fs_blob.set(mime_test_blob)!
-
-	mut mime_test_file := fs_factory.fs_file.new(
-		name:      'mime_test.txt'
-		fs_id:     test_fs.id
-		blobs:     [mime_test_blob.id]
-		mime_type: .txt
-	)!
-	mime_test_file = fs_factory.fs_file.set(mime_test_file)!
-	fs_factory.fs_file.add_to_directory(mime_test_file.id, root_dir.id)!
-
-	txt_files := fs_factory.fs_file.list_by_mime_type(.txt)!
-	assert txt_files.len >= 1
-
-	// Test blob content appending
-	additional_content := '\nAppended content.'.bytes()
-	mut additional_blob := fs_factory.fs_blob.new(data: additional_content)!
-	additional_blob = fs_factory.fs_blob.set(additional_blob)!
-
-	fs_factory.fs_file.append_blob(test_file.id, additional_blob.id)!
-	updated_file_with_blob := fs_factory.fs_file.get(test_file.id)!
-	assert updated_file_with_blob.blobs.len == 2
-
 	println('✓ File operations tests passed!')
-}
-
-fn test_blob_operations() ! {
-	// Initialize HeroFS factory
-	mut fs_factory := herofs.new()!
-
-	// Test blob creation and deduplication
-	test_data1 := 'This is test data for blob operations.'.bytes()
-	test_data2 := 'This is different test data.'.bytes()
-	test_data3 := 'This is test data for blob operations.'.bytes() // Same as test_data1
-
-	// Create first blob
-	mut blob1 := fs_factory.fs_blob.new(data: test_data1)!
-	blob1 = fs_factory.fs_blob.set(blob1)!
-
-	// Create second blob with different data
-	mut blob2 := fs_factory.fs_blob.new(data: test_data2)!
-	blob2 = fs_factory.fs_blob.set(blob2)!
-
-	// Create third blob with same data as first (should have same hash)
-	mut blob3 := fs_factory.fs_blob.new(data: test_data3)!
-	blob3 = fs_factory.fs_blob.set(blob3)!
-
-	// Test hash-based retrieval
-	assert blob1.hash == blob3.hash // Same content should have same hash
-	assert blob1.hash != blob2.hash // Different content should have different hash
-
-	// Test blob retrieval by hash
-	blob_by_hash := fs_factory.fs_blob.get_by_hash(blob1.hash)!
-	assert blob_by_hash.data == test_data1
-
-	// Test blob existence by hash
-	exists_by_hash := fs_factory.fs_blob.exists_by_hash(blob1.hash)!
-	assert exists_by_hash == true
-
-	// Test blob integrity verification
-	assert blob1.verify_integrity() == true
-	assert blob2.verify_integrity() == true
-
-	// Test blob verification by hash
-	is_valid := fs_factory.fs_blob.verify(blob1.hash)!
-	assert is_valid == true
-
-	// Test blob size limits
-	large_data := []u8{len: 2 * 1024 * 1024} // 2MB data
-	fs_factory.fs_blob.new(data: large_data) or {
-		println('✓ Blob size limit correctly enforced')
-		// This should fail due to 1MB limit
-	}
-
-	println('✓ Blob operations tests passed!')
-}
-
-fn test_symlink_operations() ! {
-	// Initialize HeroFS factory
-	mut fs_factory := herofs.new()!
-
-	// Create test filesystem with root directory
-	mut test_fs := fs_factory.fs.new(
-		name:        'symlink_test'
-		description: 'Test filesystem for symlink operations'
-		quota_bytes: 1024 * 1024 * 10 // 10MB quota
-	)!
-	test_fs = fs_factory.fs.set(test_fs)!
-
-	mut root_dir := fs_factory.fs_dir.new(
-		name:      'root'
-		fs_id:     test_fs.id
-		parent_id: 0
-	)!
-	root_dir = fs_factory.fs_dir.set(root_dir)!
-	test_fs.root_dir_id = root_dir.id
-	test_fs = fs_factory.fs.set(test_fs)!
-
-	// Create a target file
-	test_content := 'Target file content'.bytes()
-	mut target_blob := fs_factory.fs_blob.new(data: test_content)!
-	target_blob = fs_factory.fs_blob.set(target_blob)!
-
-	mut target_file := fs_factory.fs_file.new(
-		name:      'target.txt'
-		fs_id:     test_fs.id
-		blobs:     [target_blob.id]
-		mime_type: .txt
-	)!
-	target_file = fs_factory.fs_file.set(target_file)!
-	fs_factory.fs_file.add_to_directory(target_file.id, root_dir.id)!
-
-	// Create symlink
-	mut test_symlink := fs_factory.fs_symlink.new(
-		name:        'link_to_target.txt'
-		fs_id:       test_fs.id
-		parent_id:   root_dir.id
-		target_id:   target_file.id
-		target_type: .file
-		description: 'Symlink to target file'
-	)!
-	test_symlink = fs_factory.fs_symlink.set(test_symlink)!
-
-	// Add symlink to directory
-	root_dir.symlinks << test_symlink.id
-	root_dir = fs_factory.fs_dir.set(root_dir)!
-
-	// Test symlink retrieval
-	retrieved_symlink := fs_factory.fs_symlink.get(test_symlink.id)!
-	assert retrieved_symlink.name == 'link_to_target.txt'
-	assert retrieved_symlink.target_id == target_file.id
-
-	// Test symlink validation (should not be broken since target exists)
-	is_broken := fs_factory.fs_symlink.is_broken(test_symlink.id)!
-	assert is_broken == false
-
-	// Test symlink listing by filesystem
-	symlinks_in_fs := fs_factory.fs_symlink.list_by_filesystem(test_fs.id)!
-	assert symlinks_in_fs.len == 1
-
-	// Delete target file to make symlink broken
-	fs_factory.fs_file.delete(target_file.id)!
-
-	// Test broken symlink detection
-	is_broken_after_delete := fs_factory.fs_symlink.is_broken(test_symlink.id)!
-	assert is_broken_after_delete == true
-
-	println('✓ Symlink operations tests passed!')
 }

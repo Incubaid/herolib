@@ -3,13 +3,16 @@ module herofs
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
+import json
 
 // FsSymlink represents a symbolic link in a filesystem
 @[heap]
 pub struct FsSymlink {
 	db.Base
 pub mut:
-	name        string
 	fs_id       u32 // Associated filesystem
 	parent_id   u32 // Parent directory ID
 	target_id   u32 // ID of target file or directory
@@ -24,7 +27,7 @@ pub enum SymlinkTargetType {
 pub struct DBFsSymlink {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory &ModelsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsSymlink) type_name() string {
@@ -32,7 +35,6 @@ pub fn (self FsSymlink) type_name() string {
 }
 
 pub fn (self FsSymlink) dump(mut e encoder.Encoder) ! {
-	e.add_string(self.name)
 	e.add_u32(self.fs_id)
 	e.add_u32(self.parent_id)
 	e.add_u32(self.target_id)
@@ -40,7 +42,6 @@ pub fn (self FsSymlink) dump(mut e encoder.Encoder) ! {
 }
 
 fn (mut self DBFsSymlink) load(mut o FsSymlink, mut e encoder.Decoder) ! {
-	o.name = e.get_string()!
 	o.fs_id = e.get_u32()!
 	o.parent_id = e.get_u32()!
 	o.target_id = e.get_u32()!
@@ -157,4 +158,104 @@ pub fn (mut self DBFsSymlink) is_broken(id u32) !bool {
 	}
 
 	return true // Unknown target type is considered broken
+}
+
+pub fn (self FsSymlink) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a symlink. Returns the ID of the symlink.'
+		}
+		'get' {
+			return 'Retrieve a symlink by ID. Returns the symlink object.'
+		}
+		'delete' {
+			return 'Delete a symlink by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a symlink exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all symlinks. Returns an array of symlink objects.'
+		}
+		'is_broken' {
+			return 'Check if a symlink is broken. Returns true or false.'
+		}
+		else {
+			return 'This is generic method for the symlink object.'
+		}
+	}
+}
+
+pub fn (self FsSymlink) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"symlink": {"name": "link.txt", "fs_id": 1, "parent_id": 2, "target_id": 3, "target_type": "file"}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"name": "link.txt", "fs_id": 1, "parent_id": 2, "target_id": 3, "target_type": "file"}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"name": "link.txt", "fs_id": 1, "parent_id": 2, "target_id": 3, "target_type": "file"}]'
+		}
+		'is_broken' {
+			return '{"id": 1}', 'false'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn fs_symlink_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.fs_symlink.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[FsSymlink](params)!
+			o = f.fs_symlink.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.fs_symlink.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.fs_symlink.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			res := f.fs_symlink.list()!
+			return new_response(rpcid, json.encode(res))
+		}
+		'is_broken' {
+			id := db.decode_u32(params)!
+			is_broken := f.fs_symlink.is_broken(id)!
+			if is_broken {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		else {
+			console.print_stderr('Method not found on fs_symlink: ${method}')
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on fs_symlink'
+			)
+		}
+	}
 }

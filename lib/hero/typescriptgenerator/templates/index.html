@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hero Models TypeScript Client Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hero Models TypeScript Client Test</h1>
+        
+        <div class="test-section">
+            <h2>Calendar Operations</h2>
+            <label>Calendar ID: <input type="number" id="calendarId" value="1"></label>
+            <button onclick="getCalendar()">Get Calendar</button>
+            <div class="result" id="calendarResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>User Operations</h2>
+            <label>User ID: <input type="number" id="userId" value="1"></label>
+            <button onclick="getUser()">Get User</button>
+            <div class="result" id="userResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Event Operations</h2>
+            <label>Event ID: <input type="number" id="eventId" value="1"></label>
+            <button onclick="getEvent()">Get Event</button>
+            <div class="result" id="eventResult"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { HeroModelsClient } from './client.js';
+        
+        const client = new HeroModelsClient('http://localhost:8086/api/heromodels');
+        
+        async function getCalendar() {
+            const resultDiv = document.getElementById('calendarResult');
+            try {
+                const id = parseInt(document.getElementById('calendarId').value);
+                const calendar = await client.calendar_get({id});
+                resultDiv.textContent = JSON.stringify(calendar, null, 2);
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function getUser() {
+            const resultDiv = document.getElementById('userResult');
+            try {
+                const id = parseInt(document.getElementById('userId').value);
+                const user = await client.user_get({id});
+                resultDiv.textContent = JSON.stringify(user, null, 2);
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        async function getEvent() {
+            const resultDiv = document.getElementById('eventResult');
+            try {
+                const id = parseInt(document.getElementById('eventId').value);
+                const event = await client.event_get({id});
+                resultDiv.textContent = JSON.stringify(event, null, 2);
+            } catch (error) {
+                resultDiv.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

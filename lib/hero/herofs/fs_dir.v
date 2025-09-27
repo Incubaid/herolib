@@ -3,6 +3,10 @@ module herofs
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
+import json
 
 // FsDir represents a directory in a filesystem
 @[heap]
@@ -19,7 +23,7 @@ pub mut:
 pub struct DBFsDir {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory &ModelsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsDir) type_name() string {
@@ -272,4 +276,95 @@ pub fn (mut self DBFsDir) move(id u32, new_parent_id u32) ! {
 	dir.parent_id = new_parent_id
 	dir.updated_at = ourtime.now().unix()
 	dir = self.set(dir)!
+}
+
+pub fn (self FsDir) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a directory. Returns the ID of the directory.'
+		}
+		'get' {
+			return 'Retrieve a directory by ID. Returns the directory object.'
+		}
+		'delete' {
+			return 'Delete a directory by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a directory exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all directories. Returns an array of directory objects.'
+		}
+		'create_path' {
+			return 'Create a directory path. Returns the ID of the created directory.'
+		}
+		else {
+			return 'This is generic method for the directory object.'
+		}
+	}
+}
+
+pub fn (self FsDir) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"dir": {"name": "documents", "fs_id": 1, "parent_id": 2}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"name": "documents", "fs_id": 1, "parent_id": 2, "directories": [], "files": [], "symlinks": []}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"name": "documents", "fs_id": 1, "parent_id": 2, "directories": [], "files": [], "symlinks": []}]'
+		}
+		'create_path' {
+			return '{"fs_id": 1, "path": "/projects/web/frontend"}', '5'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn fs_dir_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.fs_dir.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[FsDir](params)!
+			o = f.fs_dir.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.fs_dir.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.fs_dir.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			res := f.fs_dir.list()!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			console.print_stderr('Method not found on fs_dir: ${method}')
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on fs_dir'
+			)
+		}
+	}
 }

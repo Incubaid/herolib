@@ -63,8 +63,9 @@ pub fn from_openrpc(openrpc_spec openrpc.OpenRPC, config IntermediateConfig) !In
 
 	mut intermediate_spec := IntermediateSpec{
 		info:      openrpc_spec.info
-		base_url:  config.base_url
+		methods:   []IntermediateMethod{}
 		schemas:   process_schemas(openrpc_spec.components.schemas)!
+		base_url:  config.base_url
 	}
 
 	// Process all methods
@@ -110,6 +111,13 @@ fn process_parameters(params []openrpc.ContentDescriptorRef) ![]IntermediatePara
 			}
 		} else if param is jsonschema.Reference {
 			//TODO: handle reference
+			// For now, create a placeholder parameter
+			intermediate_params << IntermediateParam{
+				name:        'reference'
+				description: ''
+				type_info:   'any'
+				required:    false
+			}
 		}
 	}
 
@@ -117,7 +125,12 @@ fn process_parameters(params []openrpc.ContentDescriptorRef) ![]IntermediatePara
 }
 
 fn process_result(result openrpc.ContentDescriptorRef) !IntermediateParam {
-	mut intermediate_result := IntermediateParam{}
+	mut intermediate_result := IntermediateParam{
+		name:        ''
+		description: ''
+		type_info:   ''
+		required:    false
+	}
 
 	if result is openrpc.ContentDescriptor {
 		type_info := extract_type_from_schema(result.schema)
@@ -134,9 +147,18 @@ fn process_result(result openrpc.ContentDescriptorRef) !IntermediateParam {
         type_info := ref.ref.all_after_last('/')
         intermediate_result = IntermediateParam{
 			name:       type_info.to_lower()
+			description: ''
 			type_info:   type_info
+			required:    false
 		}
-
+	} else {
+		// Handle any other cases
+		intermediate_result = IntermediateParam{
+			name:        'unknown'
+			description: ''
+			type_info:   'unknown'
+			required:    false
+		}
 	}
 
 	return intermediate_result
@@ -168,14 +190,14 @@ fn process_schemas(schemas map[string]jsonschema.SchemaRef) !map[string]Intermed
             mut properties := []IntermediateProperty{}
             for prop_name, prop_schema_ref in schema.properties {
                 prop_type := extract_type_from_schema(prop_schema_ref)
-                properties << IntermediateProperty {
+                properties << IntermediateProperty{
                     name: prop_name
                     description: "" // TODO
                     type_info: prop_type
                     required: prop_name in schema.required
                 }
             }
-            intermediate_schemas[name] = IntermediateSchema {
+            intermediate_schemas[name] = IntermediateSchema{
                 name: name
                 description: schema.description
                 properties: properties
