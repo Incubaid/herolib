@@ -87,7 +87,7 @@ pub mut:
 	fs_id       u32 @[required]
 	parent_id   u32
 	tags        []string
-	comments    []db.CommentArg
+	messages    []db.MessageArg
 	directories []u32
 	files       []u32
 	symlinks    []u32
@@ -107,7 +107,7 @@ pub fn (mut self DBFsDir) new(args FsDirArg) !FsDir {
 
 	// Set base fields
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.created_at = ourtime.now().unix()
 	o.updated_at = o.created_at
 

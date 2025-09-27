@@ -30,6 +30,15 @@ pub fn decode_u32(data string) !u32 {
 	return u32(parsed_uint)
 }
 
+pub fn decode_string(data string) !string {
+	// Try JSON decode first (for proper JSON strings)
+	// if result := json2.decode[string](data) {
+	// 	return result
+	// }
+	// If that fails, return an error
+	return data
+}
+
 pub fn decode_bool(data string) !bool {
 	return json2.decode[bool](data) or { return error('Failed to decode bool: ${data}') }
 }

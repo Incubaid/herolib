@@ -232,7 +232,7 @@ fn (mut self Fs) export_file(file_id u32, dest_path string, opts ExportOptions) 
 		// Set file modification time if available in metadata
 		if _ := vfs_file.metadata['modified'] {
 			// Note: V doesn't have built-in utime, but we could add this later
-			// For now, just preserve the metadata in a comment or separate file
+			// For now, just preserve the metadata in a message or separate file
 		}
 	}
 }

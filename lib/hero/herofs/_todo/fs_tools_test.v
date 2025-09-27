@@ -71,10 +71,10 @@ fn test_directory_operations() ! {
 	// Verify directories were created
 	src_dir := fs_factory.fs_dir.get(src_dir_id)!
 	assert src_dir.name == 'src'
-	
+
 	docs_dir := fs_factory.fs_dir.get(docs_dir_id)!
 	assert docs_dir.name == 'docs'
-	
+
 	tests_dir := fs_factory.fs_dir.get(tests_dir_id)!
 	assert tests_dir.name == 'tests'
 

@@ -2,6 +2,7 @@ module herofs
 
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.hero.heromodels
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import freeflowuniverse.herolib.ui.console
@@ -15,6 +16,7 @@ pub mut:
 	root_dir_id u32 // ID of root directory
 	quota_bytes u64 // Storage quota in bytes
 	used_bytes  u64 // Current usage in bytes
+	factory     &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 // We only keep the root directory ID here, other directories can be found by querying parent_id in FsDir
@@ -100,7 +102,7 @@ pub mut:
 	quota_bytes u64
 	used_bytes  u64
 	tags        []string
-	comments    []db.CommentArg
+	messages    []db.MessageArg
 }
 
 @[params]
@@ -113,7 +115,7 @@ pub mut:
 pub fn (mut self DBFs) new(args FsArg) !Fs {
 	mut o := Fs{
 		name:    args.name
-		//factory: self.factory
+		factory: self.factory
 	}
 
 	if args.description != '' {
@@ -133,8 +135,8 @@ pub fn (mut self DBFs) new(args FsArg) !Fs {
 	if args.tags.len > 0 {
 		o.tags = self.db.tags_get(args.tags)!
 	}
-	if args.comments.len > 0 {
-		o.comments = self.db.comments_get(args.comments)!
+	if args.messages.len > 0 {
+		o.messages = self.db.messages_get(args.messages)!
 	}
 
 	return o
@@ -147,7 +149,7 @@ pub fn (mut self DBFs) new_get_set(args_ FsArg) !Fs {
 
 	mut o := Fs{
 		name:    args.name
-		//factory: self.factory
+		factory: self.factory
 	}
 
 	myid := self.db.redis.hget('fs:names', args.name)!
@@ -180,8 +182,8 @@ pub fn (mut self DBFs) new_get_set(args_ FsArg) !Fs {
 		o.tags = self.db.tags_get(args.tags)!
 		changes = true
 	}
-	if args.comments.len > 0 {
-		o.comments = self.db.comments_get(args.comments)!
+	if args.messages.len > 0 {
+		o.messages = self.db.messages_get(args.messages)!
 		changes = true
 	}
 
@@ -240,7 +242,7 @@ pub fn (mut self DBFs) get(id u32) !Fs {
 	mut o, data := self.db.get_data[Fs](id)!
 	mut e_decoder := encoder.decoder_new(data)
 	self.load(mut o, mut e_decoder)!
-	//o.factory = self.factory
+	// o.factory = self.factory
 	return o
 }
 

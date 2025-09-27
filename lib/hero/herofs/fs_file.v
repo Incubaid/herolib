@@ -87,7 +87,7 @@ pub mut:
 	checksum    string
 	metadata    map[string]string
 	tags        []string
-	comments    []db.CommentArg
+	messages    []db.MessageArg
 }
 
 // get new file, not from the DB
@@ -128,7 +128,7 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 	// Set base fields
 	o.description = args.description
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
