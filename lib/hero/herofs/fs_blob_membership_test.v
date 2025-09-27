@@ -60,9 +60,9 @@ fn test_basic() ! {
 
 	// Create test blob membership
 	mut test_membership := fs_factory.fs_blob_membership.new(
-		hash:   test_blob.hash
-		fsid:   [test_fs.id] // Use filesystem ID
-		blobid: blob_id
+		hash:   test_blob.hash,
+		fsid:   [test_fs.id], // Use filesystem ID
+		blobid: blob_id,
 	)!
 
 	// Save the test membership

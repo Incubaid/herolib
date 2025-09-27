@@ -2,9 +2,10 @@ module herofs
 
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.core.redisclient
+import freeflowuniverse.herolib.hero.heromodels
 
 @[heap]
-pub struct FsFactory {
+pub struct ModelsFactory {
 pub mut:
 	fs                 DBFs
 	fs_blob            DBFsBlob
