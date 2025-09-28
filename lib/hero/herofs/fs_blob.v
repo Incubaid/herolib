@@ -13,6 +13,9 @@ pub mut:
 	hash       string // blake192 hash of content
 	data       []u8   // Binary data (max 1MB)
 	size_bytes int    // Size in bytes
+	created_at i64
+	mime_type  string // MIME type
+	encoding   string // Encoding type
 }
 
 pub struct DBFsBlob {
@@ -29,18 +32,27 @@ pub fn (self FsBlob) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.hash)
 	e.add_list_u8(self.data)
 	e.add_int(self.size_bytes)
+	e.add_i64(self.created_at)
+	e.add_string(self.mime_type)
+	e.add_string(self.encoding)
 }
 
 fn (mut self DBFsBlob) load(mut o FsBlob, mut e encoder.Decoder) ! {
 	o.hash = e.get_string()!
 	o.data = e.get_list_u8()!
 	o.size_bytes = e.get_int()!
+	o.created_at = e.get_i64()!
+	o.mime_type = e.get_string()!
+	o.encoding = e.get_string()!
 }
 
 @[params]
 pub struct FsBlobArg {
 pub mut:
-	data []u8 @[required]
+	data       []u8 @[required]
+	mime_type  string
+	encoding   string
+	created_at i64
 }
 
 pub fn (mut blob FsBlob) calculate_hash() {
@@ -57,6 +69,9 @@ pub fn (mut self DBFsBlob) new(args FsBlobArg) !FsBlob {
 	mut o := FsBlob{
 		data:       args.data
 		size_bytes: args.data.len
+		created_at: if args.created_at != 0 { args.created_at } else { ourtime.now().unix() }
+		mime_type:  args.mime_type
+		encoding:   args.encoding
 	}
 
 	// Calculate hash

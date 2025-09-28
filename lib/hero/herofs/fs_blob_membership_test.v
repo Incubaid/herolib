@@ -33,7 +33,6 @@ fn test_basic() ! {
 
 	println(root_dir)
 
-	panic('sd')
 	// Create test blob for membership
 	test_data := 'This is test content for blob membership'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
@@ -241,7 +240,7 @@ fn test_validation() ! {
 	)!
 
 	// Try to save it, which should fail
-	test_membership=fs_factory.fs_blob_membership.set(test_membership) or {
+	test_membership = fs_factory.fs_blob_membership.set(test_membership) or {
 		println('✓ Membership set correctly failed with non-existent blob')
 		return
 	}
@@ -264,7 +263,7 @@ fn test_validation() ! {
 	)!
 
 	// Try to save it, which should fail
-	test_membership2=fs_factory.fs_blob_membership.set(test_membership2) or {
+	test_membership2 = fs_factory.fs_blob_membership.set(test_membership2) or {
 		println('✓ Membership set correctly failed with non-existent filesystem')
 		return
 	}

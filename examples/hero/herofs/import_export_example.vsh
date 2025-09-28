@@ -19,7 +19,7 @@ fn main() {
 	)!
 
 	// Save the filesystem
-	fs_factory.fs.set(mut my_fs)!
+	my_fs = fs_factory.fs.set(my_fs)!
 	println('Created filesystem: ${my_fs.name} with ID: ${my_fs.id}')
 
 	// Create root directory
@@ -28,9 +28,9 @@ fn main() {
 		fs_id:     my_fs.id
 		parent_id: 0 // Root has no parent
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	my_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut my_fs)!
+	my_fs = fs_factory.fs.set(my_fs)!
 
 	// Get filesystem instance for operations
 	mut fs := fs_factory.fs.get(my_fs.id)!
@@ -47,7 +47,7 @@ fn main() {
 	test_file1 := os.join_path(test_dir, 'hello.txt')
 	test_file2 := os.join_path(test_dir, 'example.v')
 	test_file3 := os.join_path(test_dir, 'README.md')
-	
+
 	// Create subdirectory with files
 	sub_dir := os.join_path(test_dir, 'docs')
 	os.mkdir_all(sub_dir)!
@@ -64,15 +64,15 @@ fn main() {
 	// Import single file
 	println('Importing single file: ${test_file1}')
 	fs.import(test_file1, '/imported_hello.txt', herofs.ImportOptions{
-		overwrite: true
+		overwrite:     true
 		preserve_meta: true
 	})!
 
 	// Import entire directory recursively
 	println('Importing directory: ${test_dir}')
 	fs.import(test_dir, '/imported_files', herofs.ImportOptions{
-		recursive: true
-		overwrite: true
+		recursive:     true
+		overwrite:     true
 		preserve_meta: true
 	})!
 
@@ -112,20 +112,18 @@ fn main() {
 
 	// Export single file
 	println('Exporting single file to: ${export_dir}/exported_hello.txt')
-	fs.export('/imported_hello.txt', os.join_path(export_dir, 'exported_hello.txt'), 
-		herofs.ExportOptions{
-			overwrite: true
-			preserve_meta: true
-		})!
+	fs.export('/imported_hello.txt', os.join_path(export_dir, 'exported_hello.txt'), herofs.ExportOptions{
+		overwrite:     true
+		preserve_meta: true
+	})!
 
 	// Export entire directory
 	println('Exporting directory to: ${export_dir}/exported_files')
-	fs.export('/imported_files', os.join_path(export_dir, 'exported_files'), 
-		herofs.ExportOptions{
-			recursive: true
-			overwrite: true
-			preserve_meta: true
-		})!
+	fs.export('/imported_files', os.join_path(export_dir, 'exported_files'), herofs.ExportOptions{
+		recursive:     true
+		overwrite:     true
+		preserve_meta: true
+	})!
 
 	// Verify exports
 	println('\nVerifying exported files...')
@@ -173,9 +171,7 @@ fn main() {
 	println('Testing import without overwrite (should fail)...')
 	fs.import(test_overwrite_file, '/overwrite_test.txt', herofs.ImportOptions{
 		overwrite: false
-	}) or {
-		println('✓ Import correctly failed when overwrite=false: ${err}')
-	}
+	}) or { println('✓ Import correctly failed when overwrite=false: ${err}') }
 
 	// Update file content and import with overwrite
 	os.write_file(test_overwrite_file, 'Updated content')!
@@ -186,7 +182,7 @@ fn main() {
 
 	// Test export overwrite behavior
 	export_test_file := os.join_path(export_dir, 'overwrite_export_test.txt')
-	
+
 	// Export first time
 	fs.export('/overwrite_test.txt', export_test_file, herofs.ExportOptions{
 		overwrite: false
@@ -196,9 +192,7 @@ fn main() {
 	println('Testing export without overwrite (should fail)...')
 	fs.export('/overwrite_test.txt', export_test_file, herofs.ExportOptions{
 		overwrite: false
-	}) or {
-		println('✓ Export correctly failed when overwrite=false: ${err}')
-	}
+	}) or { println('✓ Export correctly failed when overwrite=false: ${err}') }
 
 	// Export with overwrite
 	fs.export('/overwrite_test.txt', export_test_file, herofs.ExportOptions{

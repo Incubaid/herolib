@@ -57,7 +57,7 @@ pub mut:
 	target_id   u32               @[required]
 	target_type SymlinkTargetType @[required]
 	tags        []string
-	comments    []db.CommentArg
+	messages    []db.MessageArg
 }
 
 // get new symlink, not from the DB
@@ -73,7 +73,7 @@ pub fn (mut self DBFsSymlink) new(args FsSymlinkArg) !FsSymlink {
 	// Set base fields
 	o.description = args.description
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
