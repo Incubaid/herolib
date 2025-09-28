@@ -1,7 +1,5 @@
 module openrpc
 
-import json
-import x.json2
 import freeflowuniverse.herolib.schemas.jsonschema
 
 // In Method struct

@@ -1,7 +1,6 @@
 module openrpc
 
 import os
-import json
 
 @[params]
 pub struct Params {

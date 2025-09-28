@@ -1,7 +1,6 @@
 module heromodels
 
 import freeflowuniverse.herolib.hero.heroserver
-import os
 
 // Start heromodels server using heroserver
 @[params]

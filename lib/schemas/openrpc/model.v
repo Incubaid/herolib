@@ -1,6 +1,5 @@
 module openrpc
 
-import x.json2 as json { Any }
 import freeflowuniverse.herolib.schemas.jsonschema { Reference, SchemaRef }
 
 // This is the root object of the OpenRPC document.
