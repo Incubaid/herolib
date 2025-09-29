@@ -258,8 +258,31 @@ pub fn (mut self DBChatMessage) get(id u32) !ChatMessage {
 	return o
 }
 
-pub fn (mut self DBChatMessage) list() ![]ChatMessage {
-	return self.db.list[ChatMessage]()!.map(self.get(it)!)
+pub fn (mut self DBChatMessage) list(args ChatMessageListArg) ![]ChatMessage {
+	// Get all chat messages from the database
+	all_messages := self.db.list[ChatMessage]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_messages := []ChatMessage{}
+	for message in all_messages {
+		// Filter by chat_group_id if provided
+		if args.chat_group_id != 0 && message.chat_group_id != args.chat_group_id {
+			continue
+		}
+
+		filtered_messages << message
+	}
+
+	// Limit results to 100 or the specified limit
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_messages.len > limit {
+		return filtered_messages[..limit]
+	}
+
+	return filtered_messages
 }
 
 pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
@@ -288,7 +311,8 @@ pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[str
 			}
 		}
 		'list' {
-			res := f.chat_message.list()!
+			args := db.decode_generic[ChatMessageListArg](params)!
+			res := f.chat_message.list(args)!
 			return new_response(rpcid, json.encode(res))
 		}
 		else {
