@@ -105,7 +105,7 @@ pub fn comment_multiset(args []CommentArg) ![]u32 {
 pub fn comment_set(args CommentArg) !u32 {
 	mut o := comment_new(args)!
 	// Use openrpcserver set function which now returns the ID
-	return set[Comment](mut o)!
+	return set[Comment](o)!
 }
 
 pub fn comment_exist(id u32) !bool {

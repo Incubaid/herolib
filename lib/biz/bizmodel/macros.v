@@ -16,13 +16,14 @@ pub fn playmacro(action playbook.Action) !string {
 
 	if action.name == 'employee_wiki' {
 		return employee_wiki(p, sim)!
-	} else if action.name == 'employees_wiki' {
-		return employees_wiki(p, sim)!
-	} else if action.name == 'department_wiki' {
-		return department_wiki(p, sim)!
-	} else if action.name == 'revenues_wiki' {
-		return revenues_wiki(p, mut sim)!
 	}
+	// } else if action.name == 'employees_wiki' {
+	// 	return employees_wiki(p, sim)!
+	// } else if action.name == 'department_wiki' {
+	// 	return department_wiki(p, sim)!
+	// } else if action.name == 'revenues_wiki' {
+	// 	return revenues_wiki(p, mut sim)!
+	// }
 
 	return error("couldn't find macro '${action.name}' for bizmodel.")
 }
@@ -62,8 +63,8 @@ fn employee_wiki(p paramsparser.Params, sim BizModel) !string {
 
 	// theme := 'light'
 	// theme := 'dark'  // Removed unused variable
-	mut t := $tmpl('./templates/employee_old.md')
-	return t
+	// mut t := $tmpl('./templates/employee.md')
+	return ''
 }
 
 fn employees_wiki(p paramsparser.Params, sim BizModel) !string {

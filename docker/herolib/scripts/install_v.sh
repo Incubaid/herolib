@@ -218,13 +218,13 @@ function hero_lib_pull {
 
 function hero_lib_get {
     
-    mkdir -p $DIR_CODE/github/freeflowuniverse
+    mkdir -p $DIR_CODE/github/incubaid
     if [[ -d "$DIR_CODE/github/incubaid/herolib" ]]
     then
         hero_lib_pull
     else
-        pushd $DIR_CODE/github/freeflowuniverse 2>&1 >> /dev/null
-        git clone --depth 1 --no-single-branch https://github.com/incubaid/herolib.git
+        pushd $DIR_CODE/github/incubaid 2>&1 >> /dev/null
+        git clone --depth 1 --no-single-branch https://github.com/freeflowuniverse/herolib.git
         popd 2>&1 >> /dev/null
     fi    
 }

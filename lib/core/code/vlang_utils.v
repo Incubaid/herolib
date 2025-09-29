@@ -1,4 +1,4 @@
-module code
+module codetools
 
 import freeflowuniverse.herolib.ui.console
 import os
@@ -190,80 +190,4 @@ pub fn get_type_from_module(module_path string, type_name string) !string {
 	}
 
 	return error('type ${type_name} not found in module ${module_path}')
-}
-
-// ===== V LANGUAGE TOOLS =====
-
-// vtest runs v test on the specified file or directory
-// ARGS:
-//   fullpath string - path to the file or directory to test
-// RETURNS:
-//   string - test results output, or error if test fails
-pub fn vtest(fullpath string) !string {
-	console.print_item('test ${fullpath}')
-	if !os.exists(fullpath) {
-		return error('File or directory does not exist: ${fullpath}')
-	}
-	if os.is_dir(fullpath) {
-		mut results := ''
-		for item in list_v_files(fullpath)! {
-			results += vtest(item)!
-			results += '\n-----------------------\n'
-		}
-		return results
-	} else {
-		cmd := 'v -gc none -stats -enable-globals -show-c-output -keepc -n -w -cg -o /tmp/tester.c -g -cc tcc test ${fullpath}'
-		console.print_debug('Executing command: ${cmd}')
-		result := os.execute(cmd)
-		if result.exit_code != 0 {
-			return error('Test failed for ${fullpath} with exit code ${result.exit_code}\n${result.output}')
-		} else {
-			console.print_item('Test completed for ${fullpath}')
-		}
-		return 'Command: ${cmd}\nExit code: ${result.exit_code}\nOutput:\n${result.output}'
-	}
-}
-
-// vet_file runs v vet on a single file
-// ARGS:
-//   file string - path to the file to vet
-// RETURNS:
-//   string - vet results output, or error if vet fails
-fn vet_file(file string) !string {
-	cmd := 'v vet -v -w ${file}'
-	console.print_debug('Executing command: ${cmd}')
-	result := os.execute(cmd)
-	if result.exit_code != 0 {
-		return error('Vet failed for ${file} with exit code ${result.exit_code}\n${result.output}')
-	} else {
-		console.print_item('Vet completed for ${file}')
-	}
-	return 'Command: ${cmd}\nExit code: ${result.exit_code}\nOutput:\n${result.output}'
-}
-
-// vvet runs v vet on the specified file or directory
-// ARGS:
-//   fullpath string - path to the file or directory to vet
-// RETURNS:
-//   string - vet results output, or error if vet fails
-pub fn vvet(fullpath string) !string {
-	console.print_item('vet ${fullpath}')
-	if !os.exists(fullpath) {
-		return error('File or directory does not exist: ${fullpath}')
-	}
-
-	if os.is_dir(fullpath) {
-		mut results := ''
-		files := list_v_files(fullpath) or { return error('Error listing V files: ${err}') }
-		for file in files {
-			results += vet_file(file) or {
-				console.print_stderr('Failed to vet ${file}: ${err}')
-				return error('Failed to vet ${file}: ${err}')
-			}
-			results += '\n-----------------------\n'
-		}
-		return results
-	} else {
-		return vet_file(fullpath)
-	}
 }

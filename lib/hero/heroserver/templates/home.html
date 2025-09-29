@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HeroServer - API Gateway</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --google-blue: #1a73e8;
+            --google-blue-hover: #1557b0;
+            --google-gray: #5f6368;
+            --google-light-gray: #f8f9fa;
+            --google-border: #dadce0;
+            --google-text: #202124;
+            --google-text-secondary: #5f6368;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--google-text);
+            line-height: 1.6;
+        }
+
+        .hero-section {
+            padding: 4rem 0;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .hero-section h1 {
+            font-weight: 300;
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--google-text);
+        }
+
+        .hero-section .lead {
+            font-weight: 400;
+            font-size: 1.25rem;
+            color: var(--google-text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .hero-section p {
+            color: var(--google-text-secondary);
+            font-size: 1rem;
+        }
+
+        .feature-card {
+            border: 1px solid var(--google-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            height: 100%;
+            background: white;
+        }
+
+        .feature-card h5 {
+            font-weight: 500;
+            color: var(--google-text);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: var(--google-text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .endpoint-card {
+            border: 1px solid var(--google-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: white;
+        }
+
+        .endpoint-url {
+            background: var(--google-light-gray);
+            border: 1px solid var(--google-border);
+            padding: 0.75rem;
+            border-radius: 6px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            color: var(--google-text);
+        }
+
+        .badge-custom {
+            background: var(--google-blue);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+        }
+
+        .btn-google-primary {
+            background: var(--google-blue);
+            border: 1px solid var(--google-blue);
+            color: white;
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        .btn-google-secondary {
+            background: white;
+            border: 1px solid var(--google-border);
+            color: var(--google-text);
+            font-weight: 500;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+        }
+
+        .section-spacing {
+            margin-bottom: 3rem;
+        }
+
+        .code-block {
+            background: var(--google-light-gray);
+            border: 1px solid var(--google-border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+
+        .alert-google-info {
+            background: #e8f0fe;
+            border: 1px solid #d2e3fc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            color: var(--google-text);
+        }
+
+        .alert-google-success {
+            background: #e6f4ea;
+            border: 1px solid #ceead6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            color: var(--google-text);
+        }
+
+        .footer {
+            border-top: 1px solid var(--google-border);
+            padding: 3rem 0;
+            margin-top: 6rem;
+            color: var(--google-text-secondary);
+        }
+
+        h2 {
+            font-weight: 400;
+            color: var(--google-text);
+            margin-bottom: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        .text-muted {
+            color: var(--google-text-secondary) !important;
+        }
+
+        /* Ensure proper spacing and alignment */
+        .row {
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .col-12,
+        .col-md-4,
+        .col-md-6 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        /* Fix button spacing */
+        .d-flex.gap-2 {
+            gap: 0.5rem !important;
+        }
+
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 3rem 0;
+                margin-bottom: 2rem;
+            }
+
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+
+            .feature-card,
+            .endpoint-card {
+                margin-bottom: 1rem;
+                padding: 1rem;
+            }
+
+            .section-spacing {
+                margin-bottom: 2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1>HeroServer</h1>
+                    <p class="lead">Modern JSON-RPC 2.0 API Gateway with Dynamic Documentation</p>
+                    <p class="mb-4">A powerful, secure, and developer-friendly API server built with V language</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Features Section -->
+        <div class="row section-spacing">
+            <div class="col-12">
+                <h2 class="text-center">Key Features</h2>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center">
+                    <h5>JSON-RPC 2.0</h5>
+                    <p>Full compliance with JSON-RPC 2.0 specification for reliable API communication</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center">
+                    <h5>Dynamic Documentation</h5>
+                    <p>Auto-generated interactive documentation with curl examples and copy buttons</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="feature-card text-center">
+                    <h5>Secure Authentication</h5>
+                    <p>Built-in cryptographic authentication with public key infrastructure</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Endpoints Section -->
+        <div class="row section-spacing">
+            <div class="col-12">
+                <h2 class="mb-2">Available API Endpoints</h2>
+                <p class="text-muted mb-3">Explore the available API handlers and their documentation</p>
+            </div>
+        </div>
+
+        <div class="row">
+            @for handler_name in server_info.handlers.keys()
+            <div class="col-md-6 mb-4">
+                <div class="endpoint-card">
+                    <h5 class="mb-3">
+                        <span class="badge-custom me-2">API</span>
+                        ${handler_name.title()}
+                    </h5>
+
+                    <div class="endpoint-url">
+                        <strong>API Endpoint:</strong> /api/${handler_name}
+                    </div>
+
+                    <div class="endpoint-url">
+                        <strong>Documentation:</strong> /doc/${handler_name}
+                    </div>
+
+                    <div class="endpoint-url">
+                        <strong>JSON Info:</strong> /json/${handler_name}
+                    </div>
+
+                    <p class="text-muted mb-3">
+                        JSON-RPC 2.0 API for ${handler_name} operations with full CRUD support
+                    </p>
+
+                    <div class="d-flex gap-2">
+                        <a href="/doc/${handler_name}" class="btn btn-google-primary btn-sm">
+                            View Documentation
+                        </a>
+                        <a href="/json/${handler_name}" class="btn btn-google-secondary btn-sm">
+                            JSON Info
+                        </a>
+                        <a href="/md/${handler_name}" class="btn btn-google-secondary btn-sm">
+                            Markdown Docs
+                        </a>
+                        <a href="/api/${handler_name}" class="btn btn-google-secondary btn-sm"
+                            onclick="alert('This is a JSON-RPC endpoint. Use POST requests with JSON-RPC 2.0 format. See documentation for examples.'); return false;">
+                            API Endpoint
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @end
+        </div>
+
+        <!-- Quick Start Section -->
+        <div class="row section-spacing">
+            <div class="col-12">
+                <h2 class="mb-3">Quick Start</h2>
+                <div class="endpoint-card">
+                    <h5 class="mb-2">Getting Handler Information</h5>
+                    <p class="text-muted mb-3">Get detailed information about a specific API handler in JSON format:</p>
+
+                    <div class="code-block">
+                        <pre>curl ${server_info.base_url}/json/[handler_name]</pre>
+                    </div>
+
+                    <h5 class="mb-2 mt-4">Making API Calls</h5>
+                    <p class="text-muted mb-3">All API endpoints use JSON-RPC 2.0 format. Here's a basic example:</p>
+
+                    <div class="code-block">
+                        <pre>curl -X POST ${server_info.base_url}/api/[handler_name] \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "method": "method_name",
+    "params": {
+      "param1": "value1",
+      "param2": "value2"
+    },
+    "id": 1
+  }'</pre>
+                    </div>
+
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <strong>Tip:</strong> Visit the documentation pages for specific examples with
+                            copy-to-clipboard functionality
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if server_info.auth_enabled
+        <!-- Authentication Section -->
+        <div class="row section-spacing">
+            <div class="col-12">
+                <h2 class="mb-3">Authentication</h2>
+                <div class="alert-google-info">
+                    <h5 class="mb-2">Authentication Required</h5>
+                    <p class="mb-0">
+                        This server requires authentication. Please register your public key and obtain a session token
+                        before making API calls. See the documentation for detailed authentication flow.
+                    </p>
+                </div>
+            </div>
+        </div>
+        @else
+        <!-- No Authentication Notice -->
+        <div class="row section-spacing">
+            <div class="col-12">
+                <h2 class="mb-3">Authentication</h2>
+                <div class="alert-google-success">
+                    <h5 class="mb-2">Open Access</h5>
+                    <p class="mb-0">
+                        Authentication is currently disabled. You can make API calls directly without authentication.
+                    </p>
+                </div>
+            </div>
+        </div>
+        @end
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="mb-0">
+                <strong>HeroServer</strong> - Built with V language •
+                <a href="https://github.com/freeflowuniverse/herolib" target="_blank" class="text-decoration-none">
+                    View on GitHub
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

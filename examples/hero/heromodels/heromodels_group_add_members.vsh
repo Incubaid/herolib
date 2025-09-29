@@ -1,4 +1,4 @@
-#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
 import freeflowuniverse.herolib.hero.heromodels
 
@@ -23,11 +23,11 @@ o.add_member(3, heromodels.GroupRole.reader)
 o.tags = mydb.group.db.tags_get(['team', 'marketing'])!
 
 // Save to database
-oid := mydb.group.set(o)!
-println('Created Group ID: ${oid}')
+mydb.group.set(o)!
+println('Created Group ID: ${o.id}')
 
 // Retrieve from database
-mut o2 := mydb.group.get(oid)!
+mut o2 := mydb.group.get(o.id)!
 println('Retrieved Group object: ${o2}')
 
 // Check the number of members

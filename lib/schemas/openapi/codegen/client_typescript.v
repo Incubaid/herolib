@@ -1,6 +1,6 @@
 module codegen
 
-import freeflowuniverse.herolib.core.code { File, Folder }
+import freeflowuniverse.herolib.develop.codetools as code { File, Folder }
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema }
 import freeflowuniverse.herolib.schemas.jsonschema.codegen { schema_to_struct }

@@ -1,7 +1,7 @@
 module specification
 
 import x.json2 as json
-import freeflowuniverse.herolib.core.code { Struct }
+import freeflowuniverse.herolib.develop.codetools as code { Struct }
 import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec }
 import freeflowuniverse.herolib.schemas.openapi { Components, Info, OpenAPI, Operation, PathItem, ServerSpec }
 import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }

@@ -8,9 +8,9 @@ curl -s http://localhost:9933/ \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
-    "method": "comment_set",
+    "method": "message_set",
     "params": {
-      "comment": "Hello world!",
+      "message": "Hello world!",
       "parent": 0,
       "author": 42
     },
@@ -47,7 +47,7 @@ nc -U /tmp/heromodels
 
 # then e.g. paste following in
 
-{"jsonrpc":"2.0","method":"comment_set","params":{"comment":"Hello world!","parent":0,"author":42},"id":1}
+{"jsonrpc":"2.0","method":"message_set","params":{"message":"Hello world!","parent":0,"author":42},"id":1}
 
 needs to be on one line for openrpc to work
 

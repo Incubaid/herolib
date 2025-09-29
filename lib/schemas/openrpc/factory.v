@@ -1,7 +1,6 @@
 module openrpc
 
 import os
-import json
 
 @[params]
 pub struct Params {
@@ -27,5 +26,5 @@ pub fn new(params Params) !OpenRPC {
 		params.text
 	}
 
-	return json.decode(OpenRPC, text)!
+	return decode(text)!
 }

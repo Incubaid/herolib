@@ -3,20 +3,19 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // User represents a person in the system
 @[heap]
 pub struct User {
 	db.Base
 pub mut:
-	email      string
-	public_key string // for encryption/signing
-	phone      string
-	address    string
-	avatar_url string
-	bio        string
-	timezone   string
-	status     UserStatus
+	user_id     u32 // id as is set in ledger, if 0 then we don't know
+	contact_id  u32 // if we have separate content info for this person
+	status      UserStatus
+	profile_ids []string
 }
 
 pub enum UserStatus {
@@ -79,25 +78,17 @@ pub fn (self User) example(methodname string) (string, string) {
 }
 
 pub fn (self User) dump(mut e encoder.Encoder) ! {
-	e.add_string(self.email)
-	e.add_string(self.public_key)
-	e.add_string(self.phone)
-	e.add_string(self.address)
-	e.add_string(self.avatar_url)
-	e.add_string(self.bio)
-	e.add_string(self.timezone)
+	e.add_u32(self.user_id)
+	e.add_u32(self.contact_id)
 	e.add_u8(u8(self.status))
+	e.add_list_string(self.profile_ids)
 }
 
 fn (mut self DBUser) load(mut o User, mut e encoder.Decoder) ! {
-	o.email = e.get_string()!
-	o.public_key = e.get_string()!
-	o.phone = e.get_string()!
-	o.address = e.get_string()!
-	o.avatar_url = e.get_string()!
-	o.bio = e.get_string()!
-	o.timezone = e.get_string()!
+	o.user_id = e.get_u32()!
+	o.contact_id = e.get_u32()!
 	o.status = unsafe { UserStatus(e.get_u8()!) }
+	o.profile_ids = e.get_list_string()!
 }
 
 @[params]
@@ -105,17 +96,13 @@ pub struct UserArg {
 pub mut:
 	name           string @[required]
 	description    string
-	email          string
-	public_key     string // for encryption/signing
-	phone          string
-	address        string
-	avatar_url     string
-	bio            string
-	timezone       string
+	user_id        u32
+	contact_id     u32
 	status         UserStatus
+	profile_ids    []string
 	securitypolicy u32
-	tags           u32
-	comments       []u32
+	tags           []string
+	messages       []db.MessageArg
 }
 
 pub struct DBUser {
@@ -123,31 +110,34 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct UserListArg {
+pub mut:
+	status UserStatus
+	limit  int = 100 // Default limit is 100
+}
+
 // get new user, not from the DB
 pub fn (mut self DBUser) new(args UserArg) !User {
 	mut o := User{
-		email:      args.email
-		public_key: args.public_key
-		phone:      args.phone
-		address:    args.address
-		avatar_url: args.avatar_url
-		bio:        args.bio
-		timezone:   args.timezone
-		status:     args.status
+		user_id:     args.user_id
+		contact_id:  args.contact_id
+		status:      args.status
+		profile_ids: args.profile_ids
 	}
 
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
-	o.tags = args.tags
-	o.comments = args.comments
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
 }
 
-pub fn (mut self DBUser) set(o User) !u32 {
+pub fn (mut self DBUser) set(o User) !User {
 	return self.db.set[User](o)!
 }
 
@@ -166,6 +156,63 @@ pub fn (mut self DBUser) get(id u32) !User {
 	return o
 }
 
-pub fn (mut self DBUser) list() ![]User {
-	return self.db.list[User]()!.map(self.get(it)!)
+pub fn (mut self DBUser) list(args UserListArg) ![]User {
+	// Get all users from the database
+	all_users := self.db.list[User]()!.map(self.get(it)!)
+
+	// Apply filters - return all users if no specific status filter is provided
+	mut filtered_users := []User{}
+	for user in all_users {
+		filtered_users << user
+	}
+
+	// Limit results to 100 or the specified limit
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_users.len > limit {
+		return filtered_users[..limit]
+	}
+
+	return filtered_users
+}
+
+pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.user.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[User](params)!
+			o = f.user.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.user.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.user.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic[UserListArg](params)!
+			res := f.user.list(args)!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on user'
+			)
+		}
+	}
 }

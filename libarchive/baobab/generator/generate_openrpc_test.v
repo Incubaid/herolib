@@ -1,6 +1,6 @@
 module generator
 
-import freeflowuniverse.herolib.core.code { Function, Param, Result, Struct, Type }
+import freeflowuniverse.herolib.develop.codetools as code { Function, Param, Result, Struct, Type }
 import freeflowuniverse.herolib.schemas.openrpc
 
 const test_actor_specification = ActorSpecification{

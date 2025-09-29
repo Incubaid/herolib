@@ -1,11 +1,5 @@
 module db
 
-import crypto.md5
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.data.ourtime
-
-// Group represents a collection of users with roles and permissions
-@[heap]
 pub struct Base {
 pub mut:
 	id             u32
@@ -15,7 +9,7 @@ pub mut:
 	updated_at     i64
 	securitypolicy u32
 	tags           u32 // when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
-	comments       []u32
+	messages       []u32
 }
 
 @[heap]

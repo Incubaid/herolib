@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // ProjectIssue represents a task, story, bug, or question in a project
 @[heap]
@@ -58,9 +61,21 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct ProjectIssueListArg {
+pub mut:
+	project_id u32
+	issue_type IssueType
+	status     IssueStatus
+	swimlane   string
+	milestone  string
+	limit      int = 100 // Default limit is 100
+}
+
 pub fn (self ProjectIssue) type_name() string {
 	return 'project_issue'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self ProjectIssue) description(methodname string) string {
 	match methodname {
@@ -126,7 +141,7 @@ pub fn (self ProjectIssue) dump(mut e encoder.Encoder) ! {
 	e.add_list_u32(self.children)
 }
 
-fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder) ! {
+pub fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder) ! {
 	o.title = e.get_string()!
 	o.project_id = e.get_u32()!
 	o.issue_type = unsafe { IssueType(e.get_u8()!) }
@@ -164,7 +179,7 @@ pub mut:
 	children       []u32
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 // get new project issue, not from the DB
@@ -225,7 +240,7 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	// Convert deadline string to Unix timestamp
@@ -235,7 +250,7 @@ pub fn (mut self DBProjectIssue) new(args ProjectIssueArg) !ProjectIssue {
 	return o
 }
 
-pub fn (mut self DBProjectIssue) set(o ProjectIssue) !u32 {
+pub fn (mut self DBProjectIssue) set(o ProjectIssue) !ProjectIssue {
 	return self.db.set[ProjectIssue](o)!
 }
 
@@ -254,6 +269,88 @@ pub fn (mut self DBProjectIssue) get(id u32) !ProjectIssue {
 	return o
 }
 
-pub fn (mut self DBProjectIssue) list() ![]ProjectIssue {
-	return self.db.list[ProjectIssue]()!.map(self.get(it)!)
+pub fn (mut self DBProjectIssue) list(args ProjectIssueListArg) ![]ProjectIssue {
+	// Get all project issues from the database
+	all_project_issues := self.db.list[ProjectIssue]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_project_issues := []ProjectIssue{}
+	for project_issue in all_project_issues {
+		// Filter by project_id if provided
+		if args.project_id != 0 && project_issue.project_id != args.project_id {
+			continue
+		}
+
+		// Filter by issue_type if provided (issue_type is not task)
+		if args.issue_type != .task && project_issue.issue_type != args.issue_type {
+			continue
+		}
+
+		// Filter by status if provided (status is not open)
+		if args.status != .open && project_issue.status != args.status {
+			continue
+		}
+
+		// Filter by swimlane if provided
+		if args.swimlane != '' && project_issue.swimlane != args.swimlane {
+			continue
+		}
+
+		// Filter by milestone if provided
+		if args.milestone != '' && project_issue.milestone != args.milestone {
+			continue
+		}
+
+		filtered_project_issues << project_issue
+	}
+
+	// Limit results to 100 or the specified limit
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_project_issues.len > limit {
+		return filtered_project_issues[..limit]
+	}
+
+	return filtered_project_issues
+}
+
+pub fn project_issue_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.project_issue.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[ProjectIssue](params)!
+			o = f.project_issue.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.project_issue.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.project_issue.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic[ProjectIssueListArg](params)!
+			res := f.project_issue.list(args)!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on project_issue'
+			)
+		}
+	}
 }

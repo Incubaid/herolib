@@ -1,6 +1,5 @@
 module herofs
 
-import time
 import crypto.blake3
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
@@ -21,7 +20,8 @@ pub mut:
 
 pub struct DBFsBlob {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsBlob) type_name() string {
@@ -49,13 +49,10 @@ fn (mut self DBFsBlob) load(mut o FsBlob, mut e encoder.Decoder) ! {
 @[params]
 pub struct FsBlobArg {
 pub mut:
-	data        []u8 @[required]
-	mime_type   string
-	encoding    string
-	name        string
-	description string
-	tags        []string
-	comments    []db.CommentArg
+	data       []u8 @[required]
+	mime_type  string
+	encoding   string
+	created_at i64
 }
 
 pub fn (mut blob FsBlob) calculate_hash() {
@@ -72,39 +69,28 @@ pub fn (mut self DBFsBlob) new(args FsBlobArg) !FsBlob {
 	mut o := FsBlob{
 		data:       args.data
 		size_bytes: args.data.len
-		created_at: ourtime.now().unix()
+		created_at: if args.created_at != 0 { args.created_at } else { ourtime.now().unix() }
 		mime_type:  args.mime_type
-		encoding:   if args.encoding == '' { 'none' } else { args.encoding }
+		encoding:   args.encoding
 	}
 
 	// Calculate hash
 	o.calculate_hash()
 
 	// Set base fields
-	o.name = args.name
-	o.description = args.description
-	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
 }
 
-pub fn (mut self DBFsBlob) set(o FsBlob) !u32 {
-	// Check if a blob with this hash already exists
-	hash_id := self.db.redis.hget('fsblob:hashes', o.hash)!
-	if hash_id != '' {
-		// Blob already exists, return existing ID
-		return hash_id.u32()
-	}
-
-	// Use db set function which now returns the ID
-	id := self.db.set[FsBlob](o)!
+pub fn (mut self DBFsBlob) set(o_ FsBlob) !FsBlob {
+	// Use db set function which now modifies the object in-place
+	o := self.db.set[FsBlob](o_)!
 
 	// Store the hash -> id mapping for lookup
-	self.db.redis.hset('fsblob:hashes', o.hash, id.str())!
+	self.db.redis.hset('fsblob:hashes', o.hash, o.id.str())!
 
-	return id
+	return o
 }
 
 pub fn (mut self DBFsBlob) delete(id u32) ! {
@@ -118,8 +104,23 @@ pub fn (mut self DBFsBlob) delete(id u32) ! {
 	self.db.delete[FsBlob](id)!
 }
 
+pub fn (mut self DBFsBlob) delete_multi(ids []u32) ! {
+	for id in ids {
+		self.delete(id)!
+	}
+}
+
 pub fn (mut self DBFsBlob) exist(id u32) !bool {
 	return self.db.exists[FsBlob](id)!
+}
+
+pub fn (mut self DBFsBlob) exist_multi(ids []u32) !bool {
+	for id in ids {
+		if !self.exist(id)! {
+			return false
+		}
+	}
+	return true
 }
 
 pub fn (mut self DBFsBlob) get(id u32) !FsBlob {
@@ -129,19 +130,27 @@ pub fn (mut self DBFsBlob) get(id u32) !FsBlob {
 	return o
 }
 
-pub fn (mut self DBFsBlob) list() ![]FsBlob {
-	return self.db.list[FsBlob]()!.map(self.get(it)!)
+pub fn (mut self DBFsBlob) get_multi(id []u32) ![]FsBlob {
+	mut blobs := []FsBlob{}
+	for i in id {
+		blobs << self.get(i)!
+	}
+	return blobs
 }
 
 pub fn (mut self DBFsBlob) get_by_hash(hash string) !FsBlob {
+	// Get blob ID from Redis hash mapping
 	id_str := self.db.redis.hget('fsblob:hashes', hash)!
 	if id_str == '' {
-		return error('Blob with hash "${hash}" not found')
+		return error('Blob with hash ${hash} not found')
 	}
-	return self.get(id_str.u32())!
+
+	id := id_str.u32()
+	return self.get(id)!
 }
 
 pub fn (mut self DBFsBlob) exists_by_hash(hash string) !bool {
+	// Check if hash exists in Redis mapping
 	id_str := self.db.redis.hget('fsblob:hashes', hash)!
 	return id_str != ''
 }
@@ -149,4 +158,9 @@ pub fn (mut self DBFsBlob) exists_by_hash(hash string) !bool {
 pub fn (blob FsBlob) verify_integrity() bool {
 	hash := blake3.sum256(blob.data)
 	return hash.hex()[..48] == blob.hash
+}
+
+pub fn (mut self DBFsBlob) verify(hash string) !bool {
+	blob := self.get_by_hash(hash)!
+	return blob.verify_integrity()
 }

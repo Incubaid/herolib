@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // Group represents a collection of users with roles and permissions
 @[heap]
@@ -17,7 +20,7 @@ pub mut:
 
 pub struct GroupMember {
 pub mut:
-	user_id   u32
+	user_id   u32 // are users as defined in ledger, each user needs to exist in the generic ledger
 	role      GroupRole
 	joined_at i64
 }
@@ -32,6 +35,7 @@ pub enum GroupRole {
 pub fn (self Group) type_name() string {
 	return 'group'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self Group) description(methodname string) string {
 	match methodname {
@@ -60,10 +64,10 @@ pub fn (self Group) description(methodname string) string {
 pub fn (self Group) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"group": {"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}}', '1'
+			return '{"group": {"name": "Admins", "description": "Administrators group", "members": [{"user_id": 1, "role": "admin", "joined_at": 1678886400}], "subgroups": [], "parent_group": 0, "is_public": false}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}'
+			return '{"id": 1}', '{"name": "Admins", "description": "Administrators group", "members": [{"user_id": 1, "role": "admin", "joined_at": 1678886400}], "subgroups": [], "parent_group": 0, "is_public": false}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -72,7 +76,7 @@ pub fn (self Group) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"name": "Admins", "description": "Administrators group", "members": [], "subgroups": [], "parent_group": 0, "is_public": false}]'
+			return '{}', '[{"name": "Admins", "description": "Administrators group", "members": [{"user_id": 1, "role": "admin", "joined_at": 1678886400}], "subgroups": [], "parent_group": 0, "is_public": false}]'
 		}
 		else {
 			return '{}', '{}'
@@ -92,7 +96,7 @@ pub fn (self Group) dump(mut e encoder.Encoder) ! {
 	e.add_bool(self.is_public)
 }
 
-fn (mut self DBGroup) load(mut o Group, mut e encoder.Decoder) ! {
+pub fn (mut o Group) load(mut e encoder.Decoder) ! {
 	members_len := e.get_u16()!
 	mut members := []GroupMember{}
 	for _ in 0 .. members_len {
@@ -129,6 +133,14 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct GroupListArg {
+pub mut:
+	is_public    bool
+	parent_group u32
+	limit        int = 100 // Default limit is 100
+}
+
 // get new group, not from the DB
 pub fn (mut self DBGroup) new(args GroupArg) !Group {
 	mut o := Group{
@@ -146,11 +158,37 @@ pub fn (mut self DBGroup) new(args GroupArg) !Group {
 	return o
 }
 
-pub fn (mut self DBGroup) set(o Group) !u32 {
-	return self.db.set[Group](o)!
+pub fn (mut self DBGroup) set(o_ Group) !Group {
+	// Save the group first to get its ID if it's new
+	mut o := o_
+	o = self.db.set[Group](o)!
+
+	// If this group has a parent, add it to the parent's subgroups
+	if o.parent_group != 0 {
+		mut parent_group := self.get(o.parent_group)!
+		if !parent_group.subgroups.contains(o.id) {
+			parent_group.subgroups << o.id
+			self.db.set[Group](parent_group)!
+		}
+	}
+	return o
 }
 
 pub fn (mut self DBGroup) delete(id u32) ! {
+	mut group := self.get(id)!
+
+	// If this group has a parent, remove it from the parent's subgroups
+	if group.parent_group != 0 {
+		mut parent_group := self.get(group.parent_group)!
+		parent_group.subgroups = parent_group.subgroups.filter(it != id)
+		self.db.set[Group](parent_group)!
+	}
+
+	// Recursively delete all subgroups
+	for subgroup_id in group.subgroups {
+		self.delete(subgroup_id)!
+	}
+
 	self.db.delete[Group](id)!
 }
 
@@ -161,12 +199,44 @@ pub fn (mut self DBGroup) exist(id u32) !bool {
 pub fn (mut self DBGroup) get(id u32) !Group {
 	mut o, data := self.db.get_data[Group](id)!
 	mut e_decoder := encoder.decoder_new(data)
-	self.load(mut o, mut e_decoder)!
+	o.load(mut e_decoder)!
 	return o
 }
 
-pub fn (mut self DBGroup) list() ![]Group {
-	return self.db.list[Group]()!.map(self.get(it)!)
+pub fn (mut self DBGroup) list(args GroupListArg) ![]Group {
+	// Get all groups from the database
+	mut all_groups := self.db.list[Group]()!
+	mut groups := []Group{}
+	for id in all_groups {
+		groups << self.get(id)!
+	}
+
+	// Apply filters
+	mut filtered_groups := []Group{}
+	for group in groups {
+		// Filter by is_public if provided (is_public is true)
+		if args.is_public && !group.is_public {
+			continue
+		}
+
+		// Filter by parent_group if provided
+		if args.parent_group != 0 && group.parent_group != args.parent_group {
+			continue
+		}
+
+		filtered_groups << group
+	}
+
+	// Limit results to 100 or the specified limit
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_groups.len > limit {
+		return filtered_groups[..limit]
+	}
+
+	return filtered_groups
 }
 
 pub fn (mut self Group) add_member(user_id u32, role GroupRole) {
@@ -179,3 +249,42 @@ pub fn (mut self Group) add_member(user_id u32, role GroupRole) {
 }
 
 // CUSTOM FEATURES FOR GROUP
+
+pub fn group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.group.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Group](params)!
+			o = f.group.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.group.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.group.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic[GroupListArg](params)!
+			res := f.group.list(args)!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on group'
+			)
+		}
+	}
+}

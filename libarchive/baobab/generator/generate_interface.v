@@ -1,7 +1,7 @@
 module generator
 
 import freeflowuniverse.herolib.baobab.specification { ActorInterface }
-import freeflowuniverse.herolib.core.code { CustomCode, VFile }
+import freeflowuniverse.herolib.develop.codetools as code { CustomCode, VFile }
 
 fn generate_openrpc_interface_files(interfaces []ActorInterface) (VFile, VFile) {
 	http := ActorInterface.http in interfaces

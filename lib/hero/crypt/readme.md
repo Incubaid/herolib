@@ -10,7 +10,18 @@ This module provides client-side access to HeroDB's AGE encryption features, off
 Ensure HeroDB is running with encryption enabled:
 
 ```bash
-herodb --dir /path/to/data --port 6379 --encrypt --encryption-key yoursecretkey
+herodb --dir /path/to/data --port 6381 --encrypt --encryption-key yoursecretkey
+```
+
+## To start a db see
+
+https://git.ourworld.tf/herocode/herodb
+
+to do:
+
+```bash
+hero git pull https://git.ourworld.tf/herocode/herodb
+~/code/git.ourworld.tf/herocode/herodb/run.sh
 ```
 
 ## Usage
@@ -18,25 +29,10 @@ herodb --dir /path/to/data --port 6379 --encrypt --encryption-key yoursecretkey
 ### Creating an AGE Client
 
 ```v
-import freeflowuniverse.herolib.hero.crypt
-import freeflowuniverse.herolib.core.redisclient
+import freeflowuniverse.herolib.crypt.herocrypt
 
-// Connect to default Redis instance (127.0.0.1:6379)
-mut age_client := crypt.new_age_client()!
-
-// Or connect to a specific Redis instance
-mut age_client := crypt.new_age_client(
-    redis_url: redisclient.RedisURL{
-        address: 'my.herodb.server',
-        port: 6379
-    }
-)!
-
-// Or use an existing Redis client
-mut redis := redisclient.core_get()!
-mut age_client := crypt.new_age_client(
-    redis: redis
-)!
+// Connect to default Redis instance (127.0.0.1:6381)
+mut client := herocrypt.new_default()!
 ```
 
 ## Stateless Encryption (Client-Managed Keys)
@@ -47,9 +43,11 @@ In stateless mode, the client generates and manages keys. The server never store
 
 ```v
 // Generate a new encryption keypair
-keypair := age_client.generate_keypair()!
-println('Public key: ${keypair.recipient}')
-println('Private key: ${keypair.identity}')
+enc_keypair := client.gen_enc_keypair()!
+recipient_pub := enc_keypair[0]
+identity_sec := enc_keypair[1]
+println('Public key: ${recipient_pub}')
+println('Private key: ${identity_sec}')
 
 // Important: Store the identity (private key) securely!
 ```
@@ -59,27 +57,29 @@ println('Private key: ${keypair.identity}')
 ```v
 // Encrypt a message with the public key
 message := 'Hello, encrypted world!'
-encrypted := age_client.encrypt(keypair.recipient, message)!
-println('Encrypted: ${encrypted.ciphertext}')
+ciphertext := client.encrypt(recipient_pub, message)!
+println('Encrypted: ${ciphertext}')
 
 // Decrypt with the private key
-decrypted := age_client.decrypt(keypair.identity, encrypted.ciphertext)!
-println('Decrypted: ${decrypted}')
+decrypted_message := client.decrypt(identity_sec, ciphertext)!
+println('Decrypted: ${decrypted_message}')
 ```
 
 ### Signing and Verification
 
 ```v
 // Generate a signing keypair
-signing_keypair := age_client.generate_signing_keypair()!
+sign_keypair := client.gen_sign_keypair()!
+verify_pub_b64 := sign_keypair[0]
+sign_sec_b64 := sign_keypair[1]
 
 // Sign a message
 message := 'This message is authentic'
-signed := age_client.sign(signing_keypair.sign_key, message)!
-println('Signature: ${signed.signature}')
+signature := client.sign(sign_sec_b64, message)!
+println('Signature: ${signature}')
 
 // Verify the signature
-is_valid := age_client.verify(signing_keypair.verify_key, message, signed.signature)!
+is_valid := client.verify(verify_pub_b64, message, signature)!
 println('Signature valid: ${is_valid}')
 ```
 
@@ -91,12 +91,14 @@ In key-managed mode, the server generates and stores named keys. Clients referen
 
 ```v
 // Create a named encryption keypair
-named_keypair := age_client.create_named_keypair('app1_encryption')!
-println('Created encryption keypair: ${named_keypair.recipient}')
+enc_key_name := 'app1_encryption'
+client.keygen(enc_key_name)!
+println('Created encryption keypair: "${enc_key_name}"')
 
 // Create a named signing keypair
-named_signing_keypair := age_client.create_named_signing_keypair('app1_signing')!
-println('Created signing keypair: ${named_signing_keypair.verify_key}')
+sign_key_name := 'app1_signing'
+client.sign_keygen(sign_key_name)!
+println('Created signing keypair: "${sign_key_name}"')
 ```
 
 ### Encrypt and Decrypt with Named Keys
@@ -104,11 +106,11 @@ println('Created signing keypair: ${named_signing_keypair.verify_key}')
 ```v
 // Encrypt with a named key
 message := 'This message is encrypted with a named key'
-encrypted := age_client.encrypt_with_named_key('app1_encryption', message)!
-println('Encrypted: ${encrypted.ciphertext}')
+encrypted := client.encrypt_by_name('app1_encryption', message)!
+println('Encrypted: ${encrypted}')
 
 // Decrypt with a named key
-decrypted := age_client.decrypt_with_named_key('app1_encryption', encrypted.ciphertext)!
+decrypted := client.decrypt_by_name('app1_encryption', encrypted)!
 println('Decrypted: ${decrypted}')
 ```
 
@@ -117,11 +119,11 @@ println('Decrypted: ${decrypted}')
 ```v
 // Sign with a named key
 message := 'This message is signed with a named key'
-signed := age_client.sign_with_named_key('app1_signing', message)!
-println('Signature: ${signed.signature}')
+signature := client.sign_by_name('app1_signing', message)!
+println('Signature: ${signature}')
 
 // Verify with a named key
-is_valid := age_client.verify_with_named_key('app1_signing', message, signed.signature)!
+is_valid := client.verify_by_name('app1_signing', message, signature)!
 println('Signature valid: ${is_valid}')
 ```
 
@@ -129,8 +131,8 @@ println('Signature valid: ${is_valid}')
 
 ```v
 // List all stored keys
-keys := age_client.list_keys()!
-println('Stored keys: ${keys}')
+// keys := client.list_keys()!
+// println('Stored keys: ${keys}')
 ```
 
 ## Choosing Between Modes
@@ -185,3 +187,6 @@ signature := author_client.sign_with_named_key('document_author', document)!
 // Verifier
 mut verifier_client := crypt.new_age_client()!
 is_authentic := verifier_client.verify_with_named_key('document_author', document, signature.signature)!
+```
+
+

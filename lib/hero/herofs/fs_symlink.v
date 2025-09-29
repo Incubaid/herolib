@@ -1,8 +1,5 @@
 module herofs
 
-import time
-import crypto.blake3
-import json
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
@@ -26,7 +23,8 @@ pub enum SymlinkTargetType {
 
 pub struct DBFsSymlink {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsSymlink) type_name() string {
@@ -59,7 +57,7 @@ pub mut:
 	target_id   u32               @[required]
 	target_type SymlinkTargetType @[required]
 	tags        []string
-	comments    []db.CommentArg
+	messages    []db.MessageArg
 }
 
 // get new symlink, not from the DB
@@ -75,13 +73,13 @@ pub fn (mut self DBFsSymlink) new(args FsSymlinkArg) !FsSymlink {
 	// Set base fields
 	o.description = args.description
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
 }
 
-pub fn (mut self DBFsSymlink) set(o FsSymlink) !u32 {
+pub fn (mut self DBFsSymlink) set(o FsSymlink) !FsSymlink {
 	// Check parent directory exists
 	if o.parent_id > 0 {
 		parent_exists := self.db.exists[FsDir](o.parent_id)!
@@ -103,44 +101,21 @@ pub fn (mut self DBFsSymlink) set(o FsSymlink) !u32 {
 		}
 	}
 
-	id := self.db.set[FsSymlink](o)!
-
-	// Store symlink in parent directory's symlink index
-	path_key := '${o.parent_id}:${o.name}'
-	self.db.redis.hset('fssymlink:paths', path_key, id.str())!
-
-	// Add to parent's symlinks list using hset
-	self.db.redis.hset('fssymlink:parent:${o.parent_id}', id.str(), id.str())!
-
-	// Store in filesystem's symlink list using hset
-	self.db.redis.hset('fssymlink:fs:${o.fs_id}', id.str(), id.str())!
-
-	// Store in target's referrers list using hset
-	target_key := '${o.target_type}:${o.target_id}'
-	self.db.redis.hset('fssymlink:target:${target_key}', id.str(), id.str())!
-
-	return id
+	o_result := self.db.set[FsSymlink](o)!
+	return o_result
 }
 
 pub fn (mut self DBFsSymlink) delete(id u32) ! {
 	// Get the symlink info before deleting
 	symlink := self.get(id)!
 
-	// Remove from path index
-	path_key := '${symlink.parent_id}:${symlink.name}'
-	self.db.redis.hdel('fssymlink:paths', path_key)!
+	// Remove from parent directory's symlinks list
+	if symlink.parent_id > 0 {
+		mut parent_dir := self.factory.fs_dir.get(symlink.parent_id)!
+		parent_dir.symlinks = parent_dir.symlinks.filter(it != id)
+		self.factory.fs_dir.set(parent_dir)!
+	}
 
-	// Remove from parent's symlinks list using hdel
-	self.db.redis.hdel('fssymlink:parent:${symlink.parent_id}', id.str())!
-
-	// Remove from filesystem's symlink list using hdel
-	self.db.redis.hdel('fssymlink:fs:${symlink.fs_id}', id.str())!
-
-	// Remove from target's referrers list using hdel
-	target_key := '${symlink.target_type}:${symlink.target_id}'
-	self.db.redis.hdel('fssymlink:target:${target_key}', id.str())!
-
-	// Delete the symlink itself
 	self.db.delete[FsSymlink](id)!
 }
 
@@ -155,128 +130,23 @@ pub fn (mut self DBFsSymlink) get(id u32) !FsSymlink {
 	return o
 }
 
+// List all symlinks
 pub fn (mut self DBFsSymlink) list() ![]FsSymlink {
-	return self.db.list[FsSymlink]()!.map(self.get(it)!)
-}
-
-// Get symlink by path in a parent directory
-pub fn (mut self DBFsSymlink) get_by_path(parent_id u32, name string) !FsSymlink {
-	path_key := '${parent_id}:${name}'
-	id_str := self.db.redis.hget('fssymlink:paths', path_key)!
-	if id_str == '' {
-		return error('Symlink "${name}" not found in parent directory ${parent_id}')
-	}
-	return self.get(id_str.u32())!
-}
-
-// List symlinks in a parent directory
-pub fn (mut self DBFsSymlink) list_by_parent(parent_id u32) ![]FsSymlink {
-	symlink_ids := self.db.redis.hkeys('fssymlink:parent:${parent_id}')!
+	ids := self.db.list[FsSymlink]()!
 	mut symlinks := []FsSymlink{}
-	for id_str in symlink_ids {
-		symlinks << self.get(id_str.u32())!
+	for id in ids {
+		symlinks << self.get(id)!
 	}
 	return symlinks
 }
 
 // List symlinks in a filesystem
 pub fn (mut self DBFsSymlink) list_by_filesystem(fs_id u32) ![]FsSymlink {
-	symlink_ids := self.db.redis.hkeys('fssymlink:fs:${fs_id}')!
-	mut symlinks := []FsSymlink{}
-	for id_str in symlink_ids {
-		symlinks << self.get(id_str.u32())!
-	}
-	return symlinks
+	all_symlinks := self.list()!
+	return all_symlinks.filter(it.fs_id == fs_id)
 }
 
-// List symlinks pointing to a target
-pub fn (mut self DBFsSymlink) list_by_target(target_type SymlinkTargetType, target_id u32) ![]FsSymlink {
-	target_key := '${target_type}:${target_id}'
-	symlink_ids := self.db.redis.hkeys('fssymlink:target:${target_key}')!
-	mut symlinks := []FsSymlink{}
-	for id_str in symlink_ids {
-		symlinks << self.get(id_str.u32())!
-	}
-	return symlinks
-}
-
-// Rename a symlink
-pub fn (mut self DBFsSymlink) rename(id u32, new_name string) !u32 {
-	mut symlink := self.get(id)!
-
-	// Remove old path index
-	old_path_key := '${symlink.parent_id}:${symlink.name}'
-	self.db.redis.hdel('fssymlink:paths', old_path_key)!
-
-	// Update name
-	symlink.name = new_name
-
-	// Save with new name
-	return self.set(symlink)!
-}
-
-// Move symlink to a new parent directory
-pub fn (mut self DBFsSymlink) move(id u32, new_parent_id u32) !u32 {
-	mut symlink := self.get(id)!
-
-	// Check that new parent exists and is in the same filesystem
-	if new_parent_id > 0 {
-		parent_data, _ := self.db.get_data[FsDir](new_parent_id)!
-		if parent_data.fs_id != symlink.fs_id {
-			return error('Cannot move symlink across filesystems')
-		}
-	}
-
-	// Remove old path index
-	old_path_key := '${symlink.parent_id}:${symlink.name}'
-	self.db.redis.hdel('fssymlink:paths', old_path_key)!
-
-	// Remove from old parent's symlinks list using hdel
-	self.db.redis.hdel('fssymlink:parent:${symlink.parent_id}', id.str())!
-
-	// Update parent
-	symlink.parent_id = new_parent_id
-
-	// Save with new parent
-	return self.set(symlink)!
-}
-
-// Redirect symlink to a new target
-pub fn (mut self DBFsSymlink) redirect(id u32, new_target_id u32, new_target_type SymlinkTargetType) !u32 {
-	mut symlink := self.get(id)!
-
-	// Check new target exists
-	if new_target_type == .file {
-		target_exists := self.db.exists[FsFile](new_target_id)!
-		if !target_exists {
-			return error('Target file with ID ${new_target_id} does not exist')
-		}
-	} else if new_target_type == .directory {
-		target_exists := self.db.exists[FsDir](new_target_id)!
-		if !target_exists {
-			return error('Target directory with ID ${new_target_id} does not exist')
-		}
-	}
-
-	// Remove from old target's referrers list
-	old_target_key := '${symlink.target_type}:${symlink.target_id}'
-	self.db.redis.hdel('fssymlink:target:${old_target_key}', id.str())!
-
-	// Update target
-	symlink.target_id = new_target_id
-	symlink.target_type = new_target_type
-
-	// Save with new target
-	return self.set(symlink)!
-}
-
-// Resolve a symlink to get its target
-pub fn (mut self DBFsSymlink) resolve(id u32) !u32 {
-	symlink := self.get(id)!
-	return symlink.target_id
-}
-
-// Check if a symlink is broken (target doesn't exist)
+// Check if symlink is broken (target doesn't exist)
 pub fn (mut self DBFsSymlink) is_broken(id u32) !bool {
 	symlink := self.get(id)!
 

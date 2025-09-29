@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // Project represents a collection of issues organized in swimlanes
 @[heap]
@@ -11,8 +14,7 @@ pub struct Project {
 pub mut:
 	swimlanes  []Swimlane
 	milestones []Milestone
-	issues     []string // IDs of project issues
-	fs_files   []u32    // IDs of linked files or dirs
+	fs_files   []u32 // IDs of linked files or dirs
 	status     ProjectStatus
 	start_date i64
 	end_date   i64
@@ -49,10 +51,18 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct ProjectListArg {
+pub mut:
+	status ?ProjectStatus // Optional status filter
+	limit  int = 100 // Default limit is 100
+}
+
 pub fn (self Project) type_name() string {
 	return 'project'
 }
-// return example rpc call and result for each methodname
+
+// return description for each methodname
 pub fn (self Project) description(methodname string) string {
 	match methodname {
 		'set' {
@@ -71,7 +81,7 @@ pub fn (self Project) description(methodname string) string {
 			return 'List all projects. Returns an array of project objects.'
 		}
 		else {
-			return 'This is generic method for the root object, TODO fill in, ...'
+			return 'Unknown method.'
 		}
 	}
 }
@@ -80,10 +90,10 @@ pub fn (self Project) description(methodname string) string {
 pub fn (self Project) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"project": {"name": "My Project", "description": "A project to track tasks", "swimlanes": [], "milestones": [], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}}', '1'
+			return '{"project": {"name": "My Project", "description": "A project to track tasks", "swimlanes": [{"name": "To Do", "description": "Tasks to be done", "order": 1, "color": "#FF0000", "is_done": false}], "milestones": [{"name": "V1", "description": "Version 1", "due_date": 1678886400, "completed": false, "issues": [1, 2]}], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"name": "My Project", "description": "A project to track tasks", "swimlanes": [], "milestones": [], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}'
+			return '{"id": 1}', '{"name": "My Project", "description": "A project to track tasks", "swimlanes": [{"name": "To Do", "description": "Tasks to be done", "order": 1, "color": "#FF0000", "is_done": false}], "milestones": [{"name": "V1", "description": "Version 1", "due_date": 1678886400, "completed": false, "issues": [1, 2]}], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -92,7 +102,7 @@ pub fn (self Project) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"name": "My Project", "description": "A project to track tasks", "swimlanes": [], "milestones": [], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}]'
+			return '{}', '[{"name": "My Project", "description": "A project to track tasks", "swimlanes": [{"name": "To Do", "description": "Tasks to be done", "order": 1, "color": "#FF0000", "is_done": false}], "milestones": [{"name": "V1", "description": "Version 1", "due_date": 1678886400, "completed": false, "issues": [1, 2]}], "issues": [], "fs_files": [], "status": "active", "start_date": "2025-01-01T00:00:00Z", "end_date": "2025-12-31T23:59:59Z"}]'
 		}
 		else {
 			return '{}', '{}'
@@ -119,14 +129,13 @@ pub fn (self Project) dump(mut e encoder.Encoder) ! {
 		e.add_list_u32(milestone.issues)
 	}
 
-	e.add_list_string(self.issues)
 	e.add_list_u32(self.fs_files)
 	e.add_u8(u8(self.status))
 	e.add_i64(self.start_date)
 	e.add_i64(self.end_date)
 }
 
-fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
+pub fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
 	swimlanes_len := e.get_u16()!
 	mut swimlanes := []Swimlane{}
 	for _ in 0 .. swimlanes_len {
@@ -165,7 +174,6 @@ fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
 	}
 	o.milestones = milestones
 
-	o.issues = e.get_list_string()!
 	o.fs_files = e.get_list_u32()!
 	o.status = unsafe { ProjectStatus(e.get_u8()!) }
 	o.start_date = e.get_i64()!
@@ -186,7 +194,7 @@ pub mut:
 	end_date       string // Use ourtime module to convert to epoch
 	securitypolicy u32
 	tags           []string
-	comments       []db.CommentArg
+	messages       []db.MessageArg
 }
 
 // get new project, not from the DB
@@ -194,7 +202,6 @@ pub fn (mut self DBProject) new(args ProjectArg) !Project {
 	mut o := Project{
 		swimlanes:  args.swimlanes
 		milestones: args.milestones
-		issues:     args.issues
 		fs_files:   args.fs_files
 		status:     args.status
 	}
@@ -204,7 +211,7 @@ pub fn (mut self DBProject) new(args ProjectArg) !Project {
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	// Convert string dates to Unix timestamps
@@ -217,7 +224,7 @@ pub fn (mut self DBProject) new(args ProjectArg) !Project {
 	return o
 }
 
-pub fn (mut self DBProject) set(o Project) !u32 {
+pub fn (mut self DBProject) set(o Project) !Project {
 	return self.db.set[Project](o)!
 }
 
@@ -236,6 +243,70 @@ pub fn (mut self DBProject) get(id u32) !Project {
 	return o
 }
 
-pub fn (mut self DBProject) list() ![]Project {
-	return self.db.list[Project]()!.map(self.get(it)!)
+pub fn (mut self DBProject) list(args ProjectListArg) ![]Project {
+	// Get all projects from the database
+	all_projects := self.db.list[Project]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_projects := []Project{}
+	for project in all_projects {
+		// Filter by status if provided
+		if status := args.status {
+			if project.status != status {
+				continue
+			}
+		}
+
+		filtered_projects << project
+	}
+
+	// Limit results to 100 or the specified limit
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_projects.len > limit {
+		return filtered_projects[..limit]
+	}
+
+	return filtered_projects
+}
+
+pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.project.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Project](params)!
+			o = f.project.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.project.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.project.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic[ProjectListArg](params)!
+			res := f.project.list(args)!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on project'
+			)
+		}
+	}
 }

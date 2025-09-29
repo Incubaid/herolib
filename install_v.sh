@@ -1,4 +1,8 @@
-#!/bin/bash -e
+#!/bin/bash
+
+set -euo pipefail
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
 
 # Help function
 print_help() {
@@ -188,7 +192,7 @@ function package_install {
 is_github_actions() {
     # echo "Checking GitHub Actions environment..."
     # echo "GITHUB_ACTIONS=${GITHUB_ACTIONS:-not set}"
-    if [ -n "$GITHUB_ACTIONS" ] && [ "$GITHUB_ACTIONS" = "true" ]; then
+    if [ -n "${GITHUB_ACTIONS:-}" ] && [ "$GITHUB_ACTIONS" = "true" ]; then
         echo "Running in GitHub Actions: true"
         return 0
     else
@@ -204,7 +208,7 @@ function myplatform {
         elif [ -e /etc/os-release ]; then
         # Read the ID field from the /etc/os-release file
         export OSNAME=$(grep '^ID=' /etc/os-release | cut -d= -f2)
-        if [ "${os_id,,}" == "ubuntu" ]; then
+        if [ "${OSNAME,,}" == "ubuntu" ]; then
             export OSNAME="ubuntu"
         fi
         if [ "${OSNAME}" == "archarm" ]; then
@@ -308,13 +312,13 @@ function hero_lib_pull {
 
 function hero_lib_get {
     
-    mkdir -p $DIR_CODE/github/freeflowuniverse
+    mkdir -p $DIR_CODE/github/incubaid
     if [[ -d "$DIR_CODE/github/incubaid/herolib" ]]
     then
         hero_lib_pull
     else
-        pushd $DIR_CODE/github/freeflowuniverse 2>&1 >> /dev/null
-        git clone --depth 1 --no-single-branch https://github.com/incubaid/herolib.git
+        pushd $DIR_CODE/github/incubaid 2>&1 >> /dev/null
+        git clone --depth 1 --no-single-branch https://github.com/freeflowuniverse/herolib.git
         popd 2>&1 >> /dev/null
     fi
 }

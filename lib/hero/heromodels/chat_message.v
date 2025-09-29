@@ -3,6 +3,9 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // ChatMessage represents a message in a chat group
 @[heap]
@@ -63,9 +66,19 @@ pub mut:
 	db &db.DB @[skip; str: skip]
 }
 
+@[params]
+pub struct ChatMessageListArg {
+pub mut:
+	chat_group_id u32
+	message_type  MessageType
+	status        MessageStatus
+	limit         int = 100 // Default limit is 100
+}
+
 pub fn (self ChatMessage) type_name() string {
 	return 'chat_message'
 }
+
 // return example rpc call and result for each methodname
 pub fn (self ChatMessage) description(methodname string) string {
 	match methodname {
@@ -94,10 +107,10 @@ pub fn (self ChatMessage) description(methodname string) string {
 pub fn (self ChatMessage) example(methodname string) (string, string) {
 	match methodname {
 		'set' {
-			return '{"chat_message": {"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}}', '1'
+			return '{"chat_message": {"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [{"message_id": 123, "link_type": "reply"}], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [{"user_id": 2, "emoji": "👍", "timestamp": 1678886400}], "mentions": [2, 3]}}', '1'
 		}
 		'get' {
-			return '{"id": 1}', '{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}'
+			return '{"id": 1}', '{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [{"message_id": 123, "link_type": "reply"}], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [{"user_id": 2, "emoji": "👍", "timestamp": 1678886400}], "mentions": [2, 3]}'
 		}
 		'delete' {
 			return '{"id": 1}', 'true'
@@ -106,7 +119,7 @@ pub fn (self ChatMessage) example(methodname string) (string, string) {
 			return '{"id": 1}', 'true'
 		}
 		'list' {
-			return '{}', '[{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [], "mentions": []}]'
+			return '{}', '[{"content": "Hello, everyone!", "chat_group_id": 1, "sender_id": 1, "parent_messages": [{"message_id": 123, "link_type": "reply"}], "fs_files": [], "message_type": "text", "status": "sent", "reactions": [{"user_id": 2, "emoji": "👍", "timestamp": 1678886400}], "mentions": [2, 3]}]'
 		}
 		else {
 			return '{}', '{}'
@@ -141,7 +154,7 @@ pub fn (self ChatMessage) dump(mut e encoder.Encoder) ! {
 	e.add_list_u32(self.mentions)
 }
 
-fn (mut self DBChatMessage) load(mut o ChatMessage, mut e encoder.Decoder) ! {
+pub fn (mut self DBChatMessage) load(mut o ChatMessage, mut e encoder.Decoder) ! {
 	o.content = e.get_string()!
 	o.chat_group_id = e.get_u32()!
 	o.sender_id = e.get_u32()!
@@ -197,7 +210,7 @@ pub mut:
 	mentions        []u32
 	securitypolicy  u32
 	tags            []string
-	comments        []db.CommentArg
+	messages        []db.MessageArg
 }
 
 // get new chat message, not from the DB
@@ -219,14 +232,14 @@ pub fn (mut self DBChatMessage) new(args ChatMessageArg) !ChatMessage {
 	o.description = args.description
 	o.securitypolicy = args.securitypolicy
 	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
 }
 
-pub fn (mut self DBChatMessage) set(o ChatMessage) !u32 {
-	// Use db set function which now returns the ID
+pub fn (mut self DBChatMessage) set(o ChatMessage) !ChatMessage {
+	// Use db set function which returns the object with assigned ID
 	return self.db.set[ChatMessage](o)!
 }
 
@@ -247,4 +260,42 @@ pub fn (mut self DBChatMessage) get(id u32) !ChatMessage {
 
 pub fn (mut self DBChatMessage) list() ![]ChatMessage {
 	return self.db.list[ChatMessage]()!.map(self.get(it)!)
+}
+
+pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.chat_message.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[ChatMessage](params)!
+			o = f.chat_message.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.chat_message.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.chat_message.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			res := f.chat_message.list()!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on chat_message'
+			)
+		}
+	}
 }

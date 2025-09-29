@@ -1,7 +1,7 @@
 module generator
 
 import freeflowuniverse.herolib.baobab.specification
-import freeflowuniverse.herolib.core.code { Param, Param, type_from_symbol }
+import freeflowuniverse.herolib.develop.codetools as code { Param, Param, type_from_symbol }
 import freeflowuniverse.herolib.core.texttools
 
 const id_param = Param{

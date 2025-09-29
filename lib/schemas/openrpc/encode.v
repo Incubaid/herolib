@@ -1,7 +1,6 @@
 module openrpc
 
 import json
-import x.json2
 
 // encode encodes an OpenRPC document struct into json string.
 // eliminates undefined variable by calling prune on the initial encoding.

@@ -1,7 +1,7 @@
 module codegen
 
 import log
-import freeflowuniverse.herolib.core.code { Alias, Array, Attribute, CodeItem, Object, Struct, StructField, Type, type_from_symbol }
+import freeflowuniverse.herolib.develop.codetools as code { Alias, Array, Attribute, CodeItem, Object, Struct, StructField, Type, type_from_symbol }
 import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
 
 const vtypes = {

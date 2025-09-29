@@ -12,7 +12,7 @@ MANUAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$MANUAL_DIR/config.json"
 
 # Path to the wiki package
-WIKI_DIR="/Users/timurgordon/code/github/freeflowuniverse/herolauncher/pkg/ui/wiki"
+WIKI_DIR="/Users/timurgordon/code/github/incubaid/herolauncher/pkg/ui/wiki"
 
 # Path to the herolib directory
 HEROLIB_DIR="/Users/timurgordon/code/github/incubaid/herolib"

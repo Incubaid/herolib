@@ -3,7 +3,7 @@ module db
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.data.encoder
 
-pub fn (mut self DB) set[T](obj_ T) !u32 {
+pub fn (mut self DB) set[T](obj_ T) !T {
 	// Get the next ID	
 	mut obj := obj_
 	if obj.id == 0 {
@@ -13,16 +13,9 @@ pub fn (mut self DB) set[T](obj_ T) !u32 {
 	if obj.created_at == 0 {
 		obj.created_at = t
 	}
+
 	obj.updated_at = t
 
-	// id             u32
-	// name           string
-	// description    string
-	// created_at     i64
-	// updated_at     i64
-	// securitypolicy u32
-	// tags           u32 // when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
-	// comments       []u32
 	mut e := encoder.new()
 	e.add_u8(1)
 	e.add_u32(obj.id)
@@ -32,15 +25,13 @@ pub fn (mut self DB) set[T](obj_ T) !u32 {
 	e.add_i64(obj.updated_at)
 	e.add_u32(obj.securitypolicy)
 	e.add_u32(obj.tags)
-	e.add_u16(u16(obj.comments.len))
-	for comment in obj.comments {
-		e.add_u32(comment)
+	e.add_u16(u16(obj.messages.len))
+	for message in obj.messages {
+		e.add_u32(message)
 	}
-	// println('set: before dump, e.data.len: ${e.data.len}')
 	obj.dump(mut e)!
-	// println('set: after dump, e.data.len: ${e.data.len}')
 	self.redis.hset(self.db_name[T](), obj.id.str(), e.data.bytestr())!
-	return obj.id
+	return obj
 }
 
 // return the data, cannot return the object as we do not know the type
@@ -66,7 +57,7 @@ pub fn (mut self DB) get_data[T](id u32) !(T, []u8) {
 	base.securitypolicy = e.get_u32()!
 	base.tags = e.get_u32()!
 	for _ in 0 .. e.get_u16()! {
-		base.comments << e.get_u32()!
+		base.messages << e.get_u32()!
 	}
 	return base, e.data
 }
@@ -99,5 +90,7 @@ fn (mut self DB) db_name[T]() string {
 }
 
 pub fn (mut self DB) new_id() !u32 {
-	return u32(self.redis.incr('db:id')!)
+	r:=u32(self.redis.incr('db:id')!)
+	assert r>0
+	return r
 }

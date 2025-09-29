@@ -1,6 +1,6 @@
 module codegen
 
-import freeflowuniverse.herolib.core.code { Function, Module, Struct }
+import freeflowuniverse.herolib.develop.codetools as code { Function, Module, Struct }
 import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
 
 // pub struct OpenRPCCode {

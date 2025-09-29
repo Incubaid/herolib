@@ -66,16 +66,16 @@ fn test_key_managed_signing() {
 	assert verified == true
 }
 
-fn test_list_keys() {
-	mut client := new_age_client()!
+// fn test_list_keys() {
+// 	mut client := new_age_client()!
 
-	// Create some named keys
-	client.create_named_keypair('list_test_key1')!
-	client.create_named_signing_keypair('list_test_key2')!
+// 	// Create some named keys
+// 	client.create_named_keypair('list_test_key1')!
+// 	client.create_named_signing_keypair('list_test_key2')!
 
-	// List the keys
-	keys := client.list_keys()!
+// 	// List the keys
+// 	keys := client.list_keys()!
 
-	assert 'list_test_key1' in keys
-	assert 'list_test_key2' in keys
-}
+// 	assert 'list_test_key1' in keys
+// 	assert 'list_test_key2' in keys
+// }

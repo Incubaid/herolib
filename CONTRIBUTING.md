@@ -24,7 +24,7 @@ Thank you for your interest in contributing to Herolib! This document provides g
 For developers, you can use the automated installation script:
 
 ```bash
-curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
 ```
@@ -32,9 +32,9 @@ bash /tmp/install_v.sh --analyzer --herolib
 Alternatively, you can manually set up the environment:
 
 ```bash
-mkdir -p ~/code/github/freeflowuniverse
-cd ~/code/github/freeflowuniverse
-git clone git@github.com:incubaid/herolib.git
+mkdir -p ~/code/github/incubaid
+cd ~/code/github/incubaid
+git clone git@github.com:freeflowuniverse/herolib.git
 cd herolib
 # checkout development branch for most recent changes
 git checkout development 
@@ -179,5 +179,5 @@ For more details, see the [README.md](README.md) troubleshooting section.
 ## Additional Resources
 
 - [Herolib Documentation](https://freeflowuniverse.github.io/herolib/)
-- [Cookbook Examples](https://github.com/incubaid/herolib/tree/development/cookbook)
+- [Cookbook Examples](https://github.com/freeflowuniverse/herolib/tree/development/cookbook)
 - [AI Prompts](aiprompts/starter/0_start_here.md)

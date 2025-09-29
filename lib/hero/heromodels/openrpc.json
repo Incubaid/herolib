@@ -1,0 +1,2955 @@
+{
+    "openrpc": "1.0.0",
+    "info": {
+        "title": "Hero Models API",
+        "version": "1.0.0"
+    },
+    "methods": [
+        {
+            "name": "calendar_get",
+            "summary": "Get a calendar by ID",
+            "description": "Retrieve a calendar by ID. Returns the calendar object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "example": 1,
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "calendar",
+                "description": "Calendar object",
+                "schema": {
+                    "$ref": "#/components/schemas/Calendar"
+                }
+            }
+        },
+        {
+            "name": "calendar_set",
+            "summary": "Create or update a calendar",
+            "description": "Create or update a calendar. Returns the ID of the calendar.",
+            "params": [
+                {
+                    "name": "calendar",
+                    "description": "Calendar object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Calendar"
+                    }
+                },
+                {
+                    "name": "events",
+                    "description": "Array of event IDs to add to the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "array",
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ],
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                },
+                {
+                    "name": "color",
+                    "description": "Hex color code for the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "#FF0000"
+                    }
+                },
+                {
+                    "name": "timezone",
+                    "description": "Timezone for the calendar",
+                    "required": false,
+                    "schema": {
+                        "type": "string",
+                        "example": "UTC"
+                    }
+                },
+                {
+                    "name": "is_public",
+                    "description": "Whether the calendar is public",
+                    "required": false,
+                    "schema": {
+                        "type": "boolean",
+                        "example": true
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated calendar",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "calendar_delete",
+            "summary": "Delete a calendar by ID",
+            "description": "Delete a calendar by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 1
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "calendar_exist",
+            "summary": "Check if a calendar exists by ID",
+            "description": "Check if a calendar exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 1
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the calendar exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "calendar_list",
+            "summary": "List all calendars",
+            "description": "List all calendars. Returns an array of calendar objects.",
+            "params": [],
+            "result": {
+                "name": "calendars",
+                "description": "List of all calendar objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Calendar"
+                    }
+                }
+            }
+        },
+        {
+            "name": "calendar_event_get",
+            "summary": "Get a calendar event by ID",
+            "description": "Retrieve a calendar event by ID. Returns the event object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar event to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 1
+                    }
+                }
+            ],
+            "result": {
+                "name": "calendar_event",
+                "description": "Calendar event object",
+                "schema": {
+                    "$ref": "#/components/schemas/CalendarEvent"
+                }
+            }
+        },
+        {
+            "name": "calendar_event_set",
+            "summary": "Create or update a calendar event",
+            "description": "Create or update a calendar event. Returns the ID of the event.",
+            "params": [
+                {
+                    "name": "calendar_event",
+                    "description": "Calendar event object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/CalendarEvent"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated calendar event",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "calendar_event_delete",
+            "summary": "Delete a calendar event by ID",
+            "description": "Delete a calendar event by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar event to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 1
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "calendar_event_exist",
+            "summary": "Check if a calendar event exists by ID",
+            "description": "Check if a calendar event exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of calendar event to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "example": 1
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the calendar event exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "calendar_event_list",
+            "summary": "List all calendar events",
+            "description": "List all calendar events. Returns an array of event objects.",
+            "params": [],
+            "result": {
+                "name": "calendar_events",
+                "description": "List of all calendar event objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/CalendarEvent"
+                    }
+                }
+            }
+        },
+        {
+            "name": "chat_group_get",
+            "summary": "Get a chat group by ID",
+            "description": "Retrieve a chat group by ID. Returns the chat group object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat group to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "chat_group",
+                "description": "Chat group object",
+                "schema": {
+                    "$ref": "#/components/schemas/ChatGroup"
+                }
+            }
+        },
+        {
+            "name": "chat_group_set",
+            "summary": "Create or update a chat group",
+            "description": "Create or update a chat group. Returns the ID of the chat group.",
+            "params": [
+                {
+                    "name": "chat_group",
+                    "description": "Chat group object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/ChatGroup"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated chat group",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "chat_group_delete",
+            "summary": "Delete a chat group by ID",
+            "description": "Delete a chat group by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat group to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "chat_group_exist",
+            "summary": "Check if a chat group exists by ID",
+            "description": "Check if a chat group exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat group to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the chat group exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "chat_group_list",
+            "summary": "List all chat groups",
+            "description": "List all chat groups. Returns an array of chat group objects.",
+            "params": [],
+            "result": {
+                "name": "chat_groups",
+                "description": "List of all chat group objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/ChatGroup"
+                    }
+                }
+            }
+        },
+        {
+            "name": "chat_message_get",
+            "summary": "Get a chat message by ID",
+            "description": "Retrieve a chat message by ID. Returns the message object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat message to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "chat_message",
+                "description": "Chat message object",
+                "schema": {
+                    "$ref": "#/components/schemas/ChatMessage"
+                }
+            }
+        },
+        {
+            "name": "chat_message_set",
+            "summary": "Create or update a chat message",
+            "description": "Create or update a chat message. Returns the ID of the message.",
+            "params": [
+                {
+                    "name": "chat_message",
+                    "description": "Chat message object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/ChatMessage"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated chat message",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "chat_message_delete",
+            "summary": "Delete a chat message by ID",
+            "description": "Delete a chat message by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat message to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "chat_message_exist",
+            "summary": "Check if a chat message exists by ID",
+            "description": "Check if a chat message exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of chat message to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the chat message exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "chat_message_list",
+            "summary": "List all chat messages",
+            "description": "List all chat messages. Returns an array of message objects.",
+            "params": [],
+            "result": {
+                "name": "chat_messages",
+                "description": "List of all chat message objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/ChatMessage"
+                    }
+                }
+            }
+        },
+        {
+            "name": "contact_get",
+            "summary": "Get a contact by ID",
+            "description": "Retrieve a contact by ID. Returns the contact object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of contact to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "contact",
+                "description": "Contact object",
+                "schema": {
+                    "$ref": "#/components/schemas/Contact"
+                }
+            }
+        },
+        {
+            "name": "contact_set",
+            "summary": "Create or update a contact",
+            "description": "Create or update a contact. Returns the ID of the contact.",
+            "params": [
+                {
+                    "name": "contact",
+                    "description": "Contact object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Contact"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated contact",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "contact_delete",
+            "summary": "Delete a contact by ID",
+            "description": "Delete a contact by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of contact to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "contact_exist",
+            "summary": "Check if a contact exists by ID",
+            "description": "Check if a contact exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of contact to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the contact exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "contact_list",
+            "summary": "List all contacts",
+            "description": "List all contacts. Returns an array of contact objects.",
+            "params": [],
+            "result": {
+                "name": "contacts",
+                "description": "List of all contact objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Contact"
+                    }
+                }
+            }
+        },
+        {
+            "name": "group_get",
+            "summary": "Get a group by ID",
+            "description": "Retrieve a group by ID. Returns the group object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of group to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "group",
+                "description": "Group object",
+                "schema": {
+                    "$ref": "#/components/schemas/Group"
+                }
+            }
+        },
+        {
+            "name": "group_set",
+            "summary": "Create or update a group",
+            "description": "Create or update a group. Returns the ID of the group.",
+            "params": [
+                {
+                    "name": "group",
+                    "description": "Group object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Group"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated group",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "group_delete",
+            "summary": "Delete a group by ID",
+            "description": "Delete a group by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of group to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "group_exist",
+            "summary": "Check if a group exists by ID",
+            "description": "Check if a group exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of group to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the group exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "group_list",
+            "summary": "List all groups",
+            "description": "List all groups. Returns an array of group objects.",
+            "params": [],
+            "result": {
+                "name": "groups",
+                "description": "List of all group objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Group"
+                    }
+                }
+            }
+        },
+        {
+            "name": "message_get",
+            "summary": "Get a message by ID",
+            "description": "Retrieve a message by ID. Returns the message object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of message to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "message",
+                "description": "Message object",
+                "schema": {
+                    "$ref": "#/components/schemas/Message"
+                }
+            }
+        },
+        {
+            "name": "message_set",
+            "summary": "Create or update a message",
+            "description": "Create or update a message. Returns the ID of the message.",
+            "params": [
+                {
+                    "name": "message",
+                    "description": "Message object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Message"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated message",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "message_delete",
+            "summary": "Delete a message by ID",
+            "description": "Delete a message by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of message to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "message_exist",
+            "summary": "Check if a message exists by ID",
+            "description": "Check if a message exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of message to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the message exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "message_list",
+            "summary": "List all messages",
+            "description": "List all messages. Returns an array of message objects.",
+            "params": [],
+            "result": {
+                "name": "messages",
+                "description": "List of all message objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Message"
+                    }
+                }
+            }
+        },
+        {
+            "name": "planning_get",
+            "summary": "Get a planning by ID",
+            "description": "Retrieve a planning by ID. Returns the planning object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of planning to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "planning",
+                "description": "Planning object",
+                "schema": {
+                    "$ref": "#/components/schemas/Planning"
+                }
+            }
+        },
+        {
+            "name": "planning_set",
+            "summary": "Create or update a planning",
+            "description": "Create or update a planning. Returns the ID of the planning.",
+            "params": [
+                {
+                    "name": "planning",
+                    "description": "Planning object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Planning"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated planning",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "planning_delete",
+            "summary": "Delete a planning by ID",
+            "description": "Delete a planning by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of planning to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "planning_exist",
+            "summary": "Check if a planning exists by ID",
+            "description": "Check if a planning exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of planning to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the planning exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "planning_list",
+            "summary": "List all plannings",
+            "description": "List all plannings. Returns an array of planning objects.",
+            "params": [],
+            "result": {
+                "name": "plannings",
+                "description": "List of all planning objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Planning"
+                    }
+                }
+            }
+        },
+        {
+            "name": "profile_get",
+            "summary": "Get a profile by ID",
+            "description": "Retrieve a profile by ID. Returns the profile object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of profile to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "profile",
+                "description": "Profile object",
+                "schema": {
+                    "$ref": "#/components/schemas/Profile"
+                }
+            }
+        },
+        {
+            "name": "profile_set",
+            "summary": "Create or update a profile",
+            "description": "Create or update a profile. Returns the ID of the profile.",
+            "params": [
+                {
+                    "name": "profile",
+                    "description": "Profile object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Profile"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated profile",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "profile_delete",
+            "summary": "Delete a profile by ID",
+            "description": "Delete a profile by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of profile to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "profile_exist",
+            "summary": "Check if a profile exists by ID",
+            "description": "Check if a profile exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of profile to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the profile exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "profile_list",
+            "summary": "List all profiles",
+            "description": "List all profiles. Returns an array of profile objects.",
+            "params": [],
+            "result": {
+                "name": "profiles",
+                "description": "List of all profile objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Profile"
+                    }
+                }
+            }
+        },
+        {
+            "name": "project_get",
+            "summary": "Get a project by ID",
+            "description": "Retrieve a project by ID. Returns the project object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "project",
+                "description": "Project object",
+                "schema": {
+                    "$ref": "#/components/schemas/Project"
+                }
+            }
+        },
+        {
+            "name": "project_set",
+            "summary": "Create or update a project",
+            "description": "Create or update a project. Returns the ID of the project.",
+            "params": [
+                {
+                    "name": "project",
+                    "description": "Project object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/Project"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated project",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "project_delete",
+            "summary": "Delete a project by ID",
+            "description": "Delete a project by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "project_exist",
+            "summary": "Check if a project exists by ID",
+            "description": "Check if a project exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the project exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "project_list",
+            "summary": "List all projects",
+            "description": "List all projects. Returns an array of project objects.",
+            "params": [],
+            "result": {
+                "name": "projects",
+                "description": "List of all project objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/Project"
+                    }
+                }
+            }
+        },
+        {
+            "name": "project_issue_get",
+            "summary": "Get a project issue by ID",
+            "description": "Retrieve a project issue by ID. Returns the issue object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project issue to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "project_issue",
+                "description": "Project issue object",
+                "schema": {
+                    "$ref": "#/components/schemas/ProjectIssue"
+                }
+            }
+        },
+        {
+            "name": "project_issue_set",
+            "summary": "Create or update a project issue",
+            "description": "Create or update a project issue. Returns the ID of the issue.",
+            "params": [
+                {
+                    "name": "project_issue",
+                    "description": "Project issue object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/ProjectIssue"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated project issue",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "project_issue_delete",
+            "summary": "Delete a project issue by ID",
+            "description": "Delete a project issue by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project issue to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "project_issue_exist",
+            "summary": "Check if a project issue exists by ID",
+            "description": "Check if a project issue exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of project issue to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the project issue exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "project_issue_list",
+            "summary": "List all project issues",
+            "description": "List all project issues. Returns an array of issue objects.",
+            "params": [],
+            "result": {
+                "name": "project_issues",
+                "description": "List of all project issue objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/ProjectIssue"
+                    }
+                }
+            }
+        },
+        {
+            "name": "registration_desk_get",
+            "summary": "Get a registration desk by ID",
+            "description": "Retrieve a registration desk by ID. Returns the registration desk object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of registration desk to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "registration_desk",
+                "description": "Registration desk object",
+                "schema": {
+                    "$ref": "#/components/schemas/RegistrationDesk"
+                }
+            }
+        },
+        {
+            "name": "registration_desk_set",
+            "summary": "Create or update a registration desk",
+            "description": "Create or update a registration desk. Returns the ID of the registration desk.",
+            "params": [
+                {
+                    "name": "registration_desk",
+                    "description": "Registration desk object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/RegistrationDesk"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated registration desk",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "registration_desk_delete",
+            "summary": "Delete a registration desk by ID",
+            "description": "Delete a registration desk by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of registration desk to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "registration_desk_exist",
+            "summary": "Check if a registration desk exists by ID",
+            "description": "Check if a registration desk exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of registration desk to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the registration desk exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "registration_desk_list",
+            "summary": "List all registration desks",
+            "description": "List all registration desks. Returns an array of registration desk objects.",
+            "params": [],
+            "result": {
+                "name": "registration_desks",
+                "description": "List of all registration desk objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/RegistrationDesk"
+                    }
+                }
+            }
+        },
+        {
+            "name": "user_get",
+            "summary": "Get a user by ID",
+            "description": "Retrieve a user by ID. Returns the user object.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of user to fetch",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "user",
+                "description": "User object",
+                "schema": {
+                    "$ref": "#/components/schemas/User"
+                }
+            }
+        },
+        {
+            "name": "user_set",
+            "summary": "Create or update a user",
+            "description": "Create or update a user. Returns the ID of the user.",
+            "params": [
+                {
+                    "name": "user",
+                    "description": "User object to create or update",
+                    "required": true,
+                    "schema": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                }
+            ],
+            "result": {
+                "name": "id",
+                "description": "ID of the created/updated user",
+                "schema": {
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        },
+        {
+            "name": "user_delete",
+            "summary": "Delete a user by ID",
+            "description": "Delete a user by ID. Returns true if successful.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of user to delete",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "result",
+                "description": "Success result",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "user_exist",
+            "summary": "Check if a user exists by ID",
+            "description": "Check if a user exists by ID. Returns true or false.",
+            "params": [
+                {
+                    "name": "id",
+                    "description": "ID of user to check",
+                    "required": true,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 0
+                    }
+                }
+            ],
+            "result": {
+                "name": "exists",
+                "description": "Whether the user exists",
+                "schema": {
+                    "type": "boolean"
+                }
+            }
+        },
+        {
+            "name": "user_list",
+            "summary": "List all users",
+            "description": "List all users. Returns an array of user objects.",
+            "params": [],
+            "result": {
+                "name": "users",
+                "description": "List of all user objects",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/components/schemas/User"
+                    }
+                }
+            }
+        }
+    ],
+    "components": {
+        "schemas": {
+            "Base": {
+                "type": "object",
+                "description": "Base properties inherited by all model objects",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unique identifier",
+                        "example": 1
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Object name",
+                        "example": "My Object"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Object description",
+                        "example": "A sample object description"
+                    },
+                    "created_at": {
+                        "type": "integer",
+                        "description": "Unix timestamp when created",
+                        "example": 1704110400
+                    },
+                    "updated_at": {
+                        "type": "integer",
+                        "description": "Unix timestamp when last updated",
+                        "example": 1704110400
+                    },
+                    "securitypolicy": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Security policy ID",
+                        "example": 1
+                    },
+                    "tags": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Tags ID",
+                        "example": 1
+                    },
+                    "messages": {
+                        "type": "array",
+                        "description": "Associated message IDs",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
+                    }
+                }
+            },
+            "Calendar": {
+                "title": "Calendar",
+                "description": "A calendar object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "events": {
+                        "type": "array",
+                        "description": "IDs of calendar events",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "Hex color code for the calendar",
+                        "example": "#FF0000"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "description": "Timezone for the calendar",
+                        "example": "UTC"
+                    },
+                    "is_public": {
+                        "type": "boolean",
+                        "description": "Whether the calendar is public",
+                        "example": true
+                    }
+                }
+            },
+            "CalendarEvent": {
+                "title": "CalendarEvent",
+                "description": "A calendar event object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Event title",
+                        "example": "Team Meeting"
+                    },
+                    "start_time": {
+                        "type": "integer",
+                        "description": "Unix timestamp for event start",
+                        "example": 1704110400
+                    },
+                    "end_time": {
+                        "type": "integer",
+                        "description": "Unix timestamp for event end",
+                        "example": 1704114000
+                    },
+                    "registration_desks": {
+                        "type": "array",
+                        "description": "IDs of registration desks for tracking invitees",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            1,
+                            2
+                        ]
+                    },
+                    "attendees": {
+                        "type": "array",
+                        "description": "List of event attendees",
+                        "items": {
+                            "$ref": "#/components/schemas/Attendee"
+                        },
+                        "example": []
+                    },
+                    "docs": {
+                        "type": "array",
+                        "description": "Linked documents for the event",
+                        "items": {
+                            "$ref": "#/components/schemas/EventDoc"
+                        },
+                        "example": []
+                    },
+                    "calendar_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the associated calendar",
+                        "example": 1
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Current status of the event",
+                        "enum": [
+                            "draft",
+                            "published",
+                            "cancelled",
+                            "completed"
+                        ],
+                        "example": "published"
+                    },
+                    "is_all_day": {
+                        "type": "boolean",
+                        "description": "Whether this is an all-day event",
+                        "example": false
+                    },
+                    "reminder_mins": {
+                        "type": "array",
+                        "description": "Minutes before event for reminders",
+                        "items": {
+                            "type": "integer"
+                        },
+                        "example": [
+                            15,
+                            60
+                        ]
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "Hex color code for the event",
+                        "example": "#0000FF"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "description": "Timezone for the event",
+                        "example": "UTC"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "Event priority level",
+                        "enum": [
+                            "low",
+                            "normal",
+                            "urgent"
+                        ],
+                        "example": "normal"
+                    },
+                    "public": {
+                        "type": "boolean",
+                        "description": "Whether the event is public",
+                        "example": true
+                    },
+                    "locations": {
+                        "type": "array",
+                        "description": "Event locations",
+                        "items": {
+                            "$ref": "#/components/schemas/EventLocation"
+                        },
+                        "example": []
+                    },
+                    "is_template": {
+                        "type": "boolean",
+                        "description": "Whether this is a template event",
+                        "example": false
+                    }
+                }
+            },
+            "Attendee": {
+                "title": "Attendee",
+                "description": "An event attendee",
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the user",
+                        "example": 123
+                    },
+                    "status_latest": {
+                        "type": "string",
+                        "description": "Latest attendance status",
+                        "enum": [
+                            "invited",
+                            "accepted",
+                            "declined",
+                            "tentative"
+                        ],
+                        "example": "accepted"
+                    },
+                    "attendance_required": {
+                        "type": "boolean",
+                        "description": "Whether attendance is required",
+                        "example": true
+                    },
+                    "admin": {
+                        "type": "boolean",
+                        "description": "Whether user can manage the event",
+                        "example": false
+                    },
+                    "organizer": {
+                        "type": "boolean",
+                        "description": "Whether user is an organizer",
+                        "example": false
+                    },
+                    "location": {
+                        "type": "string",
+                        "description": "Optional location for this attendee",
+                        "example": "Conference Room A"
+                    },
+                    "log": {
+                        "type": "array",
+                        "description": "Attendance status log",
+                        "items": {
+                            "$ref": "#/components/schemas/AttendeeLog"
+                        },
+                        "example": []
+                    }
+                }
+            },
+            "AttendeeLog": {
+                "title": "AttendeeLog",
+                "description": "An attendance status log entry",
+                "type": "object",
+                "properties": {
+                    "timestamp": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unix timestamp of status change",
+                        "example": 1704110400
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Attendance status",
+                        "enum": [
+                            "invited",
+                            "accepted",
+                            "declined",
+                            "tentative"
+                        ],
+                        "example": "accepted"
+                    },
+                    "remark": {
+                        "type": "string",
+                        "description": "Optional remark about status change",
+                        "example": "Looking forward to it!"
+                    }
+                }
+            },
+            "EventDoc": {
+                "title": "EventDoc",
+                "description": "A document linked to an event",
+                "type": "object",
+                "properties": {
+                    "fs_item": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "File system item ID",
+                        "example": 456
+                    },
+                    "cat": {
+                        "type": "string",
+                        "description": "Document category (lowercase)",
+                        "example": "agenda"
+                    },
+                    "public": {
+                        "type": "boolean",
+                        "description": "Whether document is public",
+                        "example": true
+                    }
+                }
+            },
+            "EventLocation": {
+                "title": "EventLocation",
+                "description": "An event location",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Location name",
+                        "example": "Conference Room A"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Location description",
+                        "example": "Main building, 2nd floor"
+                    },
+                    "cat": {
+                        "type": "string",
+                        "description": "Location category",
+                        "enum": [
+                            "online",
+                            "physical",
+                            "hybrid"
+                        ],
+                        "example": "physical"
+                    },
+                    "docs": {
+                        "type": "array",
+                        "description": "Documents for this location",
+                        "items": {
+                            "$ref": "#/components/schemas/EventDoc"
+                        },
+                        "example": []
+                    }
+                }
+            },
+            "ChatGroup": {
+                "title": "ChatGroup",
+                "description": "A chat group object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "chat_type": {
+                        "type": "string",
+                        "description": "Type of chat group",
+                        "enum": [
+                            "public_channel",
+                            "private_channel",
+                            "direct_message",
+                            "group_message"
+                        ],
+                        "example": "public_channel"
+                    },
+                    "last_activity": {
+                        "type": "integer",
+                        "description": "Unix timestamp of last activity",
+                        "example": 1704110400
+                    },
+                    "is_archived": {
+                        "type": "boolean",
+                        "description": "Whether the chat group is archived",
+                        "example": false
+                    },
+                    "group_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Associated group ID",
+                        "example": 1
+                    }
+                }
+            },
+            "ChatMessage": {
+                "title": "ChatMessage",
+                "description": "A chat message object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "content": {
+                        "type": "string",
+                        "description": "Message content",
+                        "example": "Hello everyone! How is the project going?"
+                    },
+                    "chat_group_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the chat group",
+                        "example": 1
+                    },
+                    "sender_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the message sender",
+                        "example": 123
+                    },
+                    "parent_messages": {
+                        "type": "array",
+                        "description": "Links to parent messages (replies, references)",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageLink"
+                        },
+                        "example": []
+                    },
+                    "fs_files": {
+                        "type": "array",
+                        "description": "File system item IDs attached to message",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            201,
+                            202
+                        ]
+                    },
+                    "message_type": {
+                        "type": "string",
+                        "description": "Type of message",
+                        "enum": [
+                            "text",
+                            "image",
+                            "file",
+                            "voice",
+                            "video",
+                            "system",
+                            "announcement"
+                        ],
+                        "example": "text"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Message delivery status",
+                        "enum": [
+                            "sent",
+                            "delivered",
+                            "read",
+                            "failed",
+                            "deleted"
+                        ],
+                        "example": "delivered"
+                    },
+                    "reactions": {
+                        "type": "array",
+                        "description": "User reactions to the message",
+                        "items": {
+                            "$ref": "#/components/schemas/MessageReaction"
+                        },
+                        "example": []
+                    },
+                    "mentions": {
+                        "type": "array",
+                        "description": "User IDs mentioned in the message",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            456,
+                            789
+                        ]
+                    }
+                }
+            },
+            "MessageLink": {
+                "title": "MessageLink",
+                "description": "A link to another message",
+                "type": "object",
+                "properties": {
+                    "message_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the linked message",
+                        "example": 456
+                    },
+                    "link_type": {
+                        "type": "string",
+                        "description": "Type of link relationship",
+                        "enum": [
+                            "reply",
+                            "reference",
+                            "forward",
+                            "quote"
+                        ],
+                        "example": "reply"
+                    }
+                }
+            },
+            "MessageReaction": {
+                "title": "MessageReaction",
+                "description": "A reaction to a message",
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the user who reacted",
+                        "example": 123
+                    },
+                    "emoji": {
+                        "type": "string",
+                        "description": "Emoji used for reaction",
+                        "example": "👍"
+                    },
+                    "timestamp": {
+                        "type": "integer",
+                        "description": "Unix timestamp when reaction was added",
+                        "example": 1704110400
+                    }
+                }
+            },
+            "Contact": {
+                "title": "Contact",
+                "description": "A contact object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "emails": {
+                        "type": "array",
+                        "description": "Email addresses",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "john.doe@example.com",
+                            "john@company.com"
+                        ]
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Associated user ID",
+                        "example": 123
+                    },
+                    "phones": {
+                        "type": "array",
+                        "description": "Phone numbers",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "+1-555-123-4567",
+                            "+1-555-987-6543"
+                        ]
+                    },
+                    "addresses": {
+                        "type": "array",
+                        "description": "Physical addresses",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "123 Main St, City, State 12345"
+                        ]
+                    },
+                    "avatar_url": {
+                        "type": "string",
+                        "description": "URL to avatar image",
+                        "example": "https://example.com/avatar.jpg"
+                    },
+                    "bio": {
+                        "type": "string",
+                        "description": "Biography or description",
+                        "example": "Software Engineer with 5 years experience"
+                    },
+                    "timezone": {
+                        "type": "string",
+                        "description": "Timezone",
+                        "example": "UTC"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Contact status",
+                        "enum": [
+                            "active",
+                            "inactive"
+                        ],
+                        "example": "active"
+                    },
+                    "profile_ids": {
+                        "type": "array",
+                        "description": "Associated profile IDs",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            1,
+                            2
+                        ]
+                    }
+                }
+            },
+            "Group": {
+                "title": "Group",
+                "description": "A group object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "members": {
+                        "type": "array",
+                        "description": "Group members",
+                        "items": {
+                            "$ref": "#/components/schemas/GroupMember"
+                        },
+                        "example": []
+                    },
+                    "subgroups": {
+                        "type": "array",
+                        "description": "IDs of child groups",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            10,
+                            11
+                        ]
+                    },
+                    "parent_group": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of parent group",
+                        "example": 5
+                    },
+                    "is_public": {
+                        "type": "boolean",
+                        "description": "Whether the group is public",
+                        "example": true
+                    }
+                }
+            },
+            "GroupMember": {
+                "title": "GroupMember",
+                "description": "A group member",
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the user",
+                        "example": 123
+                    },
+                    "role": {
+                        "type": "string",
+                        "description": "Member role in the group",
+                        "enum": [
+                            "reader",
+                            "writer",
+                            "admin",
+                            "owner"
+                        ],
+                        "example": "writer"
+                    },
+                    "joined_at": {
+                        "type": "integer",
+                        "description": "Unix timestamp when user joined",
+                        "example": 1704110400
+                    }
+                }
+            },
+            "Message": {
+                "title": "Message",
+                "description": "A message object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "subject": {
+                        "type": "string",
+                        "description": "Message subject",
+                        "example": "Project Update - Week 1"
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Message content",
+                        "example": "Here's the weekly project update with current progress and next steps."
+                    },
+                    "parent": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of parent message (for replies)",
+                        "example": 456
+                    },
+                    "author": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of message author",
+                        "example": 123
+                    },
+                    "to": {
+                        "type": "array",
+                        "description": "IDs of primary recipients",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            789,
+                            101
+                        ]
+                    },
+                    "cc": {
+                        "type": "array",
+                        "description": "IDs of CC recipients",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            102,
+                            103
+                        ]
+                    },
+                    "send_log": {
+                        "type": "array",
+                        "description": "Log of message delivery attempts",
+                        "items": {
+                            "$ref": "#/components/schemas/SendLog"
+                        },
+                        "example": []
+                    }
+                }
+            },
+            "SendLog": {
+                "title": "SendLog",
+                "description": "A send log entry",
+                "type": "object",
+                "properties": {
+                    "to": {
+                        "type": "array",
+                        "description": "IDs of recipients in this send attempt",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            789,
+                            101
+                        ]
+                    },
+                    "cc": {
+                        "type": "array",
+                        "description": "IDs of CC recipients in this send attempt",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            102
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Delivery status",
+                        "enum": [
+                            "sent",
+                            "received",
+                            "acknowledged"
+                        ],
+                        "example": "sent"
+                    },
+                    "timestamp": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unix timestamp of send attempt",
+                        "example": 1704110400
+                    }
+                }
+            },
+            "Planning": {
+                "title": "Planning",
+                "description": "A planning object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "color": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    },
+                    "is_public": {
+                        "type": "boolean"
+                    },
+                    "calendar_template_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "registration_desk_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "autoschedule_rules": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PlanningRecurrenceRule"
+                        }
+                    },
+                    "invite_rules": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PlanningRecurrenceRule"
+                        }
+                    },
+                    "attendees_required": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    },
+                    "attendees_optional": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        }
+                    }
+                }
+            },
+            "PlanningRecurrenceRule": {
+                "title": "PlanningRecurrenceRule",
+                "description": "A planning recurrence rule",
+                "type": "object",
+                "properties": {
+                    "until": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "by_weekday": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 7
+                        }
+                    },
+                    "by_monthday": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 31
+                        }
+                    },
+                    "hour_from": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23
+                    },
+                    "hour_to": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 23
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "priority": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 10
+                    }
+                }
+            },
+            "Profile": {
+                "title": "Profile",
+                "description": "A profile object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "summary": {
+                        "type": "string"
+                    },
+                    "headline": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "industry": {
+                        "type": "string"
+                    },
+                    "picture_url": {
+                        "type": "string"
+                    },
+                    "background_image_url": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string"
+                    },
+                    "phone": {
+                        "type": "string"
+                    },
+                    "website": {
+                        "type": "string"
+                    },
+                    "experience": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Experience"
+                        }
+                    },
+                    "education": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Education"
+                        }
+                    },
+                    "skills": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "languages": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "Experience": {
+                "title": "Experience",
+                "description": "A work experience entry",
+                "type": "object",
+                "properties": {
+                    "title": {
+                        "type": "string"
+                    },
+                    "company": {
+                        "type": "string"
+                    },
+                    "location": {
+                        "type": "string"
+                    },
+                    "start_date": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "end_date": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "current": {
+                        "type": "boolean"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Education": {
+                "title": "Education",
+                "description": "An education entry",
+                "type": "object",
+                "properties": {
+                    "school": {
+                        "type": "string"
+                    },
+                    "degree": {
+                        "type": "string"
+                    },
+                    "field_of_study": {
+                        "type": "string"
+                    },
+                    "start_date": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "end_date": {
+                        "type": "integer",
+                        "minimum": 0
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Project": {
+                "title": "Project",
+                "description": "A project object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "swimlanes": {
+                        "type": "array",
+                        "description": "Project swimlanes for organizing work",
+                        "items": {
+                            "$ref": "#/components/schemas/Swimlane"
+                        },
+                        "example": []
+                    },
+                    "milestones": {
+                        "type": "array",
+                        "description": "Project milestones",
+                        "items": {
+                            "$ref": "#/components/schemas/Milestone"
+                        },
+                        "example": []
+                    },
+                    "fs_files": {
+                        "type": "array",
+                        "description": "File system item IDs associated with project",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            101,
+                            102,
+                            103
+                        ]
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Current project status",
+                        "enum": [
+                            "planning",
+                            "active",
+                            "on_hold",
+                            "completed",
+                            "cancelled"
+                        ],
+                        "example": "active"
+                    },
+                    "start_date": {
+                        "type": "integer",
+                        "description": "Unix timestamp for project start date",
+                        "example": 1704110400
+                    },
+                    "end_date": {
+                        "type": "integer",
+                        "description": "Unix timestamp for project end date",
+                        "example": 1706788800
+                    }
+                }
+            },
+            "Swimlane": {
+                "title": "Swimlane",
+                "description": "A project swimlane",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Swimlane name",
+                        "example": "To Do"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Swimlane description",
+                        "example": "Tasks that need to be started"
+                    },
+                    "order": {
+                        "type": "integer",
+                        "description": "Display order",
+                        "example": 1
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "Hex color code",
+                        "example": "#FF0000"
+                    },
+                    "is_done": {
+                        "type": "boolean",
+                        "description": "Whether this swimlane represents completed work",
+                        "example": false
+                    }
+                }
+            },
+            "Milestone": {
+                "title": "Milestone",
+                "description": "A project milestone",
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Milestone name",
+                        "example": "Phase 1 Complete"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Milestone description",
+                        "example": "Complete all Phase 1 deliverables"
+                    },
+                    "due_date": {
+                        "type": "integer",
+                        "description": "Unix timestamp for due date",
+                        "example": 1706788800
+                    },
+                    "completed": {
+                        "type": "boolean",
+                        "description": "Whether milestone is completed",
+                        "example": false
+                    },
+                    "issues": {
+                        "type": "array",
+                        "description": "Issue IDs associated with this milestone",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            1,
+                            2,
+                            3
+                        ]
+                    }
+                }
+            },
+            "ProjectIssue": {
+                "title": "ProjectIssue",
+                "description": "A project issue object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "description": "Issue title",
+                        "example": "Implement user authentication system"
+                    },
+                    "project_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the associated project",
+                        "example": 1
+                    },
+                    "issue_type": {
+                        "type": "string",
+                        "description": "Type of issue",
+                        "enum": [
+                            "task",
+                            "story",
+                            "bug",
+                            "question",
+                            "epic",
+                            "subtask"
+                        ],
+                        "example": "task"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "Issue priority level",
+                        "enum": [
+                            "lowest",
+                            "low",
+                            "medium",
+                            "high",
+                            "highest",
+                            "critical"
+                        ],
+                        "example": "medium"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Current issue status",
+                        "enum": [
+                            "open",
+                            "in_progress",
+                            "blocked",
+                            "review",
+                            "testing",
+                            "done",
+                            "closed"
+                        ],
+                        "example": "open"
+                    },
+                    "swimlane": {
+                        "type": "string",
+                        "description": "Swimlane name for organization",
+                        "example": "To Do"
+                    },
+                    "assignees": {
+                        "type": "array",
+                        "description": "IDs of users assigned to this issue",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            123,
+                            456
+                        ]
+                    },
+                    "reporter": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of user who reported the issue",
+                        "example": 789
+                    },
+                    "milestone": {
+                        "type": "string",
+                        "description": "Milestone name",
+                        "example": "Phase 1 Complete"
+                    },
+                    "deadline": {
+                        "type": "integer",
+                        "description": "Unix timestamp for deadline",
+                        "example": 1706788800
+                    },
+                    "estimate": {
+                        "type": "integer",
+                        "description": "Estimated hours to complete",
+                        "example": 8
+                    },
+                    "fs_files": {
+                        "type": "array",
+                        "description": "File system item IDs attached to issue",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            301,
+                            302
+                        ]
+                    },
+                    "parent_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of parent issue (for subtasks)",
+                        "example": 10
+                    },
+                    "children": {
+                        "type": "array",
+                        "description": "IDs of child issues (subtasks)",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            11,
+                            12
+                        ]
+                    }
+                }
+            },
+            "RegistrationDesk": {
+                "title": "RegistrationDesk",
+                "description": "A registration desk object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "fs_items": {
+                        "type": "array",
+                        "description": "File attachments for registration",
+                        "items": {
+                            "$ref": "#/components/schemas/RegistrationFileAttachment"
+                        },
+                        "example": []
+                    },
+                    "white_list": {
+                        "type": "array",
+                        "description": "User IDs allowed to register",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            123,
+                            456,
+                            789
+                        ]
+                    },
+                    "white_list_accepted": {
+                        "type": "array",
+                        "description": "User IDs from whitelist who have been accepted",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            123,
+                            456
+                        ]
+                    },
+                    "required_list": {
+                        "type": "array",
+                        "description": "User IDs required to register",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            123
+                        ]
+                    },
+                    "black_list": {
+                        "type": "array",
+                        "description": "User IDs blocked from registration",
+                        "items": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "example": [
+                            999
+                        ]
+                    },
+                    "start_time": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration opens",
+                        "example": 1704110400
+                    },
+                    "end_time": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration closes",
+                        "example": 1706788800
+                    },
+                    "acceptance_required": {
+                        "type": "boolean",
+                        "description": "Whether registrations require manual acceptance",
+                        "example": true
+                    },
+                    "registrations": {
+                        "type": "array",
+                        "description": "List of registrations",
+                        "items": {
+                            "$ref": "#/components/schemas/Registration"
+                        },
+                        "example": []
+                    }
+                }
+            },
+            "RegistrationFileAttachment": {
+                "title": "RegistrationFileAttachment",
+                "description": "A file attachment for registration",
+                "type": "object",
+                "properties": {
+                    "fs_item": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "File system item ID",
+                        "example": 401
+                    },
+                    "cat": {
+                        "type": "string",
+                        "description": "File category",
+                        "example": "document"
+                    },
+                    "public": {
+                        "type": "boolean",
+                        "description": "Whether file is publicly accessible",
+                        "example": false
+                    }
+                }
+            },
+            "Registration": {
+                "title": "Registration",
+                "description": "A registration entry",
+                "type": "object",
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of the registered user",
+                        "example": 123
+                    },
+                    "accepted": {
+                        "type": "boolean",
+                        "description": "Whether registration has been accepted",
+                        "example": true
+                    },
+                    "accepted_by": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "ID of user who accepted the registration",
+                        "example": 456
+                    },
+                    "timestamp": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration was submitted",
+                        "example": 1704110400
+                    },
+                    "timestamp_acceptation": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Unix timestamp when registration was accepted",
+                        "example": 1704196800
+                    }
+                }
+            },
+            "User": {
+                "title": "User",
+                "description": "A user object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/Base"
+                    }
+                ],
+                "properties": {
+                    "user_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "User ID from ledger system",
+                        "example": 456
+                    },
+                    "contact_id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "description": "Associated contact ID",
+                        "example": 123
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "User status",
+                        "enum": [
+                            "active",
+                            "inactive",
+                            "suspended",
+                            "pending"
+                        ],
+                        "example": "active"
+                    },
+                    "profile_ids": {
+                        "type": "array",
+                        "description": "Associated profile IDs",
+                        "items": {
+                            "type": "string"
+                        },
+                        "example": [
+                            "profile_1",
+                            "profile_2"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

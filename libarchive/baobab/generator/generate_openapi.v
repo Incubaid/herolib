@@ -1,7 +1,7 @@
 module generator
 
 import json
-import freeflowuniverse.herolib.core.code { File, Folder }
+import freeflowuniverse.herolib.develop.codetools as code { File, Folder }
 import freeflowuniverse.herolib.schemas.openapi { OpenAPI, Operation }
 import freeflowuniverse.herolib.schemas.openapi.codegen
 import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schema_to_type }

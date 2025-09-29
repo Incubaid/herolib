@@ -26,6 +26,43 @@
           "type": "string"
         }
       }
+    },
+    {
+      "name": "get_comment",
+      "summary": "Get a comment by ID",
+      "description": "Retrieves a specific comment using its unique identifier.",
+      "params": [
+        {
+          "name": "id",
+          "description": "The unique identifier of the comment to retrieve.",
+          "required": true,
+          "schema": {
+            "type": "number",
+            "example": "1"
+          }
+        },
+        {
+          "name": "include_metadata",
+          "description": "Whether to include metadata in the response.",
+          "required": false,
+          "schema": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      ],
+      "result": {
+        "name": "comment",
+        "description": "The requested comment object.",
+        "schema": {
+          "type": "object",
+          "example": {
+            "id": 1,
+            "text": "This is a sample comment",
+            "created_at": "2024-01-15T10:30:00Z"
+          }
+        }
+      }
     }
   ],
   "components": {}

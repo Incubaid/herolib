@@ -1,8 +1,5 @@
 module herofs
 
-import time
-import crypto.blake3
-import json
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
@@ -17,13 +14,15 @@ pub mut:
 	root_dir_id u32 // ID of root directory
 	quota_bytes u64 // Storage quota in bytes
 	used_bytes  u64 // Current usage in bytes
+	factory     &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 // We only keep the root directory ID here, other directories can be found by querying parent_id in FsDir
 
 pub struct DBFs {
 pub mut:
-	db &db.DB @[skip; str: skip]
+	db      &db.DB     @[skip; str: skip]
+	factory &FsFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self Fs) type_name() string {
@@ -56,35 +55,122 @@ pub mut:
 	quota_bytes u64
 	used_bytes  u64
 	tags        []string
-	comments    []db.CommentArg
+	messages    []db.MessageArg
 }
 
 // get new filesystem, not from the DB
 pub fn (mut self DBFs) new(args FsArg) !Fs {
 	mut o := Fs{
-		name:        args.name
-		group_id:    args.group_id
-		root_dir_id: args.root_dir_id
-		quota_bytes: args.quota_bytes
-		used_bytes:  args.used_bytes
+		name:    args.name
+		factory: self.factory
 	}
 
-	// Set base fields
-	o.description = args.description
-	o.tags = self.db.tags_get(args.tags)!
-	o.comments = self.db.comments_get(args.comments)!
-	o.updated_at = ourtime.now().unix()
+	if args.description != '' {
+		o.description = args.description
+	}
+	if args.group_id != 0 {
+		o.group_id = args.group_id
+	}
+	if args.root_dir_id != 0 {
+		o.root_dir_id = args.root_dir_id
+	}
+	if args.quota_bytes != 0 {
+		o.quota_bytes = args.quota_bytes
+	} else {
+		o.quota_bytes = 1024 * 1024 * 1024 * 100 // Default to 100GB
+	}
+	if args.used_bytes != 0 {
+		o.used_bytes = args.used_bytes
+	}
+	if args.tags.len > 0 {
+		o.tags = self.db.tags_get(args.tags)!
+	}
+	if args.messages.len > 0 {
+		o.messages = self.db.messages_get(args.messages)!
+	}
 
 	return o
 }
 
-pub fn (mut self DBFs) set(o Fs) !u32 {
-	id := self.db.set[Fs](o)!
+// get new filesystem, if it exists then it will get it from the DB
+pub fn (mut self DBFs) new_get_set(args_ FsArg) !Fs {
+	mut args := args_
+	args.name = args.name.trim_space().to_lower()
 
-	// Store name -> id mapping for lookups
-	self.db.redis.hset('fs:names', o.name, id.str())!
+	mut o := Fs{
+		name:    args.name
+		factory: self.factory
+	}
 
-	return id
+	myid := self.db.redis.hget('fs:names', args.name)!
+	mut changes := true
+
+	if myid != '' {
+		o = self.get(myid.u32())!
+		changes = false
+	}
+
+	if args.description != '' {
+		o.description = args.description
+		changes = true
+	}
+	if args.root_dir_id != 0 {
+		o.root_dir_id = args.root_dir_id
+		changes = true
+	}
+	if args.quota_bytes != 0 {
+		o.quota_bytes = args.quota_bytes
+		changes = true
+	} else {
+		o.quota_bytes = 1024 * 1024 * 1024 * 100 // Default to 100GB
+	}
+	if args.used_bytes != 0 {
+		changes = true
+		o.used_bytes = args.used_bytes
+	}
+	if args.tags.len > 0 {
+		o.tags = self.db.tags_get(args.tags)!
+		changes = true
+	}
+	if args.messages.len > 0 {
+		o.messages = self.db.messages_get(args.messages)!
+		changes = true
+	}
+
+	if changes {
+		o = self.set(o)!
+	}
+
+	return o
+}
+
+pub fn (mut self DBFs) set(o Fs) !Fs {
+	mut o_mut := o
+	if o_mut.id == 0 {
+		o_mut.id = self.db.new_id()!
+	}
+	if o_mut.root_dir_id == 0 {
+		// If no root directory is set, create one
+		mut root_dir := self.factory.fs_dir.new(
+			name:      'root'
+			fs_id:     o_mut.id
+			parent_id: 0 // Root has no parent
+		)!
+		root_dir = self.factory.fs_dir.set(root_dir)!
+		o_mut.root_dir_id = root_dir.id
+		// Update the filesystem with the new root directory ID
+	}
+	// Use db set function which now modifies the object in-place
+	o_result := self.db.set[Fs](o_mut)!
+	self.db.redis.hset('fs:names', o_result.name, o_result.id.str())!
+	return o_result
+}
+
+pub fn (mut self Fs) root_dir() !FsDir {
+	mut o := self.factory.fs_dir.get(self.root_dir_id) or {
+		return error("Can't find root_dir\n${err}")
+	}
+	return o
 }
 
 pub fn (mut self DBFs) delete(id u32) ! {
@@ -106,6 +192,7 @@ pub fn (mut self DBFs) get(id u32) !Fs {
 	mut o, data := self.db.get_data[Fs](id)!
 	mut e_decoder := encoder.decoder_new(data)
 	self.load(mut o, mut e_decoder)!
+	o.factory = self.factory
 	return o
 }
 
@@ -123,24 +210,24 @@ pub fn (mut self DBFs) get_by_name(name string) !Fs {
 	return self.get(id_str.u32())!
 }
 
-// Custom method to increase used_bytes
-pub fn (mut self DBFs) increase_usage(id u32, bytes u64) !u64 {
+// Increase used bytes counter
+pub fn (mut self DBFs) increase_usage(id u32, bytes u64) ! {
 	mut fs := self.get(id)!
 	fs.used_bytes += bytes
+	fs.updated_at = ourtime.now().unix()
 	self.set(fs)!
-	return fs.used_bytes
 }
 
-// Custom method to decrease used_bytes
-pub fn (mut self DBFs) decrease_usage(id u32, bytes u64) !u64 {
+// Decrease used bytes counter
+pub fn (mut self DBFs) decrease_usage(id u32, bytes u64) ! {
 	mut fs := self.get(id)!
-	if bytes > fs.used_bytes {
-		fs.used_bytes = 0
-	} else {
+	if fs.used_bytes >= bytes {
 		fs.used_bytes -= bytes
+	} else {
+		fs.used_bytes = 0
 	}
+	fs.updated_at = ourtime.now().unix()
 	self.set(fs)!
-	return fs.used_bytes
 }
 
 // Check if quota is exceeded

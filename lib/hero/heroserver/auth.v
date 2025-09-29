@@ -1,120 +1,103 @@
 module heroserver
 
 import crypto.md5
-import crypto.ed25519
-import rand
+import crypto.rand
 import time
 
-pub struct AuthConfig {
-pub mut:
-	// Add any authentication-related configuration here
-	// For now, it can be empty or have default values
+// Register a public key (currently just validates format)
+pub fn (mut server HeroServer) register(pubkey string) ! {
+	// Validate public key format
+	if pubkey.len < 10 {
+		return error('Invalid public key format')
+	}
+	
+	// For now, just return success
+	// In future versions, could store registered keys
 }
 
-pub struct AuthManager {
-mut:
-    registered_keys map[string]string    // pubkey -> user_id
-    pending_auths   map[string]AuthChallenge // challenge -> challenge_data
-    active_sessions map[string]Session   // session_key -> session_data
+// Request authentication challenge
+pub fn (mut server HeroServer) auth_request(pubkey string) !AuthResponse {
+	// Generate random challenge data
+	random_bytes := rand.bytes(32)!
+	challenge_data := '${pubkey}:${random_bytes.hex()}:${time.now().unix()}'
+	
+	// Create MD5 hash of challenge
+	challenge := md5.hexhash(challenge_data)
+	
+	// Store challenge with expiration
+	server.challenges[pubkey] = AuthChallenge{
+		pubkey: pubkey
+		challenge: challenge
+		created_at: time.now()
+		expires_at: time.now().add_seconds(300) // 5 minute expiry
+	}
+	
+	return AuthResponse{
+		challenge: challenge
+	}
 }
 
-pub struct AuthChallenge {
-pub:
-    pubkey     string
-    challenge  string
-    created_at i64
-    expires_at i64
+// Submit signed challenge for authentication
+pub fn (mut server HeroServer) auth_submit(pubkey string, signature string) !AuthSubmitResponse {
+	// Get stored challenge
+	challenge_data := server.challenges[pubkey] or {
+		return error('No active challenge for this public key')
+	}
+	
+	// Check if challenge expired
+	if time.now() > challenge_data.expires_at {
+		server.challenges.delete(pubkey)
+		return error('Challenge expired')
+	}
+	
+	// Verify signature using HeroCrypt
+	// Note: We need the verification key, which should be derived from pubkey
+	// For now, assume pubkey is the verification key in correct format
+	is_valid := server.crypto_client.verify(pubkey, challenge_data.challenge, signature)!
+	
+	if !is_valid {
+		return error('Invalid signature')
+	}
+	
+	// Generate session key
+	session_data := '${pubkey}:${time.now().unix()}:${rand.bytes(16)!.hex()}'
+	session_key := md5.hexhash(session_data)
+	
+	// Create session
+	session := Session{
+		session_key: session_key
+		pubkey: pubkey
+		created_at: time.now()
+		last_activity: time.now()
+		expires_at: time.now().add_seconds(3600 * 24) // 24 hour session
+	}
+	
+	// Store session
+	server.sessions[session_key] = session
+	
+	// Clean up challenge
+	server.challenges.delete(pubkey)
+	
+	return AuthSubmitResponse{
+		session_key: session_key
+	}
 }
 
-pub struct Session {
-pub:
-    user_id    string
-    pubkey     string
-    created_at i64
-    expires_at i64
-}
-
-pub fn new_auth_manager(config AuthConfig) &AuthManager {
-	// Use config if needed, for now it's just passed
-	_ = config
-    return &AuthManager{}
-}
-
-// Register public key
-pub fn (mut am AuthManager) register_pubkey(pubkey string) !string {
-    // Validate pubkey format
-    if pubkey.len != 64 { // ed25519 pubkey length
-        return error('Invalid public key format')
-    }
-
-    user_id := md5.hexhash(pubkey + time.now().unix().str())
-    am.registered_keys[pubkey] = user_id
-    return user_id
-}
-
-// Generate authentication challenge
-pub fn (mut am AuthManager) create_auth_challenge(pubkey string) !string {
-    // Check if pubkey is registered
-    if pubkey !in am.registered_keys {
-        return error('Public key not registered')
-    }
-
-    // Generate unique challenge
-    random_data := rand.string(32)
-    challenge := md5.hexhash(pubkey + random_data + time.now().unix().str())
-
-    now := time.now().unix()
-    am.pending_auths[challenge] = AuthChallenge{
-        pubkey: pubkey
-        challenge: challenge
-        created_at: now
-        expires_at: now + 300 // 5 minutes
-    }
-
-    return challenge
-}
-
-// Verify signature and create session
-pub fn (mut am AuthManager) verify_and_create_session(challenge string, signature string) !string {
-    // Get challenge data
-    auth_challenge := am.pending_auths[challenge] or {
-        return error('Invalid or expired challenge')
-    }
-
-    // Check expiration
-    if time.now().unix() > auth_challenge.expires_at {
-        am.pending_auths.delete(challenge)
-        return error('Challenge expired')
-    }
-
-    // Verify signature
-    pubkey_bytes := auth_challenge.pubkey.bytes()
-    challenge_bytes := challenge.bytes()
-    signature_bytes := signature.bytes()
-
-    ed25519.verify(pubkey_bytes, challenge_bytes, signature_bytes) or {
-        return error('Invalid signature')
-    }
-
-    // Create session
-    session_key := md5.hexhash(auth_challenge.pubkey + time.now().unix().str() + rand.string(16))
-    now := time.now().unix()
-
-    am.active_sessions[session_key] = Session{
-        user_id: am.registered_keys[auth_challenge.pubkey]
-        pubkey: auth_challenge.pubkey
-        created_at: now
-        expires_at: now + 3600 // 1 hour
-    }
-
-    // Clean up challenge
-    am.pending_auths.delete(challenge)
-
-    return session_key
-}
-
-// Validate session
-pub fn (am AuthManager) validate_session(session_key string) bool {
-    session := am.active_sessions[session_key] or { return false }
-    return time.now().unix() < session.expires_at
+// Validate session key
+pub fn (mut server HeroServer) validate_session(session_key string) !Session {
+	mut session := server.sessions[session_key] or {
+		return error('Invalid session key')
+	}
+	
+	// Check if session expired
+	if time.now() > session.expires_at {
+		server.sessions.delete(session_key)
+		return error('Session expired')
+	}
+	
+	// Update last activity
+	session.last_activity = time.now()
+	server.sessions[session_key] = session
+	
+	return session
 }

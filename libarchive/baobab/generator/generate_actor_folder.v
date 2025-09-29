@@ -1,6 +1,6 @@
 module generator
 
-import freeflowuniverse.herolib.core.code { File, Folder, IFile, IFolder }
+import freeflowuniverse.herolib.develop.codetools as code { File, Folder, IFile, IFolder }
 import freeflowuniverse.herolib.schemas.openapi
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.baobab.specification { ActorInterface, ActorSpecification }
