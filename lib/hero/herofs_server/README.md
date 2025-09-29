@@ -30,10 +30,12 @@ server.start()!
 ## API Endpoints
 
 ### Health & Info
+
 - `GET /health` - Health check
 - `GET /api` - API information and available endpoints
 
 ### Filesystems (`/api/fs`)
+
 - `GET /api/fs` - List all filesystems
 - `GET /api/fs/:id` - Get filesystem by ID
 - `POST /api/fs` - Create new filesystem
@@ -45,6 +47,7 @@ server.start()!
 - `POST /api/fs/:id/quota/check` - Check quota availability
 
 ### Directories (`/api/dirs`)
+
 - `GET /api/dirs` - List all directories
 - `GET /api/dirs/:id` - Get directory by ID
 - `POST /api/dirs` - Create new directory
@@ -55,6 +58,7 @@ server.start()!
 - `GET /api/dirs/:id/children` - Get directory children
 
 ### Files (`/api/files`)
+
 - `GET /api/files` - List all files
 - `GET /api/files/:id` - Get file by ID
 - `POST /api/files` - Create new file
@@ -67,6 +71,7 @@ server.start()!
 - `GET /api/files/by-filesystem/:fs_id` - List files by filesystem
 
 ### Blobs (`/api/blobs`)
+
 - `GET /api/blobs` - List all blobs
 - `GET /api/blobs/:id` - Get blob by ID
 - `POST /api/blobs` - Create new blob
@@ -76,6 +81,7 @@ server.start()!
 - `GET /api/blobs/:id/verify` - Verify blob integrity
 
 ### Symlinks (`/api/symlinks`)
+
 - `GET /api/symlinks` - List all symlinks
 - `GET /api/symlinks/:id` - Get symlink by ID
 - `POST /api/symlinks` - Create new symlink
@@ -84,12 +90,14 @@ server.start()!
 - `GET /api/symlinks/:id/is-broken` - Check if symlink is broken
 
 ### Blob Membership (`/api/blob-membership`)
+
 - `GET /api/blob-membership` - List all blob memberships
 - `GET /api/blob-membership/:id` - Get blob membership by ID
 - `POST /api/blob-membership` - Create new blob membership
 - `DELETE /api/blob-membership/:id` - Delete blob membership
 
 ### Filesystem Tools (`/api/tools`)
+
 - `POST /api/tools/find` - Find files and directories
 - `POST /api/tools/copy` - Copy files or directories
 - `POST /api/tools/move` - Move files or directories
@@ -104,6 +112,7 @@ server.start()!
 ## Request/Response Format
 
 ### Standard Response Structure
+
 ```json
 {
   "success": true,
@@ -114,6 +123,7 @@ server.start()!
 ```
 
 ### Error Response Structure
+
 ```json
 {
   "success": false,
@@ -125,6 +135,7 @@ server.start()!
 ## Example Usage
 
 ### Create a Filesystem
+
 ```bash
 curl -X POST http://localhost:8080/api/fs \
   -H "Content-Type: application/json" \
@@ -136,6 +147,7 @@ curl -X POST http://localhost:8080/api/fs \
 ```
 
 ### Create a Directory
+
 ```bash
 curl -X POST http://localhost:8080/api/dirs \
   -H "Content-Type: application/json" \
@@ -148,6 +160,7 @@ curl -X POST http://localhost:8080/api/dirs \
 ```
 
 ### Find Files
+
 ```bash
 curl -X POST http://localhost:8080/api/tools/find \
   -H "Content-Type: application/json" \
@@ -159,6 +172,7 @@ curl -X POST http://localhost:8080/api/tools/find \
 ```
 
 ### Import File
+
 ```bash
 curl -X POST http://localhost:8080/api/tools/import/file \
   -H "Content-Type: application/json" \
@@ -192,6 +206,7 @@ mut server := herofs_server.new(
 ## Error Handling
 
 The API provides comprehensive error handling with:
+
 - Input validation for all parameters
 - Proper HTTP status codes
 - Detailed error messages
@@ -200,6 +215,7 @@ The API provides comprehensive error handling with:
 ## Integration with HeroFS
 
 The server integrates seamlessly with the HeroFS module, providing:
+
 - Full access to all HeroFS functionality
 - Proper factory pattern usage
 - Data integrity through BLAKE3 hashing
@@ -209,6 +225,7 @@ The server integrates seamlessly with the HeroFS module, providing:
 ## Production Deployment
 
 For production use:
+
 1. Configure appropriate CORS origins
 2. Set up proper logging
 3. Configure Redis connection
