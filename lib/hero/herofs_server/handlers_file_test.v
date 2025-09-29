@@ -963,3 +963,87 @@ fn test_tools_export_content() ! {
 
 	println('Tools export/content test passed on ${base_url}')
 }
+
+// Test the new file endpoints
+fn test_new_file_endpoints() ! {
+	base_url := start_test_server(8222)!
+
+	// Create test filesystem, directory, and blob
+	fs_json := '{"name": "test_fs_files", "description": "Test filesystem for file endpoints", "quota_bytes": 1073741824}'
+
+	mut create_fs_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/fs'
+		data:   fs_json
+	}
+	create_fs_req.add_header(.content_type, 'application/json')
+
+	create_fs_resp := create_fs_req.do()!
+	assert create_fs_resp.status_code == 201
+
+	fs_id := '1' // Assuming first filesystem gets ID 1
+
+	// Create directory
+	dir_json := '{"name": "test_dir", "description": "Test directory", "fs_id": ${fs_id}, "parent_id": 0}'
+
+	mut create_dir_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/dirs'
+		data:   dir_json
+	}
+	create_dir_req.add_header(.content_type, 'application/json')
+
+	create_dir_resp := create_dir_req.do()!
+	assert create_dir_resp.status_code == 201
+
+	dir_id := '1' // Assuming first directory gets ID 1
+
+	// Create blob
+	blob_json := '{"data": [72, 101, 108, 108, 111], "mime_type": "txt"}'
+
+	mut create_blob_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/blobs'
+		data:   blob_json
+	}
+	create_blob_req.add_header(.content_type, 'application/json')
+
+	create_blob_resp := create_blob_req.do()!
+	assert create_blob_resp.status_code == 201
+
+	blob_id := '1' // Assuming first blob gets ID 1
+
+	// Create file
+	file_json := '{"name": "test.txt", "description": "Test file", "fs_id": ${fs_id}, "directories": [${dir_id}], "blobs": [${blob_id}], "mime_type": "txt"}'
+
+	mut create_file_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/files'
+		data:   file_json
+	}
+	create_file_req.add_header(.content_type, 'application/json')
+
+	create_file_resp := create_file_req.do()!
+	assert create_file_resp.status_code == 201
+
+	// Test GET /api/files/by-directory/:dir_id
+	println('Testing GET /api/files/by-directory/:dir_id')
+	files_by_dir_resp := http.get('${base_url}/api/files/by-directory/${dir_id}')!
+	assert files_by_dir_resp.status_code == 200
+	assert files_by_dir_resp.body.contains('success')
+
+	// Test GET /api/files/by-mime-type/:mime_type
+	println('Testing GET /api/files/by-mime-type/:mime_type')
+	files_by_mime_resp := http.get('${base_url}/api/files/by-mime-type/txt')!
+	assert files_by_mime_resp.status_code == 200
+	assert files_by_mime_resp.body.contains('success')
+
+	// Test GET /api/files/by-path/:dir_id/:name
+	println('Testing GET /api/files/by-path/:dir_id/:name')
+	file_by_path_resp := http.get('${base_url}/api/files/by-path/${dir_id}/test.txt')!
+	assert file_by_path_resp.status_code == 200
+	assert file_by_path_resp.body.contains('success')
+	assert file_by_path_resp.body.contains('test.txt')
+
+	println('✓ New file endpoint tests passed on ${base_url}')
+}

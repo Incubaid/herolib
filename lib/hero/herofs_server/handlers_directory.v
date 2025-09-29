@@ -127,3 +127,17 @@ pub fn (mut server FSServer) get_directory_children(mut ctx Context, id string) 
 	}
 	return ctx.success(children, 'Directory children retrieved successfully')
 }
+
+// List directories by filesystem
+@['/api/dirs/by-filesystem/:fs_id'; get]
+pub fn (mut server FSServer) list_directories_by_filesystem(mut ctx Context, fs_id string) veb.Result {
+	filesystem_id := fs_id.u32()
+	if filesystem_id == 0 {
+		return ctx.request_error('Invalid filesystem ID')
+	}
+
+	directories := server.fs_factory.fs_dir.list_by_filesystem(filesystem_id) or {
+		return ctx.server_error('Failed to list directories by filesystem: ${err}')
+	}
+	return ctx.success(directories, 'Directories retrieved successfully')
+}

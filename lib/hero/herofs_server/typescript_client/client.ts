@@ -46,6 +46,8 @@ import {
   Blob,
   BlobCreateRequest,
   BlobUpdateRequest,
+  BlobMembership,
+  BlobMembershipCreateRequest,
   Symlink,
   SymlinkCreateRequest,
   SymlinkUpdateRequest,
@@ -268,6 +270,13 @@ export class HeroFSClient {
     return this.post<boolean>(`/api/fs/${id}/quota/check`, data, options);
   }
 
+  /**
+   * Get filesystem by name
+   */
+  async getFilesystemByName(name: string, options?: RequestOptions): Promise<APIResponse<Filesystem>> {
+    return this.get<Filesystem>(`/api/fs/by-name/${encodeURIComponent(name)}`, options);
+  }
+
   // =============================================================================
   // DIRECTORY ENDPOINTS
   // =============================================================================
@@ -336,6 +345,13 @@ export class HeroFSClient {
    */
   async getDirectoryChildren(id: number, options?: RequestOptions): Promise<APIResponse<Directory[]>> {
     return this.get<Directory[]>(`/api/dirs/${id}/children`, options);
+  }
+
+  /**
+   * List directories by filesystem
+   */
+  async listDirectoriesByFilesystem(fsId: number, options?: RequestOptions): Promise<APIResponse<Directory[]>> {
+    return this.get<Directory[]>(`/api/dirs/by-filesystem/${fsId}`, options);
   }
 
   // =============================================================================
@@ -431,6 +447,27 @@ export class HeroFSClient {
     return this.get<File[]>(`/api/files/by-filesystem/${fsId}`, options);
   }
 
+  /**
+   * List files by directory
+   */
+  async listFilesByDirectory(dirId: number, options?: RequestOptions): Promise<APIResponse<File[]>> {
+    return this.get<File[]>(`/api/files/by-directory/${dirId}`, options);
+  }
+
+  /**
+   * List files by MIME type
+   */
+  async listFilesByMimeType(mimeType: string, options?: RequestOptions): Promise<APIResponse<File[]>> {
+    return this.get<File[]>(`/api/files/by-mime-type/${encodeURIComponent(mimeType)}`, options);
+  }
+
+  /**
+   * Get file by path
+   */
+  async getFileByPath(dirId: number, name: string, options?: RequestOptions): Promise<APIResponse<File>> {
+    return this.get<File>(`/api/files/by-path/${dirId}/${encodeURIComponent(name)}`, options);
+  }
+
   // =============================================================================
   // BLOB ENDPOINTS
   // =============================================================================
@@ -484,6 +521,27 @@ export class HeroFSClient {
     return this.get<number[]>(`/api/blobs/${id}/content`, options);
   }
 
+  /**
+   * Verify blob integrity
+   */
+  async verifyBlobIntegrity(id: number, options?: RequestOptions): Promise<APIResponse<boolean>> {
+    return this.get<boolean>(`/api/blobs/${id}/verify`, options);
+  }
+
+  /**
+   * Get blob by hash
+   */
+  async getBlobByHash(hash: string, options?: RequestOptions): Promise<APIResponse<Blob>> {
+    return this.get<Blob>(`/api/blobs/by-hash/${encodeURIComponent(hash)}`, options);
+  }
+
+  /**
+   * Check if blob exists by hash
+   */
+  async blobExistsByHash(hash: string, options?: RequestOptions): Promise<APIResponse<boolean>> {
+    return this.get<boolean>(`/api/blobs/exists-by-hash/${encodeURIComponent(hash)}`, options);
+  }
+
   // =============================================================================
   // SYMLINK ENDPOINTS
   // =============================================================================
@@ -528,6 +586,77 @@ export class HeroFSClient {
    */
   async deleteSymlink(id: number, options?: RequestOptions): Promise<APIResponse<boolean>> {
     return this.delete<boolean>(`/api/symlinks/${id}`, options);
+  }
+
+  /**
+   * List symlinks by filesystem
+   */
+  async listSymlinksByFilesystem(fsId: number, options?: RequestOptions): Promise<APIResponse<Symlink[]>> {
+    return this.get<Symlink[]>(`/api/symlinks/by-filesystem/${fsId}`, options);
+  }
+
+  /**
+   * Check if symlink is broken
+   */
+  async checkSymlinkBroken(id: number, options?: RequestOptions): Promise<APIResponse<boolean>> {
+    return this.get<boolean>(`/api/symlinks/${id}/is-broken`, options);
+  }
+
+  // =============================================================================
+  // BLOB MEMBERSHIP ENDPOINTS
+  // =============================================================================
+
+  /**
+   * List all blob memberships
+   */
+  async listBlobMemberships(options?: RequestOptions): Promise<APIResponse<BlobMembership[]>> {
+    return this.get<BlobMembership[]>('/api/blob-membership', options);
+  }
+
+  /**
+   * Get blob membership by hash
+   */
+  async getBlobMembership(hash: string, options?: RequestOptions): Promise<APIResponse<BlobMembership>> {
+    return this.get<BlobMembership>(`/api/blob-membership/${hash}`, options);
+  }
+
+  /**
+   * Create new blob membership
+   */
+  async createBlobMembership(
+    data: BlobMembershipCreateRequest,
+    options?: RequestOptions
+  ): Promise<APIResponse<BlobMembership>> {
+    return this.post<BlobMembership>('/api/blob-membership', data, options);
+  }
+
+  /**
+   * Delete blob membership
+   */
+  async deleteBlobMembership(hash: string, options?: RequestOptions): Promise<APIResponse<boolean>> {
+    return this.delete<boolean>(`/api/blob-membership/${hash}`, options);
+  }
+
+  /**
+   * Add filesystem to blob membership
+   */
+  async addFilesystemToBlobMembership(
+    hash: string,
+    fsId: number,
+    options?: RequestOptions
+  ): Promise<APIResponse<boolean>> {
+    return this.post<boolean>(`/api/blob-membership/${hash}/add-filesystem`, { fs_id: fsId }, options);
+  }
+
+  /**
+   * Remove filesystem from blob membership
+   */
+  async removeFilesystemFromBlobMembership(
+    hash: string,
+    fsId: number,
+    options?: RequestOptions
+  ): Promise<APIResponse<boolean>> {
+    return this.post<boolean>(`/api/blob-membership/${hash}/remove-filesystem`, { fs_id: fsId }, options);
   }
 
   // =============================================================================

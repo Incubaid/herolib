@@ -177,3 +177,67 @@ pub fn (mut server FSServer) list_files_by_filesystem(mut ctx Context, fs_id str
 	}
 	return ctx.success(files, 'Files by filesystem retrieved successfully')
 }
+
+// List files by directory
+@['/api/files/by-directory/:dir_id'; get]
+pub fn (mut server FSServer) list_files_by_directory(mut ctx Context, dir_id string) veb.Result {
+	directory_id := dir_id.u32()
+	if directory_id == 0 {
+		return ctx.request_error('Invalid directory ID')
+	}
+
+	files := server.fs_factory.fs_file.list_by_directory(directory_id) or {
+		return ctx.server_error('Failed to list files by directory: ${err}')
+	}
+	return ctx.success(files, 'Files retrieved successfully')
+}
+
+// List files by MIME type
+@['/api/files/by-mime-type/:mime_type'; get]
+pub fn (mut server FSServer) list_files_by_mime_type(mut ctx Context, mime_type string) veb.Result {
+	if mime_type == '' {
+		return ctx.request_error('Invalid MIME type')
+	}
+
+	// Convert string to MimeType enum
+	mime_enum := match mime_type.to_lower() {
+		'txt' { herofs.MimeType.txt }
+		'json' { herofs.MimeType.json }
+		'bin' { herofs.MimeType.bin }
+		'html' { herofs.MimeType.html }
+		'css' { herofs.MimeType.css }
+		'js' { herofs.MimeType.js }
+		'png' { herofs.MimeType.png }
+		'jpg' { herofs.MimeType.jpg }
+		'gif' { herofs.MimeType.gif }
+		'pdf' { herofs.MimeType.pdf }
+		'mp3' { herofs.MimeType.mp3 }
+		'mp4' { herofs.MimeType.mp4 }
+		'zip' { herofs.MimeType.zip }
+		'xml' { herofs.MimeType.xml }
+		'md' { herofs.MimeType.md }
+		else { return ctx.request_error('Invalid MIME type: ${mime_type}') }
+	}
+
+	files := server.fs_factory.fs_file.list_by_mime_type(mime_enum) or {
+		return ctx.server_error('Failed to list files by MIME type: ${err}')
+	}
+	return ctx.success(files, 'Files retrieved successfully')
+}
+
+// Get file by path
+@['/api/files/by-path/:dir_id/:name'; get]
+pub fn (mut server FSServer) get_file_by_path(mut ctx Context, dir_id string, name string) veb.Result {
+	directory_id := dir_id.u32()
+	if directory_id == 0 {
+		return ctx.request_error('Invalid directory ID')
+	}
+	if name == '' {
+		return ctx.request_error('Invalid file name')
+	}
+
+	file := server.fs_factory.fs_file.get_by_path(directory_id, name) or {
+		return ctx.not_found('File not found')
+	}
+	return ctx.success(file, 'File retrieved successfully')
+}

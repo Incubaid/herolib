@@ -118,6 +118,32 @@ pub fn (mut server FSServer) verify_blob_integrity(mut ctx Context, id string) v
 	return ctx.success(is_valid, 'Blob integrity verified')
 }
 
+// Get blob by hash
+@['/api/blobs/by-hash/:hash'; get]
+pub fn (mut server FSServer) get_blob_by_hash(mut ctx Context, hash string) veb.Result {
+	if hash == '' {
+		return ctx.request_error('Invalid blob hash')
+	}
+
+	blob := server.fs_factory.fs_blob.get_by_hash(hash) or {
+		return ctx.not_found('Blob not found')
+	}
+	return ctx.success(blob, 'Blob retrieved successfully')
+}
+
+// Check if blob exists by hash
+@['/api/blobs/exists-by-hash/:hash'; get]
+pub fn (mut server FSServer) blob_exists_by_hash(mut ctx Context, hash string) veb.Result {
+	if hash == '' {
+		return ctx.request_error('Invalid blob hash')
+	}
+
+	exists := server.fs_factory.fs_blob.exists_by_hash(hash) or {
+		return ctx.server_error('Failed to check blob existence: ${err}')
+	}
+	return ctx.success(exists, 'Blob existence checked')
+}
+
 // =============================================================================
 // SYMLINK ENDPOINTS
 // =============================================================================
@@ -195,6 +221,34 @@ pub fn (mut server FSServer) delete_symlink(mut ctx Context, id string) veb.Resu
 	return ctx.success('', 'Symlink deleted successfully')
 }
 
+// List symlinks by filesystem
+@['/api/symlinks/by-filesystem/:fs_id'; get]
+pub fn (mut server FSServer) list_symlinks_by_filesystem(mut ctx Context, fs_id string) veb.Result {
+	filesystem_id := fs_id.u32()
+	if filesystem_id == 0 {
+		return ctx.request_error('Invalid filesystem ID')
+	}
+
+	symlinks := server.fs_factory.fs_symlink.list_by_filesystem(filesystem_id) or {
+		return ctx.server_error('Failed to list symlinks by filesystem: ${err}')
+	}
+	return ctx.success(symlinks, 'Symlinks retrieved successfully')
+}
+
+// Check if symlink is broken
+@['/api/symlinks/:id/is-broken'; get]
+pub fn (mut server FSServer) check_symlink_broken(mut ctx Context, id string) veb.Result {
+	symlink_id := id.u32()
+	if symlink_id == 0 {
+		return ctx.request_error('Invalid symlink ID')
+	}
+
+	is_broken := server.fs_factory.fs_symlink.is_broken(symlink_id) or {
+		return ctx.server_error('Failed to check symlink status: ${err}')
+	}
+	return ctx.success(is_broken, 'Symlink status checked')
+}
+
 // Check if symlink is broken
 @['/api/symlinks/:id/is-broken'; get]
 pub fn (mut server FSServer) symlink_is_broken(mut ctx Context, id string) veb.Result {
@@ -269,4 +323,40 @@ pub fn (mut server FSServer) delete_blob_membership(mut ctx Context, hash string
 		return ctx.server_error('Failed to delete blob membership: ${err}')
 	}
 	return ctx.success('', 'Blob membership deleted successfully')
+}
+
+// Add filesystem to blob membership
+@['/api/blob-membership/:hash/add-filesystem'; post]
+pub fn (mut server FSServer) add_filesystem_to_blob_membership(mut ctx Context, hash string) veb.Result {
+	if hash == '' {
+		return ctx.request_error('Invalid blob membership hash')
+	}
+
+	fs_data := json.decode(map[string]u32, ctx.req.data) or {
+		return ctx.request_error('Invalid JSON format for filesystem data')
+	}
+	fs_id := fs_data['fs_id'] or { return ctx.request_error('Missing fs_id field') }
+
+	server.fs_factory.fs_blob_membership.add_filesystem(hash, fs_id) or {
+		return ctx.server_error('Failed to add filesystem to blob membership: ${err}')
+	}
+	return ctx.success('', 'Filesystem added to blob membership successfully')
+}
+
+// Remove filesystem from blob membership
+@['/api/blob-membership/:hash/remove-filesystem'; post]
+pub fn (mut server FSServer) remove_filesystem_from_blob_membership(mut ctx Context, hash string) veb.Result {
+	if hash == '' {
+		return ctx.request_error('Invalid blob membership hash')
+	}
+
+	fs_data := json.decode(map[string]u32, ctx.req.data) or {
+		return ctx.request_error('Invalid JSON format for filesystem data')
+	}
+	fs_id := fs_data['fs_id'] or { return ctx.request_error('Missing fs_id field') }
+
+	server.fs_factory.fs_blob_membership.remove_filesystem(hash, fs_id) or {
+		return ctx.server_error('Failed to remove filesystem from blob membership: ${err}')
+	}
+	return ctx.success('', 'Filesystem removed from blob membership successfully')
 }

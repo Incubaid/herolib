@@ -146,3 +146,46 @@ fn test_directory_path_children() ! {
 
 	println('Directory path/children test passed on ${base_url}')
 }
+
+// Test the new directory by-filesystem endpoint
+fn test_directory_by_filesystem_endpoint() ! {
+	base_url := start_test_server(8221)!
+
+	// Create test filesystem and directory
+	fs_json := '{"name": "test_fs_dirs", "description": "Test filesystem for directory endpoints", "quota_bytes": 1073741824}'
+
+	mut create_fs_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/fs'
+		data:   fs_json
+	}
+	create_fs_req.add_header(.content_type, 'application/json')
+
+	create_fs_resp := create_fs_req.do()!
+	assert create_fs_resp.status_code == 201
+
+	// Extract filesystem ID from response (simple approach)
+	fs_id := '1' // Assuming first filesystem gets ID 1
+
+	// Create test directory
+	dir_json := '{"name": "test_dir", "description": "Test directory", "fs_id": ${fs_id}, "parent_id": 0}'
+
+	mut create_dir_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/dirs'
+		data:   dir_json
+	}
+	create_dir_req.add_header(.content_type, 'application/json')
+
+	create_dir_resp := create_dir_req.do()!
+	assert create_dir_resp.status_code == 201
+
+	// Test GET /api/dirs/by-filesystem/:fs_id
+	println('Testing GET /api/dirs/by-filesystem/:fs_id')
+	dirs_resp := http.get('${base_url}/api/dirs/by-filesystem/${fs_id}')!
+	assert dirs_resp.status_code == 200
+	assert dirs_resp.body.contains('success')
+	assert dirs_resp.body.contains('test_dir')
+
+	println('✓ Directory by-filesystem endpoint test passed on ${base_url}')
+}

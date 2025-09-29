@@ -144,3 +144,36 @@ fn test_filesystem_exists_usage_quota() ! {
 
 	println('Filesystem exists/usage/quota test passed on ${base_url}')
 }
+
+// Test the new filesystem by-name endpoint
+fn test_filesystem_by_name_endpoint() ! {
+	base_url := start_test_server(8220)!
+
+	// Create a test filesystem first
+	fs_json := '{"name": "test_fs_by_name", "description": "Test filesystem for by-name endpoint", "quota_bytes": 1073741824}'
+
+	mut create_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/fs'
+		data:   fs_json
+	}
+	create_req.add_header(.content_type, 'application/json')
+
+	create_resp := create_req.do()!
+	assert create_resp.status_code == 201
+	assert create_resp.body.contains('success')
+	assert create_resp.body.contains('id')
+
+	// Test GET /api/fs/by-name/:name
+	println('Testing GET /api/fs/by-name/:name')
+	name_resp := http.get('${base_url}/api/fs/by-name/test_fs_by_name')!
+	assert name_resp.status_code == 200
+	assert name_resp.body.contains('success')
+	assert name_resp.body.contains('test_fs_by_name')
+
+	// Test non-existent filesystem
+	not_found_resp := http.get('${base_url}/api/fs/by-name/nonexistent_fs')!
+	assert not_found_resp.status_code == 404
+
+	println('✓ Filesystem by-name endpoint test passed on ${base_url}')
+}

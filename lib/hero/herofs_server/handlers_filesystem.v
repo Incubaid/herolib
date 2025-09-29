@@ -151,3 +151,16 @@ pub fn (mut server FSServer) check_filesystem_quota(mut ctx Context, id string) 
 	}
 	return ctx.success(can_add, 'Filesystem quota checked')
 }
+
+// Get filesystem by name
+@['/api/fs/by-name/:name'; get]
+pub fn (mut server FSServer) get_filesystem_by_name(mut ctx Context, name string) veb.Result {
+	if name == '' {
+		return ctx.request_error('Invalid filesystem name')
+	}
+
+	filesystem := server.fs_factory.fs.get_by_name(name) or {
+		return ctx.not_found('Filesystem not found')
+	}
+	return ctx.success(filesystem, 'Filesystem retrieved successfully')
+}

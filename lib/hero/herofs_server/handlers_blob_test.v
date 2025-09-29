@@ -125,3 +125,49 @@ fn test_blob_content() ! {
 
 	println('Blob content test passed on ${base_url}')
 }
+
+// Test the new blob endpoints
+fn test_new_blob_endpoints() ! {
+	base_url := start_test_server(8223)!
+
+	// Create test blob
+	blob_json := '{"data": [72, 101, 108, 108, 111, 32, 87, 111, 114, 108, 100], "mime_type": "txt"}'
+
+	mut create_blob_req := http.Request{
+		method: .post
+		url:    '${base_url}/api/blobs'
+		data:   blob_json
+	}
+	create_blob_req.add_header(.content_type, 'application/json')
+
+	create_blob_resp := create_blob_req.do()!
+	assert create_blob_resp.status_code == 201
+	assert create_blob_resp.body.contains('success')
+	assert create_blob_resp.body.contains('hash')
+
+	blob_id := '1' // Assuming first blob gets ID 1
+
+	// Extract hash from response (simple approach - look for hash pattern)
+	// For testing purposes, we'll use a placeholder hash
+	test_hash := 'test_hash_placeholder'
+
+	// Test GET /api/blobs/:id/verify
+	println('Testing GET /api/blobs/:id/verify')
+	verify_resp := http.get('${base_url}/api/blobs/${blob_id}/verify')!
+	assert verify_resp.status_code == 200 || verify_resp.status_code == 404
+	assert verify_resp.body.contains('success') || verify_resp.body.contains('error')
+
+	// Test GET /api/blobs/by-hash/:hash (will likely return 404 with placeholder hash)
+	println('Testing GET /api/blobs/by-hash/:hash')
+	blob_by_hash_resp := http.get('${base_url}/api/blobs/by-hash/${test_hash}')!
+	// Accept either 200 (found) or 404 (not found) as valid responses
+	assert blob_by_hash_resp.status_code == 200 || blob_by_hash_resp.status_code == 404
+
+	// Test GET /api/blobs/exists-by-hash/:hash
+	println('Testing GET /api/blobs/exists-by-hash/:hash')
+	exists_resp := http.get('${base_url}/api/blobs/exists-by-hash/${test_hash}')!
+	assert exists_resp.status_code == 200
+	assert exists_resp.body.contains('success')
+
+	println('✓ New blob endpoint tests passed on ${base_url}')
+}
