@@ -298,8 +298,7 @@ pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[str
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			args := db.decode_generic[ChatMessageArg](params)!
-			mut o := f.chat_message.new(args)!
+			mut o := db.decode_generic[ChatMessage](params)!
 			o = f.chat_message.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
