@@ -49,56 +49,15 @@ export { HeroFSClient, HeroFSError } from './client';
 // Export all type definitions
 export * from './types';
 
-// Re-export commonly used types for convenience
-export type {
-  APIResponse,
-  ErrorResponse,
-  HeroFSClientConfig,
-  RequestOptions,
-  Filesystem,
-  FilesystemCreateRequest,
-  FilesystemUpdateRequest,
-  Directory,
-  DirectoryCreateRequest,
-  DirectoryUpdateRequest,
-  File,
-  FileCreateRequest,
-  FileUpdateRequest,
-  Blob,
-  BlobCreateRequest,
-  BlobUpdateRequest,
-  Symlink,
-  SymlinkCreateRequest,
-  SymlinkUpdateRequest,
-  APIInfo
-} from './types';
+// Import for internal use
+import { HeroFSError } from './client';
 
 // Version information
 export const VERSION = '1.0.0';
 
 /**
- * Create a new HeroFS client with default configuration
- * 
- * @param baseUrl - Base URL of the HeroFS server (default: http://localhost:8080)
- * @param config - Additional client configuration
- * @returns Configured HeroFS client instance
- */
-export function createClient(baseUrl?: string, config?: Partial<HeroFSClientConfig>): HeroFSClient {
-  return new HeroFSClient({
-    baseUrl: baseUrl || 'http://localhost:8080',
-    ...config
-  });
-}
-
-/**
- * Default client instance for quick usage
- * Uses http://localhost:8080 as the default base URL
- */
-export const defaultClient = createClient();
-
-/**
  * Utility function to check if an error is a HeroFS API error
- * 
+ *
  * @param error - Error to check
  * @returns True if error is a HeroFSError
  */
@@ -136,12 +95,11 @@ export async function withRetry<T>(
 
 /**
  * Utility function to convert a string to a byte array for blob operations
- * 
+ *
  * @param text - Text to convert
- * @param encoding - Text encoding (default: utf-8)
  * @returns Byte array suitable for blob creation
  */
-export function textToBytes(text: string, encoding: string = 'utf-8'): number[] {
+export function textToBytes(text: string): number[] {
   const encoder = new TextEncoder();
   return Array.from(encoder.encode(text));
 }
@@ -203,4 +161,4 @@ export function getQuotaUsagePercentage(usedBytes: number, quotaBytes: number): 
 }
 
 // Default export for convenience
-export default HeroFSClient;
+export { HeroFSClient as default } from './client';
