@@ -175,7 +175,8 @@ pub fn chat_group_handle(mut f ModelsFactory, rpcid int, servercontext map[strin
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[ChatGroup](params)!
+			args := db.decode_generic[ChatGroupArg](params)!
+			mut o := f.chat_group.new(args)!
 			o = f.chat_group.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

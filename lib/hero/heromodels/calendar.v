@@ -155,7 +155,8 @@ pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Calendar](params)!
+			args := db.decode_generic[CalendarArg](params)!
+			mut o := f.calendar.new(args)!
 			o = f.calendar.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

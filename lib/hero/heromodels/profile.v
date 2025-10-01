@@ -229,7 +229,8 @@ pub fn profile_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode_pretty(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Profile](params)!
+			args := db.decode_generic[ProfileArg](params)!
+			mut o := f.profile.new(args)!
 			o = f.profile.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

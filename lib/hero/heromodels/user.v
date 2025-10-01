@@ -191,7 +191,8 @@ pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]stri
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[User](params)!
+			args := db.decode_generic[UserArg](params)!
+			mut o := f.user.new(args)!
 			o = f.user.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

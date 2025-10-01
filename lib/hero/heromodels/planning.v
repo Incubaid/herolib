@@ -297,7 +297,8 @@ pub fn planning_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Planning](params)!
+			args := db.decode_generic[PlanningArg](params)!
+			mut o := f.planning.new(args)!
 			o = f.planning.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

@@ -208,7 +208,8 @@ pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Contact](params)!
+			args := db.decode_generic[ContactArg](params)!
+			mut o := f.contact.new(args)!
 			o = f.contact.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
