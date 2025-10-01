@@ -35,7 +35,33 @@ npm install @herolib/herofs-client
 yarn add @herolib/herofs-client
 # or
 pnpm add @herolib/herofs-client
+# or (recommended for examples)
+bun add @herolib/herofs-client
 ```
+
+## 🚀 **Example Scripts**
+
+Get started quickly with our comprehensive example scripts in the `scripts/` directory:
+
+```bash
+# Install dependencies
+bun install
+
+# Run the complete file creation workflow
+bun run example:write
+
+# See all available examples
+bun run examples
+```
+
+**Available Examples:**
+
+- **`create-and-write-file.ts`** - Complete workflow: filesystem → directory → blob → file
+- **`read-and-list-files.ts`** *(Coming Soon)* - Read content and list files
+- **`search-and-filter.ts`** *(Coming Soon)* - Search and filter operations
+- **`import-export-operations.ts`** *(Coming Soon)* - Bulk import/export
+
+👉 **[View Example Scripts →](./scripts/README.md)**
 
 ## Quick Start
 

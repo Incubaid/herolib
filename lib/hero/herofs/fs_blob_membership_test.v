@@ -22,23 +22,17 @@ fn test_basic() ! {
 		description: 'Filesystem for testing FsBlobMembership functionality'
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
-	println('Created test filesystem with ID: ${test_fs.id}')
 
 	assert test_fs.id > 0
 	assert test_fs.root_dir_id > 0
 
 	mut root_dir := test_fs.root_dir()!
 
-	// this means root_dir is automatically there, no need to create
-
-	println(root_dir)
-
 	// Create test blob for membership
 	test_data := 'This is test content for blob membership'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
 	test_blob = fs_factory.fs_blob.set(test_blob)!
 	blob_id := test_blob.id
-	println('Created test blob with ID: ${blob_id}')
 
 	// Create test file to get a valid fsid (file ID) for membership
 	mut test_file := fs_factory.fs_file.new(
@@ -245,9 +239,6 @@ fn test_validation() ! {
 		return
 	}
 	panic('Validation should have failed for non-existent blob')
-
-	// Test setting membership with non-existent filesystem (should fail)
-	println('Testing membership set with non-existent filesystem...')
 
 	// Create a test blob
 	test_data := 'This is test content for validation'.bytes()
