@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -143,8 +143,13 @@ pub fn (mut self DBChatGroup) set(o ChatGroup) !ChatGroup {
 	return self.db.set[ChatGroup](o)!
 }
 
-pub fn (mut self DBChatGroup) delete(id u32) ! {
+pub fn (mut self DBChatGroup) delete(id u32) !bool {
+	// Check if the item exists before trying to delete
+	if !self.db.exists[ChatGroup](id)! {
+		return false
+	}
 	self.db.delete[ChatGroup](id)!
+	return true
 }
 
 pub fn (mut self DBChatGroup) exist(id u32) !bool {
@@ -176,8 +181,15 @@ pub fn chat_group_handle(mut f ModelsFactory, rpcid int, servercontext map[strin
 		}
 		'delete' {
 			id := db.decode_u32(params)!
-			f.chat_group.delete(id)!
-			return new_response_ok(rpcid)
+			deleted := f.chat_group.delete(id)!
+			if deleted {
+				return new_response_true(rpcid)
+			} else {
+				return new_error(rpcid,
+					code:    404
+					message: 'Chat group with ID ${id} not found'
+				)
+			}
 		}
 		'exist' {
 			id := db.decode_u32(params)!
