@@ -162,7 +162,41 @@ pub fn (mut self DBFsFile) set(o_ FsFile) !FsFile {
 			return error('Blob with ID ${blob_id} does not exist')
 		}
 	}
+
+	// Check if this is a new file (id == 0) or an update
+	is_new := o.id == 0
+
+	// Get old directories if updating
+	mut old_directories := []u32{}
+	if !is_new {
+		if old_file := self.get(o.id) {
+			old_directories = old_file.directories.clone()
+		}
+	}
+
 	o = self.db.set[FsFile](o)!
+
+	// Maintain bidirectional relationship: update directory's files array
+	if is_new {
+		// New file: add to all specified directories
+		for dir_id in o.directories {
+			self.add_to_directory(o.id, dir_id)!
+		}
+	} else {
+		// Updated file: handle directory changes
+		// Remove from directories that are no longer associated
+		for old_dir_id in old_directories {
+			if old_dir_id !in o.directories {
+				self.remove_from_directory(o.id, old_dir_id)!
+			}
+		}
+		// Add to new directories
+		for dir_id in o.directories {
+			if dir_id !in old_directories {
+				self.add_to_directory(o.id, dir_id)!
+			}
+		}
+	}
 
 	return o
 }
@@ -172,6 +206,15 @@ pub fn (mut self DBFsFile) add_to_directory(file_id u32, dir_id u32) ! {
 	mut dir := self.factory.fs_dir.get(dir_id)!
 	if file_id !in dir.files {
 		dir.files << file_id
+		dir = self.factory.fs_dir.set(dir)!
+	}
+}
+
+// remove_from_directory removes a file from a directory's files list
+pub fn (mut self DBFsFile) remove_from_directory(file_id u32, dir_id u32) ! {
+	mut dir := self.factory.fs_dir.get(dir_id)!
+	if file_id in dir.files {
+		dir.files = dir.files.filter(it != file_id)
 		dir = self.factory.fs_dir.set(dir)!
 	}
 }
