@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 // ProjectIssue represents a task, story, bug, or question in a project
 @[heap]
@@ -81,6 +80,9 @@ pub fn (self ProjectIssue) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a project issue. Returns the ID of the issue.'
+		}
+		'update' {
+			return 'Update an existing project issue. Returns the updated issue object.'
 		}
 		'get' {
 			return 'Retrieve a project issue by ID. Returns the issue object.'
@@ -161,6 +163,7 @@ pub fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder)
 @[params]
 pub struct ProjectIssueArg {
 pub mut:
+	id             u32 // Required for update, ignored for set
 	name           string
 	description    string
 	title          string
@@ -254,6 +257,16 @@ pub fn (mut self DBProjectIssue) set(o ProjectIssue) !ProjectIssue {
 	return self.db.set[ProjectIssue](o)!
 }
 
+// update existing project issue
+pub fn (mut self DBProjectIssue) update(args ProjectIssueArg) !ProjectIssue {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
+}
+
 pub fn (mut self DBProjectIssue) delete(id u32) !bool {
 	// Check if the item exists before trying to delete
 	if !self.db.exists[ProjectIssue](id)! {
@@ -322,16 +335,33 @@ pub fn (mut self DBProjectIssue) list(args ProjectIssueListArg) ![]ProjectIssue 
 }
 
 pub fn project_issue_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.project_issue.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.project_issue.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[ProjectIssue](params)!
+			args := db.decode_generic[ProjectIssueArg](params)!
+			mut o := f.project_issue.new(args)!
 			o = f.project_issue.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[ProjectIssueArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.project_issue.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -356,7 +386,9 @@ pub fn project_issue_handle(mut f ModelsFactory, rpcid int, servercontext map[st
 		'list' {
 			args := db.decode_generic[ProjectIssueListArg](params)!
 			res := f.project_issue.list(args)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

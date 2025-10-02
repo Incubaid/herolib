@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 // Group represents a collection of users with roles and permissions
 @[heap]
@@ -41,6 +40,9 @@ pub fn (self Group) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a group. Returns the ID of the group.'
+		}
+		'update' {
+			return 'Update an existing group by ID. Returns the updated group object.'
 		}
 		'get' {
 			return 'Retrieve a group by ID. Returns the group object.'
@@ -120,12 +122,16 @@ pub fn (mut o Group) load(mut e encoder.Decoder) ! {
 @[params]
 pub struct GroupArg {
 pub mut:
-	name         string
-	description  string
-	members      []GroupMember
-	subgroups    []u32
-	parent_group u32
-	is_public    bool
+	id             u32 // Required for update, ignored for set
+	name           string
+	description    string
+	members        []GroupMember
+	subgroups      []u32
+	parent_group   u32
+	is_public      bool
+	securitypolicy u32
+	tags           []string
+	messages       []db.MessageArg
 }
 
 pub struct DBGroup {
@@ -153,9 +159,22 @@ pub fn (mut self DBGroup) new(args GroupArg) !Group {
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
+}
+
+// update existing group
+pub fn (mut self DBGroup) update(args GroupArg) !Group {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBGroup) set(o_ Group) !Group {
@@ -257,16 +276,33 @@ pub fn (mut self Group) add_member(user_id u32, role GroupRole) {
 // CUSTOM FEATURES FOR GROUP
 
 pub fn group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.group.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.group.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[Group](params)!
+			args := db.decode_generic[GroupArg](params)!
+			mut o := f.group.new(args)!
 			o = f.group.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[GroupArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.group.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -291,7 +327,9 @@ pub fn group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]str
 		'list' {
 			args := db.decode_generic[GroupListArg](params)!
 			res := f.group.list(args)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

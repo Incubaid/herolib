@@ -4,7 +4,6 @@ import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 import freeflowuniverse.herolib.hero.db
 
 // CalendarEvent represents a single event in a calendar
@@ -103,6 +102,9 @@ pub fn (self CalendarEvent) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a calendar event. Returns the ID of the event.'
+		}
+		'update' {
+			return 'Update an existing calendar event. Returns the updated event object.'
 		}
 		'get' {
 			return 'Retrieve a calendar event by ID. Returns the event object.'
@@ -318,24 +320,28 @@ pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decode
 @[params]
 pub struct CalendarEventArg {
 pub mut:
-	name           string
-	description    string
-	title          string
-	start_time     string // use ourtime module to go from string to epoch
-	end_time       string // use ourtime module to go from string to epoch
-	attendees      []u32  // IDs of user groups
-	docs           []u32  // IDs of linked files or dirs
-	calendar_id    u32    // Associated calendar
-	status         EventStatus
-	is_all_day     bool
-	reminder_mins  []int  // Minutes before event for reminders
-	color          string // Hex color code
-	timezone       string
-	priority       EventPriority // Added missing priority field
-	is_template    bool          // Added missing is_template field
-	securitypolicy u32
-	tags           []string
-	messages       []db.MessageArg
+	id                 u32 // Required for update, ignored for set
+	name               string
+	description        string
+	title              string
+	start_time         string // use ourtime module to go from string to epoch
+	end_time           string // use ourtime module to go from string to epoch
+	registration_desks []u32  // link to registration mechanism
+	attendees          []u32  // IDs of user groups
+	docs               []u32  // IDs of linked files or dirs
+	calendar_id        u32    // Associated calendar
+	status             EventStatus
+	is_all_day         bool
+	reminder_mins      []int  // Minutes before event for reminders
+	color              string // Hex color code
+	timezone           string
+	priority           EventPriority
+	public             bool
+	locations          []string // Simplified location names for RPC
+	is_template        bool
+	securitypolicy     u32
+	tags               []string
+	messages           []db.MessageArg
 }
 
 // get new calendar event, not from the DB
@@ -350,19 +356,32 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 		}
 	}
 
+	// Convert locations from []string to []EventLocation
+	mut event_locations := []EventLocation{}
+	for location_name in args.locations {
+		event_locations << EventLocation{
+			name:        location_name
+			description: ''
+			cat:         .physical // Default to physical location
+			docs:        []EventDoc{}
+		}
+	}
+
 	mut o := CalendarEvent{
-		title:         args.title
-		attendees:     []Attendee{}
-		docs:          fs_attachments
-		calendar_id:   args.calendar_id
-		status:        args.status
-		is_all_day:    args.is_all_day
-		reminder_mins: args.reminder_mins
-		color:         args.color
-		timezone:      args.timezone
-		priority:      args.priority    // Added missing priority field
-		is_template:   args.is_template // Added missing is_template field
-		public:        false
+		title:              args.title
+		registration_desks: args.registration_desks
+		attendees:          []Attendee{} // TODO: Convert from u32 IDs if needed
+		docs:               fs_attachments
+		calendar_id:        args.calendar_id
+		status:             args.status
+		is_all_day:         args.is_all_day
+		reminder_mins:      args.reminder_mins
+		color:              args.color
+		timezone:           args.timezone
+		priority:           args.priority
+		public:             args.public
+		locations:          event_locations
+		is_template:        args.is_template
 	}
 
 	// Set base fields
@@ -383,9 +402,82 @@ pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
 	return o
 }
 
+// Convert CalendarEvent to CalendarEventArg (for API responses or conversions)
+pub fn (self CalendarEvent) to_args() CalendarEventArg {
+	// Convert timestamps to string format
+	start_time_str := ourtime.new_from_epoch(u64(self.start_time)).str()
+	end_time_str := ourtime.new_from_epoch(u64(self.end_time)).str()
+
+	// Convert attendees to simple u32 array
+	mut attendee_ids := []u32{}
+	for attendee in self.attendees {
+		attendee_ids << attendee.user_id
+	}
+
+	// Convert docs to simple u32 array
+	mut doc_ids := []u32{}
+	for doc in self.docs {
+		doc_ids << doc.fs_item
+	}
+
+	// Convert locations to simple string array
+	mut location_names := []string{}
+	for location in self.locations {
+		location_names << location.name
+	}
+
+	return CalendarEventArg{
+		name:               self.name
+		description:        self.description
+		title:              self.title
+		start_time:         start_time_str
+		end_time:           end_time_str
+		registration_desks: self.registration_desks
+		attendees:          attendee_ids
+		docs:               doc_ids
+		calendar_id:        self.calendar_id
+		status:             self.status
+		is_all_day:         self.is_all_day
+		reminder_mins:      self.reminder_mins
+		color:              self.color
+		timezone:           self.timezone
+		priority:           self.priority
+		public:             self.public
+		locations:          location_names
+		is_template:        self.is_template
+		securitypolicy:     self.securitypolicy
+		tags:               []string{} // Note: requires DB access to convert from hash
+		messages:           []db.MessageArg{} // Note: requires DB access to convert
+	}
+}
+
+// Convert CalendarEvent to CalendarEventArg with database access for tags and messages
+pub fn (mut self DBCalendarEvent) to_args_with_db(event CalendarEvent) !CalendarEventArg {
+	mut args := event.to_args()
+	// Convert hashed tags back to strings
+	args.tags = self.db.tags_to_strings(event.tags)!
+	// TODO: Convert messages if needed in the future
+	return args
+}
+
+// Create CalendarEvent from CalendarEventArg (alias for new method for consistency)
+pub fn (mut self DBCalendarEvent) from_args(args CalendarEventArg) !CalendarEvent {
+	return self.new(args)!
+}
+
 pub fn (mut self DBCalendarEvent) set(o CalendarEvent) !CalendarEvent {
 	// Use db set function which returns the object with assigned ID
 	return self.db.set[CalendarEvent](o)!
+}
+
+// update existing calendar event
+pub fn (mut self DBCalendarEvent) update(args CalendarEventArg) !CalendarEvent {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBCalendarEvent) delete(id u32) !bool {
@@ -454,17 +546,101 @@ pub fn (mut self DBCalendarEvent) list(args CalendarEventListArg) ![]CalendarEve
 	return filtered_events
 }
 
+// CalendarEventResponse represents the RPC response format with string tags and timestamps
+pub struct CalendarEventResponse {
+pub mut:
+	id                 u32
+	name               string
+	description        string
+	created_at         string // String timestamp instead of i64
+	updated_at         string // String timestamp instead of i64
+	securitypolicy     u32
+	tags               []string // String tags instead of hashed ID
+	messages           []u32
+	title              string
+	start_time         string // String timestamp instead of i64
+	end_time           string // String timestamp instead of i64
+	registration_desks []u32
+	attendees          []Attendee
+	docs               []EventDoc
+	calendar_id        u32
+	status             EventStatus
+	is_all_day         bool
+	reminder_mins      []int
+	color              string
+	timezone           string
+	priority           EventPriority
+	public             bool
+	locations          []EventLocation
+	is_template        bool
+}
+
+// Convert CalendarEvent to CalendarEventResponse with string tags and timestamps
+pub fn (mut self DBCalendarEvent) to_response(event CalendarEvent) !CalendarEventResponse {
+	tags_strings := self.db.tags_to_strings(event.tags)!
+
+	// Convert all timestamps to string format
+	created_at_str := ourtime.new_from_epoch(u64(event.created_at)).str()
+	updated_at_str := ourtime.new_from_epoch(u64(event.updated_at)).str()
+	start_time_str := ourtime.new_from_epoch(u64(event.start_time)).str()
+	end_time_str := ourtime.new_from_epoch(u64(event.end_time)).str()
+
+	return CalendarEventResponse{
+		id:                 event.id
+		name:               event.name
+		description:        event.description
+		created_at:         created_at_str
+		updated_at:         updated_at_str
+		securitypolicy:     event.securitypolicy
+		tags:               tags_strings
+		messages:           event.messages
+		title:              event.title
+		start_time:         start_time_str
+		end_time:           end_time_str
+		registration_desks: event.registration_desks
+		attendees:          event.attendees
+		docs:               event.docs
+		calendar_id:        event.calendar_id
+		status:             event.status
+		is_all_day:         event.is_all_day
+		reminder_mins:      event.reminder_mins
+		color:              event.color
+		timezone:           event.timezone
+		priority:           event.priority
+		public:             event.public
+		locations:          event.locations
+		is_template:        event.is_template
+	}
+}
+
 pub fn calendar_event_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.calendar_event.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
-			res := f.calendar_event.get(id)!
-			return new_response(rpcid, json.encode_pretty(res))
+			event := f.calendar_event.get(id)!
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(event)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[CalendarEvent](params)!
+			args := db.decode_generic[CalendarEventArg](params)!
+			mut o := f.calendar_event.new(args)!
 			o = f.calendar_event.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[CalendarEventArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.calendar_event.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -488,8 +664,10 @@ pub fn calendar_event_handle(mut f ModelsFactory, rpcid int, servercontext map[s
 		}
 		'list' {
 			args := db.decode_generic[CalendarEventListArg](params)!
-			res := f.calendar_event.list(args)!
-			return new_response(rpcid, json.encode_pretty(res))
+			events := f.calendar_event.list(args)!
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(events)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			println('Method not found on calendar_event: ${method}')

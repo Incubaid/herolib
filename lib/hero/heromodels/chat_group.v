@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 // ChatGroup represents a chat channel or conversation
 @[heap]
@@ -47,6 +46,9 @@ pub fn (self ChatGroup) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a chat group. Returns the ID of the chat group.'
+		}
+		'update' {
+			return 'Update an existing chat group by ID. Returns the updated chat group object.'
 		}
 		'get' {
 			return 'Retrieve a chat group by ID. Returns the chat group object.'
@@ -107,6 +109,7 @@ pub fn (mut self DBChatGroup) load(mut o ChatGroup, mut e encoder.Decoder) ! {
 @[params]
 pub struct ChatGroupArg {
 pub mut:
+	id             u32 // Required for update, ignored for set
 	name           string
 	description    string
 	chat_type      ChatType
@@ -136,6 +139,16 @@ pub fn (mut self DBChatGroup) new(args ChatGroupArg) !ChatGroup {
 	o.updated_at = ourtime.now().unix()
 
 	return o
+}
+
+// update existing chat group
+pub fn (mut self DBChatGroup) update(args ChatGroupArg) !ChatGroup {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBChatGroup) set(o ChatGroup) !ChatGroup {
@@ -168,16 +181,33 @@ pub fn (mut self DBChatGroup) list() ![]ChatGroup {
 }
 
 pub fn chat_group_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.chat_group.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.chat_group.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[ChatGroup](params)!
+			args := db.decode_generic[ChatGroupArg](params)!
+			mut o := f.chat_group.new(args)!
 			o = f.chat_group.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[ChatGroupArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.chat_group.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -201,7 +231,9 @@ pub fn chat_group_handle(mut f ModelsFactory, rpcid int, servercontext map[strin
 		}
 		'list' {
 			res := f.chat_group.list()!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

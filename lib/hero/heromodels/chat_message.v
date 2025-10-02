@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 // ChatMessage represents a message in a chat group
 @[heap]
@@ -84,6 +83,9 @@ pub fn (self ChatMessage) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a chat message. Returns the ID of the message.'
+		}
+		'update' {
+			return 'Update an existing chat message. Returns the updated message object.'
 		}
 		'get' {
 			return 'Retrieve a chat message by ID. Returns the message object.'
@@ -197,6 +199,7 @@ pub fn (mut self DBChatMessage) load(mut o ChatMessage, mut e encoder.Decoder) !
 @[params]
 pub struct ChatMessageArg {
 pub mut:
+	id              u32 // Required for update, ignored for set
 	name            string
 	description     string
 	content         string
@@ -241,6 +244,16 @@ pub fn (mut self DBChatMessage) new(args ChatMessageArg) !ChatMessage {
 pub fn (mut self DBChatMessage) set(o ChatMessage) !ChatMessage {
 	// Use db set function which returns the object with assigned ID
 	return self.db.set[ChatMessage](o)!
+}
+
+// update existing chat message
+pub fn (mut self DBChatMessage) update(args ChatMessageArg) !ChatMessage {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBChatMessage) delete(id u32) !bool {
@@ -291,16 +304,33 @@ pub fn (mut self DBChatMessage) list(args ChatMessageListArg) ![]ChatMessage {
 }
 
 pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.chat_message.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.chat_message.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[ChatMessage](params)!
+			args := db.decode_generic[ChatMessageArg](params)!
+			mut o := f.chat_message.new(args)!
 			o = f.chat_message.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[ChatMessageArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.chat_message.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -325,7 +355,9 @@ pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[str
 		'list' {
 			args := db.decode_generic[ChatMessageListArg](params)!
 			res := f.chat_message.list(args)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

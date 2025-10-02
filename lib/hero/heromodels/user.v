@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 // User represents a person in the system
 @[heap]
@@ -34,6 +33,9 @@ pub fn (self User) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a user. Returns the ID of the user.'
+		}
+		'update' {
+			return 'Update an existing user by ID. Returns the updated user object.'
 		}
 		'get' {
 			return 'Retrieve a user by ID. Returns the user object.'
@@ -94,6 +96,7 @@ fn (mut self DBUser) load(mut o User, mut e encoder.Decoder) ! {
 @[params]
 pub struct UserArg {
 pub mut:
+	id             u32 // Required for update, ignored for set
 	name           string @[required]
 	description    string
 	user_id        u32
@@ -135,6 +138,16 @@ pub fn (mut self DBUser) new(args UserArg) !User {
 	o.updated_at = ourtime.now().unix()
 
 	return o
+}
+
+// update existing user
+pub fn (mut self DBUser) update(args UserArg) !User {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBUser) set(o User) !User {
@@ -184,16 +197,33 @@ pub fn (mut self DBUser) list(args UserListArg) ![]User {
 }
 
 pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.user.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.user.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[User](params)!
+			args := db.decode_generic[UserArg](params)!
+			mut o := f.user.new(args)!
 			o = f.user.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[UserArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.user.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -218,7 +248,9 @@ pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]stri
 		'list' {
 			args := db.decode_generic[UserListArg](params)!
 			res := f.user.list(args)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

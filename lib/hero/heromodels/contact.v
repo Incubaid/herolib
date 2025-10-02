@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 // Contact represents a person in the system
 @[heap]
@@ -37,6 +36,9 @@ pub fn (self Contact) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a contact. Returns the ID of the contact.'
+		}
+		'update' {
+			return 'Update an existing contact by ID. Returns the updated contact object.'
 		}
 		'get' {
 			return 'Retrieve a contact by ID. Returns the contact object.'
@@ -105,6 +107,7 @@ fn (mut self DBContact) load(mut o Contact, mut e encoder.Decoder) ! {
 @[params]
 pub struct ContactArg {
 pub mut:
+	id             u32 // Required for update, ignored for set
 	name           string @[required]
 	description    string
 	emails         []string
@@ -154,6 +157,16 @@ pub fn (mut self DBContact) new(args ContactArg) !Contact {
 	return o
 }
 
+// update existing contact
+pub fn (mut self DBContact) update(args ContactArg) !Contact {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
+}
+
 pub fn (mut self DBContact) set(o Contact) !Contact {
 	return self.db.set[Contact](o)!
 }
@@ -201,16 +214,33 @@ pub fn (mut self DBContact) list(args ContactListArg) ![]Contact {
 }
 
 pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.contact.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.contact.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[Contact](params)!
+			args := db.decode_generic[ContactArg](params)!
+			mut o := f.contact.new(args)!
 			o = f.contact.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[ContactArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.contact.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -235,7 +265,9 @@ pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 		'list' {
 			args := db.decode_generic[ContactListArg](params)!
 			res := f.contact.list(args)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

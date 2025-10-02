@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 @[heap]
 pub struct RegistrationDesk {
@@ -54,6 +53,9 @@ pub fn (self RegistrationDesk) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a registration desk. Returns the ID of the registration desk.'
+		}
+		'update' {
+			return 'Update an existing registration desk. Returns the updated registration desk object.'
 		}
 		'get' {
 			return 'Retrieve a registration desk by ID. Returns the registration desk object.'
@@ -178,6 +180,7 @@ pub fn (mut self DBRegistrationDesk) load(mut o RegistrationDesk, mut e encoder.
 @[params]
 pub struct RegistrationDeskArg {
 pub mut:
+	id                  u32 // Required for update, ignored for set
 	name                string
 	description         string
 	fs_items            []u32  // IDs of linked files or dirs
@@ -233,6 +236,16 @@ pub fn (mut self DBRegistrationDesk) new(args RegistrationDeskArg) !Registration
 pub fn (mut self DBRegistrationDesk) set(o RegistrationDesk) !RegistrationDesk {
 	// Use db set function which returns the object with assigned ID
 	return self.db.set[RegistrationDesk](o)!
+}
+
+// update existing registration desk
+pub fn (mut self DBRegistrationDesk) update(args RegistrationDeskArg) !RegistrationDesk {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBRegistrationDesk) delete(id u32) !bool {
@@ -296,16 +309,33 @@ pub fn (mut self DBRegistrationDesk) list(args RegistrationDeskListArg) ![]Regis
 }
 
 pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.registration_desk.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.registration_desk.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[RegistrationDesk](params)!
+			args := db.decode_generic[RegistrationDeskArg](params)!
+			mut o := f.registration_desk.new(args)!
 			o = f.registration_desk.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[RegistrationDeskArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.registration_desk.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -330,7 +360,9 @@ pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext ma
 		'list' {
 			args := db.decode_generic[RegistrationDeskListArg](params)!
 			res := f.registration_desk.list(args)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

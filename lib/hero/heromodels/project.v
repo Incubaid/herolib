@@ -5,7 +5,6 @@ import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
-import json
 
 // Project represents a collection of issues organized in swimlanes
 @[heap]
@@ -67,6 +66,9 @@ pub fn (self Project) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a project. Returns the ID of the project.'
+		}
+		'update' {
+			return 'Update an existing project. Returns the updated project object.'
 		}
 		'get' {
 			return 'Retrieve a project by ID. Returns the project object.'
@@ -183,6 +185,7 @@ pub fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
 @[params]
 pub struct ProjectArg {
 pub mut:
+	id             u32 // Required for update, ignored for set
 	name           string
 	description    string
 	swimlanes      []Swimlane
@@ -226,6 +229,16 @@ pub fn (mut self DBProject) new(args ProjectArg) !Project {
 
 pub fn (mut self DBProject) set(o Project) !Project {
 	return self.db.set[Project](o)!
+}
+
+// update existing project
+pub fn (mut self DBProject) update(args ProjectArg) !Project {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBProject) delete(id u32) !bool {
@@ -278,16 +291,33 @@ pub fn (mut self DBProject) list(args ProjectListArg) ![]Project {
 }
 
 pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.project.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.project.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[Project](params)!
+			args := db.decode_generic[ProjectArg](params)!
+			mut o := f.project.new(args)!
 			o = f.project.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[ProjectArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.project.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -312,7 +342,9 @@ pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 		'list' {
 			args := db.decode_generic[ProjectListArg](params)!
 			res := f.project.list(args)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			return new_error(rpcid,

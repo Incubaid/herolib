@@ -6,7 +6,6 @@ import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import freeflowuniverse.herolib.ui.console
-import json
 
 // Calendar represents a collection of events
 @[heap]
@@ -33,6 +32,9 @@ pub fn (self Calendar) description(methodname string) string {
 	match methodname {
 		'set' {
 			return 'Create or update a calendar. Returns the ID of the calendar.'
+		}
+		'update' {
+			return 'Update an existing calendar by ID. Returns the updated calendar object.'
 		}
 		'get' {
 			return 'Retrieve a calendar by ID. Returns the calendar object.'
@@ -93,12 +95,16 @@ fn (mut self DBCalendar) load(mut o Calendar, mut e encoder.Decoder) ! {
 @[params]
 pub struct CalendarArg {
 pub mut:
-	name        string
-	description string
-	color       string
-	timezone    string
-	is_public   bool
-	events      []u32
+	id             u32 // Required for update, ignored for set
+	name           string
+	description    string
+	color          string
+	timezone       string
+	is_public      bool
+	events         []u32
+	securitypolicy u32
+	tags           []string
+	messages       []db.MessageArg
 }
 
 // get new calendar, not from the DB
@@ -113,9 +119,22 @@ pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
+}
+
+// update existing calendar
+pub fn (mut self DBCalendar) update(args CalendarArg) !Calendar {
+	// Create new object with all the updated data
+	mut updated := self.new(args)!
+	// Set the ID to update existing record
+	updated.id = args.id
+	// Use set method which will replace the existing record
+	return self.set(updated)!
 }
 
 pub fn (mut self DBCalendar) set(o Calendar) !Calendar {
@@ -148,16 +167,33 @@ pub fn (mut self DBCalendar) list() ![]Calendar {
 }
 
 pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	mut converter := ResponseConverter{
+		db: f.calendar.db
+	}
+
 	match method {
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.calendar.get(id)!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_model_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		'set' {
-			mut o := db.decode_generic[Calendar](params)!
+			args := db.decode_generic[CalendarArg](params)!
+			mut o := f.calendar.new(args)!
 			o = f.calendar.set(o)!
 			return new_response_int(rpcid, int(o.id))
+		}
+		'update' {
+			args := db.decode_generic[CalendarArg](params)!
+			if args.id == 0 {
+				return new_error(rpcid, code: 400, message: 'ID is required for update operation')
+			}
+			o := f.calendar.update(args)!
+			// Return updated object with string conversion
+			response_json := converter.convert_model_to_response(o)!
+			return new_response(rpcid, response_json)
 		}
 		'delete' {
 			id := db.decode_u32(params)!
@@ -181,7 +217,9 @@ pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 		}
 		'list' {
 			res := f.calendar.list()!
-			return new_response(rpcid, json.encode(res))
+			// Use generic converter for consistent string timestamps and tags
+			response_json := converter.convert_list_to_response(res)!
+			return new_response(rpcid, response_json)
 		}
 		else {
 			console.print_stderr('Method not found on calendar: ${method}')
