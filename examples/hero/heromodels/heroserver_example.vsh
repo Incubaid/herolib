@@ -25,7 +25,7 @@ fn main() {
 	// Start the server in a background thread with authentication disabled for testing
 	spawn fn [redis_host, redis_port, crypto_redis_host, crypto_redis_port, reset_db, models_name, server_name, server_port, server_host, auth_enabled, cors_enabled, allowed_origin] () ! {
 		// Configure Redis connection for main database
-		mut redis6379 := redisclient.core_get(redisclient.RedisURL{
+		mut redis := redisclient.core_get(redisclient.RedisURL{
 			address: redis_host
 			port: redis_port
 		})!
@@ -33,7 +33,7 @@ fn main() {
 		// Configure Redis connection for crypto database
 		mut crypto_client := herocrypt.new('${crypto_redis_host}:${crypto_redis_port}')!
 
-		heromodels.new(reset: reset_db, name: models_name, redis: redis6379)!
+		heromodels.new(reset: reset_db, name: models_name, redis: redis)!
 		heromodels.server_start(
 			name:            server_name
 			port:            server_port
