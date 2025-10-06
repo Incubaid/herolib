@@ -1,7 +1,9 @@
 module openrpc
 
-import x.json2 as json { Any }
 import freeflowuniverse.herolib.schemas.jsonschema { Reference, SchemaRef }
+
+// Generic type for any value in examples
+type Any = string | int | f64 | bool | map[string]Any | []Any
 
 // This is the root object of the OpenRPC document.
 // The contents of this object represent a whole OpenRPC document.

@@ -18,7 +18,7 @@ fn main() {
 	)!
 
 	// Save the filesystem
-	fs_factory.fs.set(mut my_fs)!
+	my_fs = fs_factory.fs.set(my_fs)!
 	println('Created filesystem: ${my_fs.name} with ID: ${my_fs.id}')
 
 	// Create root directory
@@ -28,11 +28,11 @@ fn main() {
 		parent_id:   0
 		description: 'Root directory'
 	)!
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Update the filesystem with the root directory ID
 	my_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut my_fs)!
+	my_fs = fs_factory.fs.set(my_fs)!
 
 	// Create some sample directory structure
 	println('\nCreating sample directory structure...')
@@ -49,15 +49,15 @@ fn main() {
 	// Create blobs for file content
 	v_code := 'fn main() {\n    println("Hello from V!")\n}\n'.bytes()
 	mut v_blob := fs_factory.fs_blob.new(data: v_code)!
-	fs_factory.fs_blob.set(mut v_blob)!
+	v_blob = fs_factory.fs_blob.set(v_blob)!
 
 	readme_content := '# My Project\n\nThis is a sample project.\n\n## Features\n\n- Feature 1\n- Feature 2\n'.bytes()
 	mut readme_blob := fs_factory.fs_blob.new(data: readme_content)!
-	fs_factory.fs_blob.set(mut readme_blob)!
+	readme_blob = fs_factory.fs_blob.set(readme_blob)!
 
 	test_content := 'fn test_main() {\n    assert 1 == 1\n}\n'.bytes()
 	mut test_blob := fs_factory.fs_blob.new(data: test_content)!
-	fs_factory.fs_blob.set(mut test_blob)!
+	test_blob = fs_factory.fs_blob.set(test_blob)!
 
 	// Create files
 	mut main_file := fs_factory.fs_file.new(
@@ -66,7 +66,7 @@ fn main() {
 		blobs:     [v_blob.id]
 		mime_type: .txt
 	)!
-	fs_factory.fs_file.set(mut main_file)!
+	main_file = fs_factory.fs_file.set(main_file)!
 	fs_factory.fs_file.add_to_directory(main_file.id, src_dir_id)!
 
 	mut readme_file := fs_factory.fs_file.new(
@@ -75,7 +75,7 @@ fn main() {
 		blobs:     [readme_blob.id]
 		mime_type: .md
 	)!
-	fs_factory.fs_file.set(mut readme_file)!
+	readme_file = fs_factory.fs_file.set(readme_file)!
 	fs_factory.fs_file.add_to_directory(readme_file.id, root_dir.id)!
 
 	mut test_file := fs_factory.fs_file.new(
@@ -84,7 +84,7 @@ fn main() {
 		blobs:     [test_blob.id]
 		mime_type: .txt
 	)!
-	fs_factory.fs_file.set(mut test_file)!
+	test_file = fs_factory.fs_file.set(test_file)!
 	fs_factory.fs_file.add_to_directory(test_file.id, test_dir_id)!
 
 	// Create a symbolic link
@@ -96,7 +96,7 @@ fn main() {
 		target_type: .file
 		description: 'Link to main.v'
 	)!
-	fs_factory.fs_symlink.set(mut main_symlink)!
+	main_symlink = fs_factory.fs_symlink.set(main_symlink)!
 
 	println('Sample filesystem structure created!')
 

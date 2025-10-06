@@ -1,7 +1,7 @@
 module heromodels
 
 import freeflowuniverse.herolib.hero.heroserver
-import os
+import freeflowuniverse.herolib.crypt.herocrypt
 
 // Start heromodels server using heroserver
 @[params]
@@ -14,6 +14,7 @@ pub mut:
 	reset           bool
 	allowed_origins []string = ['*'] // Default allows all origins
 	name            string
+	crypto_client   ?&herocrypt.HeroCrypt
 }
 
 pub fn server_start(args ServerArgs) ! {
@@ -24,6 +25,7 @@ pub fn server_start(args ServerArgs) ! {
 		auth_enabled:    args.auth_enabled
 		cors_enabled:    args.cors_enabled
 		allowed_origins: args.allowed_origins
+		crypto_client:   args.crypto_client
 	)!
 
 	mut f := get(args.name)!

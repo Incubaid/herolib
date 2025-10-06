@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -230,8 +230,13 @@ pub fn (mut self DBPlanning) set(o Planning) !Planning {
 	return self.db.set[Planning](o)!
 }
 
-pub fn (mut self DBPlanning) delete(id u32) ! {
+pub fn (mut self DBPlanning) delete(id u32) !bool {
+	// Check if the item exists before trying to delete
+	if !self.db.exists[Planning](id)! {
+		return false
+	}
 	self.db.delete[Planning](id)!
+	return true
 }
 
 pub fn (mut self DBPlanning) exist(id u32) !bool {
@@ -298,8 +303,15 @@ pub fn planning_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 		}
 		'delete' {
 			id := db.decode_u32(params)!
-			f.planning.delete(id)!
-			return new_response_ok(rpcid)
+			deleted := f.planning.delete(id)!
+			if deleted {
+				return new_response_true(rpcid)
+			} else {
+				return new_error(rpcid,
+					code:    404
+					message: 'Planning with ID ${id} not found'
+				)
+			}
 		}
 		'exist' {
 			id := db.decode_u32(params)!

@@ -23,7 +23,7 @@ fn main() {
 	)!
 
 	// Save the filesystem
-	fs_factory.fs.set(mut my_fs)!
+	my_fs = fs_factory.fs.set(my_fs)!
 	println('Created filesystem: ${my_fs.name} with ID: ${my_fs.id}')
 
 	// Create root directory
@@ -35,12 +35,12 @@ fn main() {
 	)!
 
 	// Save the root directory
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 	println('Created root directory with ID: ${root_dir.id}')
 
 	// Update the filesystem with the root directory ID
 	my_fs.root_dir_id = root_dir.id
-	fs_factory.fs.set(mut my_fs)!
+	my_fs = fs_factory.fs.set(my_fs)!
 
 	// Create a directory hierarchy
 	println('\nCreating directory hierarchy...')
@@ -52,7 +52,7 @@ fn main() {
 		parent_id:   root_dir.id
 		description: 'Source code'
 	)!
-	fs_factory.fs_dir.set(mut src_dir)!
+	src_dir = fs_factory.fs_dir.set(src_dir)!
 
 	mut docs_dir := fs_factory.fs_dir.new(
 		name:        'docs'
@@ -60,7 +60,7 @@ fn main() {
 		parent_id:   root_dir.id
 		description: 'Documentation'
 	)!
-	fs_factory.fs_dir.set(mut docs_dir)!
+	docs_dir = fs_factory.fs_dir.set(docs_dir)!
 
 	mut assets_dir := fs_factory.fs_dir.new(
 		name:        'assets'
@@ -68,7 +68,7 @@ fn main() {
 		parent_id:   root_dir.id
 		description: 'Project assets'
 	)!
-	fs_factory.fs_dir.set(mut assets_dir)!
+	assets_dir = fs_factory.fs_dir.set(assets_dir)!
 
 	// Subdirectories
 	mut images_dir := fs_factory.fs_dir.new(
@@ -77,7 +77,7 @@ fn main() {
 		parent_id:   assets_dir.id
 		description: 'Image assets'
 	)!
-	fs_factory.fs_dir.set(mut images_dir)!
+	images_dir = fs_factory.fs_dir.set(images_dir)!
 
 	mut api_docs_dir := fs_factory.fs_dir.new(
 		name:        'api'
@@ -85,19 +85,19 @@ fn main() {
 		parent_id:   docs_dir.id
 		description: 'API documentation'
 	)!
-	fs_factory.fs_dir.set(mut api_docs_dir)!
+	api_docs_dir = fs_factory.fs_dir.set(api_docs_dir)!
 
 	// Add directories to their parents
 	root_dir.directories << src_dir.id
 	root_dir.directories << docs_dir.id
 	root_dir.directories << assets_dir.id
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	assets_dir.directories << images_dir.id
-	fs_factory.fs_dir.set(mut assets_dir)!
+	assets_dir = fs_factory.fs_dir.set(assets_dir)!
 
 	docs_dir.directories << api_docs_dir.id
-	fs_factory.fs_dir.set(mut docs_dir)!
+	docs_dir = fs_factory.fs_dir.set(docs_dir)!
 
 	println('Directory hierarchy created successfully')
 
@@ -107,7 +107,7 @@ fn main() {
 	// Text file for source code
 	code_content := 'fn main() {\n    println("Hello, HeroFS!")\n}\n'.bytes()
 	mut code_blob := fs_factory.fs_blob.new(data: code_content)!
-	fs_factory.fs_blob.set(mut code_blob)!
+	code_blob = fs_factory.fs_blob.set(code_blob)!
 
 	mut code_file := fs_factory.fs_file.new(
 		name:      'main.v'
@@ -119,13 +119,13 @@ fn main() {
 			'version':  '0.3.3'
 		}
 	)!
-	fs_factory.fs_file.set(mut code_file)!
+	code_file = fs_factory.fs_file.set(code_file)!
 	fs_factory.fs_file.add_to_directory(code_file.id, src_dir.id)!
 
 	// Markdown documentation file
 	docs_content := '# API Documentation\n\n## Endpoints\n\n- GET /api/v1/users\n- POST /api/v1/users\n'.bytes()
 	mut docs_blob := fs_factory.fs_blob.new(data: docs_content)!
-	fs_factory.fs_blob.set(mut docs_blob)!
+	docs_blob = fs_factory.fs_blob.set(docs_blob)!
 
 	mut docs_file := fs_factory.fs_file.new(
 		name:      'api.md'
@@ -133,14 +133,14 @@ fn main() {
 		blobs:     [docs_blob.id]
 		mime_type: .md
 	)!
-	fs_factory.fs_file.set(mut docs_file)!
+	docs_file = fs_factory.fs_file.set(docs_file)!
 	fs_factory.fs_file.add_to_directory(docs_file.id, api_docs_dir.id)!
 
 	// Create a binary file (sample image)
 	// For this example, we'll just create random bytes
 	mut image_data := []u8{len: 1024, init: u8(index % 256)}
 	mut image_blob := fs_factory.fs_blob.new(data: image_data)!
-	fs_factory.fs_blob.set(mut image_blob)!
+	image_blob = fs_factory.fs_blob.set(image_blob)!
 
 	mut image_file := fs_factory.fs_file.new(
 		name:      'logo.png'
@@ -153,7 +153,7 @@ fn main() {
 			'format': 'PNG'
 		}
 	)!
-	fs_factory.fs_file.set(mut image_file)!
+	image_file = fs_factory.fs_file.set(image_file)!
 	fs_factory.fs_file.add_to_directory(image_file.id, images_dir.id)!
 
 	println('Files created successfully')
@@ -170,7 +170,7 @@ fn main() {
 		target_type: .directory
 		description: 'Shortcut to API documentation'
 	)!
-	fs_factory.fs_symlink.set(mut api_symlink)!
+	api_symlink = fs_factory.fs_symlink.set(api_symlink)!
 
 	// Symlink to the logo from the docs directory
 	mut logo_symlink := fs_factory.fs_symlink.new(
@@ -181,14 +181,14 @@ fn main() {
 		target_type: .file
 		description: 'Shortcut to project logo'
 	)!
-	fs_factory.fs_symlink.set(mut logo_symlink)!
+	logo_symlink = fs_factory.fs_symlink.set(logo_symlink)!
 
 	// Add symlinks to their parent directories
 	root_dir.symlinks << api_symlink.id
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	docs_dir.symlinks << logo_symlink.id
-	fs_factory.fs_dir.set(mut docs_dir)!
+	docs_dir = fs_factory.fs_dir.set(docs_dir)!
 
 	println('Symlinks created successfully')
 
@@ -252,7 +252,7 @@ fn main() {
 	println('Appending content to API docs...')
 	additional_content := '\n## Authentication\n\nUse Bearer token for authentication.\n'.bytes()
 	mut additional_blob := fs_factory.fs_blob.new(data: additional_content)!
-	fs_factory.fs_blob.set(mut additional_blob)!
+	additional_blob = fs_factory.fs_blob.set(additional_blob)!
 	fs_factory.fs_file.append_blob(docs_file.id, additional_blob.id)!
 
 	// Demonstrate directory operations
@@ -265,11 +265,11 @@ fn main() {
 		parent_id:   root_dir.id
 		description: 'Temporary directory'
 	)!
-	fs_factory.fs_dir.set(mut temp_dir)!
+	temp_dir = fs_factory.fs_dir.set(temp_dir)!
 
 	// Add to parent
 	root_dir.directories << temp_dir.id
-	fs_factory.fs_dir.set(mut root_dir)!
+	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Move temp directory under docs
 	println('Moving temp directory under docs...')

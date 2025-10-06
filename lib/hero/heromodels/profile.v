@@ -3,7 +3,7 @@ module heromodels
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
 import freeflowuniverse.herolib.hero.user { UserRef }
 import json
 
@@ -195,8 +195,13 @@ pub fn (mut self DBProfile) set(o Profile) !Profile {
 	return self.db.set[Profile](o)!
 }
 
-pub fn (mut self DBProfile) delete(id u32) ! {
+pub fn (mut self DBProfile) delete(id u32) !bool {
+	// Check if the item exists before trying to delete
+	if !self.db.exists[Profile](id)! {
+		return false
+	}
 	self.db.delete[Profile](id)!
+	return true
 }
 
 pub fn (mut self DBProfile) exist(id u32) !bool {
@@ -230,8 +235,15 @@ pub fn profile_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 		}
 		'delete' {
 			id := db.decode_u32(params)!
-			f.profile.delete(id)!
-			return new_response_ok(rpcid)
+			deleted := f.profile.delete(id)!
+			if deleted {
+				return new_response_true(rpcid)
+			} else {
+				return new_error(rpcid,
+					code:    404
+					message: 'Profile with ID ${id} not found'
+				)
+			}
 		}
 		'exist' {
 			id := db.decode_u32(params)!

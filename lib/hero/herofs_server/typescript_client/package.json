@@ -1,0 +1,53 @@
+{
+  "name": "@herolib/herofs-client",
+  "version": "1.0.0",
+  "description": "TypeScript client for HeroFS distributed filesystem REST API",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "bun build index.ts --outdir dist --target bun",
+    "typecheck": "bun --bun tsc --noEmit",
+    "example:write": "bun run scripts/create-and-write-file.ts",
+    "example:import": "bun run scripts/import-export-operations.ts",
+    "examples": "echo 'Available examples:' && echo '  bun run example:write  - Create and write files' && echo '  bun run example:import - Import/export operations'"
+  },
+  "keywords": [
+    "herofs",
+    "filesystem",
+    "distributed",
+    "rest-api",
+    "typescript",
+    "client",
+    "herolib",
+    "storage",
+    "blob",
+    "file-management"
+  ],
+  "author": "HeroLib Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freeflowuniverse/herolib.git",
+    "directory": "lib/hero/herofs_server/typescript_client"
+  },
+  "bugs": {
+    "url": "https://github.com/freeflowuniverse/herolib/issues"
+  },
+  "homepage": "https://github.com/freeflowuniverse/herolib/tree/main/lib/hero/herofs_server/typescript_client",
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.6.0",
+    "typescript": "^5.2.2"
+  }
+}

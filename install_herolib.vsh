@@ -1,7 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
-import flag
 
 fn addtoscript(tofind string, toadd string) ! {
 	home_dir := os.home_dir()
@@ -43,20 +42,34 @@ fn addtoscript(tofind string, toadd string) ! {
 	os.write_file(rc_file, new_content)!
 }
 
-vroot := @VROOT
 abs_dir_of_script := dir(@FILE)
 
-// Reset symlinks if requested
+// Determine the organization name from the current path
+// This makes the script work with any organization (incubaid, freeflowuniverse, etc.)
+path_parts := abs_dir_of_script.split('/')
+mut org_name := 'freeflowuniverse' // default fallback
+for i, part in path_parts {
+	if part == 'github' && i + 1 < path_parts.len {
+		org_name = path_parts[i + 1]
+		break
+	}
+}
+
+println('Detected organization: ${org_name}')
+
+// Reset symlinks for both possible organizations (cleanup)
 println('Resetting all symlinks...')
 os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
+os.rm('${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {}
+os.rm('${os.home_dir()}/.vmodules/${org_name}/herolib') or {}
 
 // Create necessary directories
-os.mkdir_all('${os.home_dir()}/.vmodules/freeflowuniverse') or {
-	panic('Failed to create directory ~/.vmodules/freeflowuniverse: ${err}')
+os.mkdir_all('${os.home_dir()}/.vmodules/${org_name}') or {
+	panic('Failed to create directory ~/.vmodules/${org_name}: ${err}')
 }
 
 // Create new symlinks
-os.symlink('${abs_dir_of_script}/lib', '${os.home_dir()}/.vmodules/incubaid/herolib') or {
+os.symlink('${abs_dir_of_script}/lib', '${os.home_dir()}/.vmodules/${org_name}/herolib') or {
 	panic('Failed to create herolib symlink: ${err}')
 }
 

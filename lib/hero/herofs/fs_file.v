@@ -13,12 +13,14 @@ import json
 pub struct FsFile {
 	db.Base
 pub mut:
-	fs_id      u32   // Associated filesystem
-	blobs      []u32 // IDs of file content blobs
-	size_bytes u64
-	mime_type  MimeType
-	checksum   string            // e.g., checksum of the file, needs to be calculated is blake 192
-	metadata   map[string]string // Custom metadata
+	fs_id       u32   // Associated filesystem
+	directories []u32 // Directory IDs where this file exists
+	blobs       []u32 // IDs of file content blobs
+	size_bytes  u64
+	mime_type   MimeType
+	checksum    string // e.g., checksum of the file, needs to be calculated is blake 192
+	accessed_at i64
+	metadata    map[string]string // Custom metadata
 }
 
 pub struct DBFsFile {
@@ -33,6 +35,13 @@ pub fn (self FsFile) type_name() string {
 
 pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.fs_id)
+
+	// Handle directories
+	e.add_u16(u16(self.directories.len))
+	for dir_id in self.directories {
+		e.add_u32(dir_id)
+	}
+
 	// Handle blobs
 	e.add_u16(u16(self.blobs.len))
 	for blob_id in self.blobs {
@@ -42,6 +51,7 @@ pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 	e.add_u64(self.size_bytes)
 	e.add_u8(u8(self.mime_type)) // ADD: Serialize mime_type as u8
 	e.add_string(self.checksum)
+	e.add_i64(self.accessed_at)
 
 	// Handle metadata map
 	e.add_u16(u16(self.metadata.len))
@@ -54,6 +64,13 @@ pub fn (self FsFile) dump(mut e encoder.Encoder) ! {
 fn (mut self DBFsFile) load(mut o FsFile, mut e encoder.Decoder) ! {
 	o.fs_id = e.get_u32()!
 
+	// Load directories
+	directories_count := e.get_u16()!
+	o.directories = []u32{cap: int(directories_count)}
+	for _ in 0 .. directories_count {
+		o.directories << e.get_u32()!
+	}
+
 	// Load blobs
 	blobs_count := e.get_u16()!
 	o.blobs = []u32{cap: int(blobs_count)}
@@ -64,6 +81,7 @@ fn (mut self DBFsFile) load(mut o FsFile, mut e encoder.Decoder) ! {
 	o.size_bytes = e.get_u64()!
 	o.mime_type = unsafe { MimeType(e.get_u8()!) } // ADD: Deserialize mime_type
 	o.checksum = e.get_string()!
+	o.accessed_at = e.get_i64()!
 
 	// Load metadata map
 	metadata_count := e.get_u16()!
@@ -81,10 +99,12 @@ pub mut:
 	name        string @[required]
 	description string
 	fs_id       u32 @[required]
+	directories []u32
 	blobs       []u32
 	size_bytes  u64
 	mime_type   MimeType // Changed from string to MimeType enum
 	checksum    string
+	accessed_at i64
 	metadata    map[string]string
 	tags        []string
 	messages    []db.MessageArg
@@ -116,13 +136,15 @@ pub fn (mut self DBFsFile) new(args FsFileArg) !FsFile {
 	}
 
 	mut o := FsFile{
-		name:       args.name
-		fs_id:      args.fs_id
-		blobs:      args.blobs
-		size_bytes: size
-		mime_type:  args.mime_type // ADD: Set mime_type
-		checksum:   args.checksum
-		metadata:   args.metadata
+		name:        args.name
+		fs_id:       args.fs_id
+		directories: args.directories
+		blobs:       args.blobs
+		size_bytes:  size
+		mime_type:   args.mime_type // ADD: Set mime_type
+		checksum:    args.checksum
+		accessed_at: if args.accessed_at != 0 { args.accessed_at } else { ourtime.now().unix() }
+		metadata:    args.metadata
 	}
 
 	// Set base fields
@@ -144,7 +166,41 @@ pub fn (mut self DBFsFile) set(o_ FsFile) !FsFile {
 			return error('Blob with ID ${blob_id} does not exist')
 		}
 	}
+
+	// Check if this is a new file (id == 0) or an update
+	is_new := o.id == 0
+
+	// Get old directories if updating
+	mut old_directories := []u32{}
+	if !is_new {
+		if old_file := self.get(o.id) {
+			old_directories = old_file.directories.clone()
+		}
+	}
+
 	o = self.db.set[FsFile](o)!
+
+	// Maintain bidirectional relationship: update directory's files array
+	if is_new {
+		// New file: add to all specified directories
+		for dir_id in o.directories {
+			self.add_to_directory(o.id, dir_id)!
+		}
+	} else {
+		// Updated file: handle directory changes
+		// Remove from directories that are no longer associated
+		for old_dir_id in old_directories {
+			if old_dir_id !in o.directories {
+				self.remove_from_directory(o.id, old_dir_id)!
+			}
+		}
+		// Add to new directories
+		for dir_id in o.directories {
+			if dir_id !in old_directories {
+				self.add_to_directory(o.id, dir_id)!
+			}
+		}
+	}
 
 	return o
 }
@@ -154,6 +210,15 @@ pub fn (mut self DBFsFile) add_to_directory(file_id u32, dir_id u32) ! {
 	mut dir := self.factory.fs_dir.get(dir_id)!
 	if file_id !in dir.files {
 		dir.files << file_id
+		dir = self.factory.fs_dir.set(dir)!
+	}
+}
+
+// remove_from_directory removes a file from a directory's files list
+pub fn (mut self DBFsFile) remove_from_directory(file_id u32, dir_id u32) ! {
+	mut dir := self.factory.fs_dir.get(dir_id)!
+	if file_id in dir.files {
+		dir.files = dir.files.filter(it != file_id)
 		dir = self.factory.fs_dir.set(dir)!
 	}
 }

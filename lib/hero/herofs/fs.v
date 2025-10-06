@@ -1,6 +1,7 @@
 module herofs
 
 import freeflowuniverse.herolib.data.encoder
+import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
@@ -13,6 +14,8 @@ import json
 pub struct Fs {
 	db.Base
 pub mut:
+	name        string
+	group_id    u32 // Associated group for permissions
 	root_dir_id u32 // ID of root directory
 	quota_bytes u64 // Storage quota in bytes
 	used_bytes  u64 // Current usage in bytes
@@ -80,14 +83,16 @@ pub fn (self Fs) example(methodname string) (string, string) {
 }
 
 pub fn (self Fs) dump(mut e encoder.Encoder) ! {
-	// e.add_string(self.name)
+	e.add_string(self.name)
+	e.add_u32(self.group_id)
 	e.add_u32(self.root_dir_id)
 	e.add_u64(self.quota_bytes)
 	e.add_u64(self.used_bytes)
 }
 
 fn (mut self DBFs) load(mut o Fs, mut e encoder.Decoder) ! {
-	// o.name = e.get_string()!
+	o.name = e.get_string()!
+	o.group_id = e.get_u32()!
 	o.root_dir_id = e.get_u32()!
 	o.quota_bytes = e.get_u64()!
 	o.used_bytes = e.get_u64()!
@@ -98,17 +103,12 @@ pub struct FsArg {
 pub mut:
 	name        string @[required]
 	description string
+	group_id    u32
 	root_dir_id u32
 	quota_bytes u64
 	used_bytes  u64
 	tags        []string
 	messages    []db.MessageArg
-}
-
-@[params]
-pub struct FsListArg {
-pub mut:
-	limit int = 100 // Default limit is 100
 }
 
 // get new filesystem, not from the DB
@@ -120,6 +120,9 @@ pub fn (mut self DBFs) new(args FsArg) !Fs {
 
 	if args.description != '' {
 		o.description = args.description
+	}
+	if args.group_id != 0 {
+		o.group_id = args.group_id
 	}
 	if args.root_dir_id != 0 {
 		o.root_dir_id = args.root_dir_id
@@ -261,9 +264,25 @@ pub fn (mut self DBFs) get_by_name(name string) !Fs {
 	return self.get(id_str.u32())!
 }
 
-// Note: Filesystem usage tracking methods are not implemented yet
-// These would be used for quota enforcement and storage monitoring
-// Future implementation should use separate Redis structures for performance
+// Increase used bytes counter
+pub fn (mut self DBFs) increase_usage(id u32, bytes u64) ! {
+	mut fs := self.get(id)!
+	fs.used_bytes += bytes
+	fs.updated_at = ourtime.now().unix()
+	self.set(fs)!
+}
+
+// Decrease used bytes counter
+pub fn (mut self DBFs) decrease_usage(id u32, bytes u64) ! {
+	mut fs := self.get(id)!
+	if fs.used_bytes >= bytes {
+		fs.used_bytes -= bytes
+	} else {
+		fs.used_bytes = 0
+	}
+	fs.updated_at = ourtime.now().unix()
+	self.set(fs)!
+}
 
 // Check if quota is exceeded
 pub fn (mut self DBFs) check_quota(id u32, additional_bytes u64) !bool {

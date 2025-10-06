@@ -103,7 +103,7 @@ pub fn (pw Procedure[T, U]) handle(request Request) !Response {
 			data:    '${request.params}'
 		}
 	}
-	result := pw.function(payload) or {
+	_ := pw.function(payload) or {
 		return RPCError{
 			code:    -32603
 			message: 'Error in function on rpc request.'
@@ -115,7 +115,7 @@ pub fn (pw Procedure[T, U]) handle(request Request) !Response {
 
 pub fn (pw ProcedureVoid[T]) handle(request Request) !Response {
 	payload := decode_payload[T](request.params) or { return invalid_params }
-	result := pw.function(payload) or {
+	_ := pw.function(payload) or {
 		return RPCError{
 			code:    -32603
 			message: 'Error in function on rpc request.'

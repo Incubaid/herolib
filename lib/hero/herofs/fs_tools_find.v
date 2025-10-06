@@ -97,21 +97,16 @@ pub fn (mut self Fs) find(start_path string, opts FindOptions) ![]FindResult {
 // - Symlinks: Symbolic links in the current directory (handled according to opts.follow_symlinks)
 // - Directories: Subdirectories of the current directory (recursed into according to opts.recursive)
 fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOptions, mut results []FindResult, current_depth int) ! {
-	println('DEBUG: find_recursive called with dir_id=${dir_id}, current_path="${current_path}", current_depth=${current_depth}')
-
 	// Check depth limit
 	if opts.max_depth >= 0 && current_depth > opts.max_depth {
-		println('DEBUG: Max depth reached, returning')
 		return
 	}
 
 	// Get current directory info
 	current_dir := self.factory.fs_dir.get(dir_id)!
-	println('DEBUG: Got directory "${current_dir.name}" with ${current_dir.files.len} files, ${current_dir.directories.len} directories, ${current_dir.symlinks.len} symlinks')
 
 	// Check if current directory matches search criteria
 	if should_include(current_dir.name, opts.include_patterns, opts.exclude_patterns) {
-		println('DEBUG: Including directory "${current_dir.name}" in results')
 		results << FindResult{
 			result_type: .directory
 			id:          dir_id
@@ -126,11 +121,9 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 
 	// Get files in current directory
 	for file_id in current_dir.files {
-		println('DEBUG: Processing file ID ${file_id}')
 		file := self.factory.fs_file.get(file_id)!
 		if should_include(file.name, opts.include_patterns, opts.exclude_patterns) {
 			file_path := join_path(current_path, file.name)
-			println('DEBUG: Including file "${file.name}" in results')
 			results << FindResult{
 				result_type: .file
 				id:          file.id
@@ -217,14 +210,12 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 	}
 
 	for dir_id2 in current_dir.directories {
-		println('DEBUG: Found child directory ID ${dir_id2} in directory ${dir_id}')
 		subdir := self.factory.fs_dir.get(dir_id2)!
 		subdir_path := join_path(current_path, subdir.name)
 
 		// Include child directories in results if they match patterns
 		if should_include(subdir.name, opts.include_patterns, opts.exclude_patterns) {
 			if !opts.recursive {
-				println('DEBUG: Including directory "${subdir.name}" in results')
 				results << FindResult{
 					result_type: .directory
 					id:          subdir.id
@@ -236,12 +227,9 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 		// Always recurse into directories when recursive is true, regardless of patterns
 		// The patterns apply to what gets included in results, not to traversal
 		if opts.recursive {
-			println('DEBUG: Processing directory "${subdir.name}"')
 			self.find_recursive(dir_id2, subdir_path, opts, mut results, current_depth + 1)!
 		}
 	}
-
-	println('DEBUG: find_recursive finished with ${results.len} results')
 }
 
 // get_dir_by_absolute_path resolves an absolute path to a directory ID
@@ -257,15 +245,11 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 // dir := tools.get_dir_by_absolute_path('/home/user/documents')!
 // ```
 pub fn (mut self Fs) get_dir_by_absolute_path(path string) !FsDir {
-	println('DEBUG: get_dir_by_absolute_path called with path "${path}"')
 	normalized_path_ := normalize_path(path)
-	println('DEBUG: normalized_path_ = "${normalized_path_}"')
 
 	// Handle root directory case
 	if normalized_path_ == '/' {
-		println('DEBUG: Handling root directory case')
 		fs := self.factory.fs.get(self.id)!
-		println('DEBUG: fs.root_dir_id = ${fs.root_dir_id}')
 		return self.factory.fs_dir.get(fs.root_dir_id)!
 	}
 
