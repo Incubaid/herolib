@@ -2,49 +2,33 @@
 
 import freeflowuniverse.herolib.hero.herofs_server
 import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.redisclient
-import os
 
 fn main() {
 	console.print_header('HeroFS REST API Server Example')
 
-	// Environment variable configuration with defaults
-	redis_host := os.getenv_opt('REDIS_HOST') or { 'localhost' }
-	redis_port := (os.getenv_opt('REDIS_PORT') or { '6379' }).int()
-	server_port := (os.getenv_opt('SERVER_PORT') or { '8080' }).int()
-	server_host := os.getenv_opt('SERVER_HOST') or { 'localhost' }
-	cors_enabled := (os.getenv_opt('CORS_ENABLED') or { 'true' }).bool()
-	allowed_origin := os.getenv_opt('ALLOWED_ORIGIN') or { '*' }
-
-	// Configure Redis connection for main database
-	mut redis := redisclient.core_get(redisclient.RedisURL{
-		address: redis_host
-		port: redis_port
-	})!
-
+	// Create server with CORS enabled for development
 	mut server := herofs_server.new(
-		port:            server_port
-		host:            server_host
-		cors_enabled:    cors_enabled
-		allowed_origins: [allowed_origin]
-		redis:           redis
+		port:            8080
+		host:            'localhost'
+		cors_enabled:    true
+		allowed_origins: ['*'] // Allow all origins for development
 	)!
 
 	console.print_item('Server configured successfully')
-		console.print_item('Starting server...')
-		console.print_item('')
-		console.print_item('Available endpoints:')
-		console.print_item('  Health check: GET http://${server_host}:${server_port}/health')
-		console.print_item('  API info: GET http://${server_host}:${server_port}/api')
-		console.print_item('  Filesystems: http://${server_host}:${server_port}/api/fs')
-		console.print_item('  Directories: http://${server_host}:${server_port}/api/dirs')
-		console.print_item('  Files: http://${server_host}:${server_port}/api/files')
-		console.print_item('  Blobs: http://${server_host}:${server_port}/api/blobs')
-		console.print_item('  Symlinks: http://${server_host}:${server_port}/api/symlinks')
-		console.print_item('  Tools: http://${server_host}:${server_port}/api/tools')
-		console.print_item('')
-		console.print_item('Press Ctrl+C to stop the server')
+	console.print_item('Starting server...')
+	console.print_item('')
+	console.print_item('Available endpoints:')
+	console.print_item('  Health check: GET http://localhost:8080/health')
+	console.print_item('  API info: GET http://localhost:8080/api')
+	console.print_item('  Filesystems: http://localhost:8080/api/fs')
+	console.print_item('  Directories: http://localhost:8080/api/dirs')
+	console.print_item('  Files: http://localhost:8080/api/files')
+	console.print_item('  Blobs: http://localhost:8080/api/blobs')
+	console.print_item('  Symlinks: http://localhost:8080/api/symlinks')
+	console.print_item('  Tools: http://localhost:8080/api/tools')
+	console.print_item('')
+	console.print_item('Press Ctrl+C to stop the server')
 
-		// Start the server (this blocks)
-		server.start()!
+	// Start the server (this blocks)
+	server.start()!
 }
