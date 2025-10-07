@@ -161,6 +161,10 @@ pub mut:
 	education            []Education
 	skills               []string
 	languages            []string
+	id                   u32
+	securitypolicy       u32
+	tags                 []string
+	messages             []db.MessageArg
 }
 
 // get new profile, not from the DB
@@ -185,6 +189,9 @@ pub fn (mut self DBProfile) new(args ProfileArg) !Profile {
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
@@ -226,10 +233,14 @@ pub fn profile_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 		'get' {
 			id := db.decode_u32(params)!
 			res := f.profile.get(id)!
-			return new_response(rpcid, json.encode_pretty(res))
+			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Profile](params)!
+			mut args := db.decode_generic[ProfileArg](params)!
+			mut o := f.profile.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.profile.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

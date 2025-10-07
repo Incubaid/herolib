@@ -93,12 +93,16 @@ fn (mut self DBCalendar) load(mut o Calendar, mut e encoder.Decoder) ! {
 @[params]
 pub struct CalendarArg {
 pub mut:
-	name        string
-	description string
-	color       string
-	timezone    string
-	is_public   bool
-	events      []u32
+	id             u32
+	name           string
+	description    string
+	color          string
+	timezone       string
+	is_public      bool
+	events         []u32
+	securitypolicy u32
+	tags           []string
+	messages       []db.MessageArg
 }
 
 // get new calendar, not from the DB
@@ -113,6 +117,9 @@ pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
 	// Set base fields
 	o.name = args.name
 	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
 	o.updated_at = ourtime.now().unix()
 
 	return o
@@ -155,7 +162,11 @@ pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Calendar](params)!
+			mut args := db.decode_generic[CalendarArg](params)!
+			mut o := f.calendar.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.calendar.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

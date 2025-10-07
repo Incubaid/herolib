@@ -197,6 +197,7 @@ pub fn (mut self DBChatMessage) load(mut o ChatMessage, mut e encoder.Decoder) !
 @[params]
 pub struct ChatMessageArg {
 pub mut:
+	id              u32
 	name            string
 	description     string
 	content         string
@@ -298,7 +299,11 @@ pub fn chat_message_handle(mut f ModelsFactory, rpcid int, servercontext map[str
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[ChatMessage](params)!
+			mut args := db.decode_generic[ChatMessageArg](params)!
+			mut o := f.chat_message.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.chat_message.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

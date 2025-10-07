@@ -161,6 +161,7 @@ pub fn (mut self DBProjectIssue) load(mut o ProjectIssue, mut e encoder.Decoder)
 @[params]
 pub struct ProjectIssueArg {
 pub mut:
+	id             u32
 	name           string
 	description    string
 	title          string
@@ -329,7 +330,11 @@ pub fn project_issue_handle(mut f ModelsFactory, rpcid int, servercontext map[st
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[ProjectIssue](params)!
+			mut args := db.decode_generic[ProjectIssueArg](params)!
+			mut o := f.project_issue.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.project_issue.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
