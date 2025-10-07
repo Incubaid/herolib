@@ -1,6 +1,7 @@
 module data
 
 import freeflowuniverse.herolib.core.texttools
+import freeflowuniverse.herolib.core.base
 import freeflowuniverse.herolib.data.markdown.elements
 import freeflowuniverse.herolib.data.doctree.pointer
 
@@ -32,11 +33,27 @@ pub fn (page Page) process_links(paths map[string]string) ![]string {
 				doc.linked_pages << ptr.str()
 			}
 
-			if ptr.collection == page.collection_name {
-				// same directory
-				path = './' + path.all_after_first('/')
+			// Check if Docusaurus-specific paths are available in Redis
+			mut context := base.context() or { base.context_new()! }
+			mut redis := context.redis() or { panic('Redis not available') }
+			
+			// Try to get Docusaurus-specific path from Redis
+			if docusaurus_path := redis.hget('doctree_docusaurus_paths', ptr.str()) {
+				// Use Docusaurus path (already without .md extension)
+				// Ensure it starts with / for absolute path
+				if docusaurus_path.starts_with('/') {
+					path = docusaurus_path
+				} else {
+					path = '/' + docusaurus_path
+				}
 			} else {
-				path = '../${path}'
+				// Fall back to default behavior: relative paths with .md
+				if ptr.collection == page.collection_name {
+					// same directory
+					path = './' + path.all_after_first('/')
+				} else {
+					path = '../${path}'
+				}
 			}
 
 			if ptr.cat == .image && element.extra.trim_space() != '' {

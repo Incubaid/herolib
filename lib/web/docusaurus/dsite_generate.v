@@ -14,6 +14,9 @@ pub fn (mut docsite DocSite) generate() ! {
 
 	console.print_header(' docsite generate: ${docsite.name} on ${c.path_build.path}')
 
+	// Store Docusaurus site structure in Redis for link processing
+	docsite.store_site_structure()!
+
 	osal.rm('${c.path_build.path}/docs')!
 
 	cfg_path := '${c.path_build.path}/cfg'
