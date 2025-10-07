@@ -178,6 +178,7 @@ pub fn (mut self DBRegistrationDesk) load(mut o RegistrationDesk, mut e encoder.
 @[params]
 pub struct RegistrationDeskArg {
 pub mut:
+	id                  u32
 	name                string
 	description         string
 	fs_items            []u32  // IDs of linked files or dirs
@@ -303,7 +304,11 @@ pub fn registration_desk_handle(mut f ModelsFactory, rpcid int, servercontext ma
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[RegistrationDesk](params)!
+			mut args := db.decode_generic[RegistrationDeskArg](params)!
+			mut o := f.registration_desk.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.registration_desk.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
