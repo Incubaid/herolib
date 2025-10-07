@@ -17,20 +17,21 @@ __global (
 @[heap]
 pub struct ModelsFactory {
 pub mut:
-	calendar         DBCalendar
-	calendar_event   DBCalendarEvent
-	group            DBGroup
-	user             DBUser
-	project          DBProject
-	project_issue    DBProjectIssue
-	chat_group       DBChatGroup
-	chat_message     DBChatMessage
-	contact          DBContact
-	profile          DBProfile
-	planning         DBPlanning
+	calendar          DBCalendar
+	calendar_event    DBCalendarEvent
+	group             DBGroup
+	user              DBUser
+	project           DBProject
+	project_issue     DBProjectIssue
+	chat_group        DBChatGroup
+	chat_message      DBChatMessage
+	contact           DBContact
+	profile           DBProfile
+	planning          DBPlanning
 	registration_desk DBRegistrationDesk
-	messages         DBMessages
-	rpc_handler      &Handler
+	messages          DBMessages
+	tags              DBTags
+	rpc_handler       &Handler
 }
 
 @[params]
@@ -48,46 +49,49 @@ pub fn new(args NewArgs) !&ModelsFactory {
 	}
 	mut h := new_handler(openrpc_path)!
 	mut f := ModelsFactory{
-		calendar:         DBCalendar{
+		calendar:          DBCalendar{
 			db: &mydb
 		}
-		calendar_event:   DBCalendarEvent{
+		calendar_event:    DBCalendarEvent{
 			db: &mydb
 		}
-		group:            DBGroup{
+		group:             DBGroup{
 			db: &mydb
 		}
-		user:             DBUser{
+		user:              DBUser{
 			db: &mydb
 		}
-		project:          DBProject{
+		project:           DBProject{
 			db: &mydb
 		}
-		project_issue:    DBProjectIssue{
+		project_issue:     DBProjectIssue{
 			db: &mydb
 		}
-		chat_group:       DBChatGroup{
+		chat_group:        DBChatGroup{
 			db: &mydb
 		}
-		chat_message:     DBChatMessage{
+		chat_message:      DBChatMessage{
 			db: &mydb
 		}
-		contact:          DBContact{
+		contact:           DBContact{
 			db: &mydb
 		}
-		profile:          DBProfile{
+		profile:           DBProfile{
 			db: &mydb
 		}
-		planning:         DBPlanning{
+		planning:          DBPlanning{
 			db: &mydb
 		}
 		registration_desk: DBRegistrationDesk{
 			db: &mydb
 		}
-		messages:         DBMessages{
+		messages:          DBMessages{
 			db: &mydb
 		}
-		rpc_handler:      &h
+		tags:              DBTags{
+			db: &mydb
+		}
+		rpc_handler:       &h
 	}
 
 	// openrpc handler can be used by any server, has even embedded unix sockets and simple http server
@@ -123,13 +127,16 @@ pub fn group_api_handler(rpcid int, servercontext map[string]string, actorname s
 			return calendar_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
 		'calendar_event' {
-			return calendar_event_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+			return calendar_event_handle(mut f, rpcid, servercontext, userref, methodname,
+				params)!
 		}
 		'chat_group' {
-			return chat_group_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+			return chat_group_handle(mut f, rpcid, servercontext, userref, methodname,
+				params)!
 		}
 		'chat_message' {
-			return chat_message_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+			return chat_message_handle(mut f, rpcid, servercontext, userref, methodname,
+				params)!
 		}
 		'group' {
 			return group_handle(mut f, rpcid, servercontext, userref, methodname, params)!
@@ -138,7 +145,8 @@ pub fn group_api_handler(rpcid int, servercontext map[string]string, actorname s
 			return project_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
 		'project_issue' {
-			return project_issue_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+			return project_issue_handle(mut f, rpcid, servercontext, userref, methodname,
+				params)!
 		}
 		'user' {
 			return user_handle(mut f, rpcid, servercontext, userref, methodname, params)!
@@ -153,10 +161,14 @@ pub fn group_api_handler(rpcid int, servercontext map[string]string, actorname s
 			return planning_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
 		'registration_desk' {
-			return registration_desk_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+			return registration_desk_handle(mut f, rpcid, servercontext, userref, methodname,
+				params)!
 		}
 		'message' {
 			return message_handle(mut f, rpcid, servercontext, userref, methodname, params)!
+		}
+		'tags' {
+			return tags_handle(mut f, rpcid, servercontext, userref, methodname, params)!
 		}
 		else {
 			return jsonrpc.new_error(rpcid,
