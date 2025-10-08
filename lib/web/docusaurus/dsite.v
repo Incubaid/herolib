@@ -1,7 +1,9 @@
 module docusaurus
 
 import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.web.site as sitemodule
+import freeflowuniverse.herolib.core.base
+import freeflowuniverse.herolib.core.texttools
+import freeflowuniverse.herolib.web.site { Site, SiteConfig }
 import freeflowuniverse.herolib.osal.core as osal
 import freeflowuniverse.herolib.ui.console
 
@@ -15,7 +17,7 @@ pub mut:
 	path_build   pathlib.Path
 	errors       []SiteError
 	config       Configuration
-	website      sitemodule.Site
+	website      site.Site
 	generated    bool
 }
 
@@ -101,13 +103,13 @@ pub mut:
 	cat  ErrorCat
 }
 
-pub fn (mut site DocSite) error(args ErrorArgs) {
+pub fn (mut s DocSite) error(args ErrorArgs) {
 	// path2 := pathlib.get(args.path)
 	e := SiteError{
 		path: args.path
 		msg:  args.msg
 		cat:  args.cat
 	}
-	site.errors << e
+	s.errors << e
 	console.print_stderr(args.msg)
 }
