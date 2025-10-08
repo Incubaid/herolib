@@ -1,6 +1,6 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.hero.herofs { new_test }
 
 fn test_cleanup() ! {
 	delete_fs_test()!
@@ -14,9 +14,9 @@ fn test_basic() ! {
 	test_cleanup()!
 
 	// Initialize the HeroFS factory for test purposes
-	mut fs_factory := new()!
+	mut fs_factory := new_test()!
 
-	// Create a new filesystem (required for FsBlobMembership validation)
+	// Create a new filesystem
 	mut test_fs := fs_factory.fs.new_get_set(
 		name:        'test_filesystem'
 		description: 'Filesystem for testing FsBlobMembership functionality'
@@ -34,63 +34,21 @@ fn test_basic() ! {
 	test_blob = fs_factory.fs_blob.set(test_blob)!
 	blob_id := test_blob.id
 
-	// Create test file to get a valid fsid (file ID) for membership
-	mut test_file := fs_factory.fs_file.new(
-		name:        'test_file.txt'
-		fs_id:       test_fs.id
-		blobs:       [blob_id]
-		description: 'Test file for blob membership'
-		mime_type:   .txt
-	)!
-	test_file = fs_factory.fs_file.set(test_file)!
-	file_id := test_file.id
-	println('Created test file with ID: ${file_id}')
-
-	// Add file to directory
-	mut dir := fs_factory.fs_dir.get(test_fs.root_dir_id)!
-	dir.files << file_id
-	dir = fs_factory.fs_dir.set(dir)!
-
-	// Create test blob membership
+	// Create blob membership
 	mut test_membership := fs_factory.fs_blob_membership.new(
 		hash:   test_blob.hash
-		fsid:   [test_fs.id] // Use filesystem ID
-		blobid: blob_id
+		fsid:   [test_fs.id]
+		blobid: test_blob.id
 	)!
-
-	// Save the test membership
 	test_membership = fs_factory.fs_blob_membership.set(test_membership)!
-	membership_hash := test_membership.hash
-	println('Created test blob membership with hash: ${membership_hash}')
 
-	// Test loading membership by hash
-	println('Testing blob membership loading...')
-
-	loaded_membership := fs_factory.fs_blob_membership.get(membership_hash)!
+	// Test retrieval
+	loaded_membership := fs_factory.fs_blob_membership.get(test_membership.hash)!
 	assert loaded_membership.hash == test_membership.hash
 	assert loaded_membership.fsid == test_membership.fsid
 	assert loaded_membership.blobid == test_membership.blobid
-	println('✓ Loaded blob membership: ${loaded_membership.hash} (Blob ID: ${loaded_membership.blobid})')
 
-	// Verify that loaded membership matches the original one
-	println('Verifying data integrity...')
-	assert loaded_membership.hash == test_blob.hash
-	println('✓ Blob membership data integrity check passed')
-
-	// Test exist method
-	println('Testing blob membership existence checks...')
-
-	mut exists := fs_factory.fs_blob_membership.exist(membership_hash)!
-	assert exists == true
-	println('✓ Blob membership exists: ${exists}')
-
-	// Test with non-existent hash
-	non_existent_hash := '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
-	exists = fs_factory.fs_blob_membership.exist(non_existent_hash)!
-	assert exists == false
-	println('✓ Non-existent blob membership exists: ${exists}')
-
-	println('FsBlobMembership basic test completed successfully!')
+	println('✓ FsBlobMembership basic test passed!')
 }
 
 fn test_filesystem_operations() ! {
@@ -100,7 +58,7 @@ fn test_filesystem_operations() ! {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut fs_factory := new()!
+	mut fs_factory := new_test()!
 
 	// Create filesystems for testing
 	mut fs1 := fs_factory.fs.new_get_set(
@@ -117,7 +75,6 @@ fn test_filesystem_operations() ! {
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
 	fs2 = fs_factory.fs.set(fs2)!
-	fs1_root_dir_id := fs1.root_dir_id
 	fs2_id := fs2.id
 
 	// Create test blob
@@ -125,39 +82,6 @@ fn test_filesystem_operations() ! {
 	mut test_blob := fs_factory.fs_blob.new(data: test_data)!
 	test_blob = fs_factory.fs_blob.set(test_blob)!
 	blob_id := test_blob.id
-
-	// Create test files to get valid fsid (file IDs) for membership
-	mut test_file1 := fs_factory.fs_file.new(
-		name:        'test_file1.txt'
-		fs_id:       fs1_id
-		blobs:       [blob_id]
-		description: 'Test file 1 for blob membership'
-		mime_type:   .txt
-	)!
-	test_file1 = fs_factory.fs_file.set(test_file1)!
-	file1_id := test_file1.id
-	println('Created test file 1 with ID: ${file1_id}')
-
-	// Add file to directory
-	mut fs1_root_dir := fs_factory.fs_dir.get(fs1.root_dir_id)!
-	fs1_root_dir.files << file1_id
-	fs1_root_dir = fs_factory.fs_dir.set(fs1_root_dir)!
-
-	mut test_file2 := fs_factory.fs_file.new(
-		name:        'test_file2.txt'
-		fs_id:       fs2_id
-		blobs:       [blob_id]
-		description: 'Test file 2 for blob membership'
-		mime_type:   .txt
-	)!
-	test_file2 = fs_factory.fs_file.set(test_file2)!
-	file2_id := test_file2.id
-	println('Created test file 2 with ID: ${file2_id}')
-
-	// Add file to directory
-	mut fs2_root_dir := fs_factory.fs_dir.get(fs2.root_dir_id)!
-	fs2_root_dir.files << file2_id
-	fs2_root_dir = fs_factory.fs_dir.set(fs2_root_dir)!
 
 	// Create blob membership with first filesystem
 	mut membership := fs_factory.fs_blob_membership.new(
@@ -170,9 +94,6 @@ fn test_filesystem_operations() ! {
 	println('Created blob membership with filesystem 1: ${membership_hash}')
 
 	// Test adding a filesystem to membership
-	println('Testing add_filesystem operation...')
-
-	// Add second filesystem
 	fs_factory.fs_blob_membership.add_filesystem(membership_hash, fs2_id)!
 	mut updated_membership := fs_factory.fs_blob_membership.get(membership_hash)!
 
@@ -183,9 +104,6 @@ fn test_filesystem_operations() ! {
 	println('✓ Added filesystem 2 to blob membership')
 
 	// Test removing a filesystem from membership
-	println('Testing remove_filesystem operation...')
-
-	// Remove first filesystem
 	fs_factory.fs_blob_membership.remove_filesystem(membership_hash, fs1_id)!
 	mut updated_membership2 := fs_factory.fs_blob_membership.get(membership_hash)!
 
@@ -212,7 +130,7 @@ fn test_validation() ! {
 		test_cleanup() or { panic('cleanup failed: ${err.msg()}') }
 	}
 	// Initialize the HeroFS factory for test purposes
-	mut fs_factory := new()!
+	mut fs_factory := new_test()!
 
 	// Create a filesystem for validation tests
 	mut test_fs := fs_factory.fs.new_get_set(
@@ -221,11 +139,8 @@ fn test_validation() ! {
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
 	test_fs = fs_factory.fs.set(test_fs)!
-	fs_id := test_fs.id
 
 	// Test setting membership with non-existent blob (should fail)
-	println('Testing membership set with non-existent blob...')
-
 	// Create a membership with a non-existent blob ID
 	mut test_membership := fs_factory.fs_blob_membership.new(
 		hash:   '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'

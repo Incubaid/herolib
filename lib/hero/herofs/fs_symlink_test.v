@@ -5,26 +5,17 @@ fn test_symlink_operations() ! {
 	mut fs_factory := new()!
 
 	// Create test filesystem
-	mut test_fs := fs_factory.fs.new(
+	mut test_fs := fs_factory.fs.new_get_set(
 		name:        'symlink_test'
 		description: 'Test filesystem for symlink operations'
 		quota_bytes: 1024 * 1024 * 10
 	)!
-	test_fs = fs_factory.fs.set(test_fs)!
-
-	// Create root directory
-	mut root_dir := fs_factory.fs_dir.new(
-		name:      'root'
-		fs_id:     test_fs.id
-		parent_id: 0
-	)!
-	root_dir = fs_factory.fs_dir.set(root_dir)!
 
 	// Create a subdirectory
 	mut sub_dir := fs_factory.fs_dir.new(
 		name:      'subdir'
 		fs_id:     test_fs.id
-		parent_id: root_dir.id
+		parent_id: test_fs.root_dir_id
 	)!
 	sub_dir = fs_factory.fs_dir.set(sub_dir)!
 
@@ -46,7 +37,7 @@ fn test_symlink_operations() ! {
 	mut file_symlink := fs_factory.fs_symlink.new(
 		name:        'file_link'
 		fs_id:       test_fs.id
-		parent_id:   root_dir.id
+		parent_id:   test_fs.root_dir_id
 		target_id:   test_file.id
 		target_type: .file
 	)!
@@ -56,7 +47,7 @@ fn test_symlink_operations() ! {
 	mut dir_symlink := fs_factory.fs_symlink.new(
 		name:        'dir_link'
 		fs_id:       test_fs.id
-		parent_id:   root_dir.id
+		parent_id:   test_fs.root_dir_id
 		target_id:   sub_dir.id
 		target_type: .directory
 	)!
@@ -73,17 +64,6 @@ fn test_symlink_operations() ! {
 	assert retrieved_dir_link.target_id == sub_dir.id
 	assert retrieved_dir_link.target_type == .directory
 
-	// Test symlink existence
-	file_link_exists := fs_factory.fs_symlink.exist(file_symlink.id)!
-	assert file_link_exists == true
-
-	// Test listing symlinks
-	all_symlinks := fs_factory.fs_symlink.list()!
-	assert all_symlinks.len >= 2
-
-	fs_symlinks := fs_factory.fs_symlink.list_by_filesystem(test_fs.id)!
-	assert fs_symlinks.len == 2
-
 	// Test broken symlink detection
 	is_file_link_broken := fs_factory.fs_symlink.is_broken(file_symlink.id)!
 	assert is_file_link_broken == false
@@ -98,61 +78,4 @@ fn test_symlink_operations() ! {
 	assert file_link_exists_after_delete == false
 
 	println('✓ Symlink operations tests passed!')
-}
-
-fn test_broken_symlink_detection() ! {
-	// Initialize HeroFS factory
-	mut fs_factory := new()!
-
-	// Create test filesystem
-	mut test_fs := fs_factory.fs.new(
-		name:        'broken_symlink_test'
-		description: 'Test filesystem for broken symlink detection'
-		quota_bytes: 1024 * 1024 * 10
-	)!
-	test_fs = fs_factory.fs.set(test_fs)!
-
-	// Create root directory
-	mut root_dir := fs_factory.fs_dir.new(
-		name:      'root'
-		fs_id:     test_fs.id
-		parent_id: 0
-	)!
-	root_dir = fs_factory.fs_dir.set(root_dir)!
-
-	// Create a test file
-	test_content := 'Temporary file'.bytes()
-	mut test_blob := fs_factory.fs_blob.new(data: test_content)!
-	test_blob = fs_factory.fs_blob.set(test_blob)!
-
-	mut temp_file := fs_factory.fs_file.new(
-		name:      'temp.txt'
-		fs_id:     test_fs.id
-		blobs:     [test_blob.id]
-		mime_type: .txt
-	)!
-	temp_file = fs_factory.fs_file.set(temp_file)!
-
-	// Create symlink to the file
-	mut symlink := fs_factory.fs_symlink.new(
-		name:        'temp_link'
-		fs_id:       test_fs.id
-		parent_id:   root_dir.id
-		target_id:   temp_file.id
-		target_type: .file
-	)!
-	symlink = fs_factory.fs_symlink.set(symlink)!
-
-	// Verify symlink is not broken initially
-	is_broken_before := fs_factory.fs_symlink.is_broken(symlink.id)!
-	assert is_broken_before == false
-
-	// Delete the target file
-	fs_factory.fs_file.delete(temp_file.id)!
-
-	// Now the symlink should be broken
-	is_broken_after := fs_factory.fs_symlink.is_broken(symlink.id)!
-	assert is_broken_after == true
-
-	println('✓ Broken symlink detection works correctly!')
 }

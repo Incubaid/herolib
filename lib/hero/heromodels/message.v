@@ -149,12 +149,16 @@ pub fn (mut self DBMessages) load(mut o Message, mut e encoder.Decoder) ! {
 @[params]
 pub struct MessageArg {
 pub mut:
-	subject string
-	message string @[required]
-	parent  u32
-	author  u32
-	to      []u32
-	cc      []u32
+	id             u32
+	subject        string
+	message        string @[required]
+	parent         u32
+	author         u32
+	to             []u32
+	cc             []u32
+	securitypolicy u32
+	tags           []string
+	messages       []db.MessageArg
 }
 
 // get new message, not from the DB
@@ -169,6 +173,12 @@ pub fn (mut self DBMessages) new(args MessageArg) !Message {
 		send_log:   []SendLog{} // Initialize as empty
 		updated_at: ourtime.now().unix()
 	}
+
+	// Set base fields
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
+
 	return o
 }
 
@@ -237,7 +247,11 @@ pub fn message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Message](params)!
+			mut args := db.decode_generic[MessageArg](params)!
+			mut o := f.messages.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.messages.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

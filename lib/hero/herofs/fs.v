@@ -3,6 +3,11 @@ module herofs
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
+import json
 
 // Fs represents a filesystem, is the top level container for files and directories and symlinks, blobs are used over filesystems
 @[heap]
@@ -14,7 +19,7 @@ pub mut:
 	root_dir_id u32 // ID of root directory
 	quota_bytes u64 // Storage quota in bytes
 	used_bytes  u64 // Current usage in bytes
-	factory     &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory     &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 // We only keep the root directory ID here, other directories can be found by querying parent_id in FsDir
@@ -22,11 +27,59 @@ pub mut:
 pub struct DBFs {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self Fs) type_name() string {
 	return 'fs'
+}
+
+// return example rpc call and result for each methodname
+pub fn (self Fs) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a filesystem. Returns the ID of the filesystem.'
+		}
+		'get' {
+			return 'Retrieve a filesystem by ID. Returns the filesystem object.'
+		}
+		'delete' {
+			return 'Delete a filesystem by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a filesystem exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all filesystems. Returns an array of filesystem objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
+
+// return example rpc call and result for each methodname
+pub fn (self Fs) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"fs": {"name": "myfs", "description": "My filesystem", "quota_bytes": 1073741824}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"name": "myfs", "description": "My filesystem", "quota_bytes": 1073741824, "used_bytes": 0}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"name": "myfs", "description": "My filesystem", "quota_bytes": 1073741824, "used_bytes": 0}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
 }
 
 pub fn (self Fs) dump(mut e encoder.Encoder) ! {
@@ -88,6 +141,7 @@ pub fn (mut self DBFs) new(args FsArg) !Fs {
 	if args.messages.len > 0 {
 		o.messages = self.db.messages_get(args.messages)!
 	}
+	o.updated_at = ourtime.now().unix()
 
 	return o
 }
@@ -192,11 +246,11 @@ pub fn (mut self DBFs) get(id u32) !Fs {
 	mut o, data := self.db.get_data[Fs](id)!
 	mut e_decoder := encoder.decoder_new(data)
 	self.load(mut o, mut e_decoder)!
-	o.factory = self.factory
+	// o.factory = self.factory
 	return o
 }
 
-pub fn (mut self DBFs) list() ![]Fs {
+pub fn (mut self DBFs) list(args FsListArg) ![]Fs {
 	return self.db.list[Fs]()!.map(self.get(it)!)
 }
 
@@ -234,4 +288,45 @@ pub fn (mut self DBFs) decrease_usage(id u32, bytes u64) ! {
 pub fn (mut self DBFs) check_quota(id u32, additional_bytes u64) !bool {
 	fs := self.get(id)!
 	return (fs.used_bytes + additional_bytes) <= fs.quota_bytes
+}
+
+pub fn fs_handle(mut f FSFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.fs.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[Fs](params)!
+			o = f.fs.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.fs.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.fs.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic[FsListArg](params)!
+			res := f.fs.list(args)!
+			return new_response(rpcid, json.encode(res))
+		}
+		
+		else {
+			console.print_stderr('Method not found on fs: ${method}')
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on fs'
+			)
+		}
+	}
 }

@@ -183,6 +183,7 @@ pub fn (mut self DBProject) load(mut o Project, mut e encoder.Decoder) ! {
 @[params]
 pub struct ProjectArg {
 pub mut:
+	id             u32
 	name           string
 	description    string
 	swimlanes      []Swimlane
@@ -285,7 +286,11 @@ pub fn project_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Project](params)!
+			mut args := db.decode_generic[ProjectArg](params)!
+			mut o := f.project.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.project.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

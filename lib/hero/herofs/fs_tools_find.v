@@ -1,5 +1,8 @@
 module herofs
 
+import os
+
+
 // FindResult represents the result of a filesystem search
 pub struct FindResult {
 pub mut:
@@ -25,6 +28,8 @@ pub mut:
 	max_depth        int = -1 // Maximum depth to search (-1 for unlimited)
 	follow_symlinks  bool // Whether to follow symbolic links during search
 }
+
+
 
 // find searches for filesystem objects starting from a given path
 //
@@ -109,6 +114,11 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 		}
 	}
 
+	// Stop if we have reached max_depth
+	if opts.max_depth >= 0 && current_depth >= opts.max_depth {
+		return
+	}
+
 	// Get files in current directory
 	for file_id in current_dir.files {
 		file := self.factory.fs_file.get(file_id)!
@@ -137,58 +147,64 @@ fn (mut self Fs) find_recursive(dir_id u32, current_path string, opts FindOption
 				}
 			} else {
 				if symlink.target_type == .file {
-					if self.factory.fs_file.exist(symlink.target_id)! {
-						target_file := self.factory.fs_file.get(symlink.target_id)!
-						target_file_path := join_path(current_path, target_file.name)
-						// Check if we've already added this file to avoid duplicates
-						mut found := false
-						for result in results {
-							if result.id == target_file.id && result.result_type == .file {
-								found = true
-								break
+							if self.factory.fs_file.exist(symlink.target_id)! {
+								target_file := self.factory.fs_file.get(symlink.target_id)!
+		
+								// Resolve the absolute path of the target file
+								target_abs_path := self.get_abs_path_for_item(target_file.id, .file)!
+								
+								// Check if we've already added this file to avoid duplicates
+								mut found := false
+								for result in results {
+									if result.id == target_file.id && result.result_type == .file {
+										found = true
+										break
+									}
+								}
+								if !found {
+									results << FindResult{
+										result_type: .file
+										id:          target_file.id
+										path:        target_abs_path // Use the absolute path
+									}
+								}
+							} else {
+								// dangling symlink, just add the symlink itself
+								return error('Dangling symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.id}')
 							}
 						}
-						if !found {
-							results << FindResult{
-								result_type: .file
-								id:          target_file.id
-								path:        target_file_path
+		
+						if symlink.target_type == .directory {
+							if self.factory.fs_dir.exist(symlink.target_id)! {
+								target_dir := self.factory.fs_dir.get(symlink.target_id)!
+		
+								// Resolve the absolute path of the target directory
+								target_abs_path := self.get_abs_path_for_item(target_dir.id, .directory)!
+		
+								// Check if we've already added this directory to avoid duplicates
+								mut found := false
+								for result in results {
+									if result.id == target_dir.id && result.result_type == .directory {
+										found = true
+										break
+									}
+								}
+								if !found {
+									results << FindResult{
+										result_type: .directory
+										id:          target_dir.id
+										path:        target_abs_path // Use the absolute path
+									}
+									if opts.recursive {
+										self.find_recursive(symlink.target_id, target_abs_path,
+											opts, mut results, current_depth + 1)!
+									}
+								}
+							} else {
+								// dangling symlink, just add the symlink itself
+								return error('Dangling dir symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.id}')
 							}
 						}
-					} else {
-						// dangling symlink, just add the symlink itself
-						return error('Dangling symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.id}')
-					}
-				}
-
-				if symlink.target_type == .directory {
-					if self.factory.fs_dir.exist(symlink.target_id)! {
-						target_dir := self.factory.fs_dir.get(symlink.target_id)!
-						target_dir_path := join_path(current_path, target_dir.name)
-						// Check if we've already added this directory to avoid duplicates
-						mut found := false
-						for result in results {
-							if result.id == target_dir.id && result.result_type == .directory {
-								found = true
-								break
-							}
-						}
-						if !found {
-							results << FindResult{
-								result_type: .directory
-								id:          target_dir.id
-								path:        target_dir_path
-							}
-							if opts.recursive {
-								self.find_recursive(symlink.target_id, target_dir_path,
-									opts, mut results, current_depth + 1)!
-							}
-						}
-					} else {
-						// dangling symlink, just add the symlink itself
-						return error('Dangling dir symlink at path ${symlink_path} in directory ${current_path} in fs: ${self.id}')
-					}
-				}
 			}
 		}
 	}
@@ -329,6 +345,7 @@ pub fn (mut self Fs) get_symlink_by_absolute_path(path string) !FsSymlink {
 	if path_parts.len == 0 || path_parts[path_parts.len - 1] == '' {
 		return error('Invalid symlink path: "${path}"')
 	}
+	
 
 	symlink_name := path_parts[path_parts.len - 1]
 	dir_path := if path_parts.len == 1 {

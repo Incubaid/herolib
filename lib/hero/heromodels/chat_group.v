@@ -107,6 +107,7 @@ pub fn (mut self DBChatGroup) load(mut o ChatGroup, mut e encoder.Decoder) ! {
 @[params]
 pub struct ChatGroupArg {
 pub mut:
+	id             u32
 	name           string
 	description    string
 	chat_type      ChatType
@@ -175,7 +176,11 @@ pub fn chat_group_handle(mut f ModelsFactory, rpcid int, servercontext map[strin
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[ChatGroup](params)!
+			mut args := db.decode_generic[ChatGroupArg](params)!
+			mut o := f.chat_group.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.chat_group.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

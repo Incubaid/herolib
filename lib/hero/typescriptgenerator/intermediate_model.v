@@ -61,10 +61,14 @@ pub fn from_openrpc(openrpc_spec openrpc.OpenRPC, config IntermediateConfig) !In
 		return error('handler_type cannot be empty')
 	}
 
+	// Process schemas
+	mut schemas_map := process_schemas(openrpc_spec.components.schemas)!
+
 	mut intermediate_spec := IntermediateSpec{
 		info:      openrpc_spec.info
+		methods:   []IntermediateMethod{}
+		schemas:   schemas_map
 		base_url:  config.base_url
-		schemas:   process_schemas(openrpc_spec.components.schemas)!
 	}
 
 	// Process all methods
@@ -110,6 +114,13 @@ fn process_parameters(params []openrpc.ContentDescriptorRef) ![]IntermediatePara
 			}
 		} else if param is jsonschema.Reference {
 			//TODO: handle reference
+			// For now, create a placeholder parameter
+			intermediate_params << IntermediateParam{
+				name:        'reference'
+				description: ''
+				type_info:   'any'
+				required:    false
+			}
 		}
 	}
 
@@ -117,7 +128,12 @@ fn process_parameters(params []openrpc.ContentDescriptorRef) ![]IntermediatePara
 }
 
 fn process_result(result openrpc.ContentDescriptorRef) !IntermediateParam {
-	mut intermediate_result := IntermediateParam{}
+	mut intermediate_result := IntermediateParam{
+		name:        ''
+		description: ''
+		type_info:   ''
+		required:    false
+	}
 
 	if result is openrpc.ContentDescriptor {
 		type_info := extract_type_from_schema(result.schema)
@@ -134,9 +150,18 @@ fn process_result(result openrpc.ContentDescriptorRef) !IntermediateParam {
         type_info := ref.ref.all_after_last('/')
         intermediate_result = IntermediateParam{
 			name:       type_info.to_lower()
+			description: ''
 			type_info:   type_info
+			required:    false
 		}
-
+	} else {
+		// Handle any other cases
+		intermediate_result = IntermediateParam{
+			name:        'unknown'
+			description: ''
+			type_info:   'unknown'
+			required:    false
+		}
 	}
 
 	return intermediate_result
@@ -161,21 +186,24 @@ fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 
 
 fn process_schemas(schemas map[string]jsonschema.SchemaRef) !map[string]IntermediateSchema {
+    // Initialize the map with a known size if possible
     mut intermediate_schemas := map[string]IntermediateSchema{}
+    
+    // Process each schema in the map
     for name, schema_ref in schemas {
         if schema_ref is jsonschema.Schema {
             schema := schema_ref as jsonschema.Schema
             mut properties := []IntermediateProperty{}
             for prop_name, prop_schema_ref in schema.properties {
                 prop_type := extract_type_from_schema(prop_schema_ref)
-                properties << IntermediateProperty {
+                properties << IntermediateProperty{
                     name: prop_name
                     description: "" // TODO
                     type_info: prop_type
                     required: prop_name in schema.required
                 }
             }
-            intermediate_schemas[name] = IntermediateSchema {
+            intermediate_schemas[name] = IntermediateSchema{
                 name: name
                 description: schema.description
                 properties: properties

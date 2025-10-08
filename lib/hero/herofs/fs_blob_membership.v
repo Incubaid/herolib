@@ -2,6 +2,10 @@ module herofs
 
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
+import json
 
 // FsBlobMembership represents membership of a blob in one or more filesystems, the key is the hash of the blob
 @[heap]
@@ -15,7 +19,7 @@ pub mut:
 pub struct DBFsBlobMembership {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsBlobMembership) type_name() string {
@@ -199,4 +203,91 @@ pub fn (mut self DBFsBlobMembership) list_prefix(prefix string) ![]FsBlobMembers
 	}
 
 	return result
+}
+
+pub fn (self FsBlobMembership) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a blob membership. Returns success.'
+		}
+		'get' {
+			return 'Retrieve a blob membership by hash. Returns the membership object.'
+		}
+		'delete' {
+			return 'Delete a blob membership by hash. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a blob membership exists by hash. Returns true or false.'
+		}
+		'add_filesystem' {
+			return 'Add a filesystem to a blob membership. Returns success.'
+		}
+		'remove_filesystem' {
+			return 'Remove a filesystem from a blob membership. Returns success.'
+		}
+		else {
+			return 'This is generic method for the blob membership object.'
+		}
+	}
+}
+
+pub fn (self FsBlobMembership) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"membership": {"hash": "abc123...", "fsid": [1, 2], "blobid": 5}}', 'true'
+		}
+		'get' {
+			return '{"hash": "abc123..."}', '{"hash": "abc123...", "fsid": [1, 2], "blobid": 5}'
+		}
+		'delete' {
+			return '{"hash": "abc123..."}', 'true'
+		}
+		'exist' {
+			return '{"hash": "abc123..."}', 'true'
+		}
+		'add_filesystem' {
+			return '{"hash": "abc123...", "fs_id": 3}', 'true'
+		}
+		'remove_filesystem' {
+			return '{"hash": "abc123...", "fs_id": 1}', 'true'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn fs_blob_membership_handle(mut f FSFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			hash := db.decode_string(params)!
+			res := f.fs_blob_membership.get(hash)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[FsBlobMembership](params)!
+			o = f.fs_blob_membership.set(o)!
+			return new_response_ok(rpcid)
+		}
+		'delete' {
+			hash := db.decode_string(params)!
+			f.fs_blob_membership.delete(hash)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			hash := db.decode_string(params)!
+			if f.fs_blob_membership.exist(hash)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		else {
+			console.print_stderr('Method not found on fs_blob_membership: ${method}')
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on fs_blob_membership'
+			)
+		}
+	}
 }

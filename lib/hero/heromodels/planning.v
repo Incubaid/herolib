@@ -184,6 +184,7 @@ fn (mut self DBPlanning) load(mut o Planning, mut e encoder.Decoder) ! {
 @[params]
 pub struct PlanningArg {
 pub mut:
+	id                   u32
 	name                 string
 	description          string
 	color                string
@@ -297,7 +298,11 @@ pub fn planning_handle(mut f ModelsFactory, rpcid int, servercontext map[string]
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Planning](params)!
+			mut args := db.decode_generic[PlanningArg](params)!
+			mut o := f.planning.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.planning.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

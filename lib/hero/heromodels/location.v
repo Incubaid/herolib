@@ -21,10 +21,10 @@ pub mut:
 pub struct Location {
 	db.Base
 pub mut:
-	addresses    []Address // Multiple addresses (home, work, etc.)
-	coordinates  Coordinates // GPS coordinates
-	timezone     string
-	is_verified  bool
+	addresses     []Address   // Multiple addresses (home, work, etc.)
+	coordinates   Coordinates // GPS coordinates
+	timezone      string
+	is_verified   bool
 	location_type LocationType
 }
 
@@ -141,10 +141,10 @@ pub fn (self Location) dump(mut e encoder.Encoder) ! {
 	for addr in self.addresses {
 		addr.dump(mut e)!
 	}
-	
+
 	// Encode coordinates
 	self.coordinates.dump(mut e)!
-	
+
 	// Encode other fields
 	e.add_string(self.timezone)
 	e.add_bool(self.is_verified)
@@ -155,19 +155,19 @@ fn (mut self DBLocation) load(mut o Location, mut e encoder.Decoder) ! {
 	// Decode addresses
 	addr_count := e.get_u32()!
 	o.addresses = []Address{cap: int(addr_count)}
-	for _ in 0..addr_count {
+	for _ in 0 .. addr_count {
 		mut addr := Address{}
 		addr.load(mut e)!
 		o.addresses << addr
 	}
-	
+
 	// Decode coordinates
 	o.coordinates.load(mut e)!
-	
+
 	// Decode other fields
 	o.timezone = e.get_string()!
 	o.is_verified = e.get_bool()!
-	o.location_type = LocationType(e.get_u8()!)
+	o.location_type = unsafe { LocationType(e.get_u8()!) }
 }
 
 @[params]

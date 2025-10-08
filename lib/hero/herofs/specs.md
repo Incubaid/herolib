@@ -12,7 +12,7 @@ HeroFS is built on top of HeroDB, which uses Redis as its storage backend. The f
 4. **FsSymlink** - Symbolic links
 5. **FsBlob** - Binary data chunks
 
-All components inherit from the `Base` struct, which provides common fields like ID, name, description, timestamps, security policies, tags, and comments.
+All components inherit from the `Base` struct, which provides common fields like ID, name, description, timestamps, security policies, tags, and messages.
 
 ## Filesystem (Fs)
 
@@ -278,7 +278,7 @@ When creating or modifying components, HeroFS validates references to other comp
 HeroFS inherits the security model from HeroDB:
 - Each component has a `securitypolicy` field referencing a SecurityPolicy object
 - Components can have associated tags for categorization
-- Components can have associated comments for documentation
+- Components can have associated messages for documentation
 
 ## Performance Considerations
 

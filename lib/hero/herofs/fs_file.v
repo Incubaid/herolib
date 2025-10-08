@@ -3,6 +3,10 @@ module herofs
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
+import json
 
 // FsFile represents a file in a filesystem
 @[heap]
@@ -22,7 +26,7 @@ pub mut:
 pub struct DBFsFile {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsFile) type_name() string {
@@ -372,4 +376,95 @@ pub fn (mut self DBFsFile) list_directories_for_file(file_id u32) ![]u32 {
 		}
 	}
 	return containing_dirs
+}
+
+pub fn (self FsFile) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a file. Returns the ID of the file.'
+		}
+		'get' {
+			return 'Retrieve a file by ID. Returns the file object.'
+		}
+		'delete' {
+			return 'Delete a file by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a file exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all files. Returns an array of file objects.'
+		}
+		'rename' {
+			return 'Rename a file. Returns true if successful.'
+		}
+		else {
+			return 'This is generic method for the file object.'
+		}
+	}
+}
+
+pub fn (self FsFile) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"file": {"name": "document.txt", "fs_id": 1, "blobs": [1], "mime_type": "txt"}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"name": "document.txt", "fs_id": 1, "blobs": [1], "size_bytes": 1024, "mime_type": "txt"}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"name": "document.txt", "fs_id": 1, "blobs": [1], "size_bytes": 1024, "mime_type": "txt"}]'
+		}
+		'rename' {
+			return '{"id": 1, "new_name": "renamed_document.txt"}', 'true'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
+}
+
+pub fn fs_file_handle(mut f FSFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.fs_file.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[FsFile](params)!
+			o = f.fs_file.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.fs_file.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.fs_file.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			res := f.fs_file.list()!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			console.print_stderr('Method not found on fs_file: ${method}')
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on fs_file'
+			)
+		}
+	}
 }

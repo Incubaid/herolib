@@ -1,10 +1,11 @@
+// Replace the current content with:
 module herofs
 
 import freeflowuniverse.herolib.hero.db
 import freeflowuniverse.herolib.core.redisclient
 
 @[heap]
-pub struct FsFactory {
+pub struct FSFactory {
 pub mut:
 	fs                 DBFs
 	fs_blob            DBFsBlob
@@ -20,9 +21,9 @@ pub mut:
 	redis ?&redisclient.Redis
 }
 
-pub fn new(args DBArgs) !FsFactory {
+pub fn new(args DBArgs) !FSFactory {
 	mut mydb := db.new(redis: args.redis)!
-	mut f := FsFactory{
+	mut f := FSFactory{
 		fs:                 DBFs{
 			db: &mydb
 		}
@@ -51,20 +52,28 @@ pub fn new(args DBArgs) !FsFactory {
 	return f
 }
 
-// is the main function we need to use to get a filesystem, will get it from database and initialize if needed
+pub fn new_test() !FSFactory {
+	mut mydb := db.new_test()!
+	mut f := new(redis: mydb.redis)!
+	f.fs.db.redis.flushdb()!
+	return f
+}
+
+// Convenience function for creating a filesystem
 pub fn new_fs(args FsArg) !Fs {
 	mut f := new()!
-	mut fs := f.fs.new_get_set(args)!
-	return fs
+	return f.fs.new_get_set(args)!
 }
 
 pub fn new_fs_test() !Fs {
-	mut f := new()!
-	mut fs := f.fs.new_get_set(name: 'test')!
-	return fs
+	mut mydb := db.new_test()!
+	mut f := new(redis: mydb.redis)!
+	f.fs.db.redis.flushdb()!
+	return f.fs.new_get_set(name: 'test')!
 }
 
 pub fn delete_fs_test() ! {
-	mut fs_factory := new()!
-	fs_factory.fs.db.redis.flushdb()!
+	mut mydb := db.new_test()!
+	mut f := new(redis: mydb.redis)!
+	f.fs.db.redis.flushdb()!
 }

@@ -4,6 +4,9 @@ import crypto.blake3
 import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
 
 // FsBlob represents binary data up to 1MB
 @[heap]
@@ -18,14 +21,81 @@ pub mut:
 	encoding   string // Encoding type
 }
 
+// Update DBFsBlob struct:
 pub struct DBFsBlob {
 pub mut:
 	db      &db.DB     @[skip; str: skip]
-	factory &FsFactory = unsafe { nil } @[skip; str: skip]
+	factory &FSFactory = unsafe { nil } @[skip; str: skip]
 }
 
 pub fn (self FsBlob) type_name() string {
 	return 'fs_blob'
+}
+
+// return example rpc call and result for each methodname
+pub fn (self FsBlob) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a blob. Returns the ID of the blob.'
+		}
+		'get' {
+			return 'Retrieve a blob by ID. Returns the blob object.'
+		}
+		'delete' {
+			return 'Delete a blob by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a blob exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all blobs. Returns an array of blob objects.'
+		}
+		'get_by_hash' {
+			return 'Retrieve a blob by its hash. Returns the blob object.'
+		}
+		'exists_by_hash' {
+			return 'Check if a blob exists by its hash. Returns true or false.'
+		}
+		'verify' {
+			return 'Verify the integrity of a blob by its hash. Returns true or false.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
+	}
+}
+
+// return example rpc call and result for each methodname
+pub fn (self FsBlob) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"data": "SGVsbG8gV29ybGQh"}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796d9ad9587", "data": "SGVsbG8gV29ybGQh", "size_bytes": 12}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796d9ad9587", "data": "SGVsbG8gV29ybGQh", "size_bytes": 12}]'
+		}
+		'get_by_hash' {
+			return '{"hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796d9ad9587"}', '{"hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796d9ad9587", "data": "SGVsbG8gV29ybGQh", "size_bytes": 12}'
+		}
+		'exists_by_hash' {
+			return '{"hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796d9ad9587"}', 'true'
+		}
+		'verify' {
+			return '{"hash": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b27796d9ad9587"}', 'true'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
 }
 
 pub fn (self FsBlob) dump(mut e encoder.Encoder) ! {
@@ -138,6 +208,10 @@ pub fn (mut self DBFsBlob) get_multi(id []u32) ![]FsBlob {
 	return blobs
 }
 
+pub fn (mut self DBFsBlob) list() ![]FsBlob {
+	return self.db.list[FsBlob]()!.map(self.get(it)!)
+}
+
 pub fn (mut self DBFsBlob) get_by_hash(hash string) !FsBlob {
 	// Get blob ID from Redis hash mapping
 	id_str := self.db.redis.hget('fsblob:hashes', hash)!
@@ -163,4 +237,63 @@ pub fn (blob FsBlob) verify_integrity() bool {
 pub fn (mut self DBFsBlob) verify(hash string) !bool {
 	blob := self.get_by_hash(hash)!
 	return blob.verify_integrity()
+}
+
+pub fn fs_blob_handle(mut f FSFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.fs_blob.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut o := db.decode_generic[FsBlob](params)!
+			o = f.fs_blob.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			f.fs_blob.delete(id)!
+			return new_response_ok(rpcid)
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.fs_blob.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			res := f.fs_blob.list()!
+			return new_response(rpcid, json.encode(res))
+		}
+		'get_by_hash' {
+			hash := db.decode_string(params)!
+			res := f.fs_blob.get_by_hash(hash)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'exists_by_hash' {
+			hash := db.decode_string(params)!
+			if f.fs_blob.exists_by_hash(hash)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'verify' {
+			hash := db.decode_string(params)!
+			if f.fs_blob.verify(hash)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		else {
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on fs_blob'
+			)
+		}
+	}
 }

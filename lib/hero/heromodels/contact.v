@@ -105,6 +105,7 @@ fn (mut self DBContact) load(mut o Contact, mut e encoder.Decoder) ! {
 @[params]
 pub struct ContactArg {
 pub mut:
+	id             u32
 	name           string @[required]
 	description    string
 	emails         []string
@@ -208,7 +209,11 @@ pub fn contact_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[Contact](params)!
+			mut args := db.decode_generic[ContactArg](params)!
+			mut o := f.contact.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.contact.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}

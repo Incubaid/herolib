@@ -94,6 +94,7 @@ fn (mut self DBUser) load(mut o User, mut e encoder.Decoder) ! {
 @[params]
 pub struct UserArg {
 pub mut:
+	id             u32
 	name           string @[required]
 	description    string
 	user_id        u32
@@ -191,7 +192,11 @@ pub fn user_handle(mut f ModelsFactory, rpcid int, servercontext map[string]stri
 			return new_response(rpcid, json.encode(res))
 		}
 		'set' {
-			mut o := db.decode_generic[User](params)!
+			mut args := db.decode_generic[UserArg](params)!
+			mut o := f.user.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
 			o = f.user.set(o)!
 			return new_response_int(rpcid, int(o.id))
 		}
