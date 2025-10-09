@@ -24,8 +24,18 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v3
 
-      - name: Setup V & Herolib
-        run: ./install_v.sh --herolib 
+      - name: Setup V
+        run: ./install_v.sh
+
+      - name: Setup Herolib from current branch
+        run: |
+          # Create necessary directories
+          mkdir -p ~/.vmodules/freeflowuniverse
+          # Remove any existing herolib symlink
+          rm -f ~/.vmodules/freeflowuniverse/herolib
+          # Create symlink to current code
+          ln -s $(pwd)/lib ~/.vmodules/freeflowuniverse/herolib
+          echo "Herolib symlink created to current branch code!"
 
       - name: Do all the basic tests
         run: ./test_basic.vsh
