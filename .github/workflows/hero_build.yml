@@ -45,7 +45,10 @@ jobs:
 
       - name: Setup V & Herolib
         id: setup
-        run: ./install_v.sh --herolib
+        run: |
+          ./install_v.sh
+          ln -s $(pwd)/lib ~/.vmodules/freeflowuniverse/herolib
+          echo "Herolib symlink created to $(pwd)/lib"
         timeout-minutes: 10
 
       # - name: Do all the basic tests
