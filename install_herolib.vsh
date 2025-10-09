@@ -42,20 +42,7 @@ fn addtoscript(tofind string, toadd string) ! {
 	os.write_file(rc_file, new_content)!
 }
 
-abs_dir_of_script := dir(@FILE)
-
-// Determine the organization name from the current path
-// This makes the script work with any organization (incubaid, freeflowuniverse, etc.)
-path_parts := abs_dir_of_script.split('/')
-mut org_name := 'freeflowuniverse' // default fallback
-for i, part in path_parts {
-	if part == 'github' && i + 1 < path_parts.len {
-		org_name = path_parts[i + 1]
-		break
-	}
-}
-
-println('Detected organization: ${org_name}')
+mut org_name := 'freeflowuniverse'
 
 // Reset symlinks for both possible organizations (cleanup)
 println('Resetting all symlinks...')
