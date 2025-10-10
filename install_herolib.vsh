@@ -64,12 +64,12 @@ os.rm('${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {}
 os.rm('${os.home_dir()}/.vmodules/${org_name}/herolib') or {}
 
 // Create necessary directories
-os.mkdir_all('${os.home_dir()}/.vmodules/${org_name}') or {
-	panic('Failed to create directory ~/.vmodules/${org_name}: ${err}')
+os.mkdir_all('${os.home_dir()}/.vmodules/freeflowuniverse') or {
+	panic('Failed to create directory ~/.vmodules/freeflowuniverse: ${err}')
 }
 
 // Create new symlinks
-os.symlink('${abs_dir_of_script}/lib', '${os.home_dir()}/.vmodules/${org_name}/herolib') or {
+os.symlink('${abs_dir_of_script}/lib', '${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {
 	panic('Failed to create herolib symlink: ${err}')
 }
 

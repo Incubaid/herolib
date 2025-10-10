@@ -64,9 +64,9 @@ compile_cmd := if os.user_os() == 'macos' {
 	}
 } else {
 	if prod_mode {
-		'v -cg -enable-globals -parallel-cc -w -n hero.v'
+		'v -cg -enable-globals -parallel-cc -w -n -d use_openssl hero.v'
 	} else {
-		'v -cg -enable-globals -w -n hero.v'
+		'v -cg -enable-globals -w -n -d use_openssl hero.v'
 	}
 }
 
