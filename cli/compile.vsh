@@ -30,8 +30,23 @@ if additional_args.len > 0 {
 	exit(1)
 }
 
-// Change to the hero directory
-hero_dir := os.join_path(os.home_dir(), 'code/github/freeflowuniverse/herolib/cli')
+// Determine the hero directory dynamically
+// Get the directory where this script is located
+script_dir := os.dir(os.executable())
+// The script is in cli/, so the herolib root is one level up
+herolib_root := os.dir(script_dir)
+hero_dir := os.join_path(herolib_root, 'cli')
+
+// Verify the directory exists and contains hero.v
+if !os.exists(hero_dir) {
+	panic('Hero CLI directory not found: ${hero_dir}')
+}
+hero_v_path := os.join_path(hero_dir, 'hero.v')
+if !os.exists(hero_v_path) {
+	panic('hero.v not found in: ${hero_dir}')
+}
+
+println('Using hero directory: ${hero_dir}')
 os.chdir(hero_dir) or { panic('Failed to change directory to ${hero_dir}: ${err}') }
 
 // Set HEROPATH based on OS

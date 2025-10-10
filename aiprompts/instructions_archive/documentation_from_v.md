@@ -1,6 +1,6 @@
 params: 
 
-- filepath: /Users/despiegk/code/github/freeflowuniverse/herolib/lib/clients/openai
+- filepath: /Users/despiegk/code/github/incubaid/herolib/lib/clients/openai
 
 make a dense overview of the code above, easy to understand for AI
 

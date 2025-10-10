@@ -1,50 +1,50 @@
 module heromodels
 
-import crypto.blake3
-import json
-import freeflowuniverse.herolib.data.ourtime
 import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.core.redisclient
+import freeflowuniverse.herolib.data.ourtime
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import json
+import freeflowuniverse.herolib.hero.db
 
 // CalendarEvent represents a single event in a calendar
 @[heap]
 pub struct CalendarEvent {
-	Base
+	db.Base
 pub mut:
-	title         string
-	start_time    i64 // Unix timestamp
-	end_time      i64 // Unix timestamp
-	location      string
-	attendees     []u32 // IDs of user groups
-	fs_items      []u32 // IDs of linked files or dirs
-	calendar_id   u32   // Associated calendar
-	status        EventStatus
-	is_all_day    bool
-	is_recurring  bool
-	recurrence    []RecurrenceRule // normally empty
-	reminder_mins []int            // Minutes before event for reminders
-	color         string           // Hex color code
-	timezone      string
+	title              string
+	start_time         i64   // Unix timestamp
+	end_time           i64   // Unix timestamp
+	registration_desks []u32 // link to registration mechanism, is where we track invitees, are not attendee unless accepted
+	attendees          []Attendee
+	docs               []EventDoc // link to docs
+	calendar_id        u32        // Associated calendar
+	status             EventStatus
+	is_all_day         bool
+	reminder_mins      []int  // Minutes before event for reminders
+	color              string // Hex color code
+	timezone           string
+	priority           EventPriority
+	public             bool
+	locations          []EventLocation
+	is_template        bool // not to be shown as real event, serves as placeholder e.g. for planning
 }
 
 pub struct Attendee {
 pub mut:
-	user_id u32
-	status  AttendanceStatus
-	role    AttendeeRole
+	user_id             u32
+	status_latest       AttendanceStatus
+	attendance_required bool
+	admin               bool // if set can manage the main elements of the event = description, can accept invitee...
+	organizer           bool // if set means others can ask for support, doesn't mean is admin
+	log                 []AttendeeLog
+	location            string // optional if user wants to select a location
 }
 
-pub enum AttendanceStatus {
-	no_response
-	accepted
-	declined
-	tentative
-}
-
-pub enum AttendeeRole {
-	required
-	optional
-	organizer
+pub enum EventPriority {
+	low
+	normal
+	urgent
 }
 
 pub enum EventStatus {
@@ -54,208 +54,455 @@ pub enum EventStatus {
 	completed
 }
 
-pub struct RecurrenceRule {
+pub struct AttendeeLog {
 pub mut:
-	frequency   RecurrenceFreq
-	interval    int   // Every N frequencies
-	until       i64   // End date (Unix timestamp)
-	count       int   // Number of occurrences
-	by_weekday  []int // Days of week (0=Sunday)
-	by_monthday []int // Days of month
+	timestamp u64
+	status    AttendanceStatus
+	remark    string
 }
 
-pub enum RecurrenceFreq {
-	none
-	daily
-	weekly
-	monthly
-	yearly
+pub enum AttendanceStatus {
+	invited
+	accepted
+	declined
+	tentative
 }
 
-@[params]
-pub struct CalendarEventArgs {
-	BaseArgs
+pub struct EventDoc {
 pub mut:
-	title         string
-	start_time    string // use ourtime module to go from string to epoch
-	end_time      string // use ourtime module to go from string to epoch
-	location      string
-	attendees     []u32 // IDs of user groups
-	fs_items      []u32 // IDs of linked files or dirs
-	calendar_id   u32   // Associated calendar
-	status        EventStatus
-	is_all_day    bool
-	is_recurring  bool
-	recurrence    []RecurrenceRule
-	reminder_mins []int  // Minutes before event for reminders
-	color         string // Hex color code
-	timezone      string
+	fs_item u32
+	cat     string // can be freely chosen, will always be made lowercase e.g. agenda
+	public  bool   // everyone can see the file, otherwise only the organizers, attendees
 }
 
-pub fn calendar_event_new(args CalendarEventArgs) !CalendarEvent {
-	// Convert tags to u32 ID
-	tags_id := tags2id(args.tags)!
+pub struct EventLocation {
+pub mut:
+	name        string
+	description string
+	cat         EventLocationCat
+	docs        []EventDoc
+}
 
-	return CalendarEvent{
-		// Base fields
-		id:             args.id or { 0 }
-		name:           args.name
-		description:    args.description
-		created_at:     ourtime.now().unix()
-		updated_at:     ourtime.now().unix()
-		securitypolicy: args.securitypolicy or { 0 }
-		tags:           tags_id
-		comments:       comments2ids(args.comments)!
+pub enum EventLocationCat {
+	online
+	physical
+	hybrid
+}
 
-		// CalendarEvent specific fields
-		title:         args.title
-		start_time:    ourtime.new(args.start_time)!.unix()
-		end_time:      ourtime.new(args.end_time)!.unix()
-		location:      args.location
-		attendees:     args.attendees
-		fs_items:      args.fs_items
-		calendar_id:   args.calendar_id
-		status:        args.status
-		is_all_day:    args.is_all_day
-		is_recurring:  args.is_recurring
-		recurrence:    args.recurrence
-		reminder_mins: args.reminder_mins
-		color:         args.color
-		timezone:      args.timezone
+pub struct DBCalendarEvent {
+pub mut:
+	db &db.DB @[skip; str: skip]
+}
+
+pub fn (self CalendarEvent) type_name() string {
+	return 'calendar_event'
+}
+
+// return example rpc call and result for each methodname
+pub fn (self CalendarEvent) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a calendar event. Returns the ID of the event.'
+		}
+		'get' {
+			return 'Retrieve a calendar event by ID. Returns the event object.'
+		}
+		'delete' {
+			return 'Delete a calendar event by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a calendar event exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all calendar events. Returns an array of event objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
 	}
 }
 
-pub fn (mut e CalendarEvent) dump() ![]u8 {
-	// Create a new encoder
-	mut enc := encoder.new()
-
-	// Add version byte
-	enc.add_u8(1)
-
-	// Encode Base fields
-	enc.add_u32(e.id)
-	enc.add_string(e.name)
-	enc.add_string(e.description)
-	enc.add_i64(e.created_at)
-	enc.add_i64(e.updated_at)
-	enc.add_u32(e.securitypolicy)
-	enc.add_u32(e.tags)
-	enc.add_list_u32(e.comments)
-
-	// Encode CalendarEvent specific fields
-	enc.add_string(e.title)
-	enc.add_string(e.description)
-	enc.add_i64(e.start_time)
-	enc.add_i64(e.end_time)
-	enc.add_string(e.location)
-	enc.add_list_u32(e.attendees)
-	enc.add_list_u32(e.fs_items)
-	enc.add_u32(e.calendar_id)
-	enc.add_u8(u8(e.status))
-	enc.add_bool(e.is_all_day)
-	enc.add_bool(e.is_recurring)
-
-	// Encode recurrence array
-	enc.add_u16(u16(e.recurrence.len))
-	for rule in e.recurrence {
-		enc.add_u8(u8(rule.frequency))
-		enc.add_int(rule.interval)
-		enc.add_i64(rule.until)
-		enc.add_int(rule.count)
-		enc.add_list_int(rule.by_weekday)
-		enc.add_list_int(rule.by_monthday)
+// return example rpc call and result for each methodname, so example for call and the result
+pub fn (self CalendarEvent) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"calendar_event": {"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"title": "Team Meeting", "start_time": "2025-01-01T10:00:00Z", "end_time": "2025-01-01T11:00:00Z", "attendees": [], "docs": [], "calendar_id": 1, "status": "published", "is_all_day": false, "reminder_mins": [15], "color": "#0000FF", "timezone": "UTC", "locations": []}]'
+		}
+		else {
+			return '{}', '{}'
+		}
 	}
-
-	enc.add_list_int(e.reminder_mins)
-	enc.add_string(e.color)
-	enc.add_string(e.timezone)
-
-	return enc.data
 }
 
-pub fn (ce CalendarEvent) load(data []u8) !CalendarEvent {
-	// Create a new decoder
-	mut dec := encoder.decoder_new(data)
+pub fn (self CalendarEvent) dump(mut e encoder.Encoder) ! {
+	e.add_string(self.title)
+	e.add_i64(self.start_time)
+	e.add_i64(self.end_time)
 
-	// Read version byte
-	version := dec.get_u8()!
-	if version != 1 {
-		return error('wrong version in calendar event load')
-	}
+	// Encode registration_desks array
+	e.add_list_u32(self.registration_desks)
 
-	// Decode Base fields
-	id := dec.get_u32()!
-	name := dec.get_string()!
-	description := dec.get_string()!
-	created_at := dec.get_i64()!
-	updated_at := dec.get_i64()!
-	securitypolicy := dec.get_u32()!
-	tags := dec.get_u32()!
-	comments := dec.get_list_u32()!
+	// Encode attendees array
+	e.add_u16(u16(self.attendees.len))
+	for attendee in self.attendees {
+		e.add_u32(attendee.user_id)
+		e.add_u8(u8(attendee.status_latest))
+		e.add_bool(attendee.attendance_required)
+		e.add_bool(attendee.admin)
+		e.add_bool(attendee.organizer)
+		e.add_string(attendee.location) // Added missing location field
 
-	// Decode CalendarEvent specific fields
-	title := dec.get_string()!
-	description2 := dec.get_string()! // Second description field
-	start_time := dec.get_i64()!
-	end_time := dec.get_i64()!
-	location := dec.get_string()!
-	attendees := dec.get_list_u32()!
-	fs_items := dec.get_list_u32()!
-	calendar_id := dec.get_u32()!
-	status := unsafe { EventStatus(dec.get_u8()!) }
-	is_all_day := dec.get_bool()!
-	is_recurring := dec.get_bool()!
-
-	// Decode recurrence array
-	recurrence_len := dec.get_u16()!
-	mut recurrence := []RecurrenceRule{}
-	for _ in 0 .. recurrence_len {
-		frequency := unsafe { RecurrenceFreq(dec.get_u8()!) }
-		interval := dec.get_int()!
-		until := dec.get_i64()!
-		count := dec.get_int()!
-		by_weekday := dec.get_list_int()!
-		by_monthday := dec.get_list_int()!
-
-		recurrence << RecurrenceRule{
-			frequency:   frequency
-			interval:    interval
-			until:       until
-			count:       count
-			by_weekday:  by_weekday
-			by_monthday: by_monthday
+		// Encode AttendeeLog array
+		e.add_u16(u16(attendee.log.len))
+		for log_entry in attendee.log {
+			e.add_u64(log_entry.timestamp)
+			e.add_u8(u8(log_entry.status))
+			e.add_string(log_entry.remark)
 		}
 	}
 
-	reminder_mins := dec.get_list_int()!
-	color := dec.get_string()!
-	timezone := dec.get_string()!
+	// Encode docs array
+	e.add_u16(u16(self.docs.len))
+	for fs_item in self.docs {
+		e.add_u32(fs_item.fs_item)
+		e.add_string(fs_item.cat)
+		e.add_bool(fs_item.public)
+	}
 
-	return CalendarEvent{
-		// Base fields
-		id:             id
-		name:           name
-		description:    description
-		created_at:     created_at
-		updated_at:     updated_at
-		securitypolicy: securitypolicy
-		tags:           tags
-		comments:       comments
+	e.add_u32(self.calendar_id)
+	e.add_u8(u8(self.status))
+	e.add_bool(self.is_all_day)
+	e.add_bool(self.public)
+	e.add_u8(u8(self.priority))
 
-		// CalendarEvent specific fields
-		title:         title
-		start_time:    start_time
-		end_time:      end_time
-		location:      location
-		attendees:     attendees
-		fs_items:      fs_items
-		calendar_id:   calendar_id
-		status:        status
-		is_all_day:    is_all_day
-		is_recurring:  is_recurring
-		recurrence:    recurrence
-		reminder_mins: reminder_mins
-		color:         color
-		timezone:      timezone
+	// Encode locations array
+	e.add_u16(u16(self.locations.len))
+	for location in self.locations {
+		e.add_string(location.name)
+		e.add_string(location.description)
+		e.add_u8(u8(location.cat))
+
+		// Encode location docs array
+		e.add_u16(u16(location.docs.len))
+		for fs_item in location.docs {
+			e.add_u32(fs_item.fs_item)
+			e.add_string(fs_item.cat)
+			e.add_bool(fs_item.public)
+		}
+	}
+
+	e.add_list_int(self.reminder_mins)
+	e.add_string(self.color)
+	e.add_string(self.timezone)
+	e.add_bool(self.is_template) // Added missing is_template field
+}
+
+pub fn (mut self DBCalendarEvent) load(mut o CalendarEvent, mut e encoder.Decoder) ! {
+	o.title = e.get_string()!
+	o.start_time = e.get_i64()!
+	o.end_time = e.get_i64()!
+
+	// Decode registration_desks array
+	o.registration_desks = e.get_list_u32()!
+
+	// Decode attendees array
+	attendees_len := e.get_u16()!
+	mut attendees := []Attendee{}
+	for _ in 0 .. attendees_len {
+		user_id := e.get_u32()!
+		status_latest := unsafe { AttendanceStatus(e.get_u8()!) }
+		attendance_required := e.get_bool()!
+		admin := e.get_bool()!
+		organizer := e.get_bool()!
+		location := e.get_string()! // Added missing location field
+
+		// Decode AttendeeLog array
+		log_len := e.get_u16()!
+		mut log_entries := []AttendeeLog{}
+		for _ in 0 .. log_len {
+			timestamp := e.get_u64()!
+			status := unsafe { AttendanceStatus(e.get_u8()!) }
+			remark := e.get_string()!
+
+			log_entries << AttendeeLog{
+				timestamp: timestamp
+				status:    status
+				remark:    remark
+			}
+		}
+
+		attendees << Attendee{
+			user_id:             user_id
+			status_latest:       status_latest
+			attendance_required: attendance_required
+			admin:               admin
+			organizer:           organizer
+			log:                 log_entries
+			location:            location // Added missing location field
+		}
+	}
+	o.attendees = attendees
+
+	// Decode docs array
+	docs_len := e.get_u16()!
+	mut docs := []EventDoc{}
+	for _ in 0 .. docs_len {
+		fs_item := e.get_u32()!
+		cat := e.get_string()!
+		public := e.get_bool()!
+
+		docs << EventDoc{
+			fs_item: fs_item
+			cat:     cat
+			public:  public
+		}
+	}
+	o.docs = docs
+
+	o.calendar_id = e.get_u32()!
+	o.status = unsafe { EventStatus(e.get_u8()!) } // TODO: is there no better way?
+	o.is_all_day = e.get_bool()!
+	o.public = e.get_bool()! // Added missing public field
+	o.priority = unsafe { EventPriority(e.get_u8()!) } // Added missing priority field
+
+	// Decode locations array
+	locations_len := e.get_u16()!
+	mut locations := []EventLocation{}
+	for _ in 0 .. locations_len {
+		name := e.get_string()!
+		description := e.get_string()!
+		cat := unsafe { EventLocationCat(e.get_u8()!) }
+
+		// Decode location docs array
+		location_docs_len := e.get_u16()!
+		mut location_docs := []EventDoc{}
+		for _ in 0 .. location_docs_len {
+			fs_item := e.get_u32()!
+			doc_cat := e.get_string()!
+			public := e.get_bool()!
+
+			location_docs << EventDoc{
+				fs_item: fs_item
+				cat:     doc_cat
+				public:  public
+			}
+		}
+
+		locations << EventLocation{
+			name:        name
+			description: description
+			cat:         cat
+			docs:        location_docs
+		}
+	}
+	o.locations = locations
+
+	o.reminder_mins = e.get_list_int()!
+	o.color = e.get_string()!
+	o.timezone = e.get_string()!
+	o.is_template = e.get_bool()! // Added missing is_template field
+}
+
+@[params]
+pub struct CalendarEventArg {
+pub mut:
+	id             u32
+	name           string
+	description    string
+	title          string
+	start_time     string // use ourtime module to go from string to epoch
+	end_time       string // use ourtime module to go from string to epoch
+	attendees      []u32  // IDs of user groups
+	docs           []u32  // IDs of linked files or dirs
+	calendar_id    u32    // Associated calendar
+	status         EventStatus
+	is_all_day     bool
+	reminder_mins  []int  // Minutes before event for reminders
+	color          string // Hex color code
+	timezone       string
+	priority       EventPriority // Added missing priority field
+	is_template    bool          // Added missing is_template field
+	securitypolicy u32
+	tags           []string
+	messages       []db.MessageArg
+}
+
+// get new calendar event, not from the DB
+pub fn (mut self DBCalendarEvent) new(args CalendarEventArg) !CalendarEvent {
+	// Convert docs from []u32 to []EventDoc
+	mut fs_attachments := []EventDoc{}
+	for fs_item_id in args.docs {
+		fs_attachments << EventDoc{
+			fs_item: fs_item_id
+			cat:     ''
+			public:  false
+		}
+	}
+
+	mut o := CalendarEvent{
+		title:         args.title
+		attendees:     []Attendee{}
+		docs:          fs_attachments
+		calendar_id:   args.calendar_id
+		status:        args.status
+		is_all_day:    args.is_all_day
+		reminder_mins: args.reminder_mins
+		color:         args.color
+		timezone:      args.timezone
+		priority:      args.priority    // Added missing priority field
+		is_template:   args.is_template // Added missing is_template field
+		public:        false
+	}
+
+	// Set base fields
+	o.name = args.name
+	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
+	o.updated_at = ourtime.now().unix()
+
+	// Convert string times to Unix timestamps
+	mut start_time_obj := ourtime.new(args.start_time)!
+	o.start_time = start_time_obj.unix()
+
+	mut end_time_obj := ourtime.new(args.end_time)!
+	o.end_time = end_time_obj.unix()
+
+	return o
+}
+
+pub fn (mut self DBCalendarEvent) set(o CalendarEvent) !CalendarEvent {
+	// Use db set function which returns the object with assigned ID
+	return self.db.set[CalendarEvent](o)!
+}
+
+pub fn (mut self DBCalendarEvent) delete(id u32) !bool {
+	// Check if the item exists before trying to delete
+	if !self.db.exists[CalendarEvent](id)! {
+		return false
+	}
+	self.db.delete[CalendarEvent](id)!
+	return true
+}
+
+pub fn (mut self DBCalendarEvent) exist(id u32) !bool {
+	return self.db.exists[CalendarEvent](id)!
+}
+
+pub fn (mut self DBCalendarEvent) get(id u32) !CalendarEvent {
+	mut o, data := self.db.get_data[CalendarEvent](id)!
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
+	return o
+}
+
+@[params]
+pub struct CalendarEventListArg {
+pub mut:
+	calendar_id u32
+	status      EventStatus
+	public      bool
+	limit       int = 100 // Default limit is 100
+}
+
+pub fn (mut self DBCalendarEvent) list(args CalendarEventListArg) ![]CalendarEvent {
+	// Get all calendar events from the database
+	all_events := self.db.list[CalendarEvent]()!.map(self.get(it)!)
+
+	// Apply filters
+	mut filtered_events := []CalendarEvent{}
+	for event in all_events {
+		// Filter by calendar_id if provided
+		if args.calendar_id != 0 && event.calendar_id != args.calendar_id {
+			continue
+		}
+
+		// Filter by status if provided (status is not draft)
+		if args.status != .draft && event.status != args.status {
+			continue
+		}
+
+		// Filter by public if provided (public is true)
+		if args.public && !event.public {
+			continue
+		}
+
+		filtered_events << event
+	}
+
+	// Limit results to 100 or the specified limit
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	if filtered_events.len > limit {
+		return filtered_events[..limit]
+	}
+
+	return filtered_events
+}
+
+pub fn calendar_event_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.calendar_event.get(id)!
+			return new_response(rpcid, json.encode_pretty(res))
+		}
+		'set' {
+			mut args := db.decode_generic[CalendarEventArg](params)!
+			mut o := f.calendar_event.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
+			o = f.calendar_event.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			deleted := f.calendar_event.delete(id)!
+			if deleted {
+				return new_response_true(rpcid)
+			} else {
+				return new_error(rpcid,
+					code:    404
+					message: 'Calendar event with ID ${id} not found'
+				)
+			}
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.calendar_event.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic[CalendarEventListArg](params)!
+			res := f.calendar_event.list(args)!
+			return new_response(rpcid, json.encode_pretty(res))
+		}
+		else {
+			println('Method not found on calendar_event: ${method}')
+			$dbg;
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on calendar_event'
+			)
+		}
 	}
 }

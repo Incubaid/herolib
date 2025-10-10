@@ -48,7 +48,7 @@ abs_dir_of_script := dir(@FILE)
 
 // Reset symlinks if requested
 println('Resetting all symlinks...')
-os.rm('${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {}
+os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
 
 // Create necessary directories
 os.mkdir_all('${os.home_dir()}/.vmodules/freeflowuniverse') or {
@@ -56,7 +56,7 @@ os.mkdir_all('${os.home_dir()}/.vmodules/freeflowuniverse') or {
 }
 
 // Create new symlinks
-os.symlink('${abs_dir_of_script}/lib', '${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {
+os.symlink('${abs_dir_of_script}/lib', '${os.home_dir()}/.vmodules/incubaid/herolib') or {
 	panic('Failed to create herolib symlink: ${err}')
 }
 

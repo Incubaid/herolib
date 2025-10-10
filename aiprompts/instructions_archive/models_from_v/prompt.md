@@ -3,7 +3,7 @@ $NAME = calendar
 walk over all models from biz: db/heromodels/src/models/$NAME in the rust repo
 create nice structured public models in Vlang (V) see instructions in herlolib
 
-put the results in /Users/despiegk/code/github/freeflowuniverse/herolib/lib/hero/models/$NAME
+put the results in /Users/despiegk/code/github/incubaid/herolib/lib/hero/models/$NAME
 
 put decorator on fields which need to be indexed: use @[index] for that at end of line of the property of the struct
 

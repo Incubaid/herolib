@@ -25,7 +25,7 @@ pub fn encode[T](obj T) ![]u8 {
 			d.add_u32(u32(obj.$(field.name)))
 		} $else $if field.typ is u64 {
 			d.add_u64(u64(obj.$(field.name)))
-		}$else $if field.typ is i64 {
+		} $else $if field.typ is i64 {
 			d.add_i64(i64(obj.$(field.name)))
 		} $else $if field.typ is time.Time {
 			d.add_time(time.new(obj.$(field.name)))

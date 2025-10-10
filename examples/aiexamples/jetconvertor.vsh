@@ -2,6 +2,6 @@
 
 import freeflowuniverse.herolib.mcp.aitools
 
-// aitools.convert_pug("/root/code/github/freeflowuniverse/herolauncher/pkg/herolauncher/web/templates/admin")!
+// aitools.convert_pug("/root/code/github/incubaid/herolauncher/pkg/herolauncher/web/templates/admin")!
 
-aitools.convert_pug('/root/code/github/freeflowuniverse/herolauncher/pkg/zaz/webui/templates')!
+aitools.convert_pug('/root/code/github/incubaid/herolauncher/pkg/zaz/webui/templates')!

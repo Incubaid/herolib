@@ -51,6 +51,7 @@ pub const internal_error = RPCError{
 // RPCError represents a JSON-RPC 2.0 error object as defined in the specification.
 // Error objects contain a code, message, and optional data field to provide
 // more information about the error that occurred.
+@[params]
 pub struct RPCError {
 pub mut:
 	// Numeric error code. Predefined codes are in the range -32768 to -32000.

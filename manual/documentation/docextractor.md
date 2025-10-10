@@ -12,6 +12,6 @@ this allows us to make manual and to copy information from the readme's which ar
 to run
 
 ```bash
-~/code/github/freeflowuniverse/herolib/tools/doc_extractor/extractor.sh
+~/code/github/incubaid/herolib/tools/doc_extractor/extractor.sh
 ```
 

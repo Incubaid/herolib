@@ -32,8 +32,8 @@ requirements
 - ssh key loaded for access to github
 
 ```bash
-mkdir -p ~/code/github/freeflowuniverse
-cd ~/code/github/freeflowuniverse
+mkdir -p ~/code/github/incubaid
+cd ~/code/github/incubaid
 git clone git@github.com:freeflowuniverse/herolib.git
 cd herolib
 # checkout a branch with most recent changes
@@ -72,7 +72,7 @@ requirements
 
 ```bash
 #cd in this directory
-cd ~/code/github/freeflowuniverse/herolib
+cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
 

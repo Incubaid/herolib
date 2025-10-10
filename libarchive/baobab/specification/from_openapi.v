@@ -1,7 +1,7 @@
 module specification
 
 import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.code { Struct }
+import freeflowuniverse.herolib.develop.codetools as code { Struct }
 import freeflowuniverse.herolib.schemas.jsonschema { Schema, SchemaRef }
 import freeflowuniverse.herolib.schemas.openapi { MediaType, OpenAPI, OperationInfo, Parameter }
 import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, Example, ExamplePairing, ExampleRef }

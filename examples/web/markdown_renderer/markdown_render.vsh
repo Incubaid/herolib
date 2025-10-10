@@ -7,7 +7,7 @@ import os
 import markdown
 import freeflowuniverse.herolib.data.markdownparser2
 
-path1 := '${os.home_dir()}/code/github/freeflowuniverse/herolib/examples/web/mdbook_markdown/content/cybercity.md'
+path1 := '${os.home_dir()}/code/github/incubaid/herolib/examples/web/mdbook_markdown/content/cybercity.md'
 
 text := os.read_file(path1)!
 

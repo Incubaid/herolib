@@ -1,6 +1,6 @@
 module generator
 
-import freeflowuniverse.herolib.core.code { File, Folder }
+import freeflowuniverse.herolib.develop.codetools as code { File, Folder }
 import freeflowuniverse.herolib.core.texttools
 
 // generates the folder with runnable scripts of the actor

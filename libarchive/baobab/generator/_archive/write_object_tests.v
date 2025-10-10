@@ -1,6 +1,6 @@
 module generator
 
-import freeflowuniverse.herolib.core.code
+import freeflowuniverse.herolib.develop.codetools as code
 import freeflowuniverse.herolib.baobab.specification
 import rand
 import freeflowuniverse.herolib.core.texttools

@@ -2,8 +2,8 @@
 
 Herolib is an opinionated library primarily used by ThreeFold to automate cloud environments. It provides a comprehensive set of tools and utilities for cloud automation, git operations, documentation building, and more.
 
-[![Build on Linux & Run tests](https://github.com/freeflowuniverse/herolib/actions/workflows/test.yml/badge.svg)](https://github.com/freeflowuniverse/herolib/actions/workflows/test.yml)
-[![Deploy Documentation to Pages](https://github.com/freeflowuniverse/herolib/actions/workflows/documentation.yml/badge.svg)](https://github.com/freeflowuniverse/herolib/actions/workflows/documentation.yml)
+[![Build on Linux & Run tests](https://github.com/incubaid/herolib/actions/workflows/test.yml/badge.svg)](https://github.com/incubaid/herolib/actions/workflows/test.yml)
+[![Deploy Documentation to Pages](https://github.com/incubaid/herolib/actions/workflows/documentation.yml/badge.svg)](https://github.com/incubaid/herolib/actions/workflows/documentation.yml)
 
 > [Complete Documentation](https://freeflowuniverse.github.io/herolib/)
 
@@ -14,7 +14,7 @@ Herolib is an opinionated library primarily used by ThreeFold to automate cloud 
 The Hero tool can be installed with a single command:
 
 ```bash
-curl https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_hero.sh | bash
+curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_hero.sh | bash
 ```
 
 Hero will be installed in:
@@ -34,11 +34,11 @@ The Hero tool can be used to work with git, build documentation, interact with H
 For development purposes, use the automated installation script:
 
 ```bash
-curl 'https://raw.githubusercontent.com/freeflowuniverse/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
 
 #do not forget to do the following this makes sure vtest and vrun exists
-cd ~/code/github/freeflowuniverse/herolib
+cd ~/code/github/incubaid/herolib
 v install_herolib.vsh
 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
@@ -50,7 +50,7 @@ v install_herolib.vsh
 ```
 V & HeroLib Installer Script
 
-Usage: ~/code/github/freeflowuniverse/herolib/install_v.sh [options]
+Usage: ~/code/github/incubaid/herolib/install_v.sh [options]
 
 Options:
   -h, --help     Show this help message
@@ -60,12 +60,12 @@ Options:
   --herolib      Install our herolib
 
 Examples:
-  ~/code/github/freeflowuniverse/herolib/install_v.sh
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --reset
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --remove
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --analyzer
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --herolib
-  ~/code/github/freeflowuniverse/herolib/install_v.sh --reset --analyzer # Fresh install of both
+  ~/code/github/incubaid/herolib/install_v.sh
+  ~/code/github/incubaid/herolib/install_v.sh --reset
+  ~/code/github/incubaid/herolib/install_v.sh --remove
+  ~/code/github/incubaid/herolib/install_v.sh --analyzer
+  ~/code/github/incubaid/herolib/install_v.sh --herolib
+  ~/code/github/incubaid/herolib/install_v.sh --reset --analyzer # Fresh install of both
 ```
 
 ## Features
@@ -90,7 +90,7 @@ Herolib provides a wide range of functionality:
 - System management utilities
 - And much more
 
-Check the [cookbook](https://github.com/freeflowuniverse/herolib/tree/development/cookbook) for examples and use cases.
+Check the [cookbook](https://github.com/incubaid/herolib/tree/development/cookbook) for examples and use cases.
 
 ## Testing
 
@@ -98,13 +98,13 @@ Running tests is an essential part of development. To run the basic tests:
 
 ```bash
 # Run all basic tests
-~/code/github/freeflowuniverse/herolib/test_basic.vsh
+~/code/github/incubaid/herolib/test_basic.vsh
 
 # Run tests for a specific module
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal/package_test.v
+vtest ~/code/github/incubaid/herolib/lib/osal/package_test.v
 
 # Run tests for an entire directory
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal
+vtest ~/code/github/incubaid/herolib/lib/osal
 ```
 
 The `vtest` command is an alias for testing functionality.
@@ -160,7 +160,7 @@ This is caused by incompatibility between TCC and the half precision math functi
 ## Additional Resources
 
 - [Complete Documentation](https://freeflowuniverse.github.io/herolib/)
-- [Cookbook Examples](https://github.com/freeflowuniverse/herolib/tree/development/cookbook)
+- [Cookbook Examples](https://github.com/incubaid/herolib/tree/development/cookbook)
 - [AI Prompts](aiprompts/starter/0_start_here.md)
 
 ## Generating Documentation
@@ -168,7 +168,7 @@ This is caused by incompatibility between TCC and the half precision math functi
 To generate documentation locally:
 
 ```bash
-cd ~/code/github/freeflowuniverse/herolib
+cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
 

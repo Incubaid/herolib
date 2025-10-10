@@ -3,15 +3,16 @@ module main
 import freeflowuniverse.herolib.ai.mcp.vcode
 
 fn main() {
-	// Create a new MCP server
-	mut server := vcode.new_mcp_server() or {
-		eprintln('Failed to create MCP server: ${err}')
+	// Create a VCode instance
+	v := &vcode.VCode{}
+
+	// Create a placeholder MCP server (actual implementation pending mcpcore fixes)
+	result := vcode.new_mcp_server(v) or {
+		// Note: Removed eprintln() as it interferes with STDIO transport JSON-RPC communication
 		return
 	}
 
-	// Start the server
-	server.start() or {
-		eprintln('Failed to start MCP server: ${err}')
-		return
-	}
+	// Note: Removed println() as it interferes with STDIO transport JSON-RPC communication
+	// TODO: Implement actual MCP server startup once mcpcore module is fixed
+	_ = result // Use the result to avoid unused variable warning
 }

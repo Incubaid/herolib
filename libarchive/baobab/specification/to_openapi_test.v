@@ -1,6 +1,6 @@
 module specification
 
-import freeflowuniverse.herolib.core.code
+import freeflowuniverse.herolib.develop.codetools as code
 import freeflowuniverse.herolib.schemas.jsonschema { Schema, SchemaRef }
 import freeflowuniverse.herolib.schemas.openapi
 import freeflowuniverse.herolib.schemas.openrpc

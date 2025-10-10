@@ -31,7 +31,7 @@ if additional_args.len > 0 {
 }
 
 // Change to the vdo directory
-hero_dir := os.join_path(os.home_dir(), 'code/github/freeflowuniverse/herolib/cli')
+hero_dir := os.join_path(os.home_dir(), 'code/github/incubaid/herolib/cli')
 os.chdir(hero_dir) or { panic('Failed to change directory to ${hero_dir}: ${err}') }
 
 // Set HEROPATH based on OS

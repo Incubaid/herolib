@@ -13,5 +13,6 @@ fn test_decode() ! {
 	content := doc_file.read()!
 	object := json.decode(OpenRPC, content)!
 	assert object.openrpc == '1.0.0-rc1'
-	assert object.methods.map(it.name) == ['list_pets', 'create_pet', 'get_pet', 'update_pet', 'delete_pet']
+	assert object.methods.map(it.name) == ['list_pets', 'create_pet', 'get_pet', 'update_pet',
+		'delete_pet']
 }

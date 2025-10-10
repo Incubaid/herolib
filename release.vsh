@@ -10,7 +10,7 @@ struct GithubRelease {
 }
 
 fn get_latest_release() !string {
-	url := 'https://api.github.com/repos/freeflowuniverse/herolib/releases/latest'
+	url := 'https://api.github.com/repos/incubaid/herolib/releases/latest'
 	resp := http.get(url)!
 	release := json.decode[GithubRelease](resp.body) or {
 		return error('Failed to decode GitHub response: ${err}')
@@ -131,12 +131,12 @@ git push
 git checkout development
 git pull origin development
 git push
-git remote set-url origin git@github.com:freeflowuniverse/herolib.git
+git remote set-url origin git@github.com:incubaid/herolib.git
 git add ${hero_v_path} ${install_hero_path}
 git commit -m "bump version to ${new_version}"
-git pull git@github.com:freeflowuniverse/herolib.git main
+git pull git@github.com:incubaid/herolib.git main
 git tag -a "v${new_version}" -m "Release version ${new_version}"
-git push git@github.com:freeflowuniverse/herolib.git "v${new_version}"
+git push git@github.com:incubaid/herolib.git "v${new_version}"
 '
 
 println(cmd)

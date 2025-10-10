@@ -1,7 +1,7 @@
 module vcode
 
 import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.core.code
+import freeflowuniverse.herolib.develop.codetools as code
 import freeflowuniverse.herolib.schemas.jsonschema
 import x.json2 { Any }
 

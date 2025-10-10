@@ -32,8 +32,8 @@ bash /tmp/install_v.sh --analyzer --herolib
 Alternatively, you can manually set up the environment:
 
 ```bash
-mkdir -p ~/code/github/freeflowuniverse
-cd ~/code/github/freeflowuniverse
+mkdir -p ~/code/github/incubaid
+cd ~/code/github/incubaid
 git clone git@github.com:freeflowuniverse/herolib.git
 cd herolib
 # checkout development branch for most recent changes
@@ -87,10 +87,10 @@ Before submitting a pull request, ensure all tests pass:
 ./test_basic.vsh
 
 # Run tests for a specific module
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal/package_test.v
+vtest ~/code/github/incubaid/herolib/lib/osal/package_test.v
 
 # Run tests for an entire directory
-vtest ~/code/github/freeflowuniverse/herolib/lib/osal
+vtest ~/code/github/incubaid/herolib/lib/osal
 ```
 
 The test script (`test_basic.vsh`) manages test execution and caching to optimize performance. It automatically skips tests listed in the ignore or error sections of the script.
@@ -148,7 +148,7 @@ This workflow automatically updates the documentation on GitHub Pages when chang
 To generate documentation locally:
 
 ```bash
-cd ~/code/github/freeflowuniverse/herolib
+cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
 

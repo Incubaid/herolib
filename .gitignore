@@ -11,6 +11,7 @@ __pycache__/
 *dSYM/
 .vmodules/
 .vscode
+.dylib
 _docs/
 vls.*
 vls.log
@@ -55,3 +56,4 @@ MCP_HTTP_REST_IMPLEMENTATION_PLAN.md
 .continue
 tmux_logger
 release
+install_herolib

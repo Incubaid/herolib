@@ -1,131 +1,131 @@
 {
-    "Sidebar": [
-      {
-        "Title": "General",
-        "Items": [
-          {
-            "Title": "Create Tag",
-            "Href": "/create_tag",
-            "IsDir": false
-          }
-        ]
-      },
-      {
-        "Title": "Best Practices",
-        "Items": [
-          {
-            "Title": "Osal",
-            "Href": "/best_practices/osal",
-            "IsDir": true,
-            "Children": [
-              {
-                "Title": "Silence",
-                "Href": "/best_practices/osal/silence",
-                "IsDir": false
-              }
-            ]
-          },
-          {
-            "Title": "Scripts",
-            "Href": "/best_practices/scripts",
-            "IsDir": true,
-            "Children": [
-              {
-                "Title": "Scripts",
-                "Href": "/best_practices/scripts/scripts",
-                "IsDir": false
-              },
-              {
-                "Title": "Shebang",
-                "Href": "/best_practices/scripts/shebang",
-                "IsDir": false
-              }
-            ]
-          },
-          {
-            "Title": "Using Args In Function",
-            "Href": "/best_practices/using_args_in_function",
-            "IsDir": false
-          }
-        ]
-      },
-      {
-        "Title": "Model Context Providers",
-        "Items": [
-          {
-            "Title": "Baobab MCP",
-            "Href": "/Users/timurgordon/code/github/freeflowuniverse/herolib/lib/mcp/baobab/README.md",
-            "IsDir": false
-          }
-        ]
-      },
-      {
-        "Title": "Core",
-        "Items": [
-          {
-            "Title": "Base",
-            "Href": "/core/base",
-            "IsDir": false
-          },
-          {
-            "Title": "Concepts",
-            "Href": "/core/concepts",
-            "IsDir": true,
-            "Children": [
-              {
-                "Title": "Global Ids",
-                "Href": "/core/concepts/global_ids",
-                "IsDir": false
-              },
-              {
-                "Title": "Name Registry",
-                "Href": "/core/concepts/name_registry",
-                "IsDir": false
-              },
-              {
-                "Title": "Objects",
-                "Href": "/core/concepts/objects",
-                "IsDir": false
-              },
-              {
-                "Title": "Sid",
-                "Href": "/core/concepts/sid",
-                "IsDir": false
-              }
-            ]
-          },
-          {
-            "Title": "Context",
-            "Href": "/core/context",
-            "IsDir": false
-          },
-          {
-            "Title": "Context Session Job",
-            "Href": "/core/context_session_job",
-            "IsDir": false
-          },
-          {
-            "Title": "Play",
-            "Href": "/core/play",
-            "IsDir": false
-          },
-          {
-            "Title": "Session",
-            "Href": "/core/session",
-            "IsDir": false
-          }
-        ]
-      },
-      {
-        "Title": "Documentation",
-        "Items": [
-          {
-            "Title": "Docextractor",
-            "Href": "/documentation/docextractor",
-            "IsDir": false
-          }
-        ]
-      }
-    ],
-    "Title": "HeroLib Manual"
-  }
+  "Sidebar": [
+    {
+      "Title": "General",
+      "Items": [
+        {
+          "Title": "Create Tag",
+          "Href": "/create_tag",
+          "IsDir": false
+        }
+      ]
+    },
+    {
+      "Title": "Best Practices",
+      "Items": [
+        {
+          "Title": "Osal",
+          "Href": "/best_practices/osal",
+          "IsDir": true,
+          "Children": [
+            {
+              "Title": "Silence",
+              "Href": "/best_practices/osal/silence",
+              "IsDir": false
+            }
+          ]
+        },
+        {
+          "Title": "Scripts",
+          "Href": "/best_practices/scripts",
+          "IsDir": true,
+          "Children": [
+            {
+              "Title": "Scripts",
+              "Href": "/best_practices/scripts/scripts",
+              "IsDir": false
+            },
+            {
+              "Title": "Shebang",
+              "Href": "/best_practices/scripts/shebang",
+              "IsDir": false
+            }
+          ]
+        },
+        {
+          "Title": "Using Args In Function",
+          "Href": "/best_practices/using_args_in_function",
+          "IsDir": false
+        }
+      ]
+    },
+    {
+      "Title": "Model Context Providers",
+      "Items": [
+        {
+          "Title": "Baobab MCP",
+          "Href": "/Users/timurgordon/code/github/incubaid/herolib/lib/mcp/baobab/README.md",
+          "IsDir": false
+        }
+      ]
+    },
+    {
+      "Title": "Core",
+      "Items": [
+        {
+          "Title": "Base",
+          "Href": "/core/base",
+          "IsDir": false
+        },
+        {
+          "Title": "Concepts",
+          "Href": "/core/concepts",
+          "IsDir": true,
+          "Children": [
+            {
+              "Title": "Global Ids",
+              "Href": "/core/concepts/global_ids",
+              "IsDir": false
+            },
+            {
+              "Title": "Name Registry",
+              "Href": "/core/concepts/name_registry",
+              "IsDir": false
+            },
+            {
+              "Title": "Objects",
+              "Href": "/core/concepts/objects",
+              "IsDir": false
+            },
+            {
+              "Title": "Sid",
+              "Href": "/core/concepts/sid",
+              "IsDir": false
+            }
+          ]
+        },
+        {
+          "Title": "Context",
+          "Href": "/core/context",
+          "IsDir": false
+        },
+        {
+          "Title": "Context Session Job",
+          "Href": "/core/context_session_job",
+          "IsDir": false
+        },
+        {
+          "Title": "Play",
+          "Href": "/core/play",
+          "IsDir": false
+        },
+        {
+          "Title": "Session",
+          "Href": "/core/session",
+          "IsDir": false
+        }
+      ]
+    },
+    {
+      "Title": "Documentation",
+      "Items": [
+        {
+          "Title": "Docextractor",
+          "Href": "/documentation/docextractor",
+          "IsDir": false
+        }
+      ]
+    }
+  ],
+  "Title": "HeroLib Manual"
+}

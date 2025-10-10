@@ -1,6 +1,6 @@
 module generator
 
-import freeflowuniverse.herolib.core.code { CodeItem, Struct, VFile }
+import freeflowuniverse.herolib.develop.codetools as code { CodeItem, Struct, VFile }
 import freeflowuniverse.herolib.core.texttools
 import freeflowuniverse.herolib.schemas.jsonschema.codegen { schema_to_struct }
 import freeflowuniverse.herolib.baobab.specification { ActorSpecification }

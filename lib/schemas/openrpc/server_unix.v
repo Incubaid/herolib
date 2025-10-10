@@ -1,7 +1,5 @@
 module openrpc
 
-import json
-import x.json2
 import net.unix
 import os
 import freeflowuniverse.herolib.ui.console
@@ -9,9 +7,9 @@ import freeflowuniverse.herolib.schemas.jsonrpc
 
 pub struct UNIXServer {
 pub mut:
-	listener &unix.StreamListener
+	listener    &unix.StreamListener
 	socket_path string
-	handler Handler @[required]
+	handler     Handler @[required]
 }
 
 @[params]
@@ -20,24 +18,29 @@ pub mut:
 	socket_path string = '/tmp/heromodels'
 }
 
+pub fn start_unix_server(handler Handler, params UNIXServerParams) ! {
+	mut server := new_unix_server(handler, params)!
+	server.start()!
+}
+
 pub fn new_unix_server(handler Handler, params UNIXServerParams) !&UNIXServer {
 	// Remove existing socket file if it exists
 	if os.exists(params.socket_path) {
 		os.rm(params.socket_path)!
 	}
-	
+
 	listener := unix.listen_stream(params.socket_path, unix.ListenOptions{})!
-	
+
 	return &UNIXServer{
-		listener: listener
-		handler: handler
+		listener:    listener
+		handler:     handler
 		socket_path: params.socket_path
 	}
 }
 
 pub fn (mut server UNIXServer) start() ! {
 	console.print_header('Starting HeroModels OpenRPC Server on ${server.socket_path}')
-	
+
 	for {
 		mut conn := server.listener.accept()!
 		spawn server.handle_connection(mut conn)
@@ -55,7 +58,7 @@ fn (mut server UNIXServer) handle_connection(mut conn unix.StreamConn) {
 	defer {
 		conn.close() or { console.print_stderr('Error closing connection: ${err}') }
 	}
-	
+
 	for {
 		// Read JSON-RPC request
 		mut buffer := []u8{len: 4096}
@@ -63,11 +66,11 @@ fn (mut server UNIXServer) handle_connection(mut conn unix.StreamConn) {
 			console.print_debug('Connection closed or error reading: ${err}')
 			break
 		}
-		
+
 		if bytes_read == 0 {
 			break
 		}
-		
+
 		request_data := buffer[..bytes_read].bytestr()
 		console.print_debug('Received request: ${request_data}')
 

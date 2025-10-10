@@ -1,62 +1,205 @@
 module heromodels
 
+import freeflowuniverse.herolib.data.encoder
 import freeflowuniverse.herolib.data.ourtime
-import time
+import freeflowuniverse.herolib.hero.db
+import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_true }
+import freeflowuniverse.herolib.hero.user { UserRef }
+import freeflowuniverse.herolib.ui.console
+import json
 
 // Calendar represents a collection of events
 @[heap]
 pub struct Calendar {
-	Base
+	db.Base
 pub mut:
-	events    []u32  // IDs of calendar events (changed to u32 to match CalendarEvent)
+	events    []u32  // IDs of calendar events
 	color     string // Hex color code
 	timezone  string
 	is_public bool
 }
 
-@[params]
-pub struct CalendarArgs {
-	BaseArgs
+pub struct DBCalendar {
 pub mut:
-	events    []u32
-	color     string
-	timezone  string
-	is_public bool
+	db &db.DB @[skip; str: skip]
 }
 
-pub fn calendar_new(args CalendarArgs) !Calendar {
-    mut commentids:=[]u32{}
-    mut obj := Calendar{
-        id: args.id or {0} // Will be set by DB?
-        name: args.name
-        description: args.description
-        created_at: ourtime.now().unix()
-        updated_at: ourtime.now().unix()
-        securitypolicy: args.securitypolicy or {0}
-        tags: tags2id(args.tags)!
-        comments: comments2ids(args.comments)!
-        group_id: args.group_id
-        events: args.events
-        color: args.color
-        timezone: args.timezone
-        is_public: args.is_public
-    }
-    return obj
+pub fn (self Calendar) type_name() string {
+	return 'calendar'
 }
 
-pub fn (mut c Calendar) add_event(event_id u32) { // Changed event_id to u32
-	if event_id !in c.events {
-		c.events << event_id
-		c.updated_at = ourtime.now().unix() // Use Base's updated_at
+// return example rpc call and result for each methodname
+pub fn (self Calendar) description(methodname string) string {
+	match methodname {
+		'set' {
+			return 'Create or update a calendar. Returns the ID of the calendar.'
+		}
+		'get' {
+			return 'Retrieve a calendar by ID. Returns the calendar object.'
+		}
+		'delete' {
+			return 'Delete a calendar by ID. Returns true if successful.'
+		}
+		'exist' {
+			return 'Check if a calendar exists by ID. Returns true or false.'
+		}
+		'list' {
+			return 'List all calendars. Returns an array of calendar objects.'
+		}
+		else {
+			return 'This is generic method for the root object, TODO fill in, ...'
+		}
 	}
 }
 
-pub fn (mut c Calendar) dump() []u8 {
-	// TODO: implement based on lib/data/encoder/readme.md
-	return []u8{}
+// return example rpc call and result for each methodname
+pub fn (self Calendar) example(methodname string) (string, string) {
+	match methodname {
+		'set' {
+			return '{"calendar": {"name": "My Calendar", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}}', '1'
+		}
+		'get' {
+			return '{"id": 1}', '{"name": "My Calendar", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}'
+		}
+		'delete' {
+			return '{"id": 1}', 'true'
+		}
+		'exist' {
+			return '{"id": 1}', 'true'
+		}
+		'list' {
+			return '{}', '[{"name": "My Calendar", "description": "A personal calendar", "color": "#FF0000", "timezone": "UTC", "is_public": true, "events": []}]'
+		}
+		else {
+			return '{}', '{}'
+		}
+	}
 }
 
-pub fn calendar_load(data []u8) Calendar {
-	// TODO: implement based on lib/data/encoder/readme.md
-	return Calendar{}
+pub fn (self Calendar) dump(mut e encoder.Encoder) ! {
+	e.add_list_u32(self.events)
+	e.add_string(self.color)
+	e.add_string(self.timezone)
+	e.add_bool(self.is_public)
+}
+
+fn (mut self DBCalendar) load(mut o Calendar, mut e encoder.Decoder) ! {
+	o.events = e.get_list_u32()!
+	o.color = e.get_string()!
+	o.timezone = e.get_string()!
+	o.is_public = e.get_bool()!
+}
+
+@[params]
+pub struct CalendarArg {
+pub mut:
+	id             u32
+	name           string
+	description    string
+	color          string
+	timezone       string
+	is_public      bool
+	events         []u32
+	securitypolicy u32
+	tags           []string
+	messages       []db.MessageArg
+}
+
+// get new calendar, not from the DB
+pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
+	mut o := Calendar{
+		color:     args.color
+		timezone:  args.timezone
+		is_public: args.is_public
+		events:    args.events
+	}
+
+	// Set base fields
+	o.name = args.name
+	o.description = args.description
+	o.securitypolicy = args.securitypolicy
+	o.tags = self.db.tags_get(args.tags)!
+	o.messages = self.db.messages_get(args.messages)!
+	o.updated_at = ourtime.now().unix()
+
+	return o
+}
+
+pub fn (mut self DBCalendar) set(o Calendar) !Calendar {
+	// Use db set function which returns the object with assigned ID
+	return self.db.set[Calendar](o)!
+}
+
+pub fn (mut self DBCalendar) delete(id u32) !bool {
+	// Check if the item exists before trying to delete
+	if !self.db.exists[Calendar](id)! {
+		return false
+	}
+	self.db.delete[Calendar](id)!
+	return true
+}
+
+pub fn (mut self DBCalendar) exist(id u32) !bool {
+	return self.db.exists[Calendar](id)!
+}
+
+pub fn (mut self DBCalendar) get(id u32) !Calendar {
+	mut o, data := self.db.get_data[Calendar](id)!
+	mut e_decoder := encoder.decoder_new(data)
+	self.load(mut o, mut e_decoder)!
+	return o
+}
+
+pub fn (mut self DBCalendar) list() ![]Calendar {
+	return self.db.list[Calendar]()!.map(self.get(it)!)
+}
+
+pub fn calendar_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.calendar.get(id)!
+			return new_response(rpcid, json.encode(res))
+		}
+		'set' {
+			mut args := db.decode_generic[CalendarArg](params)!
+			mut o := f.calendar.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
+			o = f.calendar.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			deleted := f.calendar.delete(id)!
+			if deleted {
+				return new_response_true(rpcid)
+			} else {
+				return new_error(rpcid,
+					code:    404
+					message: 'Calendar with ID ${id} not found'
+				)
+			}
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.calendar.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			res := f.calendar.list()!
+			return new_response(rpcid, json.encode(res))
+		}
+		else {
+			console.print_stderr('Method not found on calendar: ${method}')
+			return new_error(rpcid,
+				code:    32601
+				message: 'Method ${method} not found on calendar'
+			)
+		}
+	}
 }

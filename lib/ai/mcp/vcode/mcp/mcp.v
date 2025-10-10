@@ -1,27 +1,12 @@
-module pugconvert
+module vcode
 
 import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.ai.mcp.logger
-import freeflowuniverse.herolib.schemas.jsonrpc
+import freeflowuniverse.herolib.ai.mcp.vcode.logic
 
 pub fn new_mcp_server() !&mcp.Server {
-	logger.info('Creating new Developer MCP server')
+	// Note: Removed logger.info() as it interferes with STDIO transport JSON-RPC communication
 
-	// Initialize the server with the empty handlers map
-	mut server := mcp.new_server(mcp.MemoryBackend{
-		tools:         {
-			'pugconvert': specs
-		}
-		tool_handlers: {
-			'pugconvert': handler
-		}
-	}, mcp.ServerParams{
-		config: mcp.ServerConfiguration{
-			server_info: mcp.ServerInfo{
-				name:    'developer'
-				version: '1.0.0'
-			}
-		}
-	})!
-	return server
+	// Create a VCode instance and delegate to the logic module
+	v := &logic.VCode{}
+	return logic.new_mcp_server(v)
 }

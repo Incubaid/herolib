@@ -32,7 +32,7 @@ pub mut:
 //  stdout bool = true
 // ```
 // .
-// see https://github.com/freeflowuniverse/herolib/blob/development/examples/pathlib.rsync/rsync_example.v
+// see https://github.com/incubaid/herolib/blob/development/examples/pathlib.rsync/rsync_example.v
 pub fn rsync(args_ RsyncArgs) ! {
 	mut args := args_
 	if args.ipaddr_src.len == 0 {
