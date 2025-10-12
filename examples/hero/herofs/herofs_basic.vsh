@@ -27,7 +27,6 @@ fn test_basic() ! {
 	)!
 	println('Created test filesystem with ID: ${test_fs.id}')
 
-
 	assert test_fs.id > 0
 	assert test_fs.root_dir_id > 0
 

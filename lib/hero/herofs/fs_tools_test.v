@@ -116,7 +116,7 @@ fn test_rm_file_with_blobs() ! {
 	assert fs.factory.fs_blob.exist(test_blob.id)! == true
 
 	// Test rm with delete_blobs option
-	fs.rm('/to_remove_with_blobs.txt', FindOptions{}, RemoveOptions{delete_blobs: true})!
+	fs.rm('/to_remove_with_blobs.txt', FindOptions{}, RemoveOptions{ delete_blobs: true })!
 
 	// Verify file no longer exists
 	assert fs.factory.fs_file.exist(test_file.id)! == false
@@ -201,7 +201,7 @@ fn test_rm_directory_recursive() ! {
 	assert fs_factory.fs_file.exist(test_file.id)! == true
 
 	// Test rm with recursive option
-	test_fs.rm('/test_dir', FindOptions{}, RemoveOptions{recursive: true})!
+	test_fs.rm('/test_dir', FindOptions{}, RemoveOptions{ recursive: true })!
 
 	// Verify directory and its contents are removed
 	assert fs_factory.fs_dir.exist(test_dir_id)! == false
