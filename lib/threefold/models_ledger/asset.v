@@ -4,6 +4,7 @@ module models_ledger
 import incubaid.herolib.data.encoder
 import incubaid.herolib.data.ourtime
 import incubaid.herolib.hero.db
+import json
 
 // Asset represents a digital or physical item of value within the system.
 @[heap]
@@ -122,8 +123,12 @@ pub fn (mut self DBAsset) set(o Asset) !Asset {
 	return self.db.set[Asset](o)!
 }
 
-pub fn (mut self DBAsset) delete(id u32) ! {
+pub fn (mut self DBAsset) delete(id u32) !bool {
+	if !self.db.exists[Asset](id)! {
+		return false
+	}
 	self.db.delete[Asset](id)!
+	return true
 }
 
 pub fn (mut self DBAsset) exist(id u32) !bool {
@@ -137,6 +142,118 @@ pub fn (mut self DBAsset) get(id u32) !Asset {
 	return o
 }
 
-pub fn (mut self DBAsset) list() ![]Asset {
+@[params]
+pub struct AssetListArg {
+pub mut:
+	filter       string
+	asset_type   string
+	is_frozen    bool = false
+	filter_frozen bool = false
+	issuer       u32
+	filter_issuer bool = false
+	limit        int = 20
+	offset       int = 0
+}
+
+pub fn (mut self DBAsset) list(args AssetListArg) ![]Asset {
+	mut all_assets := self.db.list[Asset]()!.map(self.get(it)!)
+	mut filtered_assets := []Asset{}
+	
+	for asset in all_assets {
+		// Filter by text in name or description
+		if args.filter != '' && !asset.name.contains(args.filter) && 
+		   !asset.description.contains(args.filter) && !asset.address.contains(args.filter) {
+			continue
+		}
+		
+		// Filter by asset_type
+		if args.asset_type != '' && asset.asset_type != args.asset_type {
+			continue
+		}
+		
+		// Filter by is_frozen
+		if args.filter_frozen && asset.is_frozen != args.is_frozen {
+			continue
+		}
+		
+		// Filter by issuer
+		if args.filter_issuer && asset.issuer != args.issuer {
+			continue
+		}
+		
+		filtered_assets << asset
+	}
+	
+	// Apply pagination
+	mut start := args.offset
+	if start >= filtered_assets.len {
+		start = 0
+	}
+	
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	
+	if start + limit > filtered_assets.len {
+		limit = filtered_assets.len - start
+	}
+	
+	if limit <= 0 {
+		return []Asset{}
+	}
+	
+	return if filtered_assets.len > 0 { filtered_assets[start..start+limit] } else { []Asset{} }
+}
+
+pub fn (mut self DBAsset) list_all() ![]Asset {
 	return self.db.list[Asset]()!.map(self.get(it)!)
+}
+
+pub fn asset_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.asset.get(id)!
+			return new_response(rpcid, json.encode_pretty(res))
+		}
+		'set' {
+			mut args := db.decode_generic[AssetArg](params)!
+			mut o := f.asset.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
+			o = f.asset.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			success := f.asset.delete(id)!
+			if success {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.asset.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic_or_default[AssetListArg](params, AssetListArg{})!
+			result := f.asset.list(args)!
+			return new_response(rpcid, json.encode_pretty(result))
+		}
+		else {
+			return new_error(
+				rpcid: rpcid
+				code: 32601
+				message: 'Method ${method} not found on asset'
+			)
+		}
+	}
 }
