@@ -1,4 +1,4 @@
-module codetools
+module code
 
 import incubaid.herolib.ui.console
 import os
