@@ -110,6 +110,13 @@ pub mut:
 	messages    []db.MessageArg
 }
 
+@[params]
+pub struct FsListArg {
+pub mut:
+	group_id u32
+	limit    int = 100 // Default limit is 100
+}
+
 // get new filesystem, not from the DB
 pub fn (mut self DBFs) new(args FsArg) !Fs {
 	mut o := Fs{
