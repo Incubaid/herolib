@@ -1,6 +1,6 @@
 module herorun2
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Provider types
 pub enum Provider {

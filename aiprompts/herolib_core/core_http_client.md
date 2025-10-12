@@ -3,6 +3,7 @@
 The `HTTPConnection` module provides a robust HTTP client for Vlang, supporting JSON, custom headers, retries, and caching.
 
 ## Key Features
+
 - Type-safe JSON methods
 - Custom headers
 - Retry mechanism
@@ -12,7 +13,7 @@ The `HTTPConnection` module provides a robust HTTP client for Vlang, supporting 
 ## Basic Usage
 
 ```v
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 
 // Create a new HTTP connection
 mut conn := httpconnection.new(
@@ -30,17 +31,17 @@ To integrate `HTTPConnection` into a management class (e.g., `HetznerManager`), 
 ```v
 // Example: HetznerManager
 pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
-	mut c := h.conn or {
-		mut c2 := httpconnection.new(
-			name:  'hetzner_${h.name}'
-			url:   h.baseurl
-			cache: true
-			retry: 3
-		)!
-		c2.basic_auth(h.user, h.password)
-		c2
-	}
-	return c
+ mut c := h.conn or {
+  mut c2 := httpconnection.new(
+   name:  'hetzner_${h.name}'
+   url:   h.baseurl
+   cache: true
+   retry: 3
+  )!
+  c2.basic_auth(h.user, h.password)
+  c2
+ }
+ return c
 }
 ```
 

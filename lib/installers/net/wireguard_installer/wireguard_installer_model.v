@@ -1,6 +1,6 @@
 module wireguard_installer
 
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.encoderhero
 
 pub const version = '1.14.3'
 const singleton = false

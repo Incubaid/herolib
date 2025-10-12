@@ -3,9 +3,9 @@ module location
 import db.pg
 import os
 import encoding.csv
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.clients.postgresql_client
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.clients.postgresql_client
 
 // LocationDB handles all database operations for locations
 pub struct LocationDB {

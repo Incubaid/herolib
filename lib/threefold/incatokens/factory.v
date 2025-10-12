@@ -1,7 +1,7 @@
 module incatokens
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.core.texttools
+import incubaid.herolib.biz.spreadsheet
 
 __global (
 	simulations map[string]&Simulation

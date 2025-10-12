@@ -1,10 +1,10 @@
 module docusaurus
 
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.develop.gittools
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools.regext
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools.regext
 
 pub fn (mut docsite DocSite) import() ! {
 	for importparams in docsite.website.siteconfig.imports {

@@ -1,7 +1,7 @@
 module bizmodel
 
-import freeflowuniverse.herolib.core.playbook { Action }
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.core.playbook { Action }
+import incubaid.herolib.data.currency
 import math
 
 // populate the params for hr

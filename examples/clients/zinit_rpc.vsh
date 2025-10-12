@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.clients.zinit
-import freeflowuniverse.herolib.installers.infra.zinit_installer
+import incubaid.herolib.clients.zinit
+import incubaid.herolib.installers.infra.zinit_installer
 import os
 import time
 

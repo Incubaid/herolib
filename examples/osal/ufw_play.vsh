@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.ufw
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.osal.ufw
+import incubaid.herolib.core.playbook
 
 heroscript := "
     !!ufw.configure

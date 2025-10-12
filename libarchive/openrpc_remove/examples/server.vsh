@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.jobs.openrpc
-import freeflowuniverse.herolib.core.jobs.model
+import incubaid.herolib.core.jobs.openrpc
+import incubaid.herolib.core.jobs.model
 import time
 import sync
 import os

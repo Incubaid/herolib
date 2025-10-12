@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.threefold.grid as tfgrid
-import freeflowuniverse.herolib.threefold.grid3.gridproxy
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.threefold.grid as tfgrid
+import incubaid.herolib.threefold.grid3.gridproxy
+import incubaid.herolib.ui.console
 
 fn get_contracts_example() ! {
 	mut myfilter := gridproxy.contractfilter()!

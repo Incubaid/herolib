@@ -17,8 +17,8 @@ module httpconnection
 
 import x.json2
 import net.http
-import freeflowuniverse.herolib.data.ourjson
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.ourjson
+import incubaid.herolib.ui.console
 
 // Build url from Request and httpconnection
 fn (mut h HTTPConnection) url(req Request) string {

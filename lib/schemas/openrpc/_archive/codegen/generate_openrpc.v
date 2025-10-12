@@ -1,9 +1,9 @@
 module codegen
 
-// import freeflowuniverse.herolib.schemas.jsonschema
-// import freeflowuniverse.herolib.core.code { Function, Struct, Sumtype }
-// import freeflowuniverse.herolib.ui.console
-// import freeflowuniverse.herolib.core.texttools
+// import incubaid.herolib.schemas.jsonschema
+// import incubaid.herolib.core.code { Function, Struct, Sumtype }
+// import incubaid.herolib.ui.console
+// import incubaid.herolib.core.texttools
 
 // // configuration parameters for OpenRPC Document generation.
 // @[params]

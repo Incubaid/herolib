@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.redisclient { RedisClient }
+import incubaid.herolib.core.redisclient { RedisClient }
 
 struct ZDBSpecs {
 	deployment_name string

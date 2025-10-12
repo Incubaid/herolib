@@ -1,7 +1,7 @@
 module graphdb
 
-import freeflowuniverse.herolib.data.ourdb
-import freeflowuniverse.herolib.data.cache { Cache, CacheConfig, new_cache }
+import incubaid.herolib.data.ourdb
+import incubaid.herolib.data.cache { Cache, CacheConfig, new_cache }
 
 // Node represents a vertex in the graph with properties and edge references
 @[heap]

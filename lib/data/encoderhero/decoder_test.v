@@ -1,8 +1,8 @@
 module encoderhero
 
 import time
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.core.texttools
 
 struct TestStruct {
 	id   int

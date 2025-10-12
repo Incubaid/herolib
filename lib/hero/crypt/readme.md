@@ -15,7 +15,7 @@ herodb --dir /path/to/data --port 6381 --encrypt --encryption-key yoursecretkey
 
 ## To start a db see
 
-https://git.ourworld.tf/herocode/herodb
+<https://git.ourworld.tf/herocode/herodb>
 
 to do:
 
@@ -29,7 +29,7 @@ hero git pull https://git.ourworld.tf/herocode/herodb
 ### Creating an AGE Client
 
 ```v
-import freeflowuniverse.herolib.crypt.herocrypt
+import incubaid.herolib.crypt.herocrypt
 
 // Connect to default Redis instance (127.0.0.1:6381)
 mut client := herocrypt.new_default()!
@@ -137,13 +137,13 @@ println('Signature valid: ${is_valid}')
 
 ## Choosing Between Modes
 
-### Use Stateless Mode When:
+### Use Stateless Mode When
 
 - You want complete control over key management
 - You don't want the server to store any private keys
 - You need to use the same keys across multiple servers
 
-### Use Key-Managed Mode When:
+### Use Key-Managed Mode When
 
 - You want simpler client code (no need to manage keys)
 - You trust the server to securely store private keys
@@ -188,5 +188,3 @@ signature := author_client.sign_with_named_key('document_author', document)!
 mut verifier_client := crypt.new_age_client()!
 is_authentic := verifier_client.verify_with_named_key('document_author', document, signature.signature)!
 ```
-
-

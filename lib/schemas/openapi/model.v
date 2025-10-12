@@ -3,7 +3,7 @@ module openapi
 import maps
 import net.http
 import x.json2 as json { Any }
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
+import incubaid.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
 
 // todo: report bug: when comps is optional, doesnt work
 pub struct OpenAPI {

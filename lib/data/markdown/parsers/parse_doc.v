@@ -1,7 +1,7 @@
 module parsers
 
-import freeflowuniverse.herolib.data.markdown.elements
-// import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.markdown.elements
+// import incubaid.herolib.ui.console
 
 // DO NOT CHANGE THE WAY HOW THIS WORKS, THIS HAS BEEN DONE AS A STATEFUL PARSER BY DESIGN
 // THIS ALLOWS FOR EASY ADOPTIONS TO DIFFERENT RELIALITIES

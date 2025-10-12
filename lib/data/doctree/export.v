@@ -1,9 +1,9 @@
 module doctree
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.data.doctree.collection { Collection }
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools.regext
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.doctree.collection { Collection }
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools.regext
 import os
 
 @[params]

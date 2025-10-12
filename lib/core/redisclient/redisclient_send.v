@@ -1,7 +1,7 @@
 module redisclient
 
-import freeflowuniverse.herolib.data.resp
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.resp
+import incubaid.herolib.ui.console
 
 // send list of strings, expect OK back
 pub fn (mut r Redis) send_expect_ok(items []string) ! {

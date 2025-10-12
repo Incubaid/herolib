@@ -1,13 +1,11 @@
 # wireguard
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.wireguard as wireguard_installer
+import incubaid.herolib.installers.something.wireguard as wireguard_installer
 
 heroscript:="
 !!wireguard.configure name:'test'
@@ -40,5 +38,3 @@ wireguard_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

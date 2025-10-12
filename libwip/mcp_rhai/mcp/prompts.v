@@ -1,18 +1,18 @@
 module mcp
 
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.ai.mcp.rhai.logic
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.lang.rust
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.ai.mcp.rhai.logic
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.lang.rust
 import x.json2 as json
 
 // Tool definition for the create_rhai_wrapper function
-const rhai_wrapper_prompt_spec = mcp.Prompt{
+const rhai_wrapper_prompt_spec = Prompt{
 	name:        'rhai_wrapper'
 	description: 'provides a prompt for creating Rhai wrappers for Rust functions that follow builder pattern and create examples corresponding to the provided example file'
 	arguments:   [
-		mcp.PromptArgument{
+		PromptArgument{
 			name:        'source_path'
 			description: 'Path to the source directory'
 			required:    true
@@ -21,7 +21,7 @@ const rhai_wrapper_prompt_spec = mcp.Prompt{
 }
 
 // Tool handler for the create_rhai_wrapper function
-pub fn rhai_wrapper_prompt_handler(arguments []string) ![]mcp.PromptMessage {
+pub fn rhai_wrapper_prompt_handler(arguments []string) ![]PromptMessage {
 	source_path := arguments[0]
 
 	// Read and combine all Rust files in the source directory
@@ -34,9 +34,9 @@ pub fn rhai_wrapper_prompt_handler(arguments []string) ![]mcp.PromptMessage {
 
 	result := logic.rhai_wrapper_generation_prompt(name, source_code, source_pkg_info)!
 	return [
-		mcp.PromptMessage{
+		PromptMessage{
 			role:    'assistant'
-			content: mcp.PromptContent{
+			content: PromptContent{
 				typ:  'text'
 				text: result
 			}

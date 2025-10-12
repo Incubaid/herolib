@@ -25,7 +25,7 @@ This project implements a WebDAV server using the `veb` framework and modules fr
 
 ```v
 
-import freeflowuniverse.herolib.dav.webdav
+import incubaid.herolib.dav.webdav
 
 mut app := webdav.new_app(
    root_dir: '/tmp/rootdir' // Directory to serve via WebDAV

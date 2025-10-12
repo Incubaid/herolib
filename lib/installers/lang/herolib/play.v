@@ -1,7 +1,7 @@
 module herolib
 
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook
+import incubaid.herolib.ui.console
 
 pub fn play(mut plbook playbook.PlayBook) ! {
 	if !plbook.exists(filter: 'herolib.') {

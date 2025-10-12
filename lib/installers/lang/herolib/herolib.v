@@ -1,11 +1,11 @@
 module herolib
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.installers.lang.vlang
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.base
+import incubaid.herolib.installers.lang.vlang
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.gittools
 import os
 // install herolib will return true if it was already installed
 
@@ -40,7 +40,7 @@ fn install_(args InstallArgs) ! {
 	// mut repo2 := gs.get_repo(
 	// 	pull:  args.git_pull
 	// 	reset: args.git_reset
-	// 	url:   'https://github.com/freeflowuniverse/webcomponents/tree/main/webcomponents'
+	// 	url:   'https://github.com/incubaid/webcomponents/tree/main/webcomponents'
 	// )!
 
 	mut path1 := repo.path()
@@ -49,7 +49,7 @@ fn install_(args InstallArgs) ! {
 	mut path1p := pathlib.get_dir(path: path1, create: false)!
 	// mut path2p := pathlib.get_dir(path: path2, create: false)!
 	path1p.link('${os.home_dir()}/.vmodules/incubaid/herolib', true)!
-	// path2p.link('${os.home_dir()}/.vmodules/freeflowuniverse/webcomponents', true)!
+	// path2p.link('${os.home_dir()}/.vmodules/incubaid/webcomponents', true)!
 
 	// hero_compile()!
 

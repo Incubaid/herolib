@@ -1,8 +1,8 @@
 module playcmds
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console // For verbose error reporting
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console // For verbose error reporting
 
 // ---------------------------------------------------------------
 // Git actions interpreter for HeroScript. This file

@@ -7,7 +7,7 @@ The spreadsheet module provides functionality to export sheet data into various 
 The `export_csv` method allows you to export the sheet's data to a CSV (Comma Separated Values) file or directly as a string. It offers flexibility in terms of separators and handling of empty cells.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 import os
 
 // Assuming 'my_sheet' is an existing Sheet object
@@ -31,11 +31,13 @@ println(csv_string)
 ```
 
 **`ExportCSVArgs` Parameters:**
+
 - `path` (string, optional): The file path where the CSV should be saved. If an empty string is provided, the CSV content will be returned as a string instead of being written to a file. The `~` character is expanded to the user's home directory.
 - `include_empty` (bool, optional, default: `false`): If `true`, empty cells will be included in the CSV output (represented as '0' for numeric values, or empty string for others). If `false`, empty cells will be represented as an empty string.
 - `separator` (string, optional, default: `'|'`): The character used to separate values in the CSV. Common separators include ',' (comma), ';' (semicolon), or '|' (pipe).
 
 **CSV Export Features:**
+
 - **Configurable Separator:** Easily change the delimiter to suit different CSV parsing requirements.
 - **Special Character Handling:** Values containing the separator, double quotes, or newlines are automatically enclosed in double quotes, and internal double quotes are escaped (e.g., `"` becomes `""`).
 - **Empty Cell Inclusion:** Control whether empty cells are explicitly represented in the output.

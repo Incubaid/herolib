@@ -2,9 +2,9 @@ module interfaces
 
 import rand
 import x.json2 as json { Any }
-import freeflowuniverse.herolib.baobab.stage { Action, Client }
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.schemas.openapi
+import incubaid.herolib.baobab.stage { Action, Client }
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.openapi
 
 pub struct OpenAPIInterface {
 pub mut:

@@ -2,12 +2,12 @@ module webdav
 
 import encoding.xml
 import log
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.vfs.vfs_db
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.vfs
+import incubaid.herolib.vfs.vfs_db
 import os
 import time
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import net.http
 import veb
 

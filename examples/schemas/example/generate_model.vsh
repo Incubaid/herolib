@@ -1,10 +1,10 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
-import freeflowuniverse.herolib.core.code { Alias }
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.schemas.openrpc
-import freeflowuniverse.herolib.schemas.openrpc.codegen { generate_model }
+import incubaid.herolib.core.code { Alias }
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.schemas.openrpc
+import incubaid.herolib.schemas.openrpc.codegen { generate_model }
 
 const doc_path = '${os.dir(@FILE)}/testdata/openrpc.json'
 

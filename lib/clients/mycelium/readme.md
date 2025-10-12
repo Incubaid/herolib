@@ -16,7 +16,7 @@ The client can be configured either through V code or using heroscript.
 ### V Code Configuration
 
 ```v
-import freeflowuniverse.herolib.clients.mycelium
+import incubaid.herolib.clients.mycelium
 
 // Get default client instance
 mut client := mycelium.get()!
@@ -32,7 +32,7 @@ mut client := mycelium.get(name: "custom")!
 Get information about the local Mycelium node:
 
 ```v
-import freeflowuniverse.herolib.clients.mycelium
+import incubaid.herolib.clients.mycelium
 
 // Get node info including public key and address
 result := mycelium.inspect()!
@@ -49,7 +49,7 @@ println('IP Address: ${addr}')
 Check if the Mycelium node is running and reachable:
 
 ```v
-import freeflowuniverse.herolib.clients.mycelium
+import incubaid.herolib.clients.mycelium
 
 is_running := mycelium.check()
 if is_running {
@@ -64,7 +64,7 @@ if is_running {
 The client provides several functions for sending and receiving messages between nodes:
 
 ```v
-import freeflowuniverse.herolib.clients.mycelium
+import incubaid.herolib.clients.mycelium
 
 mut client := mycelium.get()!
 
@@ -100,6 +100,7 @@ println('Expires at: ${status.deadline}')
 ```
 
 The messaging API supports:
+
 - Sending messages to nodes identified by public key
 - Optional message topics for filtering
 - Waiting for replies when sending messages

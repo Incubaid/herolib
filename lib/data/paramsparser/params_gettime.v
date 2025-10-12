@@ -1,7 +1,7 @@
 module paramsparser
 
-import freeflowuniverse.herolib.data.ourtime
-// import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.data.ourtime
+// import incubaid.herolib.core.texttools
 // import os
 import time { Duration }
 

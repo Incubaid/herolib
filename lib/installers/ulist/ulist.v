@@ -1,7 +1,7 @@
 module ulist
 
-// import freeflowuniverse.herolib.core.pathlib
-// import freeflowuniverse.herolib.develop.gittools
+// import incubaid.herolib.core.pathlib
+// import incubaid.herolib.develop.gittools
 
 // U stands for Upload
 pub struct UList {

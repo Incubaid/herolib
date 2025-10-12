@@ -1,11 +1,11 @@
 module collection
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.texttools.regext
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.base
+import incubaid.herolib.core.texttools.regext
 import os
-import freeflowuniverse.herolib.data.doctree.pointer
-import freeflowuniverse.herolib.data.doctree.collection.data
+import incubaid.herolib.data.doctree.pointer
+import incubaid.herolib.data.doctree.collection.data
 
 @[params]
 pub struct CollectionExportArgs {

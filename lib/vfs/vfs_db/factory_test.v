@@ -1,7 +1,7 @@
 module vfs_db
 
 import os
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.data.ourdb
 import rand
 
 fn test_new() {

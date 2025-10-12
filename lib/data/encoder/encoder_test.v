@@ -2,9 +2,9 @@ module encoder
 
 import time
 import math
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.data.gid
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.ui.console
+import incubaid.herolib.data.gid
+import incubaid.herolib.data.currency
 
 fn test_string() {
 	mut e := new()

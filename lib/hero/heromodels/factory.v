@@ -1,12 +1,12 @@
 module heromodels
 
 import os
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.hero.user { UserRef }
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.schemas.openrpc { Handler, new_handler }
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.hero.db
+import incubaid.herolib.hero.user { UserRef }
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.schemas.openrpc { Handler, new_handler }
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.ui.console
 
 const openrpc_path = os.join_path(os.dir(@FILE), 'openrpc.json')
 

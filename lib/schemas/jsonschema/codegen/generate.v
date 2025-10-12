@@ -1,7 +1,7 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code { Param, Struct, Type }
-import freeflowuniverse.herolib.schemas.jsonschema { Number, Reference, Schema, SchemaRef }
+import incubaid.herolib.develop.codetools as code { Param, Struct, Type }
+import incubaid.herolib.schemas.jsonschema { Number, Reference, Schema, SchemaRef }
 
 // struct_to_schema generates a json schema or reference from a struct model
 pub fn sumtype_to_schema(sumtype code.Sumtype) SchemaRef {

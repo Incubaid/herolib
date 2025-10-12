@@ -1,10 +1,10 @@
 module encoder
 
 import encoding.binary as bin
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 import time
-import freeflowuniverse.herolib.data.gid
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.gid
+import incubaid.herolib.data.currency
 
 pub struct Decoder {
 pub mut:

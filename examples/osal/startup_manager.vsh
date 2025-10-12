@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.installers.infra.zinit as zinitinstaller
-import freeflowuniverse.herolib.sysadmin.startupmanager
+import incubaid.herolib.installers.infra.zinit as zinitinstaller
+import incubaid.herolib.sysadmin.startupmanager
 
 mut z := zinitinstaller.get()!
 z.destroy()!

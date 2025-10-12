@@ -1,6 +1,6 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.herofs { new_test }
+import incubaid.herolib.hero.herofs { new_test }
 
 fn test_cleanup() ! {
 	delete_fs_test()!

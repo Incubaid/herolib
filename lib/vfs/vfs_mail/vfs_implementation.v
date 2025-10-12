@@ -2,9 +2,9 @@ module vfs_mail
 
 import json
 import time
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.circles.mcc.models as mail
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.vfs
+import incubaid.herolib.circles.mcc.models as mail
+import incubaid.herolib.core.texttools
 
 // Basic operations
 pub fn (mut myvfs MailVFS) root_get() !vfs.FSEntry {

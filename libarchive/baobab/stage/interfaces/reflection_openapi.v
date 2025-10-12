@@ -5,8 +5,8 @@ module interfaces
 // import veb
 // import x.json2 {Any}
 // import net.http
-import freeflowuniverse.herolib.baobab.stage { Action }
-import freeflowuniverse.herolib.schemas.openapi { Request }
+import incubaid.herolib.baobab.stage { Action }
+import incubaid.herolib.schemas.openapi { Request }
 
 pub fn openapi_request_to_action(request Request) Action {
 	// // Convert incoming OpenAPI request to a procedure call

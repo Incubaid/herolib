@@ -1,6 +1,6 @@
 module radixtree
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_basic_operations() ! {
 	mut rt := new(path: '/tmp/radixtree_test', reset: true)!

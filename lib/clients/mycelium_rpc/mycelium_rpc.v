@@ -1,7 +1,7 @@
 module mycelium_rpc
 
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.core.httpconnection
 import encoding.base64
 
 // Helper function to get or create the RPC client

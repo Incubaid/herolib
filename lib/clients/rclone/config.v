@@ -1,7 +1,7 @@
 module rclone
 
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.texttools
 import os
 
 const configfile = '${os.home_dir()}/.config/rclone/rclone.conf'

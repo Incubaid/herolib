@@ -1,8 +1,8 @@
 module builder
 
-import freeflowuniverse.herolib.osal.screen
-import freeflowuniverse.herolib.data.ipaddress
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.screen
+import incubaid.herolib.data.ipaddress
+import incubaid.herolib.ui.console
 
 @[params]
 pub struct ForwardArgsToLocal {

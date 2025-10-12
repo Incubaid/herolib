@@ -1,9 +1,9 @@
 module docsorter
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import os
 import json
-import freeflowuniverse.herolib.lang.python
+import incubaid.herolib.lang.python
 
 @[heap]
 pub struct Doc {

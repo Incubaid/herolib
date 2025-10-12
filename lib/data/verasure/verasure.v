@@ -1,7 +1,7 @@
 @[translated]
 module verasure
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 #include "@VMODROOT/jerasure-simple.h"
 

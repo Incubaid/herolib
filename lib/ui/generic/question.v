@@ -1,8 +1,8 @@
 module generic
 
-import freeflowuniverse.herolib.ui.console { UIConsole }
-// import freeflowuniverse.herolib.ui.telegram { UITelegram }
-import freeflowuniverse.herolib.ui.uimodel { QuestionArgs }
+import incubaid.herolib.ui.console { UIConsole }
+// import incubaid.herolib.ui.telegram { UITelegram }
+import incubaid.herolib.ui.uimodel { QuestionArgs }
 
 // args:
 //

@@ -2,8 +2,8 @@ module openrpc
 
 import net.unix
 import os
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.ui.console
+import incubaid.herolib.schemas.jsonrpc
 
 pub struct UNIXServer {
 pub mut:

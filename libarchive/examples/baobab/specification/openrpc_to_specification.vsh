@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.baobab.specification
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.baobab.specification
+import incubaid.herolib.schemas.openrpc
 import os
 
 const example_dir = os.dir(@FILE)

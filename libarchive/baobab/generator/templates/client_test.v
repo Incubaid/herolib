@@ -1,7 +1,7 @@
 module pet_store_actor
 
-import freeflowuniverse.herolib.baobab.stage
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.baobab.stage
+import incubaid.herolib.core.redisclient
 import x.json2 as json
 import time
 

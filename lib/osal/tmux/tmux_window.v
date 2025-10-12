@@ -1,9 +1,9 @@
 module tmux
 
 import os
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 import time
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 @[heap]
 struct Window {

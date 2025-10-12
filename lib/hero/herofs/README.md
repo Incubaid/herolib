@@ -5,6 +5,7 @@ HeroFS is a distributed filesystem implementation built on top of HeroDB (Redis-
 ## Overview
 
 HeroFS implements a filesystem structure where:
+
 - **Fs**: Represents a filesystem as a top-level container
 - **FsDir**: Represents directories within a filesystem
 - **FsFile**: Represents files with support for multiple directory associations
@@ -30,7 +31,7 @@ HeroFS is part of HeroLib and is automatically available when using HeroLib.
 To use HeroFS, you need to create a filesystem factory:
 
 ```v
-import freeflowuniverse.herolib.hero.herofs
+import incubaid.herolib.hero.herofs
 
 mut fs_factory := herofs.new()!
 ```
@@ -39,8 +40,8 @@ mut fs_factory := herofs.new()!
 
 ```v
 mut fs := fs_factory.fs.new(
-	name: 'my_filesystem'
-	quota_bytes: 1000000000 // 1GB quota
+ name: 'my_filesystem'
+ quota_bytes: 1000000000 // 1GB quota
 )!
 fs = fs_factory.fs.set(fs)!
 fs_id := fs.id
@@ -51,17 +52,17 @@ fs_id := fs.id
 ```v
 // Create root directory
 mut root_dir := fs_factory.fs_dir.new(
-	name: 'root'
-	fs_id: fs_id
-	parent_id: 0
+ name: 'root'
+ fs_id: fs_id
+ parent_id: 0
 )!
 root_dir_id := fs_factory.fs_dir.set(root_dir)!
 
 // Create subdirectory
 mut sub_dir := fs_factory.fs_dir.new(
-	name: 'documents'
-	fs_id: fs_id
-	parent_id: root_dir_id
+ name: 'documents'
+ fs_id: fs_id
+ parent_id: root_dir_id
 )!
 sub_dir_id := fs_factory.fs_dir.set(sub_dir)!
 ```
@@ -71,8 +72,8 @@ sub_dir_id := fs_factory.fs_dir.set(sub_dir)!
 ```v
 // Create a blob with binary data
 mut blob := fs_factory.fs_blob.new(
-	data: content_bytes
-	mime_type: 'text/plain'
+ data: content_bytes
+ mime_type: 'text/plain'
 )!
 blob_id := fs_factory.fs_blob.set(blob)!
 ```
@@ -82,10 +83,10 @@ blob_id := fs_factory.fs_blob.set(blob)!
 ```v
 // Create a file
 mut file := fs_factory.fs_file.new(
-	name: 'example.txt'
-	fs_id: fs_id
-	directories: [root_dir_id]
-	blobs: [blob_id]
+ name: 'example.txt'
+ fs_id: fs_id
+ directories: [root_dir_id]
+ blobs: [blob_id]
 )!
 file_id := fs_factory.fs_file.set(file)!
 ```
@@ -95,11 +96,11 @@ file_id := fs_factory.fs_file.set(file)!
 ```v
 // Create a symbolic link to a file
 mut symlink := fs_factory.fs_symlink.new(
-	name: 'example_link.txt'
-	fs_id: fs_id
-	parent_id: root_dir_id
-	target_id: file_id
-	target_type: .file
+ name: 'example_link.txt'
+ fs_id: fs_id
+ parent_id: root_dir_id
+ target_id: file_id
+ target_type: .file
 )!
 symlink_id := fs_factory.fs_symlink.set(symlink)!
 ```

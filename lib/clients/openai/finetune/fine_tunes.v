@@ -1,7 +1,7 @@
 module finetune
 
-import freeflowuniverse.herolib.clients.openai { OpenAI }
-import freeflowuniverse.herolib.clients.openai.files { File }
+import incubaid.herolib.clients.openai { OpenAI }
+import incubaid.herolib.clients.openai.files { File }
 import json
 
 type OpenAIAlias = OpenAI

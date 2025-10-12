@@ -1,6 +1,6 @@
 module docsorter
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import os
 
 fn (mut pc DocSorter) slides_process(path string) ! {

@@ -1,10 +1,10 @@
 module traefik
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import os
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.pathlib
 
 pub const version = '3.3.3'
 const singleton = true

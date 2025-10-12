@@ -4,7 +4,7 @@
 
 ```v
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 mut redis := redisclient.core_get()!
 redis.set('test', 'some data') or { panic('set' + err.str() + '\n' + c.str()) }
@@ -15,5 +15,4 @@ if r != 'some data' {
 
 ```
 
-> redis commands can be found on https://redis.io/commands/
-
+> redis commands can be found on <https://redis.io/commands/>

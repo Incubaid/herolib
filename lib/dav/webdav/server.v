@@ -1,8 +1,8 @@
 module webdav
 
 import time
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import encoding.xml
 import net.urllib
 import net

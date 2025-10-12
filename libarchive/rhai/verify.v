@@ -1,8 +1,8 @@
 module rhai
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 // import strings // No longer needed directly here
-import freeflowuniverse.herolib.lang.rust
+import incubaid.herolib.lang.rust
 import os
 
 // Helper to extract the primary struct name from declarations

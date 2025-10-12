@@ -1,7 +1,7 @@
 ## visual studio code
 
 ```v
-import freeflowuniverse.herolib.develop.vscode
+import incubaid.herolib.develop.vscode
 
 vscode.open(path:"/tmp/something")!
 

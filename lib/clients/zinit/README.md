@@ -26,7 +26,7 @@ Zinit is a process manager that provides service monitoring, dependency manageme
 ### Basic Example
 
 ```v
-import freeflowuniverse.herolib.clients.zinit
+import incubaid.herolib.clients.zinit
 
 // Create a new client
 mut client := zinit.get(create:true)!
@@ -54,7 +54,7 @@ client.service_stop('redis')!
 ### Service Configuration Management
 
 ```v
-import freeflowuniverse.herolib.clients.zinit
+import incubaid.herolib.clients.zinit
 
 mut client := zinit.new_client()!
 
@@ -86,7 +86,7 @@ println('Delete result: ${result}')
 ### Service Statistics
 
 ```v
-import freeflowuniverse.herolib.clients.zinit
+import incubaid.herolib.clients.zinit
 
 mut client := zinit.new_client()!
 
@@ -106,7 +106,7 @@ for child in stats.children {
 ### Log Streaming
 
 ```v
-import freeflowuniverse.herolib.clients.zinit
+import incubaid.herolib.clients.zinit
 
 mut client := zinit.new_client()!
 
@@ -170,7 +170,7 @@ println('Subscribed to logs with ID: ${subscription_id}')
 ### Using the Factory Pattern
 
 ```v
-import freeflowuniverse.herolib.clients.zinit
+import incubaid.herolib.clients.zinit
 
 // Get client using factory (recommended)
 mut client := zinit.get()!
@@ -202,7 +202,7 @@ The client provides comprehensive error handling for all Zinit-specific error co
 - `-32008`: Service file error
 
 ```v
-import freeflowuniverse.herolib.clients.zinit
+import incubaid.herolib.clients.zinit
 
 mut client := zinit.new_client()!
 
@@ -215,5 +215,3 @@ client.service_start('nonexistent') or {
     }
 }
 ```
-
-

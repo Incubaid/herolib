@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.threefold.grid3.gridproxy
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.threefold.grid3.gridproxy
+import incubaid.herolib.ui.console
 
 fn get_all_twins_example() ! {
 	mut gp_client := gridproxy.new(net: .dev, cache: true)!

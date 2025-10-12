@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.core.jobs.model
+import incubaid.herolib.core.jobs.model
 import json
 
 pub fn (mut h OpenRPCServer) handle_request_group(request OpenRPCRequest) !OpenRPCResponse {

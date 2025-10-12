@@ -2,8 +2,8 @@ module deployer2
 
 import json
 import log
-import freeflowuniverse.herolib.builder
-import freeflowuniverse.herolib.threefold.grid3.models
+import incubaid.herolib.builder
+import incubaid.herolib.threefold.grid3.models
 
 struct VMSpecs {
 	deployment_name  string

@@ -47,7 +47,7 @@ It's good practice to define object type schemas separately and reference them i
 ## Json Schema Decode & Validation
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.jsonschema
 mut myschema:=jsonschema.decode("the spec...")!
 
 ## Code Generation
@@ -58,8 +58,8 @@ The module can generate JSON Schema from V code models, making it easy to create
 
 ```v
 // Example: Generate JSON Schema from a V struct
-import freeflowuniverse.herolib.core.code
-import freeflowuniverse.herolib.schemas.jsonschema.codegen
+import incubaid.herolib.core.code
+import incubaid.herolib.schemas.jsonschema.codegen
 
 // Create a struct model
 struct_ := code.Struct{
@@ -105,8 +105,8 @@ schema := codegen.struct_to_schema(struct_)
 The module can also generate V code from JSON Schema:
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.schemas.jsonschema.codegen
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.jsonschema.codegen
 
 // Create or load a JSON Schema
 schema := jsonschema.Schema{
@@ -159,8 +159,6 @@ schema := jsonschema.Schema{
 #### Anonymous Structs
 
 When generating schemas from V structs with anonymous struct fields, the module creates inline schema definitions in the property field, similar to how anonymous structs work in V.
-
-
 
 ## Notes
 

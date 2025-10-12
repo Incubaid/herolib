@@ -1,9 +1,9 @@
 module paramsparser
 
 import time
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 import v.reflection
-// import freeflowuniverse.herolib.data.encoderhero
+// import incubaid.herolib.data.encoderhero
 // TODO: support more field types
 
 pub fn (params Params) decode[T](args T) !T {

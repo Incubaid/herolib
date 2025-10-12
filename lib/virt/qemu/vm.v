@@ -1,8 +1,8 @@
 module qemu
 
 import os
-import freeflowuniverse.herolib.builder
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.builder
+import incubaid.herolib.ui.console
 
 @[heap]
 pub struct VM {

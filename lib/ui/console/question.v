@@ -1,8 +1,8 @@
 module console
 
 import os
-import freeflowuniverse.herolib.ui.uimodel { QuestionArgs }
-// import freeflowuniverse.herolib.ui.console { color_fg }
+import incubaid.herolib.ui.uimodel { QuestionArgs }
+// import incubaid.herolib.ui.console { color_fg }
 
 // args:
 // - description string

@@ -6,14 +6,14 @@ The algo's used have been optimized for scalability and human readability, the i
 
 - dbcollection, can linked to a context of hero (can be a circle or another area worth remembering things for)
 - db, there can be more than 1 db per dbcollection
-- the secret is specified per dbcollection 
+- the secret is specified per dbcollection
 - each subdb inherits the secret from the dbcollection but needs to be configured as encrypted
 
 ```v
 
 > TODO: fix, we refactored
 
-import freeflowuniverse.herolib.data.dbfs
+import incubaid.herolib.data.dbfs
 
 mut dbcollection := get(context: 'test', secret: '123456')!
 
@@ -27,10 +27,9 @@ assert 'bbbb' == db.get('a')!
 
 ## dbfs examples
 
-
 ```go
 
-import freeflowuniverse.herolib.data.dbfs
+import incubaid.herolib.data.dbfs
 
 mut dbcollection := get(context: 'test', secret: '123456')!
 
@@ -47,7 +46,7 @@ fn (mut db DB) set(name_ string, data_ string) !
 
 //check if entry exists based on keyname
 fn (mut db DB) exists(name_ string) bool
-	
+ 
 //delete an entry
 fn (mut db DB) delete(name_ string) !
 

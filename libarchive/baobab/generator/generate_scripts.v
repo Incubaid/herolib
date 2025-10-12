@@ -1,7 +1,7 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { File, Folder }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.develop.codetools as code { File, Folder }
+import incubaid.herolib.core.texttools
 
 // generates the folder with runnable scripts of the actor
 pub fn generate_scripts_folder(name string, example bool) Folder {

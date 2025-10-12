@@ -1,8 +1,8 @@
 module traefik
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.osal.traefik as osal_traefik
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.osal.traefik as osal_traefik
 
 __global (
 	traefik_managers map[string]&TraefikManager

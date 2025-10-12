@@ -1,6 +1,6 @@
 module dbfs
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 // will use default connection and get database with name as specified
 // is not encrypted

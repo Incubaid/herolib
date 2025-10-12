@@ -1,8 +1,8 @@
 module garage_s3
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.pathlib
 import rand
 
 pub const version = '1.0.1'

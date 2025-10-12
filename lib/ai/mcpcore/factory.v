@@ -4,7 +4,7 @@ import time
 import os
 import log
 import x.json2
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 @[params]
 pub struct ServerParams {

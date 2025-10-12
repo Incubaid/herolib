@@ -1,8 +1,8 @@
 module ipaddress
 
 import os
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core
+import incubaid.herolib.ui.console
 
 pub struct IPNetwork {
 	IPAddress

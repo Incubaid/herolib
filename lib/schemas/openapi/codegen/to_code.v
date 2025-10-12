@@ -1,8 +1,8 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schemaref_to_type }
-import freeflowuniverse.herolib.schemas.openapi { ResponseSpec }
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schemaref_to_type }
+import incubaid.herolib.schemas.openapi { ResponseSpec }
 
 // converts OpenAPI Parameter Specification
 // to code param specification

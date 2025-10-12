@@ -1,8 +1,8 @@
 module investortool
 
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.core.playbook
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.data.currency
 
 @[heap]
 pub struct InvestmentShares {

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v run
 
 // Example struct to cache
-import freeflowuniverse.herolib.data.cache
+import incubaid.herolib.data.cache
 import time
 
 @[heap]

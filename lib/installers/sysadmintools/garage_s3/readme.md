@@ -1,14 +1,12 @@
 # garage_s3
 
-
-
 To get started
 
 ```v
 
 
 
-import freeflowuniverse.herolib.installers.something. garage_s3
+import incubaid.herolib.installers.something. garage_s3
 
 mut installer:= garage_s3.get()!
 
@@ -21,7 +19,6 @@ installer.start()!
 
 ## example heroscript
 
-
 ```hero
 !!garage_s3.install
     homedir: '/home/user/garage_s3'
@@ -32,5 +29,3 @@ installer.start()!
     port: 8888
 
 ```
-
-

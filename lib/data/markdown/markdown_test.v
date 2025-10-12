@@ -1,8 +1,8 @@
 module markdown
 
-import freeflowuniverse.herolib.data.paramsparser { Param, Params }
-import freeflowuniverse.herolib.data.markdown.elements { Action, Codeblock, Header, Link, List, Paragraph, Table, Text }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.paramsparser { Param, Params }
+import incubaid.herolib.data.markdown.elements { Action, Codeblock, Header, Link, List, Paragraph, Table, Text }
+import incubaid.herolib.ui.console
 
 const text = "
 # Farmerbot
@@ -19,7 +19,7 @@ The farmerbot has been implemented using the actor model principles. It contains
 
 The first actor is the nodemanager which is in charge of executing jobs related to nodes (e.g. finding a suitable node). The second actor is the powermanager which allows us to power on and off nodes in the farm.
 
-Actors can schedule the execution of jobs for other actors which might or might not be running on the same system. For example, the nodemanager might schedule the execution of a job to power on a node (which is meant for the powermanager). The repository [baobab](https://github.com/freeflowuniverse/baobab) contains the logic for scheduling jobs.
+Actors can schedule the execution of jobs for other actors which might or might not be running on the same system. For example, the nodemanager might schedule the execution of a job to power on a node (which is meant for the powermanager). The repository [baobab](https://github.com/incubaid/baobab) contains the logic for scheduling jobs.
 
 Jobs don't have to originate from the system running the farmerbot. It may as well be scheduled from another system (with another twin id). The job to find a suitable node for example will come from the TSClient (which is located on another system). These jobs will be send from the TSClient to the farmerbot via [RMB](https://github.com/threefoldtech/rmb-rs).
 

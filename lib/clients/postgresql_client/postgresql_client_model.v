@@ -1,8 +1,8 @@
 module postgresql_client
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.ui.console
 import os
 import db.pg
 

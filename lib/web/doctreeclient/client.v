@@ -1,7 +1,7 @@
 module doctreeclient
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.texttools
 import os
 
 // List of recognized image file extensions

@@ -2,7 +2,7 @@ module zerohub
 
 import net.http
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 const secret = '6Pz6giOpHSaA3KdYI6LLpGSLmDmzmRkVdwvc7S-E5PVB0-iRfgDKW9Rb_ZTlj-xEW4_uSCa5VsyoRsML7DunA1sia3Jpc3RvZi4zYm90IiwgMTY3OTIxNTc3MF0='
 

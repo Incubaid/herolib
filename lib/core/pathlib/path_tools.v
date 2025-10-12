@@ -1,11 +1,11 @@
 module pathlib
 
 import os
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import time
 import crypto.md5
 import rand
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // check path exists
 pub fn (mut path Path) exists() bool {

@@ -1,8 +1,8 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs as vfs_mod
+import incubaid.herolib.vfs as vfs_mod
 import os
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.data.ourdb
 import rand
 
 fn setup_vfs() !&DatabaseVFS {

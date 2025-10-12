@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -no-retry-compilation -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.develop.gittools
 import os
 
 heroscript := "

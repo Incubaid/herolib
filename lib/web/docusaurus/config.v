@@ -1,7 +1,7 @@
 module docusaurus
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 __global (
 	docusaurus_sites  map[string]&DocSite

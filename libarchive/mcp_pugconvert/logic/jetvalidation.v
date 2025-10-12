@@ -1,6 +1,6 @@
 module pugconvert
 
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 import json
 
 // JetTemplateResponse is the expected response structure from the validation service

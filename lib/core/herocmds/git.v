@@ -1,7 +1,7 @@
 module herocmds
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.ui.console
 import cli { Command, Flag }
 import os
 
@@ -19,7 +19,7 @@ pub fn cmd_git(mut cmdroot Command) {
 		sort_flags:  true
 		name:        'clone'
 		execute:     cmd_git_execute
-		description: 'will clone the repo based on a given url, e.g. https://github.com/freeflowuniverse/webcomponents/tree/main'
+		description: 'will clone the repo based on a given url, e.g. https://github.com/incubaid/webcomponents/tree/main'
 	}
 
 	mut pull_command := Command{

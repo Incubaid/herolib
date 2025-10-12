@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -no-retry-compilation -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.biz.bizmodel
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.biz.bizmodel
+import incubaid.herolib.core.playbook
 import os
 
 heroscript := "

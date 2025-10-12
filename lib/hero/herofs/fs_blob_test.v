@@ -1,12 +1,12 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.hero.user
+import incubaid.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.hero.user
 import json
-import freeflowuniverse.herolib.hero.herofs { FsBlob }
+import incubaid.herolib.hero.herofs { FsBlob }
 
 fn test_fs_blob_new() ! {
 	mut factory := new_test()!

@@ -1,6 +1,6 @@
 module farmingsimulator
 
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.core.playbook
 
 pub struct ParamsCultivation {
 pub mut:

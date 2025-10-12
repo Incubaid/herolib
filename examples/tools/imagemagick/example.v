@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.conversiontools.imagemagick
+import incubaid.herolib.conversiontools.imagemagick
 import gittools
 
 fn do() ! {

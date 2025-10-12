@@ -1,13 +1,11 @@
 # golang
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.lang.golang
+import incubaid.herolib.installers.lang.golang
 
 mut installer:= golang.get()!
 
@@ -15,4 +13,3 @@ mut installer:= golang.get()!
 installer.install()!
 
 ```
-

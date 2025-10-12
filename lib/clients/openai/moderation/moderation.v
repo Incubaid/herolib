@@ -1,7 +1,7 @@
 module moderation
 
 import json
-import freeflowuniverse.herolib.clients.openai { OpenAI }
+import incubaid.herolib.clients.openai { OpenAI }
 
 type OpenAIAlias = OpenAI
 

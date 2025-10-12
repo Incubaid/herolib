@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
-import freeflowuniverse.herolib.hero.herofs_server
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.hero.herofs_server
+import incubaid.herolib.ui.console
 
 fn main() {
 	console.print_header('HeroFS REST API Server Example')

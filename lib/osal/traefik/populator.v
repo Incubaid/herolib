@@ -1,7 +1,7 @@
 module traefik
 
 import json
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 // new_traefik_config creates a new TraefikConfig
 pub fn new_traefik_config() TraefikConfig {

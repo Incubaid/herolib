@@ -1,9 +1,9 @@
 module specification
 
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.schemas.jsonschema { Schema, SchemaRef }
-import freeflowuniverse.herolib.schemas.openapi
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.schemas.jsonschema { Schema, SchemaRef }
+import incubaid.herolib.schemas.openapi
+import incubaid.herolib.schemas.openrpc
 
 const actor_spec = ActorSpecification{
 	name:       'Petstore'

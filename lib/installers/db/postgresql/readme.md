@@ -1,14 +1,12 @@
 # postgresql
 
-
-
 To get started
 
 ```v
 
 
 
-import freeflowuniverse.herolib.installers.something. postgresql
+import incubaid.herolib.installers.something. postgresql
 
 mut installer:= postgresql.get()!
 
@@ -21,7 +19,6 @@ installer.start()!
 
 ## example heroscript
 
-
 ```hero
 !!postgresql.install
     homedir: '/home/user/postgresql'
@@ -32,5 +29,3 @@ installer.start()!
     port: 8888
 
 ```
-
-

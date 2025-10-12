@@ -1,6 +1,6 @@
 module heromodels
 
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.hero.db
 
 fn test_calendar_event_new() ! {
 	// Initialize DBCalendarEvent for testing
@@ -17,7 +17,7 @@ fn test_calendar_event_new() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -25,7 +25,7 @@ fn test_calendar_event_new() ! {
 		color:          '#0000FF'
 		timezone:       'UTC'
 		priority:       .normal // Added missing priority field
-		is_template:    false // Added missing is_template field
+		is_template:    false   // Added missing is_template field
 		securitypolicy: 0
 		tags:           []string{}
 		messages:       []db.MessageArg{}
@@ -64,7 +64,7 @@ fn test_calendar_event_crud_operations() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -108,7 +108,7 @@ fn test_calendar_event_crud_operations() ! {
 		start_time:     '2025-01-01 12:00:00'
 		end_time:       '2025-01-01 13:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    2
 		status:         .draft
 		is_all_day:     true
@@ -122,7 +122,7 @@ fn test_calendar_event_crud_operations() ! {
 
 	mut updated_event := db_calendar_event.new(updated_args)!
 	updated_event.id = original_id
-	
+
 	updated_event = db_calendar_event.set(updated_event)!
 
 	// Verify update
@@ -163,7 +163,7 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -189,7 +189,6 @@ fn test_calendar_event_attendees_encoding_decoding() ! {
 	println('✓ CalendarEvent attendees encoding/decoding test passed!')
 }
 
-
 fn test_calendar_event_registration_desks_encoding_decoding() ! {
 	// Initialize DBCalendarEvent for testing
 	mut mydb := db.new_test()!
@@ -205,7 +204,7 @@ fn test_calendar_event_registration_desks_encoding_decoding() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -246,7 +245,7 @@ fn test_calendar_event_docs_encoding_decoding() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -287,7 +286,7 @@ fn test_calendar_event_type_name() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -323,7 +322,7 @@ fn test_calendar_event_description() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false
@@ -363,7 +362,7 @@ fn test_calendar_event_example() ! {
 		start_time:     '2025-01-01 10:00:00'
 		end_time:       '2025-01-01 11:00:00'
 		attendees:      []u32{}
-		docs:       []u32{}
+		docs:           []u32{}
 		calendar_id:    1
 		status:         .published
 		is_all_day:     false

@@ -1,6 +1,6 @@
 module openssl
 
-import freeflowuniverse.herolib.core.pathlib { Path }
+import incubaid.herolib.core.pathlib { Path }
 import json
 
 pub struct OpenSSLKey {

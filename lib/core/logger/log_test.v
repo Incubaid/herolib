@@ -1,8 +1,8 @@
 module logger
 
 import os
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.core.pathlib
 
 fn testsuite_begin() {
 	if os.exists('/tmp/testlogs') {

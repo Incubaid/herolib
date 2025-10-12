@@ -1,7 +1,7 @@
 module playcmds
 
-import freeflowuniverse.herolib.develop.luadns
-import freeflowuniverse.herolib.core.playbook { PlayBook }
+import incubaid.herolib.develop.luadns
+import incubaid.herolib.core.playbook { PlayBook }
 // import os
 
 fn play_luadns(mut plbook PlayBook) ! {

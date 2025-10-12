@@ -1,7 +1,7 @@
 module rhai
 
 import log
-import freeflowuniverse.herolib.ai.escalayer
+import incubaid.herolib.ai.escalayer
 
 // pub struct WrapperGenerator {
 // pub:

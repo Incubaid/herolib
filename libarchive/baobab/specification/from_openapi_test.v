@@ -1,10 +1,10 @@
 module specification
 
 import x.json2 as json
-import freeflowuniverse.herolib.develop.codetools as code { Struct }
-import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec }
-import freeflowuniverse.herolib.schemas.openapi { Components, Info, OpenAPI, Operation, PathItem, ServerSpec }
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
+import incubaid.herolib.develop.codetools as code { Struct }
+import incubaid.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec }
+import incubaid.herolib.schemas.openapi { Components, Info, OpenAPI, Operation, PathItem, ServerSpec }
+import incubaid.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
 
 const openapi_spec = OpenAPI{
 	openapi:    '3.0.3'

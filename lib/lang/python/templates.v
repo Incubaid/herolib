@@ -1,7 +1,7 @@
 module python
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
 import os
 
 @[params]

@@ -1,6 +1,6 @@
 module doctreeclient
 
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 pub fn new() !&DocTreeClient {
 	mut context := base.context()!

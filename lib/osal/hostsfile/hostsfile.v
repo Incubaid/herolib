@@ -1,7 +1,7 @@
 module hostsfile
 
 import os
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 
 const hosts_file_path = '/etc/hosts'
 

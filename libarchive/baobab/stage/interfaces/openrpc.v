@@ -1,7 +1,7 @@
 module interfaces
 
-import freeflowuniverse.herolib.baobab.stage { Client }
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.baobab.stage { Client }
+import incubaid.herolib.schemas.jsonrpc
 
 // handler for test echoes JSONRPC Request as JSONRPC Response
 fn handler(request jsonrpc.Request) !jsonrpc.Response {

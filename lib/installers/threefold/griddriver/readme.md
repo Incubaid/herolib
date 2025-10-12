@@ -3,11 +3,11 @@
 To use the installer:
 
 ```v
-import freeflowuniverse.herolib.installers.threefold.griddriver
+import incubaid.herolib.installers.threefold.griddriver
 
 fn main() {
-	mut installer := griddriver.get()!
-	installer.install()!
+ mut installer := griddriver.get()!
+ installer.install()!
 }
 ```
 

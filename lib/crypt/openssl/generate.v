@@ -1,6 +1,6 @@
 module openssl
 
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.builder
 import json
 
 @[params]

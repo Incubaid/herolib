@@ -54,7 +54,6 @@ there will be a ```.heroscript``` in the director you want to generate for, the 
 
 needs to be put as .heroscript in the directories which we want to generate
 
-
 ## templates remarks
 
 in templates:
@@ -71,7 +70,7 @@ to call in code
 ```v
 #!/usr/bin/env -S v -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.generator.generic
+import incubaid.herolib.core.generator.generic
 
 generic.scan(path:"~/code/github/incubaid/herolib/herolib/installers",force:true)!
 
@@ -83,4 +82,3 @@ to run from bash
 ```bash
 ~/code/github/incubaid/herolib/scripts/fix_installers.vsh
 ```
-

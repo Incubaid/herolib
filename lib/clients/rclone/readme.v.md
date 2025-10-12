@@ -12,12 +12,12 @@ This module provides a V language interface to RCloneClient, a command line prog
 
 ## Prerequisites
 
-RCloneClient must be installed on your system. Visit https://rclone.org/install/ for installation instructions.
+RCloneClient must be installed on your system. Visit <https://rclone.org/install/> for installation instructions.
 
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.osal.core.rclone
+import incubaid.herolib.osal.core.rclone
 
 fn main() {
     // Create a new RCloneClient instance

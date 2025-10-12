@@ -1,8 +1,8 @@
 module console
 
-// import freeflowuniverse.herolib.core.texttools
-// import freeflowuniverse.herolib.ui.console { color_fg }
-import freeflowuniverse.herolib.ui.uimodel { DropDownArgs }
+// import incubaid.herolib.core.texttools
+// import incubaid.herolib.ui.console { color_fg }
+import incubaid.herolib.ui.uimodel { DropDownArgs }
 import os
 
 fn (mut c UIConsole) ask_dropdown_internal(args DropDownArgs) !string {

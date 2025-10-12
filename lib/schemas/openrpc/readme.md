@@ -18,7 +18,7 @@ This module provides a complete implementation of the [OpenRPC specification](ht
 Create a handler with your OpenRPC specification:
 
 ```v
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.schemas.openrpc
 
 // From file path
 mut handler := openrpc.new_handler('path/to/openrpc.json')!
@@ -62,4 +62,3 @@ controller.run(port: 8080)
 mut server := openrpc.new_unix_server(handler)!
 server.start()
 ```
-

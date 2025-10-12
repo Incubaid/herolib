@@ -2,8 +2,8 @@ module pathlib
 
 import os
 import regex
-// import freeflowuniverse.herolib.core.smartid
-import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.core.smartid
+import incubaid.herolib.ui.console
 
 @[params]
 pub struct ListArgs {

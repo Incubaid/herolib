@@ -1,9 +1,9 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-// import freeflowuniverse.herolib.virt.lima
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.virt.lima as limainstaller
+// import incubaid.herolib.virt.lima
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.virt.lima as limainstaller
 import os
 
 mut i := limainstaller.get(create: true)!

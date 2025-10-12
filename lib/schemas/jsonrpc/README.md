@@ -32,14 +32,14 @@ Create a new JSON-RPC client using a custom transport layer. The transport must 
 ```v
 pub interface IRPCTransportClient {
 mut:
-	send(request string, params SendParams) !string
+ send(request string, params SendParams) !string
 }
 ```
 
 #### Example: WebSocket Transport
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 import net.websocket
 
 // Implement the IRPCTransportClient interface for WebSocket
@@ -84,7 +84,7 @@ mut client := jsonrpc.new_client(jsonrpc.Client{
 #### Example: Unix Domain Socket Transport
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 import net.unix
 import time
 
@@ -149,7 +149,7 @@ mut client := jsonrpc.new_client(jsonrpc.Client{
 Send a strongly-typed JSON-RPC request and handle the response.
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Define your parameter and result types
 struct UserParams {
@@ -192,7 +192,7 @@ println('User name: ${user.name}, email: ${user.email}, role: ${user.role}')
 Use the predefined JSON-RPC errors or create custom ones.
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Predefined error
 err := jsonrpc.method_not_found
@@ -216,7 +216,7 @@ println(response)
 The JSON-RPC module provides strong typing for responses using generics, allowing you to define the exact structure of your expected results.
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Define your result type
 struct ServerStats {
@@ -256,7 +256,7 @@ if !response.is_error() {
 When implementing a JSON-RPC server, you can create strongly-typed responses:
 
 ```v
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Define a result type
 struct SearchResult {
@@ -286,23 +286,31 @@ println(json)
 ## Modules and Key Components
 
 ### 1. **`model_request.v`**
+
 Handles JSON-RPC requests:
+
 - Structs: `Request`, `RequestGeneric[T]`
 - Methods: `new_request`, `new_request_generic[T]`, `decode_request`, `decode_request_generic[T]`, etc.
 
 ### 2. **`model_response.v`**
+
 Handles JSON-RPC responses:
+
 - Structs: `Response`, `ResponseGeneric[D]`
 - Methods: `new_response`, `new_response_generic[D]`, `decode_response`, `decode_response_generic[D]`, `validate`, etc.
 
 ### 3. **`model_error.v`**
+
 Manages JSON-RPC errors:
+
 - Struct: `RPCError`
 - Predefined errors: `parse_error`, `invalid_request`, etc.
 - Methods: `msg`, `is_empty`, etc.
 
 ### 4. **`client.v`**
+
 Implements the JSON-RPC client:
+
 - Structs: `Client`, `SendParams`, `ClientConfig`
 - Interface: `IRPCTransportClient`
 - Method: `send[T, D]` - Generic method for sending requests with parameters of type T and receiving responses with results of type D

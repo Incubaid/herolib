@@ -1,7 +1,7 @@
 module luadns
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.gittools
 
 // returns the directory of the git repository for the dns
 pub fn (dns LuaDNS) directory() !pathlib.Path {

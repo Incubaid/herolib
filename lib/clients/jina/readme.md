@@ -1,15 +1,13 @@
 # jina
 
-see https://jina.ai/
-
-
+see <https://jina.ai/>
 
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.clients. jina
+import incubaid.herolib.clients. jina
 
 mut client:= jina.get()!
 
@@ -28,5 +26,3 @@ client...
     host: 'localhost'
     port: 8888
 ```
-
-

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cg -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.web.starlight
-// import freeflowuniverse.herolib.data.doctree
+import incubaid.herolib.web.starlight
+// import incubaid.herolib.data.doctree
 
 // Create a new starlight factory
 mut docs := starlight.new(

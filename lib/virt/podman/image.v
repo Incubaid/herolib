@@ -1,8 +1,8 @@
 module podman
 
-import freeflowuniverse.herolib.osal.core as osal { exec }
+import incubaid.herolib.osal.core as osal { exec }
 import time
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // PodmanImage represents a podman image with structured data from CLI JSON output
 pub struct PodmanImage {

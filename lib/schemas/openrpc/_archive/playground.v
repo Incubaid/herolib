@@ -1,9 +1,9 @@
 module openrpc
 
 import x.json2 as json
-// import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.texttools
+// import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.texttools
 import veb
 import os
 
@@ -32,7 +32,7 @@ pub fn export_playground(config PlaygroundConfig) ! {
 	// css_dest := '${os.dir(@FILE)}/static/css/index.css'
 	// tw.compile(css_source, css_dest)!
 	// mut gs := gittools.new() or { panic(err) }
-	// mut repo := gs.get_repo(url: 'https://github.com/freeflowuniverse/playground')!
+	// mut repo := gs.get_repo(url: 'https://github.com/incubaid/playground')!
 
 	// playground_dir := repo.get_path()!
 

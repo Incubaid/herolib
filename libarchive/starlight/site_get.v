@@ -1,10 +1,10 @@
 module starlight
 
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.texttools
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.ui.console
 
 @[params]
 pub struct SiteGetArgs {
@@ -46,7 +46,7 @@ pub fn (mut f StarlightFactory) get(args_ SiteGetArgs) !&DocSite {
 	args.path = args.path.replace('~', os.home_dir())
 
 	mut r := gs.get_repo(
-		url: 'https://github.com/freeflowuniverse/starlight_template.git'
+		url: 'https://github.com/incubaid/starlight_template.git'
 	)!
 	mut template_path := r.patho()!
 

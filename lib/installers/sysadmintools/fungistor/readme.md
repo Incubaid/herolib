@@ -1,13 +1,11 @@
 # fungistor
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.fungistor as fungistor_installer
+import incubaid.herolib.installers.something.fungistor as fungistor_installer
 
 heroscript:="
 !!fungistor.configure name:'test'
@@ -40,5 +38,3 @@ fungistor_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

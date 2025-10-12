@@ -2,7 +2,7 @@ module main
 
 import os
 import time
-import freeflowuniverse.herolib.osal.zinit
+import incubaid.herolib.osal.zinit
 
 fn main() {
 	do() or { panic(err) }

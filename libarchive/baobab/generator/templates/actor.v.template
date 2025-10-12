@@ -1,7 +1,7 @@
 import os
-import freeflowuniverse.herolib.baobab.stage
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.schemas.openapi
+import incubaid.herolib.baobab.stage
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.schemas.openapi
 import time
 
 pub const configuration = stage.ActorConfig {

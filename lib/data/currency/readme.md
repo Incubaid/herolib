@@ -16,7 +16,7 @@ A comprehensive currency handling module for V that supports both fiat and crypt
 ### Working with Amounts
 
 ```v
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.currency
 
 // Parse amount from string
 mut amount := currency.amount_get('20 USD')!
@@ -71,6 +71,7 @@ amount_get('1M EUR')      // M multiplier for millions
 - `M` or `m`: Multiplies the amount by 1,000,000
 
 Examples:
+
 ```v
 amount_get('5k USD')!     // 5,000 USD
 amount_get('2.5K EUR')!   // 2,500 EUR

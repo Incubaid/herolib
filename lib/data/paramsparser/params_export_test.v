@@ -1,7 +1,7 @@
 module paramsparser
 
 import crypto.sha256
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 const textin5 = "
 	//this is first comment (line1)

@@ -1,8 +1,8 @@
 module tmux
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import time
 
 // Check if error message indicates tmux server is not running

@@ -1,11 +1,11 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-// import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import log
 import os
 import markdown
-import freeflowuniverse.herolib.data.markdownparser2
+import incubaid.herolib.data.markdownparser2
 
 path1 := '${os.home_dir()}/code/github/incubaid/herolib/examples/web/mdbook_markdown/content/cybercity.md'
 

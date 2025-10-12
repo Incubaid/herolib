@@ -1,6 +1,6 @@
 module docusaurus
 
-import freeflowuniverse.herolib.web.site
+import incubaid.herolib.web.site
 
 // IS THE ONE AS USED BY DOCUSAURUS
 

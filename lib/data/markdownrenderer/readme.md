@@ -11,7 +11,7 @@ This module provides functionality for rendering Markdown content in various for
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.data.markdownrenderer
+import incubaid.herolib.data.markdownrenderer
 
 // Example usage
 md_text := '# Hello World\n\nThis is a paragraph.'
@@ -23,8 +23,6 @@ structure_output := markdownrenderer.to_structure(md_text)
 ## Dependencies
 
 This module depends on the V language Markdown parser:
-https://github.com/vlang/markdown/tree/master
+<https://github.com/vlang/markdown/tree/master>
 
 For more detailed information, refer to the individual renderer implementations in this module.
-
-

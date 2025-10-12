@@ -1,6 +1,6 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // FSEntry represents any type of filesystem entry
 pub type FSEntry = Directory | File | Symlink

@@ -1,6 +1,6 @@
 module pathlib
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 
 type Filter0 = fn (mut Path, mut paramsparser.Params) !bool
 

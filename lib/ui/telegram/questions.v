@@ -1,8 +1,8 @@
 module telegram
 
 import os
-import freeflowuniverse.herolib.ui.uimodel
-// import freeflowuniverse.herolib.timetools
+import incubaid.herolib.ui.uimodel
+// import incubaid.herolib.timetools
 
 // // args:
 // // - description string

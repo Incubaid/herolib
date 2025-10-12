@@ -1,6 +1,6 @@
 module currency
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // pub fn test_amount_get() {
 // 	// assert amount_get("U s d 900").val == 900

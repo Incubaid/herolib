@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.hero.heroserver
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.hero.heroserver
+import incubaid.herolib.schemas.openrpc
 import os
 
 // 1. Create a new server instance

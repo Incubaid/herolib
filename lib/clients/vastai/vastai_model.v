@@ -1,7 +1,7 @@
 module vastai
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.core.httpconnection
 import os
 
 pub const version = '1.14.3'

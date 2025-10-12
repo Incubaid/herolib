@@ -1,6 +1,6 @@
 module mnemonic
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 #include "@VMODROOT/vnemonic.h"
 

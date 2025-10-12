@@ -1,7 +1,7 @@
 module openapi
 
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
+import incubaid.herolib.core.texttools
 import os
 import maps
 

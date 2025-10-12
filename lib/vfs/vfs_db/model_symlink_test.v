@@ -1,6 +1,6 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs as vfs_mod
+import incubaid.herolib.vfs as vfs_mod
 
 fn test_symlink_get_metadata() {
 	// Create a symlink with metadata

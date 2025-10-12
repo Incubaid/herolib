@@ -1,6 +1,6 @@
 module vfs_local
 
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // LocalFSEntry implements FSEntry for local filesystem
 struct LocalFSEntry {

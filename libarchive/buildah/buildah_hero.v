@@ -1,6 +1,6 @@
 module buildah
 
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 
 // copies the hero from host into guest and then execute the heroscript or commandline
 pub fn (mut self BuildAHContainer) hero_cmd_execute(cmd string) ! {

@@ -2,7 +2,7 @@ module openrpc
 
 import json
 import x.json2 { Any }
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, decode_schemaref }
+import incubaid.herolib.schemas.jsonschema { Reference, decode_schemaref }
 
 pub fn decode_json_any(data string) !Any {
 	// mut o:=decode(data)!

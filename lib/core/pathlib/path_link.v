@@ -1,7 +1,7 @@
 module pathlib
 
 import os
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 
 // path needs to be existing
 // linkpath is where the link will be (the symlink who points to path)

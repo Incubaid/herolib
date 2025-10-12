@@ -1,6 +1,6 @@
 module stage
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 // Processor struct for managing procedure calls
 pub struct Client {

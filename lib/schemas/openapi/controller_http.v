@@ -1,7 +1,7 @@
 module openapi
 
 import veb
-import freeflowuniverse.herolib.schemas.jsonschema { Schema }
+import incubaid.herolib.schemas.jsonschema { Schema }
 import x.json2 { Any }
 import net.http
 import os

@@ -1,9 +1,9 @@
 module tmux
 
-import freeflowuniverse.herolib.osal.core as osal
-// import freeflowuniverse.herolib.installers.tmux
+import incubaid.herolib.osal.core as osal
+// import incubaid.herolib.installers.tmux
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 const testpath = os.dir(@FILE) + '/testdata'
 

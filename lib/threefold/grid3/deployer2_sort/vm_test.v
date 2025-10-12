@@ -1,6 +1,6 @@
 module deployer2
 
-import freeflowuniverse.herolib.installers.threefold.griddriver
+import incubaid.herolib.installers.threefold.griddriver
 import os
 
 fn testsuite_begin() ! {

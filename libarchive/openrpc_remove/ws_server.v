@@ -1,7 +1,7 @@
 module openrpc
 
 import net.websocket
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 import json
 import rand
 

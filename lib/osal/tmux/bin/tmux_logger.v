@@ -2,8 +2,8 @@ module main
 
 import os
 import io
-import freeflowuniverse.herolib.core.logger
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.logger
+import incubaid.herolib.core.texttools
 
 struct Args {
 mut:

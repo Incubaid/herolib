@@ -7,7 +7,7 @@ The spreadsheet module provides powerful functionalities to aggregate and transf
 The `group2row` method allows you to select rows based on their tags and aggregate their values into a new, single row. This is particularly useful for creating summary rows (e.g., total salaries for a specific department).
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // Assuming 'my_sheet' is an existing Sheet object with various rows
 // and some rows have tags like 'department:dev' or 'department:engineering'.
@@ -33,6 +33,7 @@ mut total_salaries_row := my_sheet.group2row(
 ```
 
 **`Group2RowArgs` Parameters:**
+
 - `name` (string, required): The name of the new aggregated row.
 - `include` ([]string, optional): A list of tags to include. Rows must match at least one of these tags to be included in the aggregation. Supports wildcard matching (e.g., `location:belgium_*`).
 - `exclude` ([]string, optional): A list of tags to exclude. Rows matching any of these tags will be excluded from the aggregation.
@@ -40,10 +41,10 @@ mut total_salaries_row := my_sheet.group2row(
 - `descr` (string, optional): Description for the new aggregated row.
 - `subgroup` (string, optional): Subgroup for the new aggregated row.
 - `aggregatetype` (`RowAggregateType`, optional, default: `.sum`): The type of aggregation to perform.
-    - `.sum`: Sums the values of matching cells.
-    - `.avg`: Calculates the average of matching cells.
-    - `.max`: Finds the maximum value among matching cells.
-    - `.min`: Finds the minimum value among matching cells.
+  - `.sum`: Sums the values of matching cells.
+  - `.avg`: Calculates the average of matching cells.
+  - `.max`: Finds the maximum value among matching cells.
+  - `.min`: Finds the minimum value among matching cells.
 
 ## Transforming Sheet Periodicity (Yearly/Quarterly Aggregation)
 
@@ -54,7 +55,7 @@ The module allows you to create new sheets where the data is aggregated into lar
 The `toyear` method creates a new sheet where monthly data is aggregated into yearly columns.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // Assuming 'monthly_sheet' is a sheet with 60 columns (5 years of monthly data)
 mut monthly_sheet := spreadsheet.sheet_new(name: 'monthly_data', nrcol: 60)!
@@ -74,7 +75,7 @@ mut yearly_sheet := monthly_sheet.toyear(
 Similarly, the `toquarter` method creates a new sheet with data aggregated into quarterly columns.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // Assuming 'monthly_sheet' is a sheet with 60 columns
 mut monthly_sheet := spreadsheet.sheet_new(name: 'monthly_data', nrcol: 60)!
@@ -87,6 +88,7 @@ mut quarterly_sheet := monthly_sheet.toquarter(
 ```
 
 **`ToYearQuarterArgs` Parameters:**
+
 - `name` (string, optional): The name of the new aggregated sheet. If empty, a default name based on the original sheet and period (e.g., `original_sheet_name_year`) is used.
 - `namefilter` ([]string, optional): A list of exact row names to include in the new sheet. If provided, only these rows will be processed.
 - `includefilter` ([]string, optional): A list of tags to include. Rows must match at least one of these tags to be included.

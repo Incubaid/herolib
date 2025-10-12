@@ -5,6 +5,7 @@ This guide helps you migrate from the old database-based Python module to the ne
 ## Overview of Changes
 
 ### What Changed
+
 - ❌ **Removed**: Database dependency (`dbfs.DB`) for package tracking
 - ❌ **Removed**: Manual pip package state management
 - ❌ **Removed**: Legacy virtual environment creation
@@ -14,6 +15,7 @@ This guide helps you migrate from the old database-based Python module to the ne
 - ✅ **Added**: Shell script generation for environment management
 
 ### What Stayed the Same
+
 - ✅ **Backward Compatible**: `pip()` and `pip_uninstall()` methods still work
 - ✅ **Same API**: `new()`, `exec()`, `shell()` methods unchanged
 - ✅ **Same Paths**: Environments still created in `~/hero/python/{name}`
@@ -23,6 +25,7 @@ This guide helps you migrate from the old database-based Python module to the ne
 ### 1. Constructor Arguments
 
 **Before:**
+
 ```v
 py := python.new(name: 'test', reset: true)!
 py.update()! // Required separate call
@@ -30,6 +33,7 @@ py.pip('requests')! // Manual package installation
 ```
 
 **After:**
+
 ```v
 py := python.new(
     name: 'test'
@@ -41,6 +45,7 @@ py := python.new(
 ### 2. Database Methods Removed
 
 **Before:**
+
 ```v
 py.pips_done_reset()! // ❌ No longer exists
 py.pips_done_add('package')! // ❌ No longer exists  
@@ -49,6 +54,7 @@ py.pips_done()! // ❌ No longer exists
 ```
 
 **After:**
+
 ```v
 py.list_packages()! // ✅ Use this instead
 ```
@@ -56,6 +62,7 @@ py.list_packages()! // ✅ Use this instead
 ### 3. Environment Structure
 
 **Before:**
+
 ```
 ~/hero/python/test/
 ├── bin/activate    # venv activation
@@ -64,6 +71,7 @@ py.list_packages()! // ✅ Use this instead
 ```
 
 **After:**
+
 ```
 ~/hero/python/test/
 ├── .venv/         # uv-managed virtual environment
@@ -78,6 +86,7 @@ py.list_packages()! // ✅ Use this instead
 ### Step 1: Update Dependencies
 
 Ensure `uv` is installed:
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
@@ -85,8 +94,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ### Step 2: Update Code
 
 **Old Code:**
+
 ```v
-import freeflowuniverse.herolib.lang.python
+import incubaid.herolib.lang.python
 
 py := python.new(name: 'my_project')!
 py.update()!
@@ -99,8 +109,9 @@ if py.pips_done_check('requests')! {
 ```
 
 **New Code:**
+
 ```v
-import freeflowuniverse.herolib.lang.python
+import incubaid.herolib.lang.python
 
 py := python.new(
     name: 'my_project'
@@ -117,6 +128,7 @@ if 'requests' in packages.join(' ') {
 ### Step 3: Update Package Management
 
 **Old Code:**
+
 ```v
 // Add packages
 py.pip('numpy,pandas')!
@@ -129,6 +141,7 @@ py.pips_done_add('numpy')!
 ```
 
 **New Code:**
+
 ```v
 // Add packages (new method)
 py.add_dependencies(['numpy', 'pandas'], false)!
@@ -144,6 +157,7 @@ py.pip_uninstall('old_package')! // Uses uv under the hood
 ### Step 4: Update Environment Creation
 
 **Old Code:**
+
 ```v
 py := python.new(name: 'test')!
 if !py.exists() {
@@ -153,6 +167,7 @@ py.update()!
 ```
 
 **New Code:**
+
 ```v
 py := python.new(name: 'test')! // Automatic initialization
 // No manual init_env() or update() needed
@@ -197,6 +212,7 @@ py.uv_run('add --dev mypy')! // Run uv commands
 ### 4. Template Generation
 
 Each environment automatically generates:
+
 - `pyproject.toml` - Project configuration
 - `env.sh` - Environment activation script
 - `install.sh` - Installation script
@@ -213,6 +229,7 @@ Each environment automatically generates:
 ## Troubleshooting
 
 ### Issue: "uv command not found"
+
 ```bash
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -220,19 +237,23 @@ source ~/.bashrc  # or restart terminal
 ```
 
 ### Issue: "Environment not found"
+
 ```v
 // Force recreation
 py := python.new(name: 'test', reset: true)!
 ```
 
 ### Issue: "Package conflicts"
+
 ```v
 // Update lock file and sync
 py.update()!
 ```
 
 ### Issue: "Legacy code not working"
+
 The old `pip()` methods are backward compatible:
+
 ```v
 py.pip('requests')! // Still works, uses uv internally
 ```
@@ -240,6 +261,7 @@ py.pip('requests')! // Still works, uses uv internally
 ## Testing Migration
 
 Run the updated tests to verify everything works:
+
 ```bash
 vtest lib/lang/python/python_test.v
 ```

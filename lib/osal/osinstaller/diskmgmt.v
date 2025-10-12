@@ -1,7 +1,7 @@
 module osinstaller
 
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn (s ServerManager) raid_stop() !bool {
 	if !os.exists('/proc/mdstat') {

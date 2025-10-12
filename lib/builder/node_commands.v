@@ -1,11 +1,11 @@
 module builder
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import crypto.md5
 import time
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.ui.console
-// import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.ui.console
+// import incubaid.herolib.osal.core as osal
 
 // check command exists on the platform, knows how to deal with different platforms
 pub fn (mut node Node) cmd_exists(cmd string) bool {

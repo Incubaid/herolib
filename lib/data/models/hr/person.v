@@ -1,7 +1,7 @@
 module hr
 
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.core.base
+import incubaid.herolib.core.playbook
 
 pub struct Person {
 pub mut:

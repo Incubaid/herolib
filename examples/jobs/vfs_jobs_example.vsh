@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.jobs.model
+import incubaid.herolib.core.jobs.model
 import flag
 import os
 import time

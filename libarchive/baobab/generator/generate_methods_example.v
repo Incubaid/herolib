@@ -1,13 +1,13 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem, Function, Import, Param, Result, Struct, VFile }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.openrpc { Example }
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen
-import freeflowuniverse.herolib.schemas.openrpc.codegen { content_descriptor_to_parameter }
-import freeflowuniverse.herolib.baobab.specification { ActorMethod, ActorSpecification }
-import freeflowuniverse.herolib.schemas.openapi
+import incubaid.herolib.develop.codetools as code { CodeItem, Function, Import, Param, Result, Struct, VFile }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.openrpc { Example }
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.jsonschema.codegen as jsonschema_codegen
+import incubaid.herolib.schemas.openrpc.codegen { content_descriptor_to_parameter }
+import incubaid.herolib.baobab.specification { ActorMethod, ActorSpecification }
+import incubaid.herolib.schemas.openapi
 
 pub fn generate_methods_example_file_str(source Source) !string {
 	actor_spec := if path := source.openapi_path {
@@ -42,7 +42,7 @@ pub fn generate_methods_example_file(spec ActorSpecification) !VFile {
 		name:    'methods_example'
 		imports: [
 			Import{
-				mod:   'freeflowuniverse.herolib.baobab.osis'
+				mod:   'incubaid.herolib.baobab.osis'
 				types: ['OSIS']
 			},
 			Import{

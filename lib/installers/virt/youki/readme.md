@@ -1,13 +1,11 @@
 # youki
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.virt.youki
+import incubaid.herolib.installers.virt.youki
 
 mut youki_installer:= youki.get()!
 
@@ -30,5 +28,3 @@ youki_installer.install()!
     port: 8888
 
 ```
-
-

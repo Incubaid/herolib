@@ -1,8 +1,8 @@
 module paramsparser
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import crypto.sha256
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 struct ParamExportItem {
 mut:

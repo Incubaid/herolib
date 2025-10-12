@@ -4,7 +4,7 @@ This is a simple V client for interacting with a [self-hosted Meilisearch instan
 
 ### Getting Started with Self-Hosted Meilisearch
 
-To use this V client, ensure you have a **self-hosted Meilisearch instance installed and running**. 
+To use this V client, ensure you have a **self-hosted Meilisearch instance installed and running**.
 
 This quick start will walk you through installing Meilisearch, adding documents, and performing your first search.
 
@@ -29,6 +29,7 @@ Start Meilisearch with the following command, replacing `"aSampleMasterKey"` wit
 # Launch Meilisearch
 meilisearch --master-key="aSampleMasterKey"
 ```
+
 ---
 
 ### Running the V Client Tests
@@ -48,7 +49,7 @@ v -enable-globals -stats herolib/clients/meilisearch/index_test.v
 Here is a quick example of how to retrieve the Meilisearch server version using this V client:
 
 ```v
-import freeflowuniverse.herolib.clients.meilisearch
+import incubaid.herolib.clients.meilisearch
 
 mut client := meilisearch.get() or { panic(err) }
 version := client.version() or { panic(err) }

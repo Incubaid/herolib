@@ -1,7 +1,7 @@
 module gridsimulator
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.threefold.grid4.datamodel
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.threefold.grid4.datamodel
 
 pub fn play(mut plbook PlayBook) ! {
 	// first make sure we find a run action to know the name

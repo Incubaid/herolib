@@ -1,9 +1,9 @@
 module rhai
 
-import freeflowuniverse.herolib.lang.rhai
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.lang.rhai
+import incubaid.herolib.core.texttools
 // import strings // No longer needed directly here
-import freeflowuniverse.herolib.lang.rust
+import incubaid.herolib.lang.rust
 import os
 
 const test_data_file = os.dir(@FILE) + '/testdata/functions.rs' // Use path relative to this test file

@@ -2,8 +2,8 @@
 
 import os
 import rand
-import freeflowuniverse.herolib.vfs.vfs_db
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.vfs.vfs_db
+import incubaid.herolib.data.ourdb
 
 example_data_dir := os.join_path(os.temp_dir(), 'ourdb_example_data_${rand.string(3)}')
 os.mkdir_all(example_data_dir)!

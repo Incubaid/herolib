@@ -1,6 +1,6 @@
 module core
 
-import freeflowuniverse.herolib.core
+import incubaid.herolib.core
 
 fn test_package_management() {
 	platform_ := core.platform()!

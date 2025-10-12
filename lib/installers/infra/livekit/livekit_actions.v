@@ -1,10 +1,10 @@
 module livekit
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.installers.ulist
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.installers.ulist
 import net.http
 import json
 import os

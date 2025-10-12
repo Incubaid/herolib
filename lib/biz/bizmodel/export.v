@@ -1,9 +1,9 @@
 module bizmodel
 
 import os
-// import freeflowuniverse.herolib.web.docusaurus
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
+// import incubaid.herolib.web.docusaurus
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
 
 @[params]
 pub struct ExportArgs {
@@ -43,7 +43,7 @@ pub fn (model BizModel) write_introduction(args ExportArgs) ! {
 }
 
 pub fn (model BizModel) write_operational_plan(args ExportArgs) ! {
-	mut sim:=model
+	mut sim := model
 	mut dir := pathlib.get_dir(path: '${args.path}/operational_plan')!
 	mut ops_page := pathlib.get_file(path: '${dir.path}/operational_plan.md')!
 	ops_page.write('# Operational Plan')!

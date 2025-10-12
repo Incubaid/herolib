@@ -2,7 +2,7 @@ module webdav
 
 import time
 import encoding.base64
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 fn (server &Server) auth_middleware(mut ctx Context) bool {
 	ctx.set_custom_header('Date', texttools.format_rfc1123(time.utc())) or { return false }

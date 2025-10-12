@@ -1,7 +1,7 @@
 module docusaurus
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.web.site
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.web.site
 import os
 
 pub fn play(mut plbook PlayBook) ! {

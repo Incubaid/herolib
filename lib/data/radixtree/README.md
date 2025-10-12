@@ -15,6 +15,7 @@ A radix tree (also known as a patricia trie or radix trie) is a space-optimized 
 ### Data Structure
 
 The radix tree is composed of nodes where:
+
 - Each node stores a segment of a key (not just a single character)
 - Nodes can have multiple children, each representing a different branch
 - Leaf nodes contain the actual values
@@ -33,6 +34,7 @@ mut:
 ### OurDB Integration
 
 The radix tree uses OurDB as its persistent storage backend:
+
 - Each node is serialized and stored as a record in OurDB
 - Node references use OurDB record IDs
 - The tree maintains a root node ID for traversal
@@ -41,27 +43,32 @@ The radix tree uses OurDB as its persistent storage backend:
 ### Key Operations
 
 #### Set (formerly Insertion)
+
 1. Traverse the tree following matching prefixes
 2. Split nodes when partial matches are found
 3. Create new nodes for unmatched segments
 4. Update node values and references in OurDB
 
 #### Get (formerly Search)
+
 1. Start from the root node
 2. Follow child nodes whose key segments match the search key
 3. Return the value if an exact match is found at a leaf node
 
 #### List (formerly Search by Prefix)
+
 1. Start from the root node
 2. Find all keys that start with the given prefix
 3. Return a list of matching keys
 
 #### GetAll
+
 1. Find all keys that start with the given prefix using List
 2. Retrieve the value for each matching key
 3. Return a list of values for all matching keys
 
 #### Deletion
+
 1. Locate the node containing the key
 2. Remove the value and leaf status
 3. Clean up empty nodes if necessary
@@ -70,7 +77,7 @@ The radix tree uses OurDB as its persistent storage backend:
 ## Usage Example
 
 ```v
-import freeflowuniverse.herolib.data.radixtree
+import incubaid.herolib.data.radixtree
 
 // Create a new radix tree
 mut tree := radixtree.new('/path/to/storage')!
@@ -98,11 +105,13 @@ tree.delete('help')!
 ### Node Serialization
 
 Nodes are serialized in a compact binary format:
+
 ```
 [Version(1B)][KeySegment][ValueLength(2B)][Value][ChildrenCount(2B)][Children][IsLeaf(1B)]
 ```
 
 Where each child is stored as:
+
 ```
 [KeyPart][NodeID(4B)]
 ```
@@ -110,6 +119,7 @@ Where each child is stored as:
 ### Space Optimization
 
 The radix tree optimizes space usage by:
+
 1. Sharing common prefixes between keys
 2. Storing only key segments at each node instead of complete keys
 3. Merging nodes with single children when possible
@@ -125,6 +135,7 @@ The radix tree optimizes space usage by:
 ## Relationship with OurDB
 
 This radix tree implementation leverages OurDB's features:
+
 - Persistent storage with automatic file management
 - Record-based storage with unique IDs
 - Data integrity through CRC32 checksums
@@ -132,6 +143,7 @@ This radix tree implementation leverages OurDB's features:
 - Automatic file size management
 
 The integration provides:
+
 - Durability: All tree operations are persisted
 - Consistency: Tree state is maintained across restarts
 - Efficiency: Leverages OurDB's optimized storage
@@ -140,6 +152,7 @@ The integration provides:
 ## Use Cases
 
 Radix trees are particularly useful for:
+
 - Prefix-based searching
 - IP routing tables
 - Dictionary implementations

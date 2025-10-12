@@ -1,15 +1,15 @@
 module models_tfgrid
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // Individual node reputation information
 pub struct NodeReputation {
 pub mut:
 	node_id    u32
 	reputation int = 50 // between 0 and 100, earned over time
-	uptime     int      // between 0 and 100, set by system
+	uptime     int // between 0 and 100, set by system
 }
 
 // NodeGroupReputation - ROOT OBJECT
@@ -18,8 +18,8 @@ pub struct NodeGroupReputation {
 	db.Base
 pub mut:
 	nodegroup_id u32
-	reputation   int = 50            // between 0 and 100, earned over time
-	uptime       int                 // between 0 and 100, set by system, farmer has no ability to set this
+	reputation   int = 50 // between 0 and 100, earned over time
+	uptime       int // between 0 and 100, set by system, farmer has no ability to set this
 	nodes        []NodeReputation
 }
 
@@ -82,7 +82,7 @@ pub fn (self NodeGroupReputation) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.nodegroup_id)
 	e.add_int(self.reputation)
 	e.add_int(self.uptime)
-	
+
 	// Encode node reputations
 	e.add_int(self.nodes.len)
 	for node in self.nodes {
@@ -96,7 +96,7 @@ fn (mut self DBNodeGroupReputation) load(mut o NodeGroupReputation, mut e encode
 	o.nodegroup_id = e.get_u32()!
 	o.reputation = e.get_int()!
 	o.uptime = e.get_int()!
-	
+
 	// Decode node reputations
 	nodes_len := e.get_int()!
 	o.nodes = []NodeReputation{len: nodes_len}

@@ -1,10 +1,10 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem }
-import freeflowuniverse.herolib.schemas.jsonschema { Schema }
-import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schema_to_code }
-import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.develop.codetools as code { CodeItem }
+import incubaid.herolib.schemas.jsonschema { Schema }
+import incubaid.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schema_to_code }
+import incubaid.herolib.schemas.openrpc { OpenRPC }
+import incubaid.herolib.core.texttools
 
 // generate_structs geenrates struct codes for schemas defined in an openrpc document
 pub fn generate_model(o OpenRPC) ![]CodeItem {

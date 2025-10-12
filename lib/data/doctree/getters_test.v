@@ -1,6 +1,6 @@
 module doctree
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 import os
 
 fn test_page_get() {

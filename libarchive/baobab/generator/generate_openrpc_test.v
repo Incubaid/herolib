@@ -1,7 +1,7 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { Function, Param, Result, Struct, Type }
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.develop.codetools as code { Function, Param, Result, Struct, Type }
+import incubaid.herolib.schemas.openrpc
 
 const test_actor_specification = ActorSpecification{
 	methods: [

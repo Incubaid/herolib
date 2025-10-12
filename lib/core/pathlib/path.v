@@ -1,6 +1,6 @@
 module pathlib
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import os
 
 @[heap]

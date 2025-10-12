@@ -3,9 +3,9 @@ module location
 import os
 import io
 import time
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
 
 const geonames_url = 'https://download.geonames.org/export/dump'
 

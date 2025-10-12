@@ -1,13 +1,11 @@
 # pacman
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.virt.pacman
+import incubaid.herolib.installers.virt.pacman
 
 mut installer:= pacman.get()!
 

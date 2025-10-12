@@ -1,6 +1,6 @@
 module rmb
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_main() ? {
 	mut cl := new(nettype: .dev)!

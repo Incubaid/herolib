@@ -4,7 +4,7 @@ import time
 import os
 import log
 import x.json2
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 const protocol_version = '2024-11-05'
 // MCP server implementation using stdio transport

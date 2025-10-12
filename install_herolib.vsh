@@ -45,9 +45,9 @@ fn addtoscript(tofind string, toadd string) ! {
 abs_dir_of_script := dir(@FILE)
 
 // Determine the organization name from the current path
-// This makes the script work with any organization (incubaid, freeflowuniverse, etc.)
+// This makes the script work with any organization (incubaid, incubaid, etc.)
 path_parts := abs_dir_of_script.split('/')
-mut org_name := 'freeflowuniverse' // default fallback
+mut org_name := 'incubaid' // default fallback
 for i, part in path_parts {
 	if part == 'github' && i + 1 < path_parts.len {
 		org_name = path_parts[i + 1]
@@ -60,7 +60,7 @@ println('Detected organization: ${org_name}')
 // Reset symlinks for both possible organizations (cleanup)
 println('Resetting all symlinks...')
 os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
-os.rm('${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {}
+os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
 os.rm('${os.home_dir()}/.vmodules/${org_name}/herolib') or {}
 
 // Create necessary directories

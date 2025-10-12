@@ -1,7 +1,7 @@
 module docker
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.texttools
 
 pub struct ZinitItem {
 pub mut:

@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.baobab.generator
-import freeflowuniverse.herolib.baobab.specification
-import freeflowuniverse.herolib.schemas.openapi
+import incubaid.herolib.baobab.generator
+import incubaid.herolib.baobab.specification
+import incubaid.herolib.schemas.openapi
 import os
 
 const example_dir = os.join_path('${os.home_dir()}/code/github/incubaid/herolib/lib/circles/mcc',

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.sysadmin.startupmanager
+import incubaid.herolib.sysadmin.startupmanager
 import os
 
 mut sm := startupmanager.get()!

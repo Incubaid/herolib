@@ -2,7 +2,7 @@ module vexecutor
 
 import strings
 import os { Result, fileno }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn vpopen(path string) voidptr {
 	// *C.FILE {

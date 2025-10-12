@@ -1,8 +1,8 @@
 module actor
 
 import json
-import freeflowuniverse.herolib.clients.redisclient
-import freeflowuniverse.herolib.baobab.action { ProcedureCall, ProcedureResponse }
+import incubaid.herolib.clients.redisclient
+import incubaid.herolib.baobab.action { ProcedureCall, ProcedureResponse }
 
 // Processor struct for managing procedure calls
 pub struct Client {

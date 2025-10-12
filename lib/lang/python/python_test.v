@@ -1,6 +1,6 @@
 module python
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_python_env_creation() {
 	console.print_debug('Testing Python environment creation')

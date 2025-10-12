@@ -1,8 +1,8 @@
 module telegram
 
 import dariotarantini.vgram
-// import freeflowuniverse.herolib.baobab.client
-import freeflowuniverse.herolib.data.paramsparser
+// import incubaid.herolib.baobab.client
+import incubaid.herolib.data.paramsparser
 
 pub struct UITelegram {
 pub mut:

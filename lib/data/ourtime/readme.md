@@ -16,7 +16,7 @@ The OurTime module provides a flexible and user-friendly way to work with time i
 ### Basic Usage
 
 ```v
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 
 // Create time object for current time
 mut t := ourtime.now()
@@ -36,6 +36,7 @@ println(t2.unix()) // Output: 1670271275
 #### Relative Time Format
 
 Relative time expressions use the following period indicators:
+
 - `s`: seconds
 - `h`: hours
 - `d`: days
@@ -45,6 +46,7 @@ Relative time expressions use the following period indicators:
 - `Y`: years
 
 Examples:
+
 ```v
 // Create time object with relative time
 mut t := ourtime.new('+1w +2d -4h')! // 1 week forward, 2 days forward, 4 hours back
@@ -66,6 +68,7 @@ Supported date formats:
 - Also supports '/' instead of '-' for dates
 
 Examples:
+
 ```v
 // Various absolute time formats
 t1 := ourtime.new('2022-12-05 20:14:35')!

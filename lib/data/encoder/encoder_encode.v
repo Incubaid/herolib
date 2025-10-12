@@ -2,9 +2,9 @@ module encoder
 
 import time
 import encoding.binary as bin
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.data.gid
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.data.gid
+import incubaid.herolib.data.currency
 
 const kb = 1024
 

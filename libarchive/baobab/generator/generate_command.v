@@ -1,8 +1,8 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem, CustomCode, Import, VFile }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.baobab.specification { ActorMethod, ActorSpecification }
+import incubaid.herolib.develop.codetools as code { CodeItem, CustomCode, Import, VFile }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.baobab.specification { ActorMethod, ActorSpecification }
 
 pub fn generate_command_file(spec ActorSpecification) !VFile {
 	mut items := []CodeItem{}
@@ -14,7 +14,7 @@ pub fn generate_command_file(spec ActorSpecification) !VFile {
 		name:    'command'
 		imports: [
 			Import{
-				mod: 'freeflowuniverse.herolib.ui.console'
+				mod: 'incubaid.herolib.ui.console'
 			},
 			Import{
 				mod:   'cli'

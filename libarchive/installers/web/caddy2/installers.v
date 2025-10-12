@@ -1,7 +1,7 @@
 module caddy
 
-import freeflowuniverse.herolib.osal
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal
+import incubaid.herolib.ui.console
 
 pub fn install_caddy_from_release() ! {
 	mut url := ''

@@ -5,7 +5,7 @@ OurDB is a lightweight, efficient key-value database implementation in V that pr
 ## Usage Example
 
 ```v
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.data.ourdb
 
 // Configure and create a new database instance
 mut db := ourdb.new(
@@ -59,12 +59,14 @@ struct OurDBConfig {
 OurDB consists of three main components working together in a layered architecture:
 
 ### 1. Frontend (db.v)
+
 - Provides the public API for database operations
 - Handles high-level operations (set, get, delete, history)
 - Coordinates between lookup and backend components
 - Supports both key-value and incremental ID modes
 
 ### 2. Lookup Table (lookup.v)
+
 - Maps keys to physical locations in the backend storage
 - Supports both memory and disk-based lookup tables
 - Automatically optimizes key sizes based on database configuration
@@ -72,6 +74,7 @@ OurDB consists of three main components working together in a layered architectu
 - Provides next ID generation for incremental mode
 
 ### 3. Backend Storage (backend.v)
+
 - Manages the actual data storage in files
 - Handles data integrity with CRC32 checksums
 - Supports multiple file backends for large datasets
@@ -118,20 +121,25 @@ OurDB consists of three main components working together in a layered architectu
 ## Implementation Details
 
 ### Record Format
+
 Each record in the backend storage includes:
+
 - 2 bytes: Data size
 - 4 bytes: CRC32 checksum
 - 6 bytes: Previous record location
 - N bytes: Actual data
 
 ### Lookup Table Optimization
+
 The lookup table automatically optimizes its key size based on the database configuration:
+
 - 2 bytes: For databases with < 65,536 records
 - 3 bytes: For databases with < 16,777,216 records
 - 4 bytes: For databases with < 4,294,967,296 records
 - 6 bytes: For large databases requiring multiple files
 
 ### File Management
+
 - Supports splitting data across multiple files when needed
 - Each file is limited to 500MB by default (configurable)
 - Automatic file selection based on record location

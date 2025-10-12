@@ -1,6 +1,6 @@
 module incatokens
 
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // Create vesting schedule in spreadsheet
 pub fn (mut sim Simulation) create_vesting_schedules() ! {

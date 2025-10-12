@@ -1,6 +1,6 @@
 module elements
 
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 
 @[heap]
 pub struct Paragraph {

@@ -4,10 +4,10 @@ The `builder` module in Herolib provides a powerful framework for automating sys
 
 ## Key Components
 
--   **`BuilderFactory`**: Responsible for creating and managing `Node` instances.
--   **`Node`**: Represents a target system (local or remote). It encapsulates system properties (platform, CPU type, environment variables) and provides methods for interaction.
--   **`Executor`**: An interface (implemented by `ExecutorLocal` and `ExecutorSSH`) that handles the actual command execution and file operations on the target system.
--   **NodeDB (via `Node.done` map)**: A key-value store within each `Node` for persistent state, caching, and tracking execution history.
+- **`BuilderFactory`**: Responsible for creating and managing `Node` instances.
+- **`Node`**: Represents a target system (local or remote). It encapsulates system properties (platform, CPU type, environment variables) and provides methods for interaction.
+- **`Executor`**: An interface (implemented by `ExecutorLocal` and `ExecutorSSH`) that handles the actual command execution and file operations on the target system.
+- **NodeDB (via `Node.done` map)**: A key-value store within each `Node` for persistent state, caching, and tracking execution history.
 
 ## Getting Started
 
@@ -16,7 +16,7 @@ The `builder` module in Herolib provides a powerful framework for automating sys
 First, import the `builder` module and create a new `BuilderFactory` instance. Then, create a `Node` object, which can represent either the local machine or a remote server.
 
 ```v
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.builder
 
 // Create a new builder factory
 mut b := builder.new()!
@@ -68,7 +68,7 @@ The `Node` object provides methods to execute commands on the target system.
 Executes a command and returns its standard output.
 
 ```v
-import freeflowuniverse.herolib.builder { ExecArgs }
+import incubaid.herolib.builder { ExecArgs }
 
 // Execute a command with stdout
 result := node.exec(cmd: "ls -la /tmp", stdout: true)!
@@ -101,7 +101,7 @@ node.exec_interactive("bash")!
 A more advanced command execution method that supports caching, periodic execution, and temporary script handling.
 
 ```v
-import freeflowuniverse.herolib.builder { NodeExecCmd }
+import incubaid.herolib.builder { NodeExecCmd }
 
 // Execute a command, cache its result for 24 hours (48*3600 seconds)
 // and provide a description for logging.
@@ -130,7 +130,7 @@ println(script_output)
 Executes a command with retries until it succeeds or a timeout is reached.
 
 ```v
-import freeflowuniverse.herolib.builder { ExecRetryArgs }
+import incubaid.herolib.builder { ExecRetryArgs }
 
 // Try to connect to a service, retrying every 100ms for up to 10 seconds
 result := node.exec_retry(
@@ -219,7 +219,7 @@ if node.dir_exists("/var/log") {
 Transfer files between the local machine and the target node using `rsync` or `scp`.
 
 ```v
-import freeflowuniverse.herolib.builder { SyncArgs }
+import incubaid.herolib.builder { SyncArgs }
 
 // Upload a local file to the remote node
 node.upload(
@@ -286,7 +286,7 @@ node.hero_install()!
 Updates the Herolib code on the node, with options for syncing from local, git reset, or git pull.
 
 ```v
-import freeflowuniverse.herolib.builder { HeroUpdateArgs }
+import incubaid.herolib.builder { HeroUpdateArgs }
 
 // Sync local Herolib code to the remote node (full sync)
 node.hero_update(sync_from_local: true, sync_full: true)!
@@ -300,7 +300,7 @@ node.hero_update(git_reset: true, branch: "dev")!
 Uploads and executes a Vlang script (`.vsh` or `.v`) on the remote node.
 
 ```v
-import freeflowuniverse.herolib.builder { VScriptArgs }
+import incubaid.herolib.builder { VScriptArgs }
 
 // Upload and execute a local V script on the remote node
 node.vscript(path: "/local/path/to/my_script.vsh", sync_from_local: true)!
@@ -311,7 +311,7 @@ node.vscript(path: "/local/path/to/my_script.vsh", sync_from_local: true)!
 The `portforward_to_local` function allows forwarding a remote port on an SSH host to a local port.
 
 ```v
-import freeflowuniverse.herolib.builder { portforward_to_local, ForwardArgsToLocal }
+import incubaid.herolib.builder { portforward_to_local, ForwardArgsToLocal }
 
 // Forward remote port 8080 on 192.168.1.100 to local port 9000
 portforward_to_local(

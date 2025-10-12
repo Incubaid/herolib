@@ -1,10 +1,10 @@
 module docusaurus
 
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.installers.web.bun
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.installers.web.bun
 
 fn install(c DocusaurusConfig) ! {
 	mut gs := gittools.new()!
@@ -17,7 +17,7 @@ fn install(c DocusaurusConfig) ! {
 	template_path := gs.get_path(
 		pull:  c.template_update
 		reset: c.reset
-		url:   'https://github.com/freeflowuniverse/docusaurus_template/src/branch/main/template'
+		url:   'https://github.com/incubaid/docusaurus_template/src/branch/main/template'
 	)!
 
 	mut template_path0 := pathlib.get_dir(path: template_path, create: false)!

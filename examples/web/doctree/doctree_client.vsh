@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.data.doctree
-import freeflowuniverse.herolib.web.doctreeclient
+import incubaid.herolib.data.doctree
+import incubaid.herolib.web.doctreeclient
 import os
 
 println('This example demonstrates how to use the DocTreeClient to interact with doctree data.')

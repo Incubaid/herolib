@@ -1,8 +1,8 @@
 module doctree
 
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.data.doctree.collection.data
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.doctree.collection.data
 
 const test_dir = '${os.dir(@FILE)}/testdata/process_defs_test'
 

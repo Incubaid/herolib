@@ -1,6 +1,6 @@
 module encoderhero
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 import time
 import v.reflection
 

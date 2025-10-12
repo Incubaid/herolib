@@ -1,6 +1,6 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import math
 
 fn remove_empty_line(txt string) string {

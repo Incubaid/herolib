@@ -3,7 +3,7 @@
 ### example how to use
 
 ```v
-import freeflowuniverse.herolib.conversiontools.imagemagick
+import incubaid.herolib.conversiontools.imagemagick
 
 imagemagick.downsize(
     path:"/tmp/mydir"

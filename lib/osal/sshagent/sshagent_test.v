@@ -1,7 +1,7 @@
 module sshagent
 
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Test helper to create temporary directory for testing
 fn setup_test_env() !string {

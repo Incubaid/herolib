@@ -1,13 +1,13 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.hero.user
+import incubaid.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.hero.user
 import json
 // FsDir, FsDirArg, FsFileArg, MimeType, FsBlobArg are part of the same module, no need to import explicitly
-// import freeflowuniverse.herolib.hero.herofs { FsDir, FsDirArg, FsFileArg, MimeType, FsBlobArg }
+// import incubaid.herolib.hero.herofs { FsDir, FsDirArg, FsFileArg, MimeType, FsBlobArg }
 
 fn test_fs_dir_new() ! {
 	mut factory := new_test()!
@@ -17,10 +17,10 @@ fn test_fs_dir_new() ! {
 	mut fs := db_fs.new_get_set(name: 'test_fs_dir_new')!
 
 	mut args := FsDirArg{
-		name: 'test_dir'
+		name:        'test_dir'
 		description: 'Test directory for new function'
-		fs_id: fs.id
-		parent_id: fs.root_dir_id
+		fs_id:       fs.id
+		parent_id:   fs.root_dir_id
 	}
 
 	dir := db_fs_dir.new(args)!
@@ -44,10 +44,10 @@ fn test_fs_dir_crud_operations() ! {
 	root_dir := fs.root_dir()!
 
 	mut args := FsDirArg{
-		name: 'crud_dir'
+		name:        'crud_dir'
 		description: 'CRUD Test Directory'
-		fs_id: fs.id
-		parent_id: root_dir.id
+		fs_id:       fs.id
+		parent_id:   root_dir.id
 	}
 
 	mut dir := db_fs_dir.new(args)!
@@ -223,11 +223,18 @@ fn test_fs_dir_has_children() ! {
 	root_dir.directories << file_dir.id
 	root_dir = db_fs_dir.set(root_dir)!
 
-	mut blob_args := FsBlobArg{ data: 'Child File'.bytes() }
+	mut blob_args := FsBlobArg{
+		data: 'Child File'.bytes()
+	}
 	mut blob := db_fs_blob.new(blob_args)!
 	blob = db_fs_blob.set(blob)!
 
-	mut file_args := FsFileArg{ name: 'child_file.txt', fs_id: fs.id, blobs: [blob.id], mime_type: .txt }
+	mut file_args := FsFileArg{
+		name:      'child_file.txt'
+		fs_id:     fs.id
+		blobs:     [blob.id]
+		mime_type: .txt
+	}
 	mut file := db_fs_file.new(file_args)!
 	file = db_fs_file.set(file)!
 	db_fs_file.add_to_directory(file.id, file_dir.id)!
@@ -283,7 +290,7 @@ fn test_fs_dir_move() ! {
 	new_parent_after_move := db_fs_dir.get(new_parent.id)!
 	dir_to_move_after_move := db_fs_dir.get(dir_to_move.id)!
 
-	assert !(dir_to_move.id in root_dir_after_move.directories)
+	assert dir_to_move.id !in root_dir_after_move.directories
 	assert dir_to_move.id in new_parent_after_move.directories
 	assert dir_to_move_after_move.parent_id == new_parent.id
 
@@ -298,8 +305,8 @@ fn test_fs_dir_description() ! {
 	mut fs := db_fs.new_get_set(name: 'fs_dir_description_test')!
 
 	mut args := FsDirArg{
-		name: 'description_dir'
-		fs_id: fs.id
+		name:      'description_dir'
+		fs_id:     fs.id
 		parent_id: fs.root_dir_id
 	}
 
@@ -324,8 +331,8 @@ fn test_fs_dir_example() ! {
 	mut fs := db_fs.new_get_set(name: 'fs_dir_example_test')!
 
 	mut args := FsDirArg{
-		name: 'example_dir'
-		fs_id: fs.id
+		name:      'example_dir'
+		fs_id:     fs.id
 		parent_id: fs.root_dir_id
 	}
 

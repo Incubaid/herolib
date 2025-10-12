@@ -1,9 +1,9 @@
 module starlight
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.installers.web.bun
-import freeflowuniverse.herolib.installers.web.tailwind
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.installers.web.bun
+import incubaid.herolib.installers.web.tailwind
 import os
 
 @[params]
@@ -17,7 +17,7 @@ fn (mut self StarlightFactory) template_install(args TemplateInstallArgs) ! {
 	mut gs := gittools.new()!
 
 	mut r := gs.get_repo(
-		url:  'https://github.com/freeflowuniverse/starlight_template.git'
+		url:  'https://github.com/incubaid/starlight_template.git'
 		pull: args.template_update
 	)!
 	mut template_path := r.patho()!

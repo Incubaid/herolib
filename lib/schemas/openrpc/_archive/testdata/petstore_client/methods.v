@@ -1,6 +1,6 @@
 module petstore_client
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // get_pets finds pets in the system that the user has access to by tags and within a limit
 // - tags: tags to filter by

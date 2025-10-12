@@ -1,6 +1,6 @@
 module mcp
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // resource_not_found indicates that the requested resource doesn't exist.
 // This error is returned when the resource specified in the request is not found.

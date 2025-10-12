@@ -1,10 +1,10 @@
 module rfs
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.installers.lang.rust
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.installers.zinit
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.installers.lang.rust
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.installers.zinit
+import incubaid.herolib.ui.console
 
 pub fn install_() ! {
 	rust.install()!

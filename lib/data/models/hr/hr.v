@@ -1,6 +1,6 @@
 module hr
 
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 pub struct HRData {
 pub mut:

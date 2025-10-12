@@ -1,7 +1,7 @@
 module farmingsimulator
 
-import freeflowuniverse.herolib.core.playbook { Action }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook { Action }
+import incubaid.herolib.ui.console
 // import json
 
 pub fn playmacro(action Action) !string {

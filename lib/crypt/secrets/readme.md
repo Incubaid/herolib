@@ -3,7 +3,7 @@
 Some tools to work with encryption/decryption (symmetric)
 
 ```go
-import freeflowuniverse.herolib.crypt.secrets
+import incubaid.herolib.crypt.secrets
 
 mut box:=secrets.get(secret:"mysecret")!
 
@@ -28,7 +28,7 @@ some utils to manage secret keys and easily change them in text, ideal for confi
 ```go
 #!/usr/bin/env -S  v -n -cg -w -enable-globals run
 
-import freeflowuniverse.herolib.crypt.secrets
+import incubaid.herolib.crypt.secrets
 
 mut box:=secrets.get()!
 box.delete("myapp.something")! //make sure we remove all previous keys
@@ -42,7 +42,6 @@ mut test_string := "This is a test string with {ss} and {MYAPP.SOMETHING.A} and 
 test_string1:=box.replace(txt:test_string)!
 
 println(test_string1) -->
-
 
 test_string2:=box.replace(txt:test_string,defaults:{"MYAPP.SOMETHING.A":secrets.DefaultSecretArgs{secret:"AAA"}})!
 

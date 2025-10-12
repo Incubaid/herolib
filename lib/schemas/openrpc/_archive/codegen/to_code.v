@@ -1,10 +1,10 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code { Function, Struct }
-import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schema_to_struct, schemaref_to_type }
-import freeflowuniverse.herolib.schemas.jsonschema { Schema }
-import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, Method }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.develop.codetools as code { Function, Struct }
+import incubaid.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schema_to_struct, schemaref_to_type }
+import incubaid.herolib.schemas.jsonschema { Schema }
+import incubaid.herolib.schemas.openrpc { ContentDescriptor, Method }
+import incubaid.herolib.core.texttools
 
 // converts OpenRPC Method to Code Function
 pub fn method_to_function(method Method) !Function {

@@ -1,6 +1,6 @@
 module codetools
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import os
 
 // ===== FILE AND DIRECTORY OPERATIONS =====
@@ -26,11 +26,11 @@ pub fn list_v_files(dir string) ![]string {
 
 // get_module_dir converts a V module path to a directory path
 // ARGS:
-//   mod string - module name (e.g., 'freeflowuniverse.herolib.mcp')
+//   mod string - module name (e.g., 'incubaid.herolib.mcp')
 // RETURNS:
 //   string - absolute path to the module directory
 pub fn get_module_dir(mod string) string {
-	module_parts := mod.trim_string_left('freeflowuniverse.herolib').split('.')
+	module_parts := mod.trim_string_left('incubaid.herolib').split('.')
 	return '${os.home_dir()}/code/github/incubaid/herolib/lib/${module_parts.join('/')}'
 }
 

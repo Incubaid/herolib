@@ -1,13 +1,11 @@
 # cloudhypervisor
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something. cloudhypervisor
+import incubaid.herolib.installers.something. cloudhypervisor
 
 mut installer:= cloudhypervisor.get()!
 
@@ -30,5 +28,3 @@ installer.start()!
     port: 8888
 
 ```
-
-

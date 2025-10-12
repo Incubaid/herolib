@@ -1,6 +1,6 @@
 module dbfs
 
-import freeflowuniverse.herolib.core.smartid
+import incubaid.herolib.core.smartid
 
 // get u32 from sid as string
 pub fn sid2int(sid string) u32 {

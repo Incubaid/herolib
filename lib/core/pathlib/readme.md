@@ -5,7 +5,7 @@ The pathlib module provides a robust way to handle file system operations. Here'
 ## 1. Basic Path Creation
 
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // Get a basic path object
 mut path := pathlib.get('/some/path')
@@ -110,6 +110,7 @@ mut wd := pathlib.get_wd()
 ## Features
 
 The module handles common edge cases:
+
 - Automatically expands ~ to home directory
 - Creates parent directories as needed
 - Provides proper error handling with V's result type
@@ -119,6 +120,7 @@ The module handles common edge cases:
 ## Path Object Structure
 
 Each Path object contains:
+
 - `path`: The actual path string
 - `cat`: Category (file/dir/link)
 - `exist`: Existence status

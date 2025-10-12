@@ -1,7 +1,7 @@
 module vfs_db
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.data.encoder
+import incubaid.herolib.vfs
 
 // encode_metadata encodes the common metadata structure
 fn encode_metadata(mut e encoder.Encoder, m vfs.Metadata) {

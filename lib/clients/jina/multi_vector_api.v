@@ -1,7 +1,7 @@
 module jina
 
 import json
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 
 // Enum for available Jina multi-vector models
 pub enum MultiVectorModel {

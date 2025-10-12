@@ -2,7 +2,7 @@ module docusaurus
 
 // not longer working because is coming from doctree
 
-// import freeflowuniverse.herolib.osal.notifier
+// import incubaid.herolib.osal.notifier
 // import os
 
 // fn watch_docs(docs_path string, path_src string, path_build string) ! {

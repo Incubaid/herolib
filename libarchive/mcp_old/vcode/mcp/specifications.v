@@ -1,9 +1,9 @@
 module pugconvert
 
-import freeflowuniverse.herolib.mcp
+import incubaid.herolib.mcp
 import x.json2 as json
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.mcp.logger
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.mcp.logger
 
 const specs = mcp.Tool{
 	name:         'pugconvert'

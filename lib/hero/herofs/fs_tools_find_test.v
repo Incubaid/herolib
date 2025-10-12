@@ -1,6 +1,6 @@
 module herofs
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 import os
 
 fn test_find() {
@@ -15,7 +15,7 @@ fn test_find() {
 	mut blob1 := f.factory.fs_blob.new(data: 'hello'.bytes())!
 	blob1 = f.factory.fs_blob.set(blob1)!
 	mut file1 := f.factory.fs_file.new(
-		name: 'file1.txt'
+		name:  'file1.txt'
 		fs_id: f.id
 		blobs: [blob1.id]
 	)!
@@ -26,7 +26,7 @@ fn test_find() {
 	mut blob2 := f.factory.fs_blob.new(data: 'world'.bytes())!
 	blob2 = f.factory.fs_blob.set(blob2)!
 	mut file2 := f.factory.fs_file.new(
-		name: 'file2.log'
+		name:  'file2.log'
 		fs_id: f.id
 		blobs: [blob2.id]
 	)!
@@ -36,7 +36,7 @@ fn test_find() {
 	mut blob3 := f.factory.fs_blob.new(data: 'sub'.bytes())!
 	blob3 = f.factory.fs_blob.set(blob3)!
 	mut file3 := f.factory.fs_file.new(
-		name: 'file3.txt'
+		name:  'file3.txt'
 		fs_id: f.id
 		blobs: [blob3.id]
 	)!
@@ -45,10 +45,10 @@ fn test_find() {
 	f.factory.fs_file.add_to_directory(file3.id, dir2.id)!
 
 	mut symlink1 := f.factory.fs_symlink.new(
-		name: 'link1.txt'
-		fs_id: f.id
-		parent_id: dir1.id
-		target_id: file1.id
+		name:        'link1.txt'
+		fs_id:       f.id
+		parent_id:   dir1.id
+		target_id:   file1.id
 		target_type: .file
 	)!
 	symlink1 = f.factory.fs_symlink.set(symlink1)!
