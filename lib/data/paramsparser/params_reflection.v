@@ -13,20 +13,34 @@ pub fn (params Params) decode[T](args T) !T {
 pub fn (params Params) decode_struct[T](start T) !T {
 	mut t := T{}
 	$for field in T.fields {
-		$if field.is_enum {
-			t.$(field.name) = params.get_int(field.name) or { int(t.$(field.name)) }
-		} $else {
-			// super annoying didn't find other way, then to ignore options
-			$if field.is_option {
-				// For optional fields, if the key exists, decode it. Otherwise, leave it as none.
-				if params.exists(field.name) {
-					t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
-				}
+		mut should_skip := false
+		for attr in field.attrs {
+			attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
+			// Handle various skip attribute formats:
+			// @[skip], @[skip;...], @[...;skip], @[...;skip;...], etc.
+			if attr_clean == 'skip' || attr_clean.starts_with('skip;')
+				|| attr_clean.ends_with(';skip') || attr_clean.contains(';skip;') {
+				should_skip = true
+				break
+			}
+		}
+		println('Field: ${field.name}, should_skip: ${should_skip}, attrs: ${field.attrs}')
+		if ! should_skip {
+			$if field.is_enum {
+				t.$(field.name) = params.get_int(field.name) or { int(t.$(field.name)) }
 			} $else {
-				if field.name[0].is_capital() {
-					t.$(field.name) = params.decode_struct(t.$(field.name))!
-				} else {
-					t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
+				// super annoying didn't find other way, then to ignore options
+				$if field.is_option {
+					// For optional fields, if the key exists, decode it. Otherwise, leave it as none.
+					if params.exists(field.name) {
+						t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
+					}
+				} $else {
+					if field.name[0].is_capital() {
+						t.$(field.name) = params.decode_struct(t.$(field.name))!
+					} else {
+						t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
+					}
 				}
 			}
 		}
@@ -35,10 +49,9 @@ pub fn (params Params) decode_struct[T](start T) !T {
 }
 
 pub fn (params Params) decode_value[T](val T, key string) !T {
-	// $if T is $option {
-	// 	return error("is option")
-	// }
-	// value := params.get(field.name)!
+	$if T is $option {
+		return error("is option")
+	}
 
 	// TODO: handle required fields
 	if !params.exists(key) {

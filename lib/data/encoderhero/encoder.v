@@ -85,10 +85,7 @@ fn should_skip_field(attrs []string) bool {
 			|| attr_clean.starts_with('skip;')
 			|| attr_clean.ends_with(';skip')
 			|| attr_clean.contains(';skip;')
-			|| attr_clean == 'skipdecode'
-			|| attr_clean.starts_with('skipdecode;')
-			|| attr_clean.ends_with(';skipdecode')
-			|| attr_clean.contains(';skipdecode;') {
+			{
 			return true
 		}
 	}

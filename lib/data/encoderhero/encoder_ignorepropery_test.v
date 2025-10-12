@@ -53,5 +53,5 @@ fn test_encode_skip_multiple_attrs() ! {
 	assert script.contains('name:test')
 	assert !script.contains('skip1')
 	assert !script.contains('skip2')
-	assert !script.contains('skip3')
+	assert script.contains('skip3')
 }
