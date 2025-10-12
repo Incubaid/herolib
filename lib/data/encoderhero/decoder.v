@@ -46,7 +46,7 @@ fn decode_struct[T](_ T, data string) !T {
 		}
 		
 		if found_action_name == '' {
-			return error('Data does not contain expected action format for ${obj_name}')
+			return error('Data does not contain expected action format for ${obj_name}\nData: ${data}')
 		}
 		
 		if actions.len > 1 {
