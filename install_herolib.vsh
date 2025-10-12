@@ -47,7 +47,7 @@ abs_dir_of_script := dir(@FILE)
 println('Script directory: ${abs_dir_of_script}')
 
 // Determine the organization name from the current path
-// This makes the script work with any organization (incubaid, freeflowuniverse, etc.)
+// This makes the script work with any organization (incubaid, etc.)
 path_parts := abs_dir_of_script.split('/')
 mut org_name := 'incubaid' // default fallback
 for i, part in path_parts {
@@ -60,32 +60,35 @@ for i, part in path_parts {
 println('Detected organization: ${org_name}')
 println('Will create symlink: ${os.home_dir()}/.vmodules/${org_name}/herolib -> ${abs_dir_of_script}/lib')
 
-// Reset symlinks for both possible organizations (cleanup)
+// Reset symlinks (cleanup)
 println('Resetting all symlinks...')
-os.rm('${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {}
 os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
 os.rm('${os.home_dir()}/.vmodules/${org_name}/herolib') or {}
 
 // Create necessary directories
-os.mkdir_all('${os.home_dir()}/.vmodules/freeflowuniverse') or {
-	panic('Failed to create directory ~/.vmodules/freeflowuniverse: ${err}')
+os.mkdir_all('${os.home_dir()}/.vmodules/${org_name}') or {
+	panic('Failed to create directory ~/.vmodules/${org_name}: ${err}')
 }
 
 // Create new symlinks
-os.symlink('${abs_dir_of_script}/lib', '${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {
-	panic('Failed to create herolib symlink: ${err}')
-}
+symlink_target := '${abs_dir_of_script}/lib'
+symlink_path := '${os.home_dir()}/.vmodules/${org_name}/herolib'
+
+os.symlink(symlink_target, symlink_path) or { panic('Failed to create herolib symlink: ${err}') }
 
 // Verify the symlink was created
-symlink_path := '${os.home_dir()}/.vmodules/${org_name}/herolib'
-if os.exists(symlink_path) {
+// Note: os.exists() may return false for broken symlinks, so we check if it's a link first
+if os.is_link(symlink_path) {
 	println('✓ Symlink created successfully: ${symlink_path}')
-	// Verify it points to the right location
-	if os.is_link(symlink_path) {
-		println('✓ Confirmed: ${symlink_path} is a symbolic link')
+	println('✓ Points to: ${symlink_target}')
+	// Verify the target exists
+	if os.exists(symlink_target) {
+		println('✓ Target directory exists and is accessible')
+	} else {
+		eprintln('⚠ Warning: Symlink target does not exist: ${symlink_target}')
 	}
 } else {
-	panic('Failed to verify herolib symlink at ${symlink_path}')
+	panic('Failed to create herolib symlink at ${symlink_path}')
 }
 
 println('Herolib installation completed successfully!')
