@@ -8,7 +8,7 @@ pub struct Base {
 }
 
 pub struct Person {
-	Base  // Embedded struct
+	Base // Embedded struct
 mut:
 	name     string
 	age      int = 20
@@ -40,10 +40,10 @@ fn test_encode_with_arrays() ! {
 		age:  30
 		tags: ['developer', 'manager', 'team-lead']
 	}
-	
+
 	script := encode[Person](p)!
 	assert script.contains('tags:developer,manager,team-lead')
-	
+
 	// Roundtrip test
 	decoded := decode[Person](script)!
 	assert decoded.tags.len == 3
@@ -55,9 +55,9 @@ fn test_encode_defaults() ! {
 		id:   3
 		name: 'Charlie'
 	}
-	
+
 	script := encode[Person](minimal)!
-	
+
 	// Should include default values
 	assert script.contains('age:20')
 	assert script.contains('active:true')
@@ -80,15 +80,15 @@ fn test_encode_config() ! {
 		servers: ['srv1.com', 'srv2.com']
 		ports:   [8080, 8081]
 	}
-	
+
 	script := encode[Config](config)!
-	
+
 	assert script.contains('name:production')
 	assert script.contains('timeout:300')
 	assert script.contains('enabled:true')
 	assert script.contains('servers:srv1.com,srv2.com')
 	assert script.contains('ports:8080,8081')
-	
+
 	// Roundtrip
 	decoded := decode[Config](script)!
 	assert decoded.name == config.name
@@ -106,10 +106,10 @@ fn test_roundtrip() ! {
 		active:   false
 		tags:     ['tag1', 'tag2']
 	}
-	
+
 	encoded := encode[Person](original)!
 	decoded := decode[Person](encoded)!
-	
+
 	assert decoded.id == original.id
 	assert decoded.version == original.version
 	assert decoded.name == original.name
@@ -130,10 +130,12 @@ pub struct NestedParent {
 
 fn test_encode_nested_fails() ! {
 	parent := NestedParent{
-		name: 'parent'
-		child: NestedChild{value: 'test'}
+		name:  'parent'
+		child: NestedChild{
+			value: 'test'
+		}
 	}
-	
+
 	encode[NestedParent](parent) or {
 		assert err.msg().contains('Nested structs are not supported')
 		return

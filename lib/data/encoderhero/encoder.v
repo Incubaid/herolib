@@ -43,7 +43,7 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 	struct_attrs := attrs_get_reflection(mytype)
 
 	mut action_name := T.name.all_after_last('.').to_lower()
-	
+
 	if 'alias' in struct_attrs {
 		action_name = struct_attrs['alias'].to_lower()
 	}
@@ -57,7 +57,7 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 	$for field in T.fields {
 		if !should_skip_field(field.attrs) {
 			val := t.$(field.name)
-			
+
 			// Check for unsupported nested structs (non-embedded, non-time)
 			$if val is $struct {
 				$if val !is ourtime.OurTime {
@@ -81,11 +81,8 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 fn should_skip_field(attrs []string) bool {
 	for attr in attrs {
 		attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
-		if attr_clean == 'skip' 
-			|| attr_clean.starts_with('skip;')
-			|| attr_clean.ends_with(';skip')
-			|| attr_clean.contains(';skip;')
-			{
+		if attr_clean == 'skip' || attr_clean.starts_with('skip;') || attr_clean.ends_with(';skip')
+			|| attr_clean.contains(';skip;') {
 			return true
 		}
 	}
