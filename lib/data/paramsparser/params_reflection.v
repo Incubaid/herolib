@@ -13,31 +13,25 @@ pub fn (params Params) decode[T](args T) !T {
 pub fn (params Params) decode_struct[T](start T) !T {
 	mut t := T{}
 	$for field in T.fields {
-		// Check if field has skip attribute
 		mut should_skip := false
 		for attr in field.attrs {
-			attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
-			if attr_clean == 'skip' || attr_clean.starts_with('skip;')
-				|| attr_clean.ends_with(';skip') || attr_clean.contains(';skip;') {
-				should_skip = true
-				break
-			}
-			// Also check for skipdecode
-			if attr_clean == 'skipdecode' || attr_clean.contains('skipdecode') {
+			attr_clean := attr.to_lower()
+			if attr_clean.contains('skip') {
 				should_skip = true
 				break
 			}
 		}
-
+		// println('Field: ${field.name}, should_skip: ${should_skip}, attrs: ${field.attrs}')
 		if !should_skip {
 			$if field.is_enum {
 				t.$(field.name) = params.get_int(field.name) or { int(t.$(field.name)) }
 			} $else {
 				// super annoying didn't find other way, then to ignore options
 				$if field.is_option {
-					// For optional fields, skip decoding entirely
-					// They will remain as none (default value)
-					// This avoids type system issues with ?T vs !T
+					// For optional fields, if the key exists, decode it. Otherwise, leave it as none.
+					if params.exists(field.name) {
+						t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
+					}
 				} $else {
 					if field.name[0].is_capital() {
 						t.$(field.name) = params.decode_struct(t.$(field.name))!
@@ -52,16 +46,13 @@ pub fn (params Params) decode_struct[T](start T) !T {
 }
 
 pub fn (params Params) decode_value[T](val T, key string) !T {
+	$if T is $option {
+		return error('is option')
+	}
+
 	// TODO: handle required fields
 	if !params.exists(key) {
-		$if T is $option {
-			// For optional types, we need to return the value as-is
-			// This is a workaround for V's type system limitation
-			// where ?T cannot be directly returned from !T function
-			mut result := val
-			return result
-		}
-		return val
+		return val // For optional types, this will be `none`. For non-optional, it's the default value.
 	}
 
 	$if T is string {
@@ -98,15 +89,10 @@ pub fn (params Params) decode_value[T](val T, key string) !T {
 		child_params := params.get_params(key)!
 		child := child_params.decode_struct(T{})!
 		return child
-	} $else $if T is $option {
-		// For optional types that don't match above patterns
-		// Return the default value (none)
-		mut result := val
-		return result
-	} $else {
-		// For any other type, return the default
-		return val
 	}
+	// If no specific decode path is found, return the default value for T.
+	// For optional types, this will be `none`.
+	return T{}
 }
 
 pub fn (params Params) get_list_bool(key string) ![]bool {
@@ -145,7 +131,18 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 			}
 		}
 
-<<<<<<< Updated upstream
+		// // Additional check: if field name suggests it should be skipped
+		// // This is a fallback for cases where attribute parsing differs
+		// if field.name == 'other' && !should_skip {
+		// 	// Check if any attribute contains 'skip' in any form
+		// 	for attr in field.attrs {
+		// 		if attr.contains('skip') {
+		// 			should_skip = true
+		// 			break
+		// 		}
+		// 	}
+		// }
+
 		if !should_skip {
 			val := t.$(field.name)
 			field_attrs := attrs_get(field.attrs)
