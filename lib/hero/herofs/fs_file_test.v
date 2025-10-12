@@ -1,14 +1,14 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.hero.user
+import incubaid.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.hero.user
 import json
 import time // Added for time.sleep
 // FsFile, FsFileArg, MimeType, FsBlobArg are part of the same module, no need to import explicitly
-// import freeflowuniverse.herolib.hero.herofs { FsFile, FsFileArg, MimeType, FsBlobArg }
+// import incubaid.herolib.hero.herofs { FsFile, FsFileArg, MimeType, FsBlobArg }
 
 fn test_fs_file_new() ! {
 	mut factory := new_test()!
@@ -18,10 +18,10 @@ fn test_fs_file_new() ! {
 	mut fs := db_fs.new_get_set(name: 'test_fs_file_new')!
 
 	mut args := FsFileArg{
-		name: 'test_file.txt'
+		name:        'test_file.txt'
 		description: 'Test file for new function'
-		fs_id: fs.id
-		mime_type: .txt
+		fs_id:       fs.id
+		mime_type:   .txt
 	}
 
 	file := db_fs_file.new(args)!
@@ -52,11 +52,11 @@ fn test_fs_file_crud_operations() ! {
 	blob = db_fs_blob.set(blob)!
 
 	mut args := FsFileArg{
-		name: 'crud_file.txt'
+		name:        'crud_file.txt'
 		description: 'CRUD Test File'
-		fs_id: fs.id
-		blobs: [blob.id]
-		mime_type: .txt
+		fs_id:       fs.id
+		blobs:       [blob.id]
+		mime_type:   .txt
 	}
 
 	mut file := db_fs_file.new(args)!
@@ -116,9 +116,9 @@ fn test_fs_file_add_to_directory() ! {
 	blob = db_fs_blob.set(blob)!
 
 	mut file_args := FsFileArg{
-		name: 'dir_file.txt'
-		fs_id: fs.id
-		blobs: [blob.id]
+		name:      'dir_file.txt'
+		fs_id:     fs.id
+		blobs:     [blob.id]
 		mime_type: .txt
 	}
 	mut file := db_fs_file.new(file_args)!
@@ -140,19 +140,33 @@ fn test_fs_file_list() ! {
 
 	mut fs := db_fs.new_get_set(name: 'fs_file_list_test')!
 
-	mut blob_args1 := FsBlobArg{ data: 'File 1'.bytes() }
+	mut blob_args1 := FsBlobArg{
+		data: 'File 1'.bytes()
+	}
 	mut blob1 := db_fs_blob.new(blob_args1)!
 	blob1 = db_fs_blob.set(blob1)!
 
-	mut blob_args2 := FsBlobArg{ data: 'File 2'.bytes() }
+	mut blob_args2 := FsBlobArg{
+		data: 'File 2'.bytes()
+	}
 	mut blob2 := db_fs_blob.new(blob_args2)!
 	blob2 = db_fs_blob.set(blob2)!
 
-	mut file_args1 := FsFileArg{ name: 'list_file1.txt', fs_id: fs.id, blobs: [blob1.id], mime_type: .txt }
+	mut file_args1 := FsFileArg{
+		name:      'list_file1.txt'
+		fs_id:     fs.id
+		blobs:     [blob1.id]
+		mime_type: .txt
+	}
 	mut file1 := db_fs_file.new(file_args1)!
 	file1 = db_fs_file.set(file1)!
 
-	mut file_args2 := FsFileArg{ name: 'list_file2.txt', fs_id: fs.id, blobs: [blob2.id], mime_type: .txt }
+	mut file_args2 := FsFileArg{
+		name:      'list_file2.txt'
+		fs_id:     fs.id
+		blobs:     [blob2.id]
+		mime_type: .txt
+	}
 	mut file2 := db_fs_file.new(file_args2)!
 	file2 = db_fs_file.set(file2)!
 
@@ -174,11 +188,18 @@ fn test_fs_file_get_by_path() ! {
 	mut fs := db_fs.new_get_set(name: 'get_by_path_fs')!
 	root_dir := fs.root_dir()!
 
-	mut blob_args := FsBlobArg{ data: 'Path File'.bytes() }
+	mut blob_args := FsBlobArg{
+		data: 'Path File'.bytes()
+	}
 	mut blob := db_fs_blob.new(blob_args)!
 	blob = db_fs_blob.set(blob)!
 
-	mut file_args := FsFileArg{ name: 'path_file.txt', fs_id: fs.id, blobs: [blob.id], mime_type: .txt }
+	mut file_args := FsFileArg{
+		name:      'path_file.txt'
+		fs_id:     fs.id
+		blobs:     [blob.id]
+		mime_type: .txt
+	}
 	mut file := db_fs_file.new(file_args)!
 	file = db_fs_file.set(file)!
 
@@ -201,19 +222,33 @@ fn test_fs_file_list_by_directory() ! {
 	mut fs := db_fs.new_get_set(name: 'list_by_dir_fs')!
 	root_dir := fs.root_dir()!
 
-	mut blob_args1 := FsBlobArg{ data: 'Dir File 1'.bytes() }
+	mut blob_args1 := FsBlobArg{
+		data: 'Dir File 1'.bytes()
+	}
 	mut blob1 := db_fs_blob.new(blob_args1)!
 	blob1 = db_fs_blob.set(blob1)!
 
-	mut blob_args2 := FsBlobArg{ data: 'Dir File 2'.bytes() }
+	mut blob_args2 := FsBlobArg{
+		data: 'Dir File 2'.bytes()
+	}
 	mut blob2 := db_fs_blob.new(blob_args2)!
 	blob2 = db_fs_blob.set(blob2)!
 
-	mut file_args1 := FsFileArg{ name: 'dir_file1.txt', fs_id: fs.id, blobs: [blob1.id], mime_type: .txt }
+	mut file_args1 := FsFileArg{
+		name:      'dir_file1.txt'
+		fs_id:     fs.id
+		blobs:     [blob1.id]
+		mime_type: .txt
+	}
 	mut file1 := db_fs_file.new(file_args1)!
 	file1 = db_fs_file.set(file1)!
 
-	mut file_args2 := FsFileArg{ name: 'dir_file2.txt', fs_id: fs.id, blobs: [blob2.id], mime_type: .txt }
+	mut file_args2 := FsFileArg{
+		name:      'dir_file2.txt'
+		fs_id:     fs.id
+		blobs:     [blob2.id]
+		mime_type: .txt
+	}
 	mut file2 := db_fs_file.new(file_args2)!
 	file2 = db_fs_file.set(file2)!
 
@@ -237,19 +272,33 @@ fn test_fs_file_list_by_filesystem() ! {
 	mut fs1 := db_fs.new_get_set(name: 'list_by_fs_1')!
 	mut fs2 := db_fs.new_get_set(name: 'list_by_fs_2')!
 
-	mut blob_args1 := FsBlobArg{ data: 'FS1 File'.bytes() }
+	mut blob_args1 := FsBlobArg{
+		data: 'FS1 File'.bytes()
+	}
 	mut blob1 := db_fs_blob.new(blob_args1)!
 	blob1 = db_fs_blob.set(blob1)!
 
-	mut blob_args2 := FsBlobArg{ data: 'FS2 File'.bytes() }
+	mut blob_args2 := FsBlobArg{
+		data: 'FS2 File'.bytes()
+	}
 	mut blob2 := db_fs_blob.new(blob_args2)!
 	blob2 = db_fs_blob.set(blob2)!
 
-	mut file_args1 := FsFileArg{ name: 'fs1_file.txt', fs_id: fs1.id, blobs: [blob1.id], mime_type: .txt }
+	mut file_args1 := FsFileArg{
+		name:      'fs1_file.txt'
+		fs_id:     fs1.id
+		blobs:     [blob1.id]
+		mime_type: .txt
+	}
 	mut file1 := db_fs_file.new(file_args1)!
 	file1 = db_fs_file.set(file1)!
 
-	mut file_args2 := FsFileArg{ name: 'fs2_file.txt', fs_id: fs2.id, blobs: [blob2.id], mime_type: .txt }
+	mut file_args2 := FsFileArg{
+		name:      'fs2_file.txt'
+		fs_id:     fs2.id
+		blobs:     [blob2.id]
+		mime_type: .txt
+	}
 	mut file2 := db_fs_file.new(file_args2)!
 	file2 = db_fs_file.set(file2)!
 
@@ -272,19 +321,33 @@ fn test_fs_file_list_by_mime_type() ! {
 
 	mut fs := db_fs.new_get_set(name: 'list_by_mime_fs')!
 
-	mut blob_args1 := FsBlobArg{ data: 'Text File'.bytes() }
+	mut blob_args1 := FsBlobArg{
+		data: 'Text File'.bytes()
+	}
 	mut blob1 := db_fs_blob.new(blob_args1)!
 	blob1 = db_fs_blob.set(blob1)!
 
-	mut blob_args2 := FsBlobArg{ data: 'Image File'.bytes() }
+	mut blob_args2 := FsBlobArg{
+		data: 'Image File'.bytes()
+	}
 	mut blob2 := db_fs_blob.new(blob_args2)!
 	blob2 = db_fs_blob.set(blob2)!
 
-	mut file_args1 := FsFileArg{ name: 'text.txt', fs_id: fs.id, blobs: [blob1.id], mime_type: .txt }
+	mut file_args1 := FsFileArg{
+		name:      'text.txt'
+		fs_id:     fs.id
+		blobs:     [blob1.id]
+		mime_type: .txt
+	}
 	mut file1 := db_fs_file.new(file_args1)!
 	file1 = db_fs_file.set(file1)!
 
-	mut file_args2 := FsFileArg{ name: 'image.png', fs_id: fs.id, blobs: [blob2.id], mime_type: .png }
+	mut file_args2 := FsFileArg{
+		name:      'image.png'
+		fs_id:     fs.id
+		blobs:     [blob2.id]
+		mime_type: .png
+	}
 	mut file2 := db_fs_file.new(file_args2)!
 	file2 = db_fs_file.set(file2)!
 
@@ -307,11 +370,18 @@ fn test_fs_file_update_accessed() ! {
 
 	mut fs := db_fs.new_get_set(name: 'update_accessed_fs')!
 
-	mut blob_args := FsBlobArg{ data: 'Accessed File'.bytes() }
+	mut blob_args := FsBlobArg{
+		data: 'Accessed File'.bytes()
+	}
 	mut blob := db_fs_blob.new(blob_args)!
 	blob = db_fs_blob.set(blob)!
 
-	mut file_args := FsFileArg{ name: 'accessed.txt', fs_id: fs.id, blobs: [blob.id], mime_type: .txt }
+	mut file_args := FsFileArg{
+		name:      'accessed.txt'
+		fs_id:     fs.id
+		blobs:     [blob.id]
+		mime_type: .txt
+	}
 	mut file := db_fs_file.new(file_args)!
 	file = db_fs_file.set(file)!
 
@@ -336,11 +406,18 @@ fn test_fs_file_update_metadata() ! {
 
 	mut fs := db_fs.new_get_set(name: 'update_metadata_fs')!
 
-	mut blob_args := FsBlobArg{ data: 'Metadata File'.bytes() }
+	mut blob_args := FsBlobArg{
+		data: 'Metadata File'.bytes()
+	}
 	mut blob := db_fs_blob.new(blob_args)!
 	blob = db_fs_blob.set(blob)!
 
-	mut file_args := FsFileArg{ name: 'metadata.txt', fs_id: fs.id, blobs: [blob.id], mime_type: .txt }
+	mut file_args := FsFileArg{
+		name:      'metadata.txt'
+		fs_id:     fs.id
+		blobs:     [blob.id]
+		mime_type: .txt
+	}
 	mut file := db_fs_file.new(file_args)!
 	file = db_fs_file.set(file)!
 
@@ -360,11 +437,18 @@ fn test_fs_file_rename() ! {
 
 	mut fs := db_fs.new_get_set(name: 'rename_fs')!
 
-	mut blob_args := FsBlobArg{ data: 'Rename File'.bytes() }
+	mut blob_args := FsBlobArg{
+		data: 'Rename File'.bytes()
+	}
 	mut blob := db_fs_blob.new(blob_args)!
 	blob = db_fs_blob.set(blob)!
 
-	mut file_args := FsFileArg{ name: 'old_name.txt', fs_id: fs.id, blobs: [blob.id], mime_type: .txt }
+	mut file_args := FsFileArg{
+		name:      'old_name.txt'
+		fs_id:     fs.id
+		blobs:     [blob.id]
+		mime_type: .txt
+	}
 	mut file := db_fs_file.new(file_args)!
 	file = db_fs_file.set(file)!
 
@@ -398,11 +482,18 @@ fn test_fs_file_move() ! {
 	updated_root_dir_for_dir2.directories << dir2.id
 	updated_root_dir_for_dir2 = db_fs_dir.set(updated_root_dir_for_dir2)!
 
-	mut blob_args := FsBlobArg{ data: 'Move File'.bytes() }
+	mut blob_args := FsBlobArg{
+		data: 'Move File'.bytes()
+	}
 	mut blob := db_fs_blob.new(blob_args)!
 	blob = db_fs_blob.set(blob)!
 
-	mut file_args := FsFileArg{ name: 'move_file.txt', fs_id: fs.id, blobs: [blob.id], mime_type: .txt }
+	mut file_args := FsFileArg{
+		name:      'move_file.txt'
+		fs_id:     fs.id
+		blobs:     [blob.id]
+		mime_type: .txt
+	}
 	mut file := db_fs_file.new(file_args)!
 	file = db_fs_file.set(file)!
 
@@ -414,7 +505,7 @@ fn test_fs_file_move() ! {
 	dir1_after_move := db_fs_dir.get(dir1.id)!
 	dir2_after_move := db_fs_dir.get(dir2.id)!
 
-	assert !(file.id in dir1_after_move.files)
+	assert file.id !in dir1_after_move.files
 	assert file.id in dir2_after_move.files
 
 	println('✓ FsFile move test passed!')
@@ -428,18 +519,27 @@ fn test_fs_file_append_blob() ! {
 
 	mut fs := db_fs.new_get_set(name: 'append_blob_fs')!
 
-	mut blob_args1 := FsBlobArg{ data: 'Part 1'.bytes() }
+	mut blob_args1 := FsBlobArg{
+		data: 'Part 1'.bytes()
+	}
 	mut blob1 := db_fs_blob.new(blob_args1)!
 	blob1 = db_fs_blob.set(blob1)!
 
-	mut file_args := FsFileArg{ name: 'append.txt', fs_id: fs.id, blobs: [blob1.id], mime_type: .txt }
+	mut file_args := FsFileArg{
+		name:      'append.txt'
+		fs_id:     fs.id
+		blobs:     [blob1.id]
+		mime_type: .txt
+	}
 	mut file := db_fs_file.new(file_args)!
 	file = db_fs_file.set(file)!
 
 	original_size := file.size_bytes
 	assert file.blobs.len == 1
 
-	mut blob_args2 := FsBlobArg{ data: 'Part 2'.bytes() }
+	mut blob_args2 := FsBlobArg{
+		data: 'Part 2'.bytes()
+	}
 	mut blob2 := db_fs_blob.new(blob_args2)!
 	blob2 = db_fs_blob.set(blob2)!
 
@@ -461,8 +561,8 @@ fn test_fs_file_description() ! {
 	mut fs := db_fs.new_get_set(name: 'fs_file_description_test')!
 
 	mut args := FsFileArg{
-		name: 'description_file.txt'
-		fs_id: fs.id
+		name:      'description_file.txt'
+		fs_id:     fs.id
 		mime_type: .txt
 	}
 
@@ -487,8 +587,8 @@ fn test_fs_file_example() ! {
 	mut fs := db_fs.new_get_set(name: 'fs_file_example_test')!
 
 	mut args := FsFileArg{
-		name: 'example_file.txt'
-		fs_id: fs.id
+		name:      'example_file.txt'
+		fs_id:     fs.id
 		mime_type: .txt
 	}
 

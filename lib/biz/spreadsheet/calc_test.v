@@ -1,7 +1,7 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.data.currency
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.currency
+import incubaid.herolib.ui.console
 
 fn test_sheets() {
 	mut sh := sheet_new() or { panic(err) }

@@ -1,10 +1,10 @@
 module s3
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.installers.zinit as zinitinstaller
-import freeflowuniverse.herolib.installers.rclone
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.installers.base
+import incubaid.herolib.installers.zinit as zinitinstaller
+import incubaid.herolib.installers.rclone
+import incubaid.herolib.ui.console
 
 // install s3 will return true if it was already installed
 pub fn install_() ! {

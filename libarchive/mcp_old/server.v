@@ -1,8 +1,8 @@
 module mcp
 
 import log
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.mcp.transport
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.mcp.transport
 
 // Server is the main MCP server struct
 @[heap]

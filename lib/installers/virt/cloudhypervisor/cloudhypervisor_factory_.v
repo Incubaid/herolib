@@ -1,9 +1,9 @@
 module cloudhypervisor
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 import json
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 __global (
 	cloudhypervisor_global  map[string]&CloudHypervisor

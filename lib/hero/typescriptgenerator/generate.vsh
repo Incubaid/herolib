@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.hero.typescriptgenerator
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.hero.typescriptgenerator
+import incubaid.herolib.schemas.openrpc
 import os
 
 const openrpc_path = os.dir(@FILE) + '/../../hero/heromodels/openrpc.json'

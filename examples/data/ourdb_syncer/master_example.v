@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.data.ourdb_syncer.streamer
+import incubaid.herolib.data.ourdb_syncer.streamer
 
 fn main() {
 	println('Strating the streamer first!')

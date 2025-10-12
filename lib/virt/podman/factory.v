@@ -1,8 +1,8 @@
 module herocontainers
 
-import freeflowuniverse.herolib.osal.core as osal { exec }
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.installers.virt.podman as podman_installer
+import incubaid.herolib.osal.core as osal { exec }
+import incubaid.herolib.core
+import incubaid.herolib.installers.virt.podman as podman_installer
 
 @[heap]
 pub struct PodmanFactory {

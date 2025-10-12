@@ -3,8 +3,8 @@ module heroprompt
 import rand
 import time
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.develop.codewalker
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.codewalker
 
 // Selection API
 @[params]

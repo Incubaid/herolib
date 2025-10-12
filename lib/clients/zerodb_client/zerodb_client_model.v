@@ -1,6 +1,6 @@
 module zerodb_client
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 import os
 
 pub const version = '0.0.0'

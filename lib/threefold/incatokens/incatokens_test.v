@@ -1,6 +1,6 @@
 module incatokens
 
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 import os
 import incatokens.defaults
 import incatokens.factory

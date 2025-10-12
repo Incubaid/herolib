@@ -2,8 +2,8 @@ module transport
 
 import time
 import os
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.ui.console
+import incubaid.herolib.schemas.jsonrpc
 
 // StdioTransport implements the Transport interface for standard input/output communication.
 // This is the original MCP transport method where the server reads JSON-RPC requests from stdin

@@ -1,6 +1,6 @@
 module incatokens
 
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // Simulation holds the main simulation state
 pub struct Simulation {

@@ -1,7 +1,7 @@
 module mcp
 
 import x.json2
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // LogLevel represents the logging levels supported by MCP
 pub enum LogLevel {

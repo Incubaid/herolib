@@ -1,7 +1,7 @@
 module markdown
 
-import freeflowuniverse.herolib.data.markdown { new }
-import freeflowuniverse.herolib.data.markdown.elements { Frontmatter2 }
+import incubaid.herolib.data.markdown { new }
+import incubaid.herolib.data.markdown.elements { Frontmatter2 }
 import os
 
 fn test_get_content_without_frontmatter() {

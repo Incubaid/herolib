@@ -2,9 +2,9 @@ module vfs_calendar
 
 import json
 import time
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.circles.mcc.models as calendar
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.vfs
+import incubaid.herolib.circles.mcc.models as calendar
+import incubaid.herolib.core.texttools
 
 // Basic operations
 pub fn (mut myvfs CalendarVFS) root_get() !vfs.FSEntry {

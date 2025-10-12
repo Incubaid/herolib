@@ -1,6 +1,6 @@
 module sshagent
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Check if SSH agent is properly configured and all is good
 pub fn agent_check(mut agent SSHAgent) ! {

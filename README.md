@@ -5,7 +5,7 @@ Herolib is an opinionated library primarily used by ThreeFold to automate cloud 
 [![Build on Linux & Run tests](https://github.com/incubaid/herolib/actions/workflows/test.yml/badge.svg)](https://github.com/incubaid/herolib/actions/workflows/test.yml)
 [![Deploy Documentation to Pages](https://github.com/incubaid/herolib/actions/workflows/documentation.yml/badge.svg)](https://github.com/incubaid/herolib/actions/workflows/documentation.yml)
 
-> [Complete Documentation](https://freeflowuniverse.github.io/herolib/)
+> [Complete Documentation](https://incubaid.github.io/herolib/)
 
 ## Installation
 
@@ -18,6 +18,7 @@ curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/i
 ```
 
 Hero will be installed in:
+
 - `/usr/local/bin` for Linux
 - `~/hero/bin` for macOS
 
@@ -74,15 +75,16 @@ Herolib provides a wide range of functionality:
 
 - Cloud automation tools
 - Git operations and management
+
   ### Offline Mode for Git Operations
 
   Herolib now supports an `offline` mode for Git operations, which prevents automatic fetching from remote repositories. This can be useful in environments with limited or no internet connectivity, or when you want to avoid network calls during development or testing.
 
   To enable offline mode:
 
-  -   **Via `GitStructureConfig`**: Set the `offline` field to `true` in the `GitStructureConfig` struct.
-  -   **Via `GitStructureArgsNew`**: When creating a new `GitStructure` instance using `gittools.new()`, set the `offline` parameter to `true`.
-  -   **Via Environment Variable**: Set the `OFFLINE` environment variable to any value (e.g., `export OFFLINE=true`).
+  - **Via `GitStructureConfig`**: Set the `offline` field to `true` in the `GitStructureConfig` struct.
+  - **Via `GitStructureArgsNew`**: When creating a new `GitStructure` instance using `gittools.new()`, set the `offline` parameter to `true`.
+  - **Via Environment Variable**: Set the `OFFLINE` environment variable to any value (e.g., `export OFFLINE=true`).
 
   When offline mode is active, `git fetch --all` operations will be skipped, and a debug message "fetch skipped (offline)" will be printed.
 - Documentation building
@@ -133,11 +135,13 @@ In file included from /Users/timurgordon/code/github/vlang/v/thirdparty/cJSON/cJ
 This is caused by incompatibility between TCC and the half precision math functions in the macOS SDK. To fix this issue:
 
 1. Open the math.h file:
+
    ```bash
    sudo nano /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h
    ```
 
 2. Comment out the following lines (around line 612-626):
+
    ```c
    /* half precision math functions */
    // extern _Float16 __fabsf16(_Float16) __API_AVAILABLE(macos(15.0), ios(18.0), watchos(11.0), tvos(18.0));
@@ -159,7 +163,7 @@ This is caused by incompatibility between TCC and the half precision math functi
 
 ## Additional Resources
 
-- [Complete Documentation](https://freeflowuniverse.github.io/herolib/)
+- [Complete Documentation](https://incubaid.github.io/herolib/)
 - [Cookbook Examples](https://github.com/incubaid/herolib/tree/development/cookbook)
 - [AI Prompts](aiprompts/starter/0_start_here.md)
 
@@ -171,7 +175,6 @@ To generate documentation locally:
 cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
-
 
 <!-- Security scan triggered at 2025-09-02 01:58:41 -->
 

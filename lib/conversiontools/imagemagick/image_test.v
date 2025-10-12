@@ -1,5 +1,5 @@
-import freeflowuniverse.herolib.conversiontools.imagemagick { image_new }
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.conversiontools.imagemagick { image_new }
+import incubaid.herolib.core.pathlib
 import os
 
 const testpath = os.dir(@FILE) + '/example'

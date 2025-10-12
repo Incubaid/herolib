@@ -1,7 +1,7 @@
 module dedupe_ourdb
 
 import os
-import freeflowuniverse.herolib.data.dedupestor
+import incubaid.herolib.data.dedupestor
 
 fn testsuite_begin() ! {
 	// Ensure test directories exist and are clean

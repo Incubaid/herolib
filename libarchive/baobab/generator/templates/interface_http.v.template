@@ -1,7 +1,7 @@
-import freeflowuniverse.herolib.schemas.openapi { OpenAPI }
-import freeflowuniverse.herolib.baobab.stage {Client, ClientConfig}
-import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
-import freeflowuniverse.herolib.baobab.stage.interfaces { HTTPServer, Context }
+import incubaid.herolib.schemas.openapi { OpenAPI }
+import incubaid.herolib.baobab.stage {Client, ClientConfig}
+import incubaid.herolib.schemas.openrpc { OpenRPC }
+import incubaid.herolib.baobab.stage.interfaces { HTTPServer, Context }
 import veb
 
 @@[params]

@@ -1,7 +1,7 @@
 module specification
 
-import freeflowuniverse.herolib.schemas.jsonschema { Schema, SchemaRef }
-import freeflowuniverse.herolib.schemas.openapi { Components, Info, MediaType, OpenAPI, Operation, Parameter, PathItem, ResponseSpec, ServerSpec }
+import incubaid.herolib.schemas.jsonschema { Schema, SchemaRef }
+import incubaid.herolib.schemas.openapi { Components, Info, MediaType, OpenAPI, Operation, Parameter, PathItem, ResponseSpec, ServerSpec }
 import net.http
 
 // Converts ActorSpecification to OpenAPI

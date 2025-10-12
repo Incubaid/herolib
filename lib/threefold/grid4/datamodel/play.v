@@ -1,6 +1,6 @@
 module datamodel
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.playbook { PlayBook }
 
 // this play script should never be called from hero directly its called by gridsimulator
 pub fn play(mut plbook PlayBook) !map[string]&Node {

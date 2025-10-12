@@ -5,8 +5,8 @@ import json
 import x.json2
 import net.unix
 import os
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.ui.console
+import incubaid.herolib.schemas.jsonrpc
 
 const testdata_dir = os.join_path(os.dir(@FILE), 'testdata')
 const openrpc_path = os.join_path(testdata_dir, 'openrpc.json')

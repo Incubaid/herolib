@@ -1,8 +1,8 @@
 module core
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core
+import incubaid.herolib.ui.console
 import os
 
 pub fn file_write(path string, text string) ! {

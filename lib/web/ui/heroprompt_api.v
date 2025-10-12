@@ -3,7 +3,7 @@ module ui
 import veb
 import os
 import json
-import freeflowuniverse.herolib.develop.heroprompt as hp
+import incubaid.herolib.develop.heroprompt as hp
 
 // Types
 struct DirResp {

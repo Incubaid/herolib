@@ -1,8 +1,8 @@
 module vfs_contacts
 
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.circles.mcc.db as core
-// import freeflowuniverse.herolib.circles.mcc.models as mcc
+import incubaid.herolib.vfs
+import incubaid.herolib.circles.mcc.db as core
+// import incubaid.herolib.circles.mcc.models as mcc
 
 // ContactsVFS represents the virtual file system for contacts
 pub struct ContactsVFS {

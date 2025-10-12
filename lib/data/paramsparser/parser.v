@@ -1,6 +1,6 @@
 module paramsparser
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 enum ParamStatus {
 	start

@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.data.encoder
+import incubaid.herolib.data.encoder
 import crypto.ed25519
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 struct AStruct {
 mut:

@@ -1,8 +1,8 @@
 module rust
 
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.lang.rust
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.lang.rust
+import incubaid.herolib.schemas.jsonschema
 import x.json2 as json { Any }
 
 // Tool specification for listing functions in a Rust file

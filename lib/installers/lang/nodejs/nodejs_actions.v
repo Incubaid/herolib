@@ -1,7 +1,7 @@
 module nodejs
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.ulist
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.ulist
 import os
 
 //////////////////// following actions are not specific to instance of the object

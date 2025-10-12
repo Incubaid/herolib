@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.osal
+import incubaid.herolib.osal
 
 fn do() ? {
 	if osal.is_osx() {

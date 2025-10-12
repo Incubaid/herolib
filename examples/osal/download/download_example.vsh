@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal { download }
+import incubaid.herolib.osal { download }
 
 mut p := download(
 	url:        'https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/@name'

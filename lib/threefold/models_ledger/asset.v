@@ -1,24 +1,24 @@
 // lib/threefold/models_ledger/asset.v
 module models_ledger
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // Asset represents a digital or physical item of value within the system.
 @[heap]
 pub struct Asset {
 	db.Base
 pub mut:
-	address         string            @[required; index] // The unique address or identifier for the asset.
-	asset_type      string            @[required] // The type of the asset (e.g., 'token', 'nft').
-	issuer          u32               @[required] // The user ID of the issuer of the asset.
-	supply          f64               // The total supply of the asset.
-	decimals        u8                // The number of decimal places for the asset's value.
-	is_frozen       bool              // Indicates if the asset is currently frozen and cannot be transferred.
-	metadata        map[string]string // A map for storing arbitrary metadata as key-value pairs.
-	administrators  []u32             // A list of user IDs that are administrators for this asset.
-	min_signatures  u32               // The minimum number of signatures required for administrative actions.
+	address        string @[index; required] // The unique address or identifier for the asset.
+	asset_type     string @[required]        // The type of the asset (e.g., 'token', 'nft').
+	issuer         u32    @[required]        // The user ID of the issuer of the asset.
+	supply         f64               // The total supply of the asset.
+	decimals       u8                // The number of decimal places for the asset's value.
+	is_frozen      bool              // Indicates if the asset is currently frozen and cannot be transferred.
+	metadata       map[string]string // A map for storing arbitrary metadata as key-value pairs.
+	administrators []u32             // A list of user IDs that are administrators for this asset.
+	min_signatures u32               // The minimum number of signatures required for administrative actions.
 }
 
 pub struct DBAsset {
@@ -63,7 +63,7 @@ pub fn (self Asset) dump(mut e encoder.Encoder) ! {
 	e.add_f64(self.supply)
 	e.add_u8(self.decimals)
 	e.add_bool(self.is_frozen)
-	
+
 	e.add_map_string(self.metadata)
 	e.add_list_u32(self.administrators)
 	e.add_u32(self.min_signatures)
@@ -76,7 +76,7 @@ fn (mut self DBAsset) load(mut o Asset, mut e encoder.Decoder) ! {
 	o.supply = e.get_f64()!
 	o.decimals = e.get_u8()!
 	o.is_frozen = e.get_bool()!
-	
+
 	o.metadata = e.get_map_string()!
 	o.administrators = e.get_list_u32()!
 	o.min_signatures = e.get_u32()!
@@ -85,17 +85,17 @@ fn (mut self DBAsset) load(mut o Asset, mut e encoder.Decoder) ! {
 @[params]
 pub struct AssetArg {
 pub mut:
-	name            string
-	description     string
-	address         string
-	asset_type      string
-	issuer          u32
-	supply          f64
-	decimals        u8
-	is_frozen       bool
-	metadata        map[string]string
-	administrators  []u32
-	min_signatures  u32
+	name           string
+	description    string
+	address        string
+	asset_type     string
+	issuer         u32
+	supply         f64
+	decimals       u8
+	is_frozen      bool
+	metadata       map[string]string
+	administrators []u32
+	min_signatures u32
 }
 
 pub fn (mut self DBAsset) new(args AssetArg) !Asset {

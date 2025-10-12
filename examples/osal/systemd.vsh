@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.systemd
+import incubaid.herolib.osal.systemd
 
 mut systemdfactory := systemd.new()!
 // mut systemdprocess := systemdfactory.new(

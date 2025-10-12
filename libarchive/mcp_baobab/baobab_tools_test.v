@@ -1,7 +1,7 @@
 module baobab
 
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.schemas.jsonrpc
 import json
 import x.json2
 import os

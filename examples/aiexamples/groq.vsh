@@ -2,7 +2,7 @@
 
 module main
 
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 import os
 
 fn test1(mut client openai.OpenAI) ! {

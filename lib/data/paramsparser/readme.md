@@ -4,16 +4,16 @@ The `ParamsParser` module in V provides a robust and intuitive way to parse and 
 
 ## Key Features
 
-*   **Flexible Parsing:** Supports key-value pairs, quoted values, and positional arguments.
-*   **Automatic Type Conversion:** Easily retrieve values as strings, integers, floats, booleans, and various list types.
-*   **Error Handling:** Integrates with V's error handling for reliable operations.
-*   **Case-Insensitive Keys:** Provides convenience by treating keys as case-insensitive.
-*   **Merging Capabilities:** Combine multiple parameter sets effortlessly.
+* **Flexible Parsing:** Supports key-value pairs, quoted values, and positional arguments.
+* **Automatic Type Conversion:** Easily retrieve values as strings, integers, floats, booleans, and various list types.
+* **Error Handling:** Integrates with V's error handling for reliable operations.
+* **Case-Insensitive Keys:** Provides convenience by treating keys as case-insensitive.
+* **Merging Capabilities:** Combine multiple parameter sets effortlessly.
 
 ## Installation
 
 ```v
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 ```
 
 ## Basic Usage
@@ -36,10 +36,10 @@ empty_params.set("price", "1200")
 
 The parser understands several common parameter formats:
 
-*   **Key-Value Pairs:** `key:value` (e.g., `name:John`)
-*   **Quoted Values:** `key:'value with spaces'` or `key:"value with spaces"` (essential for values containing spaces or special characters)
-*   **Positional Arguments:** `arg1 arg2` (values without an explicit key)
-*   **Comments:** `// this is a comment` (lines starting with `//` are ignored)
+* **Key-Value Pairs:** `key:value` (e.g., `name:John`)
+* **Quoted Values:** `key:'value with spaces'` or `key:"value with spaces"` (essential for values containing spaces or special characters)
+* **Positional Arguments:** `arg1 arg2` (values without an explicit key)
+* **Comments:** `// this is a comment` (lines starting with `//` are ignored)
 
 **Example:**
 
@@ -80,8 +80,8 @@ completion := parsed_params.get_percentage("progress")!
 
 Boolean getters are flexible and interpret common truthy/falsy strings:
 
-*   `get_default_true(key string)`: Returns `true` if the value is empty, "1", "true", "y", or "yes". Otherwise, `false`.
-*   `get_default_false(key string)`: Returns `false` if the value is empty, "0", "false", "n", or "no". Otherwise, `true`.
+* `get_default_true(key string)`: Returns `true` if the value is empty, "1", "true", "y", or "yes". Otherwise, `false`.
+* `get_default_false(key string)`: Returns `false` if the value is empty, "0", "false", "n", or "no". Otherwise, `true`.
 
 ```v
 is_enabled := parsed_params.get_default_true("enable_feature") // "enable_feature:yes" -> true
@@ -114,10 +114,10 @@ clean_tags := list_params.get_list_namefix("tags")!
 
 **Supported List Types:**
 
-*   `get_list()`: `[]string`
-*   `get_list_u8()`, `get_list_u16()`, `get_list_u32()`, `get_list_u64()`: Unsigned integer lists
-*   `get_list_i8()`, `get_list_i16()`, `get_list_int()`, `get_list_i64()`: Signed integer lists
-*   `get_list_f32()`, `get_list_f64()`: Floating-point lists
+* `get_list()`: `[]string`
+* `get_list_u8()`, `get_list_u16()`, `get_list_u32()`, `get_list_u64()`: Unsigned integer lists
+* `get_list_i8()`, `get_list_i16()`, `get_list_int()`, `get_list_i64()`: Signed integer lists
+* `get_list_f32()`, `get_list_f64()`: Floating-point lists
 
 Each list method also has a `_default` version (e.g., `get_list_int_default`) for providing fallback values.
 
@@ -204,15 +204,15 @@ optional_value := params.get("optional_key") or {
 
 The parser adheres to the following rules for input strings:
 
-*   **Keys:** Must consist of alphanumeric characters, underscores (`_`), dots (`.`), and forward slashes (`/`).
-*   **Values:** Can contain any characters.
-*   **Spaces in Values:** Must be enclosed within single (`'`) or double (`"`) quotes.
-*   **Lists:** Supported with comma separation or square bracket notation.
+* **Keys:** Must consist of alphanumeric characters, underscores (`_`), dots (`.`), and forward slashes (`/`).
+* **Values:** Can contain any characters.
+* **Spaces in Values:** Must be enclosed within single (`'`) or double (`"`) quotes.
+* **Lists:** Supported with comma separation or square bracket notation.
 
 ## Best Practices for Usage
 
-1.  **Always Handle Errors:** Use `!` or `or {}` to manage potential parsing or conversion failures.
-2.  **Use Type-Specific Getters:** Prefer `get_int()`, `get_float()`, etc., when you know the expected data type for clarity and safety.
-3.  **Provide Default Values:** Utilize `_default` methods (e.g., `get_default`, `get_list_default`) to ensure your application behaves predictably when parameters are missing.
-4.  **Quote Values with Spaces:** Always enclose values containing spaces or special characters in quotes to ensure correct parsing.
-5.  **Consistent Key Naming:** While case-insensitive, using a consistent naming convention (e.g., `snake_case` or `camelCase`) for keys improves human readability and maintainability.
+1. **Always Handle Errors:** Use `!` or `or {}` to manage potential parsing or conversion failures.
+2. **Use Type-Specific Getters:** Prefer `get_int()`, `get_float()`, etc., when you know the expected data type for clarity and safety.
+3. **Provide Default Values:** Utilize `_default` methods (e.g., `get_default`, `get_list_default`) to ensure your application behaves predictably when parameters are missing.
+4. **Quote Values with Spaces:** Always enclose values containing spaces or special characters in quotes to ensure correct parsing.
+5. **Consistent Key Naming:** While case-insensitive, using a consistent naming convention (e.g., `snake_case` or `camelCase`) for keys improves human readability and maintainability.

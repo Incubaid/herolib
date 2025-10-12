@@ -1,7 +1,7 @@
 module doctree
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-// import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook { PlayBook }
+// import incubaid.herolib.ui.console
 
 pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'doctree.') {

@@ -1,14 +1,14 @@
 module youki
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.installers.lang.golang
-import freeflowuniverse.herolib.installers.lang.rust
-import freeflowuniverse.herolib.installers.lang.python
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.installers.lang.golang
+import incubaid.herolib.installers.lang.rust
+import incubaid.herolib.installers.lang.python
 import os
 
 // checks if a certain version or above is installed

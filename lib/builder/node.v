@@ -1,9 +1,9 @@
 module builder
 
 import json
-import freeflowuniverse.herolib.data.paramsparser { Params }
-import freeflowuniverse.herolib.core.base
-// import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.paramsparser { Params }
+import incubaid.herolib.core.base
+// import incubaid.herolib.ui.console
 import crypto.md5
 
 pub enum PlatformType {

@@ -51,8 +51,8 @@ println('Resetting all symlinks...')
 os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
 
 // Create necessary directories
-os.mkdir_all('${os.home_dir()}/.vmodules/freeflowuniverse') or {
-	panic('Failed to create directory ~/.vmodules/freeflowuniverse: ${err}')
+os.mkdir_all('${os.home_dir()}/.vmodules/incubaid') or {
+	panic('Failed to create directory ~/.vmodules/incubaid: ${err}')
 }
 
 // Create new symlinks

@@ -1,13 +1,13 @@
 module gitea
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.core as osal
 import os
-import freeflowuniverse.herolib.clients.mailclient
-import freeflowuniverse.herolib.clients.postgresql_client
+import incubaid.herolib.clients.mailclient
+import incubaid.herolib.clients.postgresql_client
 import rand
 
 pub const version = '1.24.5'

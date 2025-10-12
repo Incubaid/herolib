@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.clients.mycelium
-import freeflowuniverse.herolib.installers.net.mycelium_installer
+import incubaid.herolib.clients.mycelium
+import incubaid.herolib.installers.net.mycelium_installer
 import time
 import os
 import encoding.base64

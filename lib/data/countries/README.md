@@ -5,6 +5,7 @@ This module provides access to country information data, including ISO codes, co
 ## Purpose
 
 The countries module allows you to:
+
 - Load all country data from an embedded dataset
 - Search for specific countries by ISO code
 - Filter countries by continent or other attributes
@@ -12,7 +13,8 @@ The countries module allows you to:
 
 ## Data Source
 
-The country data is sourced from GeoNames (http://www.geonames.org), containing information about countries including:
+The country data is sourced from GeoNames (<http://www.geonames.org>), containing information about countries including:
+
 - ISO country codes (2-letter, 3-letter, and numeric)
 - Country names and capitals
 - Continent information
@@ -26,7 +28,7 @@ The country data is sourced from GeoNames (http://www.geonames.org), containing 
 ## Example Usage
 
 ```v
-import freeflowuniverse.herolib.data.countries
+import incubaid.herolib.data.countries
 
 // Get all countries
 mut all_countries := countries.get_all_countries()!

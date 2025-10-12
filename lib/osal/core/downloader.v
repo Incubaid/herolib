@@ -1,8 +1,8 @@
 module core
 
-import freeflowuniverse.herolib.core.pathlib
-// import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+// import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import os
 
 @[params]

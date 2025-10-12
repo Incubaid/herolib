@@ -1,9 +1,9 @@
 module herocmds
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.web.docusaurus
-import freeflowuniverse.herolib.core.playcmds
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.ui.console
+import incubaid.herolib.web.docusaurus
+import incubaid.herolib.core.playcmds
+import incubaid.herolib.develop.gittools
 import os
 import cli { Command, Flag }
 

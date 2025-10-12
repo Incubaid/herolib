@@ -1,11 +1,10 @@
 # mailclient
 
-
 To get started
 
 ```v
 
-import freeflowuniverse.herolib.clients.mailclient
+import incubaid.herolib.clients.mailclient
 
 
 //remove the previous one, otherwise the env variables are not read
@@ -52,10 +51,9 @@ following env variables are supported
 - MAIL_PASSWORD=
 - MAIL_PORT=465
 - MAIL_SERVER=smtp-relay.brevo.com
-- MAIL_USERNAME=kristof@incubaid.com
+- MAIL_USERNAME=<kristof@incubaid.com>
 
 these variables will only be set at configure time
-
 
 ## brevo remark
 

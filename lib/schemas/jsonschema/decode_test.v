@@ -1,7 +1,7 @@
 module jsonschema
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 const testdata = '${os.dir(@FILE)}/testdata'
 

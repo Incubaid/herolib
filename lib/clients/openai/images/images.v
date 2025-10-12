@@ -3,8 +3,8 @@ module openai
 import json
 import net.http
 import os
-import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.clients.openai { OpenAI }
+import incubaid.herolib.core.httpconnection
+import incubaid.herolib.clients.openai { OpenAI }
 
 type OpenAIAlias = OpenAI
 

@@ -1,7 +1,7 @@
 module vfs_calendar
 
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.circles.mcc.models as calendars
+import incubaid.herolib.vfs
+import incubaid.herolib.circles.mcc.models as calendars
 
 // CalendarFSEntry represents a file system entry in the calendar VFS
 pub struct CalendarFSEntry {

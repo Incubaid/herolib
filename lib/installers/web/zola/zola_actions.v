@@ -1,12 +1,12 @@
 module zola
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.installers.lang.rust
-import freeflowuniverse.herolib.installers.web.tailwind
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.installers.base
+import incubaid.herolib.installers.lang.rust
+import incubaid.herolib.installers.web.tailwind
 import os
 
 pub const version = '0.18.0'

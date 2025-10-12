@@ -1,8 +1,8 @@
 module doctree
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.data.doctree.collection.data
-import freeflowuniverse.herolib.data.doctree.collection
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.doctree.collection.data
+import incubaid.herolib.data.doctree.collection
 import os
 
 const collections_path = os.dir(@FILE) + '/testdata/tree_test'

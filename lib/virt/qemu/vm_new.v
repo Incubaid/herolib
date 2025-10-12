@@ -1,10 +1,10 @@
 module qemu
 
 import os
-import freeflowuniverse.herolib.core.pathlib
-// import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.core.pathlib
+// import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.core as osal
 
 @[params]
 pub struct VMNewArgs {

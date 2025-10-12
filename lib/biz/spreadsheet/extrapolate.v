@@ -1,6 +1,6 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // smartstring is something like 3:2,10:5 means end month 3 we start with 2, it grows to 5 on end month 10 .
 // the cells out of the mentioned ranges are not filled if they are already set .

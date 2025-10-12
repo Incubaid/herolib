@@ -1,7 +1,7 @@
 module bizmodel
 
-import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.biz.spreadsheet
+import incubaid.herolib.core.playbook
 
 __global (
 	bizmodels shared map[string]&BizModel

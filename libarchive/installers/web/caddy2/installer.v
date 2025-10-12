@@ -1,11 +1,11 @@
 module caddy
 
-import freeflowuniverse.herolib.osal
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.sysadmin.startupmanager
-import freeflowuniverse.herolib.installers.lang.golang
+import incubaid.herolib.osal
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
+import incubaid.herolib.sysadmin.startupmanager
+import incubaid.herolib.installers.lang.golang
 import os
 
 pub fn install_caddy_from_release() ! {

@@ -1,7 +1,7 @@
 module rhai
 
 import strings
-import freeflowuniverse.herolib.lang.rust
+import incubaid.herolib.lang.rust
 
 // generate_rhai_registration generates Rust code to register a Rust struct and its fields with Rhai.
 // Input: rust_struct_definition - A string containing the Rust struct definition.

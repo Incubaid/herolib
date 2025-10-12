@@ -2,10 +2,10 @@
 
 Easily access Threefold grid APIs from vlang. gridproxy is v module include the API client along with API-specific information such as the root URL for the different networks available in the threefold grid. They also include classes that represent entities in the context of the API in sub-module `model`, and that are useful for making conversions between JSON objects and V objects. and some types with helper methods to convert the machine-friendly units returned by the API to more human-friendly units.
 
-### import the client:
+### import the client
 
 ```v
-import freeflowuniverse.herolib.threefold.grid3.gridproxy
+import incubaid.herolib.threefold.grid3.gridproxy
 
 // create a client for the testnet, with API cache disabled
 // you can pass true as second arg to enable cache
@@ -13,7 +13,7 @@ mut gp_client := gridproxy.get(.test, false)!
 
 ```
 
-### use the client to interact with the gridproxy API:
+### use the client to interact with the gridproxy API
 
 ```v
 // get farm list
@@ -36,7 +36,7 @@ twins := gp_client.get_twins()!
 
 for all available methods on the client, see [GridProxy API client modules doc](./docs/)
 
-### filtering:
+### filtering
 
 ```v
 // getting only dedicated farms
@@ -58,7 +58,7 @@ if farms_first_page.len > 0 {
 
 for all available filters, see [GridProxy API client modules doc](./docs/)
 
-### helper methods:
+### helper methods
 
 ```v
 node := nodes[0]

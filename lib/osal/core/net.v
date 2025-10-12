@@ -2,8 +2,8 @@ module core
 
 import net
 import time
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core as herolib_core
+import incubaid.herolib.ui.console
+import incubaid.herolib.core as herolib_core
 import math
 import os
 

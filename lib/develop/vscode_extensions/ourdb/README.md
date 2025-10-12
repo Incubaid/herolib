@@ -21,21 +21,21 @@ A Visual Studio Code extension for viewing OurDB files line by line. This extens
 ```
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.develop.vscode_extensions.ourdb
+import incubaid.herolib.develop.vscode_extensions.ourdb
 
 // This example shows how to use the ourdb module to install or uninstall the VSCode extension
 
 // Install the extension
 ourdb.install_extension() or {
-	eprintln('Failed to install extension: ${err}')
-	exit(1)
+ eprintln('Failed to install extension: ${err}')
+ exit(1)
 }
 
 // To uninstall, uncomment the following lines:
 /*
 ourdb.uninstall_extension() or {
-	eprintln('Failed to uninstall extension: ${err}')
-	exit(1)
+ eprintln('Failed to uninstall extension: ${err}')
+ exit(1)
 }
 
 
@@ -91,6 +91,7 @@ The extension creates a dedicated output channel for logging:
 3. You'll see detailed logs about the extension's activity, including file processing and any errors
 
 If you don't see "OurDB Viewer" in the dropdown, try:
+
 - Restarting VSCode
 - Opening an .ourdb file (which should activate the extension)
 - Reinstalling the extension using the provided installation scripts
@@ -108,6 +109,7 @@ The extension now includes a custom editor that can handle binary .ourdb files d
 ## File Format
 
 This extension reads OurDB files according to the following format:
+
 - 2 bytes: Data size (little-endian)
 - 4 bytes: CRC32 checksum
 - 6 bytes: Previous record location
@@ -124,6 +126,7 @@ To modify or enhance this extension:
    - Open an .ourdb file in the development window to test
 
 3. Package using `vsce package` if you want to create a VSIX file:
+
    ```
    npm install -g @vscode/vsce
    vsce package

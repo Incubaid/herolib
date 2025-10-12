@@ -3,7 +3,7 @@ module heroserver
 import json
 import net.http
 import veb
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 @['/auth/:action']
 pub fn (mut server HeroServer) auth_handler(mut ctx Context, action string) !veb.Result {

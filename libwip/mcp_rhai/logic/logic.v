@@ -1,8 +1,8 @@
 module logic
 
-import freeflowuniverse.herolib.ai.escalayer
-import freeflowuniverse.herolib.lang.rust
-import freeflowuniverse.herolib.develop.codetools.utils as ai_utils
+import incubaid.herolib.ai.escalayer
+import incubaid.herolib.lang.rust
+import incubaid.herolib.develop.codetools.utils as ai_utils
 import os
 
 pub fn generate_rhai_wrapper(name string, source_path string) !string {
@@ -254,7 +254,8 @@ fn extract_code_blocks(response string) !CodeBlocks {
 	}
 
 	// Extract example.rhai content
-	mut example_rhai_content := ai_utils.extract_code_block(response, 'example.rhai', 'rhai')
+	mut example_rhai_content := ai_utils.extract_code_block(response, 'example.rhai',
+		'rhai')
 	if example_rhai_content == '' {
 		// Try to extract from the response without explicit language marker
 		example_rhai_content = ai_utils.extract_code_block(response, 'example.rhai', '')

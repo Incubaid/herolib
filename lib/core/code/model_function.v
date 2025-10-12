@@ -1,6 +1,6 @@
 module code
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 pub struct Function {
 pub:

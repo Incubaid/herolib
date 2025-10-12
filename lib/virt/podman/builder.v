@@ -1,8 +1,8 @@
 module podman
 
 import time
-import freeflowuniverse.herolib.osal.core as osal { exec }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal { exec }
+import incubaid.herolib.ui.console
 import json
 
 // BuildError represents errors that occur during build operations

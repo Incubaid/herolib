@@ -1,11 +1,11 @@
 module playmacros
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.playbook { Action, PlayBook }
-import freeflowuniverse.herolib.threefold.grid4.gridsimulator
-import freeflowuniverse.herolib.threefold.grid4.farmingsimulator
-import freeflowuniverse.herolib.biz.bizmodel
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.playbook { Action, PlayBook }
+import incubaid.herolib.threefold.grid4.gridsimulator
+import incubaid.herolib.threefold.grid4.farmingsimulator
+import incubaid.herolib.biz.bizmodel
+import incubaid.herolib.biz.spreadsheet
 
 pub fn play_actions(mut plbook PlayBook) ! {
 	console.print_green('play actions (simulators)')

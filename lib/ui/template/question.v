@@ -1,8 +1,8 @@
 module template
 
 // import os
-import freeflowuniverse.herolib.ui.uimodel { QuestionArgs }
-// import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.uimodel { QuestionArgs }
+// import incubaid.herolib.ui.console
 
 // args:
 // - description string

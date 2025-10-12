@@ -1,7 +1,7 @@
 module markdown
 
-import freeflowuniverse.herolib.data.markdown.elements
-// import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.markdown.elements
+// import incubaid.herolib.ui.console
 
 fn test_empty() {
 	mut mydoc := new(content: '')!

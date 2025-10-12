@@ -1,8 +1,8 @@
 module docusaurus
 
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.base // For context and Redis, if test needs to manage it
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.base // For context and Redis, if test needs to manage it
 import time
 
 const test_heroscript_content = '!!site.config\n    name:"Kristof"\n    title:"Internet Geek"\n    tagline:"Internet Geek"\n    url:"https://friends.threefold.info"\n    url_home:"docs/"\n    base_url:"/kristof/"\n    favicon:"img/favicon.png"\n    image:"img/tf_graph.png"\n    copyright:"Kristof"\n\n!!site.config_meta\n    description:"ThreeFold is laying the foundation for a geo aware Web 4, the next generation of the Internet."\n    image:"https://threefold.info/kristof/img/tf_graph.png"\n    title:"ThreeFold Technology Vision"\n\n!!site.build_dest\n    ssh_name:"production"\n    path:"/root/hero/www/info/kristof"\n\n!!site.navbar\n    title:"Kristof = Chief Executive Geek"\n    logo_alt:"Kristof Logo"\n    logo_src:"img/logo.svg"\n    logo_src_dark:"img/logo.svg"\n\n!!site.navbar_item\n    label:"ThreeFold Technology"\n    href:"https://threefold.info/kristof/"\n    position:"right"\n\n!!site.navbar_item\n    label:"ThreeFold.io"\n    href:"https://threefold.io"\n    position:"right"\n\n!!site.footer\n    style:"dark"\n\n!!site.footer_item\n    title:"Docs"\n    label:"Introduction"\n    href:"/docs"\n\n!!site.footer_item\n    title:"Docs"\n    label:"TFGrid V4 Docs"\n    href:"https://docs.threefold.io/"\n\n!!site.footer_item\n    title:"Community"\n    label:"Telegram"\n    href:"https://t.me/threefold"\n\n!!site.footer_item\n    title:"Community"\n    label:"X"\n    href:"https://x.com/threefold_io"\n\n!!site.footer_item\n    title:"Links"\n    label:"ThreeFold.io"\n    href:"https://threefold.io"\n'

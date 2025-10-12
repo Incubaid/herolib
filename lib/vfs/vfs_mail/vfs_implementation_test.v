@@ -1,10 +1,10 @@
 module vfs_mail
 
-import freeflowuniverse.herolib.vfs
-// import freeflowuniverse.herolib.circles.mcc.models
-import freeflowuniverse.herolib.circles.mcc.models as mail
-import freeflowuniverse.herolib.circles.mcc.db as core
-import freeflowuniverse.herolib.circles.base
+import incubaid.herolib.vfs
+// import incubaid.herolib.circles.mcc.models
+import incubaid.herolib.circles.mcc.models as mail
+import incubaid.herolib.circles.mcc.db as core
+import incubaid.herolib.circles.base
 import json
 import time
 

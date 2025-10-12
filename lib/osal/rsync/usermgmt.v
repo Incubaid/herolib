@@ -1,6 +1,6 @@
 module rsync
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 pub struct UserManager {
 pub mut:

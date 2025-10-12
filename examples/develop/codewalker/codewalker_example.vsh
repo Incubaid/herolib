@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.develop.codewalker
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.develop.codewalker
+import incubaid.herolib.core.pathlib
 import os
 
 // Simple example demonstrating CodeWalker:

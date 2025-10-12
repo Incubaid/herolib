@@ -1,6 +1,6 @@
 module builder
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn (mut node Node) done_set(key string, val string) ! {
 	if key in node.done {

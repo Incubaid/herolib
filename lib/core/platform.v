@@ -2,7 +2,7 @@ module core
 
 import os
 
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 // Returns the enum value that matches the provided string for PlatformType
 
 pub enum PlatformType {

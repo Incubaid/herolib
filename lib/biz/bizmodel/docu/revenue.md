@@ -1,4 +1,4 @@
-# Revenue 
+# Revenue
 
 ```
 !!bizmodel.revenue_define bizname:'test' name:'oem1' ...
@@ -21,7 +21,7 @@ cogs stands for cost of goods
 - cogs_delay: delay in months between cogs and revenue
 - extrapolate: if you want to extrapolate revenue or cogs do extrapolate:1, default is 0
 
-### results in 
+### results in
 
 follow rows in sheets
 
@@ -36,16 +36,14 @@ follow rows in sheets
 - revenue_item_setup_delay, delay between sell and recognition of sale in months e.g. 1
 - revenue_item_monthly, revenue per month for 1 item
 - revenue_item_monthly_delay, how many months before monthly revenue starts
-- revenue_item_monthly_perc, how much percent of revenue_item_setup will come back over months e.g. 20% 
+- revenue_item_monthly_perc, how much percent of revenue_item_setup will come back over months e.g. 20%
 - cogs_item_setup, cost of good for 1 item at setup
 - cogs_item_setup_rev_perc: what is percentage of the revenue which is cogs, e.g. 2%
 - cogs_item_monthly, cost of goods for the monthly per 1 item
 - cogs_item_monthly_rev_perc: what is percentage of the monthly revenue which is cogs, e.g. 10%
 - cogs_item_delay, how many months before cogs starts after sales
 
-
-
-### results in 
+### results in
 
 follow rows in sheets
 
@@ -62,7 +60,7 @@ follow rows in sheets
 
 ```v
 
-import freeflowuniverse.herolib.biz.bizmodel
+import incubaid.herolib.biz.bizmodel
 import os
 
 heroscript:="

@@ -9,7 +9,7 @@ Rows and Cells are fundamental building blocks of the spreadsheet, allowing for 
 Rows are created within the context of a `Sheet` object.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // Assuming 'my_sheet' is an existing Sheet object
 mut my_sheet := spreadsheet.sheet_new(name: 'my_sheet', nrcol: 60)!

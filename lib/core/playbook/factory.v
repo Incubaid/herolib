@@ -1,6 +1,6 @@
 module playbook
 
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 @[params]
 pub struct PlayBookNewArgs {

@@ -1,7 +1,7 @@
 module openrpcserver
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
 
 @[heap]
 pub struct Comment {

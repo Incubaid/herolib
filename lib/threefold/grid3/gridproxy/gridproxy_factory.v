@@ -1,8 +1,8 @@
 module gridproxy
 
-import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.threefold.grid3.gridproxy.model
-// import freeflowuniverse.herolib.installers.threefold.griddriver
+import incubaid.herolib.core.httpconnection
+import incubaid.herolib.threefold.grid3.gridproxy.model
+// import incubaid.herolib.installers.threefold.griddriver
 
 @[heap]
 pub struct GridProxyClient {

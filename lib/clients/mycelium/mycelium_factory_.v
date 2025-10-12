@@ -1,7 +1,7 @@
 module mycelium
 
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.base
+import incubaid.herolib.core.playbook { PlayBook }
 import json
 
 __global (

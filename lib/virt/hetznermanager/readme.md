@@ -8,11 +8,11 @@ Before using the module, you need to configure at least one client instance with
 
 ```hs
 !!hetznermanager.configure
-	name:"main"
-	user:"<your_robot_username>"
-	password:"${HETZNER_PASSWORD}"
-	whitelist:"2111181, 2392178" // Optional: comma-separated list of server IDs to operate on
-	sshkey: "name of sshkey as used with hetzner"
+ name:"main"
+ user:"<your_robot_username>"
+ password:"${HETZNER_PASSWORD}"
+ whitelist:"2111181, 2392178" // Optional: comma-separated list of server IDs to operate on
+ sshkey: "name of sshkey as used with hetzner"
 ```
 
 ## 2. Usage
@@ -24,6 +24,7 @@ You can interact with the Hetzner module in two ways: via HeroScript for automat
 HeroScript provides a simple, declarative way to execute server operations. You can run a script containing these actions using `playcmds.run()`.
 
 **Example Script:**
+
 ```hs
 
 # Place a server into rescue mode
@@ -53,40 +54,39 @@ HeroScript provides a simple, declarative way to execute server operations. You 
     data: 'ssh-rsa AAAA...'
 ```
 
-#### Available Heroscript Actions:
+#### Available Heroscript Actions
 
-*   `!!hetznermanager.configure`: Configures a new client instance.
-    *   `name` (string): A unique name for this configuration.
-    *   `user` (string): Hetzner Robot username.
-    *   `password` (string): Hetzner Robot password.
-    *   `whitelist` (string, optional): Comma-separated list of server IDs to restrict operations to.
-    *   `sshkey` (string, optional): Default public SSH key to deploy in rescue mode.
-*   `!!hetznermanager.server_rescue`: Activates the rescue system.
-    *   `instance` (string, optional): The client instance to use (defaults to 'default').
-    *   `server_name` or `id` (string/int): Identifies the target server.
-    *   `wait` (bool, optional): Wait for the server to reboot into rescue (default: `true`).
-    *   `hero_install` (bool, optional): Install Herolib in the rescue system (default: `false`).
-    *   `reset` (bool, optional): Force activation even if already in rescue mode (default: `false`).
-*   `!!hetznermanager.ubuntu_install`: Performs a fresh installation of Ubuntu 24.04.
-    *   `instance` (string, optional): The client instance to use (defaults to 'default').
-    *   `server_name` or `id` (string/int): Identifies the target server.
-    *   `wait` (bool, optional): Wait for the installation and reboot to complete (default: `true`).
-    *   `hero_install` (bool, optional): Install Herolib on the newly installed system (default: `false`).
-*   `!!hetznermanager.server_reset`: Triggers a hardware reset.
-    *   All parameters are the same as `server_rescue`, except for `hero_install` and `reset`.
-*   `!!hetznermanager.key_create` / `key_delete`: Manages SSH keys in your account.
-    *   `instance` (string, optional): The client instance to use.
-    *   `key_name` (string): The name of the key.
-    *   `data` (string, for create): The public key data.
-
+* `!!hetznermanager.configure`: Configures a new client instance.
+  * `name` (string): A unique name for this configuration.
+  * `user` (string): Hetzner Robot username.
+  * `password` (string): Hetzner Robot password.
+  * `whitelist` (string, optional): Comma-separated list of server IDs to restrict operations to.
+  * `sshkey` (string, optional): Default public SSH key to deploy in rescue mode.
+* `!!hetznermanager.server_rescue`: Activates the rescue system.
+  * `instance` (string, optional): The client instance to use (defaults to 'default').
+  * `server_name` or `id` (string/int): Identifies the target server.
+  * `wait` (bool, optional): Wait for the server to reboot into rescue (default: `true`).
+  * `hero_install` (bool, optional): Install Herolib in the rescue system (default: `false`).
+  * `reset` (bool, optional): Force activation even if already in rescue mode (default: `false`).
+* `!!hetznermanager.ubuntu_install`: Performs a fresh installation of Ubuntu 24.04.
+  * `instance` (string, optional): The client instance to use (defaults to 'default').
+  * `server_name` or `id` (string/int): Identifies the target server.
+  * `wait` (bool, optional): Wait for the installation and reboot to complete (default: `true`).
+  * `hero_install` (bool, optional): Install Herolib on the newly installed system (default: `false`).
+* `!!hetznermanager.server_reset`: Triggers a hardware reset.
+  * All parameters are the same as `server_rescue`, except for `hero_install` and `reset`.
+* `!!hetznermanager.key_create` / `key_delete`: Manages SSH keys in your account.
+  * `instance` (string, optional): The client instance to use.
+  * `key_name` (string): The name of the key.
+  * `data` (string, for create): The public key data.
 
 ### 2.2. V Language Usage
 
 For more granular control, you can call the module functions directly from your V code.
 
 ```v
-import freeflowuniverse.herolib.virt.hetznermanager
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.virt.hetznermanager
+import incubaid.herolib.ui.console
 
 // Get a configured client instance by the name you provided during configuration
 mut cl := hetznermanager.get(name: 'main')!
@@ -114,19 +114,19 @@ println('Server has been reset.')
 
 ## Features
 
-- Server listing and information retrieval
-- Hardware reset functionality
-- Rescue mode management with optional Herolib installation
-- Automated Ubuntu 24.04 installation
-- SSH key management
-- Automatic server status monitoring during long operations
-- Built-in caching for API responses to reduce rate-limiting
-- Integration with Herolib installation tools
+* Server listing and information retrieval
+* Hardware reset functionality
+* Rescue mode management with optional Herolib installation
+* Automated Ubuntu 24.04 installation
+* SSH key management
+* Automatic server status monitoring during long operations
+* Built-in caching for API responses to reduce rate-limiting
+* Integration with Herolib installation tools
 
 ## Notes
 
-- The module uses Redis for caching API responses (default 60-second cache duration).
-- Server operations that include `wait: true` will monitor the server until the operation completes, providing feedback on the process.
-- Reset operations with `wait: true` will timeout after 2 minutes if the server doesn't respond to SSH.
-- The module automatically manages `ssh-keygen -R` to remove old host keys during reboots and reinstalls.
-- The official API documentation can be found at [https://robot.hetzner.com/doc/webservice/en.html#preface](https://robot.hetzner.com/doc/webservice/en.html#preface).
+* The module uses Redis for caching API responses (default 60-second cache duration).
+* Server operations that include `wait: true` will monitor the server until the operation completes, providing feedback on the process.
+* Reset operations with `wait: true` will timeout after 2 minutes if the server doesn't respond to SSH.
+* The module automatically manages `ssh-keygen -R` to remove old host keys during reboots and reinstalls.
+* The official API documentation can be found at [https://robot.hetzner.com/doc/webservice/en.html#preface](https://robot.hetzner.com/doc/webservice/en.html#preface).

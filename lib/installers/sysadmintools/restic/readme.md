@@ -1,13 +1,11 @@
 # restic
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.restic as restic_installer
+import incubaid.herolib.installers.something.restic as restic_installer
 
 heroscript:="
 !!restic.configure name:'test'
@@ -40,5 +38,3 @@ restic_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

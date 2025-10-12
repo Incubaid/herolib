@@ -1,6 +1,6 @@
 module herocmds
 
-import freeflowuniverse.herolib.core.generator.generic
+import incubaid.herolib.core.generator.generic
 import os
 import cli { Command, Flag }
 

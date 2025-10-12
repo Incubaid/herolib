@@ -1,8 +1,8 @@
 module site
 
 import os
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.texttools
 import time
 
 pub fn play(mut plbook PlayBook) ! {

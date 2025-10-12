@@ -1,13 +1,11 @@
 # python
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.python as python_installer
+import incubaid.herolib.installers.something.python as python_installer
 
 heroscript:="
 !!python.configure name:'test'
@@ -40,5 +38,3 @@ python_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

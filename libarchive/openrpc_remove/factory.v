@@ -1,7 +1,7 @@
 module openrpc
 
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.core.jobs.model
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.core.jobs.model
 
 // Generic OpenRPC server that handles all managers
 pub struct OpenRPCServer {

@@ -2,7 +2,7 @@ module openapi
 
 import os
 import x.json2 { Any }
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
+import incubaid.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
 
 const spec_path = '${os.dir(@FILE)}/testdata/openapi.json'
 const spec_json = os.read_file(spec_path) or { panic(err) }

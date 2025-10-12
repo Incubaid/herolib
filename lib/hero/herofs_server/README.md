@@ -14,7 +14,7 @@ A comprehensive REST API server for the HeroFS distributed filesystem, built wit
 ## Quick Start
 
 ```v
-import freeflowuniverse.herolib.hero.herofs_server
+import incubaid.herolib.hero.herofs_server
 
 // Create and start server
 mut server := herofs_server.new(

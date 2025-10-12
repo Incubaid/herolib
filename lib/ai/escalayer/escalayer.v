@@ -1,6 +1,6 @@
 module escalayer
 
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 
 // TaskParams defines the parameters for creating a new task
 @[params]

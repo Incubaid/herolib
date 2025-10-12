@@ -1,10 +1,10 @@
 module zerodb
 
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.encoderhero
 import os
 import rand
 import crypto.md5
-import freeflowuniverse.herolib.crypt.secrets
+import incubaid.herolib.crypt.secrets
 
 pub const version = '2.0.7'
 const singleton = true

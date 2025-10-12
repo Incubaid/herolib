@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.hero.heromodels.rpc
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.hero.heromodels.rpc
+import incubaid.herolib.ui.console
 
 // when httpport is set, the rpc will be available over http
 // if 0, then its only available on unix socket /tmp/heromodels

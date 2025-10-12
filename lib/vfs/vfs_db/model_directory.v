@@ -1,6 +1,6 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // Directory represents a directory in the virtual filesystem
 pub struct Directory {

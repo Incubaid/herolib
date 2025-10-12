@@ -1,6 +1,6 @@
 module heromodels
 
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.hero.db
 
 fn test_message_new() ! {
 	// Initialize DBMessages for testing

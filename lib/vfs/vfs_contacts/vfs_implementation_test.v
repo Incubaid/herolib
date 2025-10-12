@@ -1,9 +1,9 @@
 module vfs_contacts
 
-import freeflowuniverse.herolib.circles.base
-import freeflowuniverse.herolib.circles.mcc.db as core
-import freeflowuniverse.herolib.circles.mcc.models as contacts
-// import freeflowuniverse.herolib.circles.mcc.models
+import incubaid.herolib.circles.base
+import incubaid.herolib.circles.mcc.db as core
+import incubaid.herolib.circles.mcc.models as contacts
+// import incubaid.herolib.circles.mcc.models
 
 fn test_contacts_vfs() ! {
 	// Create a session state

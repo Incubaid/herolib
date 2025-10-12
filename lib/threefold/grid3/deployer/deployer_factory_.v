@@ -1,8 +1,8 @@
 module deployer
 
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.base
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 
 __global (
 	deployer_global  map[string]&TFGridDeployer

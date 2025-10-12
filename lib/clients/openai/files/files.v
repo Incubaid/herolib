@@ -1,10 +1,10 @@
 module files
 
 import json
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 import os
 import net.http
-import freeflowuniverse.herolib.clients.openai { OpenAI }
+import incubaid.herolib.clients.openai { OpenAI }
 
 type OpenAIAlias = OpenAI
 

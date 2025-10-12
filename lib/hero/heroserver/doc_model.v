@@ -1,7 +1,7 @@
 module heroserver
 
-import freeflowuniverse.herolib.schemas.openrpc
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.openrpc
+import incubaid.herolib.schemas.jsonschema
 
 // DocSpec is the main object passed to the documentation template.
 pub struct DocSpec {

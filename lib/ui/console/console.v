@@ -1,6 +1,6 @@
 module console
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 pub fn clear() {
 	if !silent_get() {
@@ -110,5 +110,5 @@ pub fn print_info(txt string) {
 	c.reset()
 }
 
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 // console.print_header()

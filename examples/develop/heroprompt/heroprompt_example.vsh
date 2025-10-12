@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none -cg -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.develop.heroprompt
+import incubaid.herolib.develop.heroprompt
 import os
 
 // mut workspace := heroprompt.new(

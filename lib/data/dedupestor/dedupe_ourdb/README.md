@@ -14,7 +14,7 @@ DedupeStore is a content-addressable key-value store with built-in deduplication
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.data.dedupestor
+import incubaid.herolib.data.dedupestor
 
 // Create a new dedupestore
 mut ds := dedupestor.new(
@@ -49,6 +49,7 @@ DedupeStore uses two main components for storage:
 2. **OurDB**: Stores the actual data blocks
 
 When storing data:
+
 1. The data is hashed using blake2b-160
 2. If the hash exists in the RadixTree, the existing data location is returned
 3. If the hash is new:
@@ -57,6 +58,7 @@ When storing data:
    - The hash is returned
 
 When retrieving data:
+
 1. The RadixTree is queried with the hash to get the data location ID
 2. The data is retrieved from OurDB using the ID
 
@@ -66,13 +68,14 @@ When retrieving data:
 - Attempting to store larger values will result in an error
 
 ## the reference field
+
 In the dedupestor system, the Reference struct is defined with two fields:
 
 ```v
 pub struct Reference {
 pub:
-	owner u16
-	id u32
+ owner u16
+ id u32
 }
 ```
 
@@ -92,11 +95,13 @@ This design allows for efficient deduplication - if the same data is stored mult
 ## Testing
 
 The module includes comprehensive tests covering:
+
 - Basic store/retrieve operations
 - Deduplication functionality
 - Size limit enforcement
 - Edge cases
 
 Run tests with:
+
 ```bash
 v test lib/data/dedupestor/

@@ -1,6 +1,6 @@
 module radixtree
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_debug_deletion() ! {
 	console.print_debug('Debug deletion test')

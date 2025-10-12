@@ -2,7 +2,7 @@ module zinit
 
 import net.unix
 import json
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // these need to be all private (non pub)
 

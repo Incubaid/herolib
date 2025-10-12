@@ -1,7 +1,7 @@
 module console
 
 import time
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub enum LogLevel {
 	error

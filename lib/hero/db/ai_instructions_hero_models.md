@@ -24,14 +24,14 @@ Define your model struct with the following pattern:
 ```v
 @[heap]
 pub struct Calendar {
-	db.Base // Inherit from Base struct
+ db.Base // Inherit from Base struct
 pub mut:
-	// Add your specific fields here
-	title       string
-	start_time  i64
-	end_time    i64
-	location    string
-	attendees   []string
+ // Add your specific fields here
+ title       string
+ start_time  i64
+ end_time    i64
+ location    string
+ attendees   []string
 }
 ```
 
@@ -41,7 +41,7 @@ Implement a method to return the model's type name:
 
 ```v
 pub fn (self Calendar) type_name() string {
-	return 'calendar'
+ return 'calendar'
 }
 ```
 
@@ -51,11 +51,11 @@ Implement the `dump` method to serialize your struct's fields using the encoder:
 
 ```v
 pub fn (self Calendar) dump(mut e &encoder.Encoder) ! {
-	e.add_string(self.title)
-	e.add_i64(self.start_time)
-	e.add_i64(self.end_time)
-	e.add_string(self.location)
-	e.add_list_string(self.attendees)
+ e.add_string(self.title)
+ e.add_i64(self.start_time)
+ e.add_i64(self.end_time)
+ e.add_string(self.location)
+ e.add_list_string(self.attendees)
 }
 ```
 
@@ -65,11 +65,11 @@ Implement the `load` method to deserialize your struct's fields:
 
 ```v
 fn (mut self DBCalendar) load(mut o Calendar, mut e &encoder.Decoder) ! {
-	o.title = e.get_string()!
-	o.start_time = e.get_i64()!
-	o.end_time = e.get_i64()!
-	o.location = e.get_string()!
-	o.attendees = e.get_list_string()!
+ o.title = e.get_string()!
+ o.start_time = e.get_i64()!
+ o.end_time = e.get_i64()!
+ o.location = e.get_string()!
+ o.attendees = e.get_list_string()!
 }
 ```
 
@@ -81,11 +81,11 @@ Define a struct for creating new instances of your model:
 @[params]
 pub struct CalendarArg {
 pub mut:
-	title      string @[required]
-	start_time i64
-	end_time   i64
-	location   string
-	attendees  []string
+ title      string @[required]
+ start_time i64
+ end_time   i64
+ location   string
+ attendees  []string
 }
 ```
 
@@ -96,7 +96,7 @@ Create a database wrapper struct for your model:
 ```v
 pub struct DBCalendar {
 pub mut:
-	db &db.DB @[skip; str: skip]
+ db &db.DB @[skip; str: skip]
 }
 ```
 
@@ -107,8 +107,8 @@ Add your model to the ModelsFactory struct in `factory.v`:
 ```v
 pub struct ModelsFactory {
 pub mut:
-	messages DBCalendar
-	// ... other models
+ messages DBCalendar
+ // ... other models
 }
 ```
 
@@ -116,13 +116,13 @@ And initialize it in the `new()` function:
 
 ```v
 pub fn new() !ModelsFactory {
-	mut mydb := db.new()!
-	return ModelsFactory{
-		messages: DBCalendar{
-			db: &mydb
-		}
-		// ... initialize other models
-	}
+ mut mydb := db.new()!
+ return ModelsFactory{
+  messages: DBCalendar{
+   db: &mydb
+  }
+  // ... initialize other models
+ }
 }
 ```
 
@@ -131,6 +131,7 @@ pub fn new() !ModelsFactory {
 Use these methods for serialization/deserialization:
 
 ### Encoder (Serialization)
+
 - `e.add_bool(val bool)`
 - `e.add_u8(val u8)`
 - `e.add_u16(val u16)`
@@ -157,6 +158,7 @@ Use these methods for serialization/deserialization:
 - `e.add_list_string(val []string)`
 
 ### Decoder (Deserialization)
+
 - `e.get_bool()!`
 - `e.get_u8()!`
 - `e.get_u16()!`
@@ -185,55 +187,61 @@ Use these methods for serialization/deserialization:
 ## CRUD Methods Implementation
 
 ### Create New Instance
+
 ```v
 pub fn (mut self DBCalendar) new(args CalendarArg) !Calendar {
-	mut o := Calendar{
-		title:      args.title
-		start_time: args.start_time
-		end_time:   args.end_time
-		location:   args.location
-		attendees:  args.attendees
-		updated_at: ourtime.now().unix()
-	}
-	return o
+ mut o := Calendar{
+  title:      args.title
+  start_time: args.start_time
+  end_time:   args.end_time
+  location:   args.location
+  attendees:  args.attendees
+  updated_at: ourtime.now().unix()
+ }
+ return o
 }
 ```
 
 ### Save to Database
+
 ```v
 pub fn (mut self DBCalendar) set(o Calendar) !Calendar {
-	return self.db.set[Calendar](o)!
+ return self.db.set[Calendar](o)!
 }
 ```
 
 ### Retrieve from Database
+
 ```v
 pub fn (mut self DBCalendar) get(id u32) !Calendar {
-	mut o, data := self.db.get_data[Calendar](id)!
-	mut e_decoder := encoder.decoder_new(data)
-	self.load(mut o, mut e_decoder)!
-	return o
+ mut o, data := self.db.get_data[Calendar](id)!
+ mut e_decoder := encoder.decoder_new(data)
+ self.load(mut o, mut e_decoder)!
+ return o
 }
 ```
 
 ### Delete from Database
+
 ```v
 pub fn (mut self DBCalendar) delete(id u32) ! {
-	self.db.delete[Calendar](id)!
+ self.db.delete[Calendar](id)!
 }
 ```
 
 ### Check Existence
+
 ```v
 pub fn (mut self DBCalendar) exist(id u32) !bool {
-	return self.db.exists[Calendar](id)!
+ return self.db.exists[Calendar](id)!
 }
 ```
 
 ### List All Objects
+
 ```v
 pub fn (mut self DBCalendar) list() ![]Calendar {
-	return self.db.list[Calendar]()!.map(self.get(it)!)
+ return self.db.list[Calendar]()!.map(self.get(it)!)
 }
 ```
 
@@ -244,18 +252,18 @@ Create a `.vsh` script in `examples/hero/heromodels/` to demonstrate usage:
 ```v
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.hero.heromodels
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.hero.heromodels
 
 mut mydb := heromodels.new()!
 
 // Create a new object
 mut o := mydb.calendar.new(
-	title: 'Meeting'
-	start_time: 1672531200
-	end_time: 1672534800
-	location: 'Conference Room'
-	attendees: ['john@example.com', 'jane@example.com']
+ title: 'Meeting'
+ start_time: 1672531200
+ end_time: 1672534800
+ location: 'Conference Room'
+ attendees: ['john@example.com', 'jane@example.com']
 )!
 
 // Save to database

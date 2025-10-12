@@ -1,7 +1,7 @@
 module codegen
 
 import log
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema }
+import incubaid.herolib.schemas.jsonschema { Reference, Schema }
 
 fn test_schema_to_structs_simple() ! {
 	struct_str := '

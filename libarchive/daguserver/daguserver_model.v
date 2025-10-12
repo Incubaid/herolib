@@ -1,9 +1,9 @@
 module daguserver
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.crypt.secrets
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.crypt.secrets
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.pathlib
 import os
 
 pub const version = '1.14.3'

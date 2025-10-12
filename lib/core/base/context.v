@@ -1,8 +1,8 @@
 module base
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.core.pathlib
 import json
 import os
 

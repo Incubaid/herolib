@@ -1,10 +1,10 @@
 module specification
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.develop.codetools as code { Struct }
-import freeflowuniverse.herolib.schemas.jsonschema { Schema, SchemaRef }
-import freeflowuniverse.herolib.schemas.openapi { MediaType, OpenAPI, OperationInfo, Parameter }
-import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, Example, ExamplePairing, ExampleRef }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.develop.codetools as code { Struct }
+import incubaid.herolib.schemas.jsonschema { Schema, SchemaRef }
+import incubaid.herolib.schemas.openapi { MediaType, OpenAPI, OperationInfo, Parameter }
+import incubaid.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, Example, ExamplePairing, ExampleRef }
 
 // Helper function: Convert OpenAPI parameter to ContentDescriptor
 fn openapi_param_to_content_descriptor(param Parameter) ContentDescriptor {

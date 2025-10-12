@@ -1,14 +1,12 @@
 # caddy
 
-
-
 To get started
 
 ```v
 
 
 
-import freeflowuniverse.herolib.installers.web.caddy
+import incubaid.herolib.installers.web.caddy
 
 mut installer:= caddy.get()!
 
@@ -21,7 +19,6 @@ installer.start()!
 
 ## example heroscript
 
-
 ```hero
 !!caddy.install
     homedir: '/home/user/caddy'
@@ -32,5 +29,3 @@ installer.start()!
     port: 8888
 
 ```
-
-

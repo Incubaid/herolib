@@ -4,7 +4,7 @@ import os
 import clients.openai
 import clients.openai.audio
 import clients.openai.openai_factory_ { get }
-import freeflowuniverse.crystallib.osal { play }
+import incubaid.crystallib.osal { play }
 
 fn test_audio() {
 	key := os.getenv('OPENAI_API_KEY')

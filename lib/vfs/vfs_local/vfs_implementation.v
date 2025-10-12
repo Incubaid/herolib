@@ -1,7 +1,7 @@
 module vfs_local
 
 import os
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // Basic operations
 pub fn (myvfs LocalVFS) root_get() !vfs.FSEntry {

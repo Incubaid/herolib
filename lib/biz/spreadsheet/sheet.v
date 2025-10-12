@@ -1,8 +1,8 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.data.currency
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.currency
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.ui.console
 
 @[heap]
 pub struct Sheet {

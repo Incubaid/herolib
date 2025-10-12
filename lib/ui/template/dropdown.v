@@ -1,7 +1,7 @@
 module template
 
-// import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui.uimodel { DropDownArgs }
+// import incubaid.herolib.ui.console
+import incubaid.herolib.ui.uimodel { DropDownArgs }
 
 // return the dropdown as an int
 // 	description string

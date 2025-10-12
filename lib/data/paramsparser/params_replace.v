@@ -1,8 +1,8 @@
 module paramsparser
 
-import freeflowuniverse.herolib.core.texttools.regext
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools.regext
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 
 // find parts of text in PARAM values which are of form {NAME}, and replace those .
 // .

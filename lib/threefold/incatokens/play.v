@@ -1,8 +1,8 @@
 module incatokens
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.pathlib
 import os
 
 pub fn play(mut plbook PlayBook) ! {

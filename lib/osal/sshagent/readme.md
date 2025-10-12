@@ -19,7 +19,7 @@ SSH agent management library for V language. Provides secure key handling, agent
 ## Quick Start
 
 ```v
-import freeflowuniverse.herolib.osal.sshagent
+import incubaid.herolib.osal.sshagent
 
 mut agent := sshagent.new()!
 mut key := agent.generate('my_key', '')!
@@ -58,7 +58,7 @@ agent.reset()!
 ### Remote
 
 ```v
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.builder
 
 mut node := builder.node_new(ipaddr: 'user@remote:22')!
 agent.push_key_to_node(mut node, 'my_key')!

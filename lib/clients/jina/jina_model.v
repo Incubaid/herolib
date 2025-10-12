@@ -1,7 +1,7 @@
 module jina
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.httpconnection
 // import net.http
 import os
 

@@ -2,10 +2,10 @@ module tfrobot
 
 // import os
 // import arrays
-// import freeflowuniverse.herolib.core.pathlib
-// import freeflowuniverse.herolib.osal.core as osal
+// import incubaid.herolib.core.pathlib
+// import incubaid.herolib.osal.core as osal
 // import json
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 
 // VirtualMachine represents the VM info outputted by tfrobot
 pub struct VirtualMachine {

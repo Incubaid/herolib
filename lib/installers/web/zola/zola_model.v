@@ -1,6 +1,6 @@
 module zola
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 import os
 
 const singleton = false

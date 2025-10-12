@@ -1,7 +1,7 @@
 module rust
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // Reads and combines all Rust files in the given directory
 pub fn read_source_code(source_code_path string) !string {

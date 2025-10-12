@@ -1,9 +1,9 @@
 // File: lib/clients/giteaclient/giteaclient_model.v
 module giteaclient
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.httpconnection
 import os
 
 pub const version = '0.0.0'

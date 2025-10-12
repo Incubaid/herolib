@@ -1,9 +1,9 @@
 module s3
 
-import freeflowuniverse.herolib.installers.lang.rust
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.installers.lang.rust
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.ui.console
 
 @[params]
 pub struct BuildArgs {

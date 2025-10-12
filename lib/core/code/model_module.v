@@ -1,7 +1,7 @@
 module code
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.pathlib
 import os
 import log
 

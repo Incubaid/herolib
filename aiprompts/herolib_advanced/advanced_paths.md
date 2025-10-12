@@ -13,12 +13,12 @@ The `list` method accepts a `ListArgs` struct to control its behavior:
 ```v
 pub struct ListArgs {
 pub mut:
-	regex         []string // A slice of regular expressions to filter files.
-	recursive     bool = true // Whether to list files recursively (default true).
-	ignore_default bool = true // Whether to ignore files starting with . and _ (default true).
-	include_links bool // Whether to include symbolic links in the list.
-	dirs_only     bool // Whether to include only directories in the list.
-	files_only    bool // Whether to include only files in the list.
+ regex         []string // A slice of regular expressions to filter files.
+ recursive     bool = true // Whether to list files recursively (default true).
+ ignore_default bool = true // Whether to ignore files starting with . and _ (default true).
+ include_links bool // Whether to include symbolic links in the list.
+ dirs_only     bool // Whether to include only directories in the list.
+ files_only    bool // Whether to include only files in the list.
 }
 ```
 
@@ -31,7 +31,7 @@ Here are examples demonstrating how to use these advanced filtering options:
 You can use regular expressions to filter files based on their names or extensions. The `regex` parameter accepts a slice of strings, where each string is a regex pattern.
 
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // Get a directory path
 mut dir := pathlib.get('/some/directory')!
@@ -61,7 +61,7 @@ for path_obj in vlang_files.paths {
 By default, `list()` is recursive. You can disable recursion to list only items in the current directory.
 
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 mut dir := pathlib.get('/some/directory')!
 
@@ -80,7 +80,7 @@ for path_obj in top_level_items.paths {
 The `ignore_default` parameter controls whether files and directories starting with `.` or `_` are ignored.
 
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 mut dir := pathlib.get('/some/directory')!
 
@@ -99,7 +99,7 @@ for path_obj in all_items.paths {
 By default, symbolic links are ignored when walking the directory structure. Set `include_links` to `true` to include them.
 
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 mut dir := pathlib.get('/some/directory')!
 
@@ -118,7 +118,7 @@ for path_obj in items_with_links.paths {
 Use `dirs_only` or `files_only` to restrict the results to only directories or only files.
 
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 mut dir := pathlib.get('/some/directory')!
 

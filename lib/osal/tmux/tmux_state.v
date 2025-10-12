@@ -1,10 +1,10 @@
 module tmux
 
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 import crypto.md5
 import json
 import time
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Command state structure for Redis storage
 pub struct CommandState {

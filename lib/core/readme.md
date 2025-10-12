@@ -5,17 +5,20 @@ The Core module provides fundamental system-level functionality for the Hero fra
 ## Main Features
 
 ### Platform Management
+
 - Platform detection (OSX, Ubuntu, Alpine, Arch)
 - CPU architecture detection (Intel, ARM)
 - System information retrieval (hostname, init system)
 - Cross-platform compatibility utilities
 
 ### Memory Database
+
 - Thread-safe in-memory key-value store
 - Global state management
 - Caching for system information
 
 ### Sudo Operations
+
 - Permission management and verification
 - Sudo requirement detection
 - Path access rights checking
@@ -37,12 +40,14 @@ The Core module provides fundamental system-level functionality for the Hero fra
 ## Platform Support
 
 The module supports multiple platforms:
+
 - macOS (Intel and ARM)
 - Ubuntu
 - Alpine Linux
 - Arch Linux
 
 And CPU architectures:
+
 - x86_64 (Intel)
 - ARM64/AArch64
 
@@ -53,8 +58,8 @@ The core module provides essential functionality used by other Hero framework co
 ### Interactivity Check & Influence on delete
 
 ```
-import freeflowuniverse.herolib.installers.lang.golang
-import freeflowuniverse.herolib.core
+import incubaid.herolib.installers.lang.golang
+import incubaid.herolib.core
 
 core.interactive_set()! //make sure the sudo works so we can do things even if it requires those rights
 
@@ -62,8 +67,8 @@ core.interactive_set()! //make sure the sudo works so we can do things even if i
 golang.install(reset:false)!
 ```
 
-
 ### Platform Detection
+
 ```v
 // Check platform type
 if core.is_linux()! {
@@ -77,6 +82,7 @@ if core.is_linux_arm()! {
 ```
 
 ### Memory Database
+
 ```v
 // Store values
 core.memdb_set('key', 'value')

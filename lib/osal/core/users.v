@@ -1,8 +1,8 @@
 module core
 
 import os
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core
+import incubaid.herolib.ui.console
+import incubaid.herolib.core
 
 @[params]
 pub struct UserArgs {

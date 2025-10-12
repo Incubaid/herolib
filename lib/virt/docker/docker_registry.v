@@ -1,10 +1,10 @@
 module docker
 
-import freeflowuniverse.herolib.crypt.openssl
-import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.crypt.openssl
+import incubaid.herolib.core.httpconnection
+import incubaid.herolib.osal.core as osal
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 @[heap]
 pub struct DockerRegistry {

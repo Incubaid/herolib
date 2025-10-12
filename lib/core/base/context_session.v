@@ -1,7 +1,7 @@
 module base
 
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.data.paramsparser
 import json
 
 @[params]

@@ -1,9 +1,9 @@
 module collection
 
-import freeflowuniverse.herolib.conversiontools.imagemagick
-import freeflowuniverse.herolib.core.pathlib { Path }
-import freeflowuniverse.herolib.data.doctree.pointer
-import freeflowuniverse.herolib.data.doctree.collection.data
+import incubaid.herolib.conversiontools.imagemagick
+import incubaid.herolib.core.pathlib { Path }
+import incubaid.herolib.data.doctree.pointer
+import incubaid.herolib.data.doctree.collection.data
 
 // walk over one specific collection, find all files and pages
 pub fn (mut collection Collection) scan() ! {

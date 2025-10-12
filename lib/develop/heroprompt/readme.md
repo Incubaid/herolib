@@ -5,7 +5,7 @@ To get started
 ```v
 
 
-import freeflowuniverse.herolib.develop.heroprompt
+import incubaid.herolib.develop.heroprompt
 
 // Example Usage:
 

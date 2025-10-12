@@ -5,7 +5,7 @@ This is a simple example of how to use the MCP module to create a server that ha
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.mcp
+import incubaid.herolib.mcp
 
 // Define custom handlers if needed
 handlers := {

@@ -1,6 +1,6 @@
 module postgresql
 
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.encoderhero
 
 pub const version = '0.0.0'
 const singleton = true

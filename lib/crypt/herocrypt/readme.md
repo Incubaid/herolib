@@ -11,13 +11,12 @@ HeroDB is a high-performance, Redis-compatible database that offers built-in sup
 - **Encryption & Decryption**: Securely encrypt and decrypt data.
 - **Digital Signatures**: Sign and verify messages to ensure their integrity and authenticity.
 - **Flexible Key Management**: Choose between two modes for managing your cryptographic keys:
-    1.  **Key-Managed (Server-Side)**: Let HeroDB manage your keys. Keys are stored securely within the database and are referenced by a name. This is the recommended approach for simplicity and centralized key management.
-    2.  **Stateless (Client-Side)**: Manage your own keys on the client side. You pass the key material with every cryptographic operation. This mode is for advanced users who require full control over their keys.
-
+    1. **Key-Managed (Server-Side)**: Let HeroDB manage your keys. Keys are stored securely within the database and are referenced by a name. This is the recommended approach for simplicity and centralized key management.
+    2. **Stateless (Client-Side)**: Manage your own keys on the client side. You pass the key material with every cryptographic operation. This mode is for advanced users who require full control over their keys.
 
 ## To start a db see
 
-https://git.ourworld.tf/herocode/herodb
+<https://git.ourworld.tf/herocode/herodb>
 
 to do:
 
@@ -33,7 +32,7 @@ In this mode, HeroDB generates and stores the keypairs for you. You only need to
 ### Encryption
 
 ```v
-import freeflowuniverse.herolib.crypt.herocrypt
+import incubaid.herolib.crypt.herocrypt
 
 mut client := herocrypt.new_default()!
 
@@ -52,7 +51,7 @@ assert decrypted_message == message
 ### Signing
 
 ```v
-import freeflowuniverse.herolib.crypt.herocrypt
+import incubaid.herolib.crypt.herocrypt
 
 mut client := herocrypt.new_default()!
 
@@ -75,7 +74,7 @@ In this mode, you are responsible for generating and managing your own keys.
 ### Encryption
 
 ```v
-import freeflowuniverse.herolib.crypt.herocrypt
+import incubaid.herolib.crypt.herocrypt
 
 mut client := herocrypt.new_default()!
 
@@ -96,7 +95,7 @@ assert decrypted_message == message
 ### Signing
 
 ```v
-import freeflowuniverse.herolib.crypt.herocrypt
+import incubaid.herolib.crypt.herocrypt
 
 mut client := herocrypt.new_default()!
 

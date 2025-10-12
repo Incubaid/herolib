@@ -1,6 +1,5 @@
 # Site Module
 
-
 ## config heroscript
 
 ```yaml
@@ -99,7 +98,7 @@
 ## factory
 
 ```v
-import freeflowuniverse.herolib.web.site
+import incubaid.herolib.web.site
 mut mysite := site.new()!
 
 ```
@@ -107,8 +106,8 @@ mut mysite := site.new()!
 ## how to use with plbook
 
 ```v
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.web.site
+import incubaid.herolib.core.playbook
+import incubaid.herolib.web.site
 // path string
 // text string
 // git_url string

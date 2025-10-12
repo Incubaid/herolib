@@ -1,12 +1,12 @@
 module docker
 
-import freeflowuniverse.herolib.data.paramsparser { Params }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.osal.core as osal { exec, file_write }
+import incubaid.herolib.data.paramsparser { Params }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.osal.core as osal { exec, file_write }
 import crypto.md5
 import v.embed_file
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // only 2 supported for now
 pub enum PlatformType {

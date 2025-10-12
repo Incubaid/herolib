@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.clients.postgresql_client
-import freeflowuniverse.herolib.data.location
+import incubaid.herolib.clients.postgresql_client
+import incubaid.herolib.data.location
 
 // Configure PostgreSQL client
 heroscript := "

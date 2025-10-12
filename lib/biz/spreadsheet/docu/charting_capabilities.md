@@ -7,6 +7,7 @@ The spreadsheet module integrates with ECharts to provide powerful data visualiz
 Most charting functions utilize a common set of arguments defined in `RowGetArgs` to specify which data to chart and how to present it.
 
 **Key `RowGetArgs` Parameters:**
+
 - `rowname` (string, optional): The exact name of a single row to chart.
 - `namefilter` ([]string, optional): A list of exact row names to include.
 - `includefilter` ([]string, optional): A list of tags to include. Rows must match at least one of these tags.
@@ -29,8 +30,8 @@ Most charting functions utilize a common set of arguments defined in `RowGetArgs
 Generates a line chart, ideal for visualizing trends over time. Multiple rows can be plotted on the same chart.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.web.echarts
+import incubaid.herolib.biz.spreadsheet
+import incubaid.herolib.web.echarts
 
 // Assuming 'my_sheet' is an existing Sheet object
 mut my_sheet := spreadsheet.sheet_new(name: 'my_sheet', nrcol: 60)!
@@ -52,8 +53,8 @@ line_chart_option := my_sheet.line_chart(
 Generates a bar chart, suitable for comparing discrete categories or values. Typically used for a single row's data.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.web.echarts
+import incubaid.herolib.biz.spreadsheet
+import incubaid.herolib.web.echarts
 
 // Assuming 'my_sheet' is an existing Sheet object
 mut my_sheet := spreadsheet.sheet_new(name: 'my_sheet', nrcol: 60)!
@@ -73,8 +74,8 @@ bar_chart_option := my_sheet.bar_chart(
 Generates a pie chart, useful for showing the proportion of different categories within a single data set. Typically used for a single row's data.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.web.echarts
+import incubaid.herolib.biz.spreadsheet
+import incubaid.herolib.web.echarts
 
 // Assuming 'my_sheet' is an existing Sheet object
 mut my_sheet := spreadsheet.sheet_new(name: 'my_sheet', nrcol: 60)!

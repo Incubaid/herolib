@@ -1,6 +1,6 @@
 module data
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 import rand
 
 fn test_process_def_pointers() {

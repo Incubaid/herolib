@@ -1,6 +1,6 @@
 module base
 
-import freeflowuniverse.herolib.core.logger
+import incubaid.herolib.core.logger
 
 pub fn (mut session Session) logger() !logger.Logger {
 	return session.logger_ or {

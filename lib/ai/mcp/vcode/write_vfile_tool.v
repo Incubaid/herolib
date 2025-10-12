@@ -1,10 +1,10 @@
 module vcode
 
-// import freeflowuniverse.herolib.ai.mcpcore
+// import incubaid.herolib.ai.mcpcore
 // TODO: Uncomment when mcpcore module is fixed
 /*
-// import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.schemas.jsonschema
+// import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.schemas.jsonschema
 import x.json2 { Any }
 
 const write_vfile_tool = mcpcore.Tool{

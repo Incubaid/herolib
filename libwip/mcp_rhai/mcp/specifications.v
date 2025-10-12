@@ -1,11 +1,11 @@
 module mcp
 
-import freeflowuniverse.herolib.ai.mcp
+import incubaid.herolib.ai.mcp
 import x.json2 as json
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.jsonschema
 import log
 
-const specs = mcp.Tool{
+const specs = Tool{
 	name:         'rhai_interface'
 	description:  'Add Rhai Interface to Rust Code Files'
 	input_schema: jsonschema.Schema{

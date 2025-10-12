@@ -1,6 +1,6 @@
 module crun
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 @[params]
 pub struct FactoryArgs {

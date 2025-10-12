@@ -1,11 +1,11 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem, Import, Param, VFile }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.openrpc.codegen
-import freeflowuniverse.herolib.baobab.specification { ActorSpecification }
-import freeflowuniverse.herolib.schemas.openapi
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.develop.codetools as code { CodeItem, Import, Param, VFile }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.openrpc.codegen
+import incubaid.herolib.baobab.specification { ActorSpecification }
+import incubaid.herolib.schemas.openapi
+import incubaid.herolib.schemas.openrpc
 
 pub fn generate_methods_interface_file_str(source Source) !string {
 	actor_spec := if path := source.openapi_path {
@@ -23,7 +23,7 @@ pub fn generate_methods_interface_file(spec ActorSpecification) !VFile {
 		name:    'methods_interface'
 		imports: [
 			Import{
-				mod:   'freeflowuniverse.herolib.baobab.osis'
+				mod:   'incubaid.herolib.baobab.osis'
 				types: ['OSIS']
 			},
 		]

@@ -1,15 +1,15 @@
 module typescriptgenerator
 
-import freeflowuniverse.herolib.schemas.openrpc
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.openrpc
+import incubaid.herolib.schemas.jsonschema
 
 // IntermediateSpec is the main object passed to the typescript generator.
 pub struct IntermediateSpec {
 pub mut:
-	info      openrpc.Info
-	methods   []IntermediateMethod
-	schemas   map[string]IntermediateSchema
-	base_url  string 
+	info     openrpc.Info
+	methods  []IntermediateMethod
+	schemas  map[string]IntermediateSchema
+	base_url string
 }
 
 // IntermediateSchema represents a schema in a format that's easy to consume for generation.
@@ -23,12 +23,12 @@ pub mut:
 // IntermediateMethod holds the information for a single method to be displayed.
 pub struct IntermediateMethod {
 pub mut:
-	name             string
-	summary          string
-	description      string
-	params           []IntermediateParam
-	result           IntermediateParam
-	endpoint_url     string
+	name         string
+	summary      string
+	description  string
+	params       []IntermediateParam
+	result       IntermediateParam
+	endpoint_url string
 }
 
 // IntermediateParam represents a parameter or result in the documentation
@@ -43,10 +43,10 @@ pub mut:
 // IntermediateProperty represents a property of a schema
 pub struct IntermediateProperty {
 pub mut:
-    name string
-    description string
-    type_info string
-    required bool
+	name        string
+	description string
+	type_info   string
+	required    bool
 }
 
 // IntermediateConfig holds configuration for documentation generation
@@ -65,10 +65,10 @@ pub fn from_openrpc(openrpc_spec openrpc.OpenRPC, config IntermediateConfig) !In
 	mut schemas_map := process_schemas(openrpc_spec.components.schemas)!
 
 	mut intermediate_spec := IntermediateSpec{
-		info:      openrpc_spec.info
-		methods:   []IntermediateMethod{}
-		schemas:   schemas_map
-		base_url:  config.base_url
+		info:     openrpc_spec.info
+		methods:  []IntermediateMethod{}
+		schemas:  schemas_map
+		base_url: config.base_url
 	}
 
 	// Process all methods
@@ -88,12 +88,12 @@ fn process_method(method openrpc.Method, config IntermediateConfig) !Intermediat
 	intermediate_result := process_result(method.result)!
 
 	intermediate_method := IntermediateMethod{
-		name:             method.name
-		summary:          method.summary
-		description:      method.description
-		params:           intermediate_params
-		result:           intermediate_result
-		endpoint_url:     '${config.base_url}/api/${config.handler_type}'
+		name:         method.name
+		summary:      method.summary
+		description:  method.description
+		params:       intermediate_params
+		result:       intermediate_result
+		endpoint_url: '${config.base_url}/api/${config.handler_type}'
 	}
 
 	return intermediate_method
@@ -113,7 +113,7 @@ fn process_parameters(params []openrpc.ContentDescriptorRef) ![]IntermediatePara
 				required:    param.required
 			}
 		} else if param is jsonschema.Reference {
-			//TODO: handle reference
+			// TODO: handle reference
 			// For now, create a placeholder parameter
 			intermediate_params << IntermediateParam{
 				name:        'reference'
@@ -146,10 +146,10 @@ fn process_result(result openrpc.ContentDescriptorRef) !IntermediateParam {
 		}
 	} else if result is jsonschema.Reference {
 		// handle reference
-        ref := result as jsonschema.Reference
-        type_info := ref.ref.all_after_last('/')
-        intermediate_result = IntermediateParam{
-			name:       type_info.to_lower()
+		ref := result as jsonschema.Reference
+		type_info := ref.ref.all_after_last('/')
+		intermediate_result = IntermediateParam{
+			name:        type_info.to_lower()
 			description: ''
 			type_info:   type_info
 			required:    false
@@ -173,7 +173,7 @@ fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 			schema_ref
 		}
 		jsonschema.Reference {
-            ref := schema_ref as jsonschema.Reference
+			ref := schema_ref as jsonschema.Reference
 			return ref.ref.all_after_last('/')
 		}
 	}
@@ -184,31 +184,30 @@ fn extract_type_from_schema(schema_ref jsonschema.SchemaRef) string {
 	return 'unknown'
 }
 
-
 fn process_schemas(schemas map[string]jsonschema.SchemaRef) !map[string]IntermediateSchema {
-    // Initialize the map with a known size if possible
-    mut intermediate_schemas := map[string]IntermediateSchema{}
-    
-    // Process each schema in the map
-    for name, schema_ref in schemas {
-        if schema_ref is jsonschema.Schema {
-            schema := schema_ref as jsonschema.Schema
-            mut properties := []IntermediateProperty{}
-            for prop_name, prop_schema_ref in schema.properties {
-                prop_type := extract_type_from_schema(prop_schema_ref)
-                properties << IntermediateProperty{
-                    name: prop_name
-                    description: "" // TODO
-                    type_info: prop_type
-                    required: prop_name in schema.required
-                }
-            }
-            intermediate_schemas[name] = IntermediateSchema{
-                name: name
-                description: schema.description
-                properties: properties
-            }
-        }
-    }
-    return intermediate_schemas
+	// Initialize the map with a known size if possible
+	mut intermediate_schemas := map[string]IntermediateSchema{}
+
+	// Process each schema in the map
+	for name, schema_ref in schemas {
+		if schema_ref is jsonschema.Schema {
+			schema := schema_ref as jsonschema.Schema
+			mut properties := []IntermediateProperty{}
+			for prop_name, prop_schema_ref in schema.properties {
+				prop_type := extract_type_from_schema(prop_schema_ref)
+				properties << IntermediateProperty{
+					name:        prop_name
+					description: '' // TODO
+					type_info:   prop_type
+					required:    prop_name in schema.required
+				}
+			}
+			intermediate_schemas[name] = IntermediateSchema{
+				name:        name
+				description: schema.description
+				properties:  properties
+			}
+		}
+	}
+	return intermediate_schemas
 }

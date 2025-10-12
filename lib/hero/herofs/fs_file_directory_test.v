@@ -1,6 +1,6 @@
 module herofs
 
-import freeflowuniverse.herolib.hero.herofs
+import incubaid.herolib.hero.herofs
 
 // Test that files are automatically added to directories when created
 fn test_file_creation_adds_to_directory() ! {

@@ -1,7 +1,7 @@
 module data
 
-import freeflowuniverse.herolib.core.playmacros
-import freeflowuniverse.herolib.data.markdown.elements { Action }
+import incubaid.herolib.core.playmacros
+import incubaid.herolib.data.markdown.elements { Action }
 
 pub fn (mut page Page) process_macros() ! {
 	mut mydoc := page.doc()!

@@ -1,7 +1,7 @@
 module mycelium_rpc
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.schemas.jsonrpc
 
 pub const version = '0.0.0'
 const singleton = true

@@ -54,21 +54,25 @@ classDiagram
 ### 2.2 Component Descriptions
 
 #### Task
+
 - Represents a complete AI task composed of multiple sequential unit tasks
 - Manages the flow of data between unit tasks
 - Tracks overall task progress and results
 
 #### UnitTask
+
 - Represents a single step in the task
 - Contains a prompt function that generates the AI prompt
 - Contains a callback function that processes the AI response
 - Manages retries and model escalation
 
 #### ModelConfig
+
 - Defines the configuration for an AI model
 - Includes model name, provider, and parameters like temperature and max tokens
 
 #### OpenRouter Client
+
 - Handles communication with the OpenRouter API
 - Sends prompts to AI models and receives responses
 
@@ -79,7 +83,7 @@ classDiagram
 ```v
 module escalayer
 
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 
 // TaskParams defines the parameters for creating a new task
 @[params]
@@ -157,7 +161,7 @@ pub fn (mut t Task) initiate(input string)! string {
 ```v
 module escalayer
 
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 
 // UnitTask represents a single step in the task
 pub struct UnitTask {
@@ -230,7 +234,7 @@ fn call_ai_model(prompt string, model ModelConfig)! string {
 ```v
 module escalayer
 
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 import os
 
 // Get an OpenAI client configured for OpenRouter
@@ -254,7 +258,7 @@ fn get_openrouter_client()! &openai.OpenAI {
 ## 4. Usage Example
 
 ```v
-import freeflowuniverse.herolib.ai.mcp.aitools.escalayer
+import incubaid.herolib.ai.mcp.aitools.escalayer
 
 fn main() {
     // Create a new task

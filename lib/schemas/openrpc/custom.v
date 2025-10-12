@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.jsonschema
 
 // In Method struct
 pub fn (method Method) example() (string, string) {

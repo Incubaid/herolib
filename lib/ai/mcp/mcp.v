@@ -1,6 +1,6 @@
 module mcp
 
-import freeflowuniverse.herolib.ai.mcpcore
+import incubaid.herolib.ai.mcpcore
 
 // Re-export the main types from mcpcore
 pub type Server = mcpcore.Server

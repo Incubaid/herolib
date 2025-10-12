@@ -1,8 +1,8 @@
 module gittools
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import os
-// import freeflowuniverse.herolib.core.pathlib
+// import incubaid.herolib.core.pathlib
 
 @[params]
 pub struct GitCloneArgs {

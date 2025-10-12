@@ -1,6 +1,6 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code
+import incubaid.herolib.develop.codetools as code
 import os
 
 // // generate_object_methods generates CRUD actor methods for a provided structure

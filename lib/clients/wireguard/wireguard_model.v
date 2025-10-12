@@ -1,6 +1,6 @@
 module wireguard
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 
 pub const version = '1.14.3'
 const singleton = false

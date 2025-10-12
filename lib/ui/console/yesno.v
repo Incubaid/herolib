@@ -1,7 +1,7 @@
 module console
 
-import freeflowuniverse.herolib.ui.uimodel { YesNoArgs }
-// import freeflowuniverse.herolib.ui.console { color_fg }
+import incubaid.herolib.ui.uimodel { YesNoArgs }
+// import incubaid.herolib.ui.console { color_fg }
 import os
 
 // yes is true, no is false

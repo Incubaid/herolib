@@ -1,9 +1,9 @@
 module vcode
 
-// import freeflowuniverse.herolib.ai.mcpcore
-// import freeflowuniverse.herolib.core.code.vlang_utils
-// import freeflowuniverse.herolib.core.code
-// import freeflowuniverse.herolib.schemas.jsonschema
+// import incubaid.herolib.ai.mcpcore
+// import incubaid.herolib.core.code.vlang_utils
+// import incubaid.herolib.core.code
+// import incubaid.herolib.schemas.jsonschema
 // import x.json2
 
 // TODO: Uncomment when mcpcore module is fixed

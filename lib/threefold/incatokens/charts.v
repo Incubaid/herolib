@@ -1,7 +1,7 @@
 module incatokens
 
-import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.web.echarts
+import incubaid.herolib.biz.spreadsheet
+import incubaid.herolib.web.echarts
 
 // Generate price evolution chart
 pub fn (sim Simulation) generate_price_chart() !echarts.EChartsOption {

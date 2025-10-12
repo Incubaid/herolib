@@ -1,6 +1,6 @@
 module resp
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn print_val_to_check(s string) {
 	console.print_debug(s.replace('\n', '\\\\n').replace('\r', '\\\\r'))

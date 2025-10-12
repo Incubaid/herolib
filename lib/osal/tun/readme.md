@@ -5,12 +5,16 @@ This module provides functionality to manage TUN (network tunnel) interfaces on 
 ## Functions
 
 ### available() !bool
+
 Checks if TUN/TAP functionality is available on the system:
+
 - Linux: Verifies `/dev/net/tun` exists and is a character device
 - macOS: Checks for `utun` interfaces using `ifconfig` and `sysctl`
 
 ### free() !string
+
 Returns the name of an available TUN interface:
+
 - Linux: Returns first available interface from tun0-tun10
 - macOS: Returns next available utun interface number
 
@@ -20,7 +24,7 @@ Returns the name of an available TUN interface:
 
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.core.tun
+import incubaid.herolib.osal.core.tun
 
 
 // Check if TUN is available
@@ -57,6 +61,7 @@ The module automatically detects the platform (Linux/macOS) and uses the appropr
 ## Error Handling
 
 Both functions return a Result type, so errors should be handled appropriately:
+
 - Unsupported platform errors
 - Interface availability errors
 - System command execution errors

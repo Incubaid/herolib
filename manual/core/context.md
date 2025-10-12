@@ -1,9 +1,7 @@
 
-
 # Context
 
 ## Get a context
-
 
 ```js
 cid       string // rid.cid or just cid
@@ -11,7 +9,7 @@ name      string // a unique name in cid
 params    paramsparser.Params
 redis     &redisclient.Redis
 dbcollection &dbfs.DBCollection  
-```    
+```
 
 - cid is the unique id for a circle.
 - the default context is "default"
@@ -19,14 +17,13 @@ dbcollection &dbfs.DBCollection
 - each context has a redis client (can be a different per context but normally not)
 - context db is a fs db (key value stor)
 
-
 ```golang
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 
 struct ContextGetArgs {
-	name        string = "default" // a unique name in cid
-	interactive bool = true
+ name        string = "default" // a unique name in cid
+ interactive bool = true
 }
 
 //get context based on name, can overrule interactivity
@@ -79,7 +76,6 @@ fn (mut self Context) db_config_get() !dbfs.DB
     interactive:true
 ```
 
-
 ## Configure a context
 
 A context can get certain configuration e.g. params, coderoot, ... (in future encryption), configuration is optional.
@@ -92,7 +88,7 @@ A context can get certain configuration e.g. params, coderoot, ... (in future en
 // cid          string = "000" // rid.cid or cid allone
 // name         string // a unique name in cid
 // params       string
-// coderoot	 string
+// coderoot  string
 // interactive  bool
 // ```
 fn context_configure(args_ ContextConfigureArgs) ! 

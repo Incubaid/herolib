@@ -1,9 +1,9 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.baobab.specification
-import freeflowuniverse.herolib.schemas.openrpc
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.baobab.specification
+import incubaid.herolib.schemas.openrpc
+import incubaid.herolib.schemas.jsonschema
 import os
 import x.json2 as json
 

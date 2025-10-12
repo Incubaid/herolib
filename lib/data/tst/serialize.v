@@ -1,6 +1,6 @@
 module tst
 
-import freeflowuniverse.herolib.data.encoder
+import incubaid.herolib.data.encoder
 
 const version = u8(1) // Current binary format version
 

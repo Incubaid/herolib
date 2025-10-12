@@ -2,7 +2,7 @@ module code
 
 import log
 import os
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import strings
 
 pub struct Struct {

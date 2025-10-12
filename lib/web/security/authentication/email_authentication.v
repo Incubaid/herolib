@@ -5,7 +5,7 @@ import crypto.hmac
 import crypto.sha256
 import encoding.hex
 import encoding.base64
-import freeflowuniverse.herolib.clients.mailclient { MailClient }
+import incubaid.herolib.clients.mailclient { MailClient }
 
 pub struct StatelessAuthenticator {
 pub:

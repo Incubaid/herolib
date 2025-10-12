@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
-import freeflowuniverse.herolib.hero.heromodels
+import incubaid.herolib.hero.heromodels
 
 mut mydb := heromodels.new()!
 

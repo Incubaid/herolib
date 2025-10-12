@@ -4,15 +4,15 @@
 
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.base
 import time
 
 struct Person {
 mut:
-	name     string
-	age      int = 20
-	birthday time.Time
+ name     string
+ age      int = 20
+ birthday time.Time
 }
 
 mut person := Person{
@@ -28,4 +28,3 @@ person2 := encoderhero.decode[Person](heroscript)!
 println(person2)
 
 ```
-

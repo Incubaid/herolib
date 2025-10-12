@@ -1,9 +1,9 @@
 // lib/threefold/models_ledger/account.v
 module models_ledger
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // AccountStatus represents the status of an account
 pub enum AccountStatus {

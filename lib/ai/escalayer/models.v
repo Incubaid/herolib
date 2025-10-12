@@ -1,6 +1,6 @@
 module escalayer
 
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 
 // ModelConfig defines the configuration for an AI model
 pub struct ModelConfig {

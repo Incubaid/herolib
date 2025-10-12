@@ -1,8 +1,8 @@
 module doctree
 
-import freeflowuniverse.herolib.data.doctree.collection
-import freeflowuniverse.herolib.data.doctree.collection.data
-import freeflowuniverse.herolib.data.doctree.pointer
+import incubaid.herolib.data.doctree.collection
+import incubaid.herolib.data.doctree.collection.data
+import incubaid.herolib.data.doctree.pointer
 
 pub fn (tree Tree) get_collection(name string) !&collection.Collection {
 	col := tree.collections[name] or { return error('collection ${name} not found') }

@@ -1,7 +1,7 @@
 module sshagent
 
-import freeflowuniverse.herolib.builder
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.builder
+import incubaid.herolib.ui.console
 
 // push SSH public key to a remote node's authorized_keys
 pub fn (mut agent SSHAgent) push_key_to_node(mut node builder.Node, key_name string) ! {

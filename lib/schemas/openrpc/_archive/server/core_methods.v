@@ -1,6 +1,6 @@
 module openrpcserver
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 pub fn set[T](mut obj T) !u32 {
 	name := T{}.type_name()

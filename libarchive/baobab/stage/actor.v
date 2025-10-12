@@ -1,7 +1,7 @@
 module stage
 
-import freeflowuniverse.herolib.baobab.osis { OSIS }
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.baobab.osis { OSIS }
+import incubaid.herolib.core.redisclient
 
 @[heap]
 pub interface IActor {

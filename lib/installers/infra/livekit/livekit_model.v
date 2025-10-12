@@ -1,8 +1,8 @@
 module livekit
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 import os
 
 pub const version = '1.9.0'

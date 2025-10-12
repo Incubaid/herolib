@@ -1,13 +1,13 @@
 module lima
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.installers.virt.qemu
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.installers.virt.qemu
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {

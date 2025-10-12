@@ -1,6 +1,6 @@
 module collection
 
-import freeflowuniverse.herolib.data.doctree.collection.data
+import incubaid.herolib.data.doctree.collection.data
 
 // gets page with specified name from collection
 pub fn (collection Collection) page_get(name string) !&data.Page {

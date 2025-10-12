@@ -1,8 +1,8 @@
 module pathlib
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // template is the text coming from template engine.
 pub fn template_write(template_ string, dest string, overwrite bool) ! {

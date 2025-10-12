@@ -1,6 +1,6 @@
 module incatokens
 
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // VestingSchedule defines cliff and vesting periods
 pub struct VestingSchedule {

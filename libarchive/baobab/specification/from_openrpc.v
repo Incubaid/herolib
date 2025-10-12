@@ -1,8 +1,8 @@
 module specification
 
-import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, Method, OpenRPC }
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, Method, OpenRPC }
+import incubaid.herolib.schemas.jsonschema { Reference, Schema }
+import incubaid.herolib.core.texttools
 
 // Helper function: Convert OpenRPC Method to ActorMethod
 fn openrpc_method_to_actor_method(method Method) ActorMethod {

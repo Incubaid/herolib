@@ -25,6 +25,7 @@ The binary format starts with a version byte (currently v1), followed by the enc
 ## Supported Types
 
 ### Primitive Types
+
 - `string`
 - `int` (32-bit)
 - `i64` (64-bit integer)
@@ -42,6 +43,7 @@ The binary format starts with a version byte (currently v1), followed by the enc
 - `[]byte` (raw byte arrays)
 
 ### Arrays
+
 - `[]string`
 - `[]int`
 - `[]u8`
@@ -50,10 +52,12 @@ The binary format starts with a version byte (currently v1), followed by the enc
 - `[]u64`
 
 ### Maps
+
 - `map[string]string`
 - `map[string][]u8`
 
 ### Structs
+
 - Nested struct support with automatic encoding/decoding
 
 ## Usage
@@ -61,7 +65,7 @@ The binary format starts with a version byte (currently v1), followed by the enc
 ### Basic Encoding
 
 ```v
-import freeflowuniverse.herolib.data.encoder
+import incubaid.herolib.data.encoder
 
 // Create a new encoder
 mut e := encoder.new()
@@ -92,17 +96,17 @@ import time
 e.add_time(time.now())
 
 // Add OurTime (native time format)
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 my_time := ourtime.OurTime.now()
 e.add_ourtime(my_time)
 
 // Add GID
-import freeflowuniverse.herolib.data.gid
+import incubaid.herolib.data.gid
 my_gid := gid.new('project:123')!
 e.add_gid(my_gid)
 
 // Add currency amount
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.currency
 usd := currency.get('USD')!
 amount := currency.Amount{
     currency: usd
@@ -164,15 +168,15 @@ import time
 time_val := d.get_time()!
 
 // Read OurTime value
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 my_time := d.get_ourtime()!
 
 // Read GID
-import freeflowuniverse.herolib.data.gid
+import incubaid.herolib.data.gid
 my_gid := d.get_gid()!
 
 // Read currency amount
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.currency
 amount := d.get_currency()!
 
 // Read arrays
@@ -221,7 +225,7 @@ decoded := encoder.decode[Person](encoded)!
 Here's a complete example showing how to encode nested structs:
 
 ```v
-import freeflowuniverse.herolib.data.encoder
+import incubaid.herolib.data.encoder
 
 // Define some nested structs
 struct Address {
@@ -313,8 +317,6 @@ For the example above, the binary layout would be:
   [len][customer]      // value 2
 ```
 
-
-
 ## Implementation Details
 
 ### Binary Format
@@ -322,6 +324,7 @@ For the example above, the binary layout would be:
 The encoded data follows this format for different types:
 
 #### Primitive Types
+
 - `string`: u16 length prefix + raw string bytes
 - `int` (32-bit): 4 bytes in little-endian format
 - `i64` (64-bit): 8 bytes in little-endian format
@@ -334,6 +337,7 @@ The encoded data follows this format for different types:
 - `percentage`: Single byte (0-100)
 
 #### Special Types
+
 - `time.Time`: Encoded as u32 Unix timestamp (seconds since epoch)
 - `ourtime.OurTime`: Encoded as u32 Unix timestamp
 - `gid.GID`: Encoded as string in format "circle:id"
@@ -341,6 +345,7 @@ The encoded data follows this format for different types:
 - `[]byte` (raw byte arrays): u32 length prefix + raw bytes
 
 #### Collections
+
 - Arrays (`[]T`):
   - u16 length prefix (number of elements)
   - Each element encoded according to its type

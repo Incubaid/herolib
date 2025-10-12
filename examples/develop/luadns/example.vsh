@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.develop.luadns
+import incubaid.herolib.develop.luadns
 
 fn main() {
 	mut lua_dns := luadns.load('https://github.com/Incubaid/dns') or {

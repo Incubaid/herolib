@@ -1,13 +1,11 @@
 # b2
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.b2 as b2_installer
+import incubaid.herolib.installers.something.b2 as b2_installer
 
 heroscript:="
 !!b2.configure name:'test'
@@ -40,5 +38,3 @@ b2_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

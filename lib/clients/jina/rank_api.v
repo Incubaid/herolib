@@ -1,6 +1,6 @@
 module jina
 
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 import json
 
 pub enum JinaRerankModel {

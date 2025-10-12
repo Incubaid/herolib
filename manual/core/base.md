@@ -35,28 +35,26 @@ there is a KVS attached to each context/session
 
 - see [kvs](kvs.md)
 
-
 # BaseConfig
 
 Clients, DALs, SAL's can inherit base
-
 
 ```golang
 
 pub struct BaseConfig {
 pub mut:
-	session_ ?&Session 
-	instance    string
+ session_ ?&Session 
+ instance    string
 }
 
 //how to use
 
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 pub struct B2Client {
-	base.BaseConfig
+ base.BaseConfig
 pub mut:
-	someprop string
+ someprop string
 }
 
 
@@ -66,7 +64,6 @@ pub mut:
 ## BaseConfig Methods
 
 This will give some super powers to each base inheritted class
-
 
 ```v
 

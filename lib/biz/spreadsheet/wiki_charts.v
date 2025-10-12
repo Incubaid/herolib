@@ -1,7 +1,7 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.data.markdown.elements
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.markdown.elements
+import incubaid.herolib.ui.console
 
 pub fn (s Sheet) wiki_title_chart(args RowGetArgs) !string {
 	return s.title_chart(args).markdown()

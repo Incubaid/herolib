@@ -1,13 +1,11 @@
 # bun
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.bun as bun_installer
+import incubaid.herolib.installers.something.bun as bun_installer
 
 heroscript:="
 !!bun.configure name:'test'
@@ -40,5 +38,3 @@ bun_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

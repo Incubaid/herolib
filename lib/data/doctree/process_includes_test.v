@@ -1,7 +1,7 @@
 module doctree
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 const test_dir = '${os.dir(@FILE)}/testdata/process_includes_test'
 

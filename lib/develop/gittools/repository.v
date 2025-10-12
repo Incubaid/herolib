@@ -1,8 +1,8 @@
 // lib/develop/gittools/repository.v
 module gittools
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.core as osal
 import os
 
 // commit stages all changes and commits them with the provided message.

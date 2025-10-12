@@ -1,13 +1,13 @@
 #!/usr/bin/env -S v -cg -gc none -no-retry-compilation -cc tcc -d use_openssl -enable-globals run
 
 // #!/usr/bin/env -S v -cg -enable-globals run
-import freeflowuniverse.herolib.data.doctree
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.biz.bizmodel
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
-import freeflowuniverse.herolib.web.mdbook
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.data.doctree
+import incubaid.herolib.ui.console
+import incubaid.herolib.biz.bizmodel
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
+import incubaid.herolib.web.mdbook
+import incubaid.herolib.biz.spreadsheet
 import os
 
 const name = 'tf9_budget'

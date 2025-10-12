@@ -1,8 +1,8 @@
 module pugconvert
 
-import freeflowuniverse.herolib.clients.openai
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.clients.openai
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
 import json
 
 pub fn convert_pug(mydir string) ! {

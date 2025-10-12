@@ -1,10 +1,10 @@
 module docusaurus
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 import json
 import os
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
 
 pub fn (mut docsite DocSite) generate() ! {
 	if docsite.generated {

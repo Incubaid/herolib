@@ -1,7 +1,7 @@
 module lima
 
-import freeflowuniverse.herolib.installers.virt.lima
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.installers.virt.lima
+import incubaid.herolib.ui.console
 import virt.lima.raw
 import os
 

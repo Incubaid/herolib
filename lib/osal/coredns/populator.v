@@ -1,6 +1,6 @@
 module coredns
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 import x.json2
 
 // new_dns_record_set creates a new DNSRecordSet

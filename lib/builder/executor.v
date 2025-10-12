@@ -1,6 +1,6 @@
 module builder
 
-import freeflowuniverse.herolib.data.ipaddress
+import incubaid.herolib.data.ipaddress
 
 type Executor = ExecutorLocal | ExecutorSSH | ExecutorCrun
 

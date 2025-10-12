@@ -3,8 +3,8 @@ module transport
 import veb
 import veb.sse
 import time
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.ui.console
 
 // HttpTransport implements the Transport interface for HTTP communication.
 // It provides both JSON-RPC over HTTP and REST API endpoints for MCP servers.

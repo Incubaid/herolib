@@ -39,7 +39,7 @@ This module provides **two complementary APIs** for Podman functionality:
 For simple container operations, use the direct functions:
 
 ```v
-import freeflowuniverse.herolib.virt.podman
+import incubaid.herolib.virt.podman
 
 // List containers and images
 containers := podman.list_containers(true)!  // true = include stopped
@@ -66,7 +66,7 @@ podman.remove_image('nginx:latest', force: false)!
 For complex operations and state management, use the factory pattern:
 
 ```v
-import freeflowuniverse.herolib.virt.podman
+import incubaid.herolib.virt.podman
 
 // Create factory (with auto-install)
 mut factory := podman.new(install: true, herocompile: false)!
@@ -274,7 +274,7 @@ builder.run('invalid_command') or {
 ## Installation and Setup
 
 ```v
-import freeflowuniverse.herolib.virt.podman
+import incubaid.herolib.virt.podman
 
 // Automatic installation
 mut factory := podman.new(install: true)!  // Will install podman if needed

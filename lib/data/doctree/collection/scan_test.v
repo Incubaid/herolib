@@ -1,6 +1,6 @@
 module collection
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 fn test_add_page_success() {
 	/*

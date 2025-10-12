@@ -1,8 +1,8 @@
 module gitea
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.infra.gitea { install }
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.infra.gitea { install }
 
 pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'gitea.') {

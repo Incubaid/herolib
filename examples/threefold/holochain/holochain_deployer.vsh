@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.threefold.tfrobot
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.clients.dagu
+import incubaid.herolib.threefold.tfrobot
+import incubaid.herolib.ui.console
+import incubaid.herolib.clients.dagu
 
 console.print_header('Deploy test of vmachines on TFGrid using TFRobot.')
 

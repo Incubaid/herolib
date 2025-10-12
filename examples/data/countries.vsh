@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.data.countries
+import incubaid.herolib.data.countries
 
 mut all_countries := countries.get_all_countries() or {
 	eprintln('Error loading countries: ${err}')

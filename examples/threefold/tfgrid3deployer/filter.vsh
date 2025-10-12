@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -gc none  -cc tcc -d use_openssl -enable-globals -cg run
 
-import freeflowuniverse.herolib.threefold.grid3.deployer
+import incubaid.herolib.threefold.grid3.deployer
 
 const gigabyte = u64(1024 * 1024 * 1024)
 

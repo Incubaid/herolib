@@ -1,18 +1,18 @@
 module playcmds
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.data.doctree
-import freeflowuniverse.herolib.biz.bizmodel
-import freeflowuniverse.herolib.threefold.incatokens
-import freeflowuniverse.herolib.web.site
-import freeflowuniverse.herolib.virt.hetznermanager
-import freeflowuniverse.herolib.web.docusaurus
-import freeflowuniverse.herolib.clients.openai
-import freeflowuniverse.herolib.clients.giteaclient
-import freeflowuniverse.herolib.osal.tmux
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.installers.lang.vlang
-import freeflowuniverse.herolib.installers.lang.herolib
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.data.doctree
+import incubaid.herolib.biz.bizmodel
+import incubaid.herolib.threefold.incatokens
+import incubaid.herolib.web.site
+import incubaid.herolib.virt.hetznermanager
+import incubaid.herolib.web.docusaurus
+import incubaid.herolib.clients.openai
+import incubaid.herolib.clients.giteaclient
+import incubaid.herolib.osal.tmux
+import incubaid.herolib.installers.base
+import incubaid.herolib.installers.lang.vlang
+import incubaid.herolib.installers.lang.herolib
 
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands

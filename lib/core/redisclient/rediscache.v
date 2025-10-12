@@ -1,6 +1,6 @@
 module redisclient
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub struct RedisCache {
 mut:

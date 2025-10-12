@@ -1,6 +1,6 @@
 module radixtree
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Test for the critical bug: prefix-of-existing edge inserted after the longer key
 fn test_prefix_overlap_bug() ! {

@@ -1,7 +1,7 @@
 module luadns
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 fn parse_dns_configs(directory_path string) ![]DNSConfig {
 	mut configs := []DNSConfig{}

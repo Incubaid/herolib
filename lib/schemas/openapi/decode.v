@@ -2,7 +2,7 @@ module openapi
 
 import json
 import x.json2 { Any }
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.jsonschema
 
 pub fn json_decode(data string) !OpenAPI {
 	// Decode the raw JSON into a map to allow field-specific processing

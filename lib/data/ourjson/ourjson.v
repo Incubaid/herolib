@@ -1,7 +1,7 @@
 module ourjson
 
 import x.json2
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 const keep_ascii = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+={}[]"\':;!/>.<,|\\~` '
 

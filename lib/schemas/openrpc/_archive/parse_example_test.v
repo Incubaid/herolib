@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.develop.codetools as code { Attribute, Struct, StructField }
+import incubaid.herolib.develop.codetools as code { Attribute, Struct, StructField }
 
 const example_txt = "
 Example: Get pet example.

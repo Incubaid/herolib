@@ -2,7 +2,7 @@
 
 import os
 import json
-import freeflowuniverse.herolib.core.openapi.gen
+import incubaid.herolib.core.openapi.gen
 
 const spec_path = '${os.dir(@FILE)}/openapi.json'
 

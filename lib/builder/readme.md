@@ -5,6 +5,7 @@ The Builder module is a powerful system automation and remote execution framewor
 ## Overview
 
 The Builder module consists of several key components:
+
 - **BuilderFactory**: Creates and manages builder instances
 - **Node**: Represents a target system (local or remote) with its properties and state
 - **Executor**: Interface for command execution and file operations (SSH or Local)
@@ -15,7 +16,7 @@ The Builder module consists of several key components:
 ### Basic Initialization
 
 ```v
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.builder
 
 // Create a new builder instance
 mut b := builder.new()!
@@ -30,6 +31,7 @@ mut local_node := builder.node_local()!
 ### Node Configuration
 
 Nodes can be configured with various properties:
+
 ```v
 // Full node configuration
 mut n := b.node_new(
@@ -43,6 +45,7 @@ mut n := b.node_new(
 ## Node Properties
 
 Each node maintains information about:
+
 - Platform type (OSX, Ubuntu, Alpine, Arch)
 - CPU architecture (Intel, ARM)
 - Environment variables
@@ -56,6 +59,7 @@ The node automatically detects and caches system information for better performa
 The executor provides a unified interface for both local and remote operations:
 
 ### Command Execution
+
 ```v
 // Execute command and get output
 result := n.exec("ls -la")!
@@ -68,6 +72,7 @@ n.shell("bash")!
 ```
 
 ### File Operations
+
 ```v
 // Write file
 n.file_write("/path/to/file", "content")!
@@ -90,6 +95,7 @@ n.upload("/local/file", "/remote/path")!
 ```
 
 ### Environment Management
+
 ```v
 // Get all environment variables
 env := n.environ_get()!
@@ -113,6 +119,7 @@ value := n.done["key"]
 ```
 
 This is useful for:
+
 - Caching system information
 - Storing configuration state
 - Tracking execution history
@@ -123,6 +130,7 @@ This is useful for:
 1. **Error Handling**: Always use the `!` operator for methods that can fail and handle errors appropriately.
 
 2. **Resource Management**: Close connections and clean up resources when done:
+
 ```v
 defer {
     n.close()
@@ -130,12 +138,14 @@ defer {
 ```
 
 3. **Debug Mode**: Enable debug mode when troubleshooting:
+
 ```v
 n.debug_on()  // Enable debug output
 n.debug_off() // Disable debug output
 ```
 
 4. **Platform Awareness**: Check platform compatibility before executing commands:
+
 ```v
 if n.platform == .ubuntu {
     // Ubuntu-specific commands
@@ -147,6 +157,7 @@ if n.platform == .ubuntu {
 ## Examples
 
 See complete examples in:
+
 - Simple usage: `examples/builder/simple.vsh`
 - Remote execution: `examples/builder/remote_executor/`
 - Platform-specific examples:
@@ -156,6 +167,7 @@ See complete examples in:
 ## Implementation Details
 
 The Builder module uses:
+
 - Redis for caching node information
 - SSH for secure remote execution
 - MD5 hashing for unique node identification

@@ -1,6 +1,6 @@
 module redisclient
 
-import freeflowuniverse.herolib.data.resp
+import incubaid.herolib.data.resp
 import time
 
 pub fn (mut r Redis) ping() !string {

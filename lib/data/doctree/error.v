@@ -1,6 +1,6 @@
 module doctree
 
-import freeflowuniverse.herolib.data.doctree.pointer
+import incubaid.herolib.data.doctree.pointer
 
 pub struct ObjNotFound {
 	Error

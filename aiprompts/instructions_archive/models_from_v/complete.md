@@ -468,6 +468,7 @@
 
 <file_contents>
 File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_curdir_example.md
+
 ```md
 # Getting the Current Script's Path in Herolib/V Shell
 
@@ -493,42 +494,43 @@ the following is a good pragmatic way to remember clients, installers as a globa
 
 module docsite
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 __global (
-	siteconfigs  map[string]&SiteConfig
+ siteconfigs  map[string]&SiteConfig
 )
 
 @[params]
 pub struct FactoryArgs {
 pub mut:
-	name string = "default"
+ name string = "default"
 }
 
 pub fn new(args FactoryArgs) !&SiteConfig {
-	name := texttools.name_fix(args.name)
-	siteconfigs[name] = &SiteConfig{
-		name: name
-	}
-	return get(name:name)!
+ name := texttools.name_fix(args.name)
+ siteconfigs[name] = &SiteConfig{
+  name: name
+ }
+ return get(name:name)!
 }
 
 pub fn get(args FactoryArgs) !&SiteConfig {
-	name := texttools.name_fix(args.name)
-	mut sc := siteconfigs[name] or {
-		return error('siteconfig with name "${name}" does not exist')
-	}
-	return sc
+ name := texttools.name_fix(args.name)
+ mut sc := siteconfigs[name] or {
+  return error('siteconfig with name "${name}" does not exist')
+ }
+ return sc
 }
 
 pub fn default() !&SiteConfig {
-	if siteconfigs.len == 0 {
-		return new(name:'default')!
-	}
-	return get()!
+ if siteconfigs.len == 0 {
+  return new(name:'default')!
+ }
+ return get()!
 }
 
 ```
+
 ```
 
 File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_heroscript_basics.md
@@ -541,52 +543,52 @@ HeroScript is a concise scripting language with the following structure:
 
 ```heroscript
 !!actor.action_name
-	param1: 'value1'
-	param2: 'value with spaces'
-	multiline_description: '
-		This is a multiline description.
-		It can span multiple lines.
-		'
-	arg1 arg2 // Arguments without keys
+ param1: 'value1'
+ param2: 'value with spaces'
+ multiline_description: '
+  This is a multiline description.
+  It can span multiple lines.
+  '
+ arg1 arg2 // Arguments without keys
 ```
 
 Key characteristics:
--   **Actions**: Start with `!!`, followed by `actor.action_name` (e.g., `!!mailclient.configure`).
--   **Parameters**: Defined as `key:value`. Values can be quoted for spaces.
--   **Multiline Support**: Parameters like `description` can span multiple lines.
--   **Arguments**: Values without keys (e.g., `arg1`).
+
+- __Actions__: Start with `!!`, followed by `actor.action_name` (e.g., `!!mailclient.configure`).
+- __Parameters__: Defined as `key:value`. Values can be quoted for spaces.
+- __Multiline Support__: Parameters like `description` can span multiple lines.
+- __Arguments__: Values without keys (e.g., `arg1`).
 
 ## Processing HeroScript in Vlang
 
 HeroScript can be parsed into a `playbook.PlayBook` object, allowing structured access to actions and their parameters, this is used in most of the herolib modules, it allows configuration or actions in a structured way.
 
 ```v
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 
 pub fn play(mut plbook PlayBook) ! {
 
-	if plbook.exists_once(filter: 'docusaurus.define') {
-		mut action := plbook.get(filter: 'docusaurus.define')!
-		mut p := action.params
-		//example how we get parameters from the action see core_params.md for more details
-		ds = new(
-			path: p.get_default('path_publish', '')!
-			production:   p.get_default_false('production')
-		)!
-	}
+ if plbook.exists_once(filter: 'docusaurus.define') {
+  mut action := plbook.get(filter: 'docusaurus.define')!
+  mut p := action.params
+  //example how we get parameters from the action see core_params.md for more details
+  ds = new(
+   path: p.get_default('path_publish', '')!
+   production:   p.get_default_false('production')
+  )!
+ }
 
-	// Process 'docusaurus.add' actions to configure individual Docusaurus sites
-	actions := plbook.find(filter: 'docusaurus.add')!
-	for action in actions {
-		mut p := action.params
-		//do more processing here
-	}
+ // Process 'docusaurus.add' actions to configure individual Docusaurus sites
+ actions := plbook.find(filter: 'docusaurus.add')!
+ for action in actions {
+  mut p := action.params
+  //do more processing here
+ }
 }
 ```
 
 For detailed information on parameter retrieval methods (e.g., `p.get()`, `p.get_int()`, `p.get_default_true()`), refer to `aiprompts/ai_core/core_params.md`.
-
 
 ```
 
@@ -599,8 +601,8 @@ File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_h
 HeroScript can be parsed into a `playbook.PlayBook` object, allowing structured access to actions and their parameters.
 
 ```v
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
 
 // path string
 // text string
@@ -615,8 +617,6 @@ mut plbook := playbook.new(path: "....")!
 playcmds.run(mut plbook)!
 
 ```
-
-
 
 ```
 
@@ -636,7 +636,7 @@ The `HTTPConnection` module provides a robust HTTP client for Vlang, supporting 
 ## Basic Usage
 
 ```v
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 
 // Create a new HTTP connection
 mut conn := httpconnection.new(
@@ -654,17 +654,17 @@ To integrate `HTTPConnection` into a management class (e.g., `HetznerManager`), 
 ```v
 // Example: HetznerManager
 pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
-	mut c := h.conn or {
-		mut c2 := httpconnection.new(
-			name:  'hetzner_${h.name}'
-			url:   h.baseurl
-			cache: true
-			retry: 3
-		)!
-		c2.basic_auth(h.user, h.password)
-		c2
-	}
-	return c
+ mut c := h.conn or {
+  mut c2 := httpconnection.new(
+   name:  'hetzner_${h.name}'
+   url:   h.baseurl
+   cache: true
+   retry: 3
+  )!
+  c2.basic_auth(h.user, h.password)
+  c2
+ }
+ return c
 }
 ```
 
@@ -733,14 +733,15 @@ user := conn.get_json_generic[User](
 ```
 
 File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_osal.md
+
 ```md
-# OSAL Core Module - Key Capabilities (freeflowuniverse.herolib.osal.core)
+# OSAL Core Module - Key Capabilities (incubaid.herolib.osal.core)
 
 
 ```v
 //example how to get started
 
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 
 osal.exec(cmd:"ls /")!
 
@@ -752,49 +753,48 @@ this document has info about the most core functions, more detailed info can be 
 
 ### 1. Process Execution
 
-*   **`osal.exec(cmd: Command) !Job`**: Execute a shell command.
-    *   **Key Parameters**: `cmd` (string), `timeout` (int), `retry` (int), `work_folder` (string), `environment` (map[string]string), `stdout` (bool), `raise_error` (bool).
-    *   **Returns**: `Job` (status, output, error, exit code).
-*   **`osal.execute_silent(cmd string) !string`**: Execute silently, return output.
-*   **`osal.cmd_exists(cmd string) bool`**: Check if a command exists.
-*   **`osal.process_kill_recursive(args: ProcessKillArgs) !`**: Kill a process and its children.
+- __`osal.exec(cmd: Command) !Job`__: Execute a shell command.
+  - __Key Parameters__: `cmd` (string), `timeout` (int), `retry` (int), `work_folder` (string), `environment` (map[string]string), `stdout` (bool), `raise_error` (bool).
+  - __Returns__: `Job` (status, output, error, exit code).
+- __`osal.execute_silent(cmd string) !string`__: Execute silently, return output.
+- __`osal.cmd_exists(cmd string) bool`__: Check if a command exists.
+- __`osal.process_kill_recursive(args: ProcessKillArgs) !`__: Kill a process and its children.
 
 ### 2. Network Utilities
 
-*   **`osal.ping(args: PingArgs) !bool`**: Check host reachability.
-*   **`osal.tcp_port_test(args: TcpPortTestArgs) bool`**: Test if a TCP port is open.
-    *   **Key Parameters**: `address` (string), `port` (int).
-*   **`osal.ipaddr_pub_get() !string`**: Get public IP address.
+- __`osal.ping(args: PingArgs) !bool`__: Check host reachability.
+- __`osal.tcp_port_test(args: TcpPortTestArgs) bool`__: Test if a TCP port is open.
+  - __Key Parameters__: `address` (string), `port` (int).
+- __`osal.ipaddr_pub_get() !string`__: Get public IP address.
 
 ### 3. File System Operations
 
-*   **`osal.file_write(path string, text string) !`**: Write text to a file.
-*   **`osal.file_read(path string) !string`**: Read content from a file.
-*   **`osal.dir_ensure(path string) !`**: Ensure a directory exists.
-*   **`osal.rm(todelete string) !`**: Remove files/directories.
+- __`osal.file_write(path string, text string) !`__: Write text to a file.
+- __`osal.file_read(path string) !string`__: Read content from a file.
+- __`osal.dir_ensure(path string) !`__: Ensure a directory exists.
+- __`osal.rm(todelete string) !`__: Remove files/directories.
 
 ### 4. Environment Variables
 
-*   **`osal.env_set(args: EnvSet)`**: Set an environment variable.
-    *   **Key Parameters**: `key` (string), `value` (string).
-*   **`osal.env_get(key string) !string`**: Get an environment variable's value.
-*   **`osal.load_env_file(file_path string) !`**: Load variables from a file.
+- __`osal.env_set(args: EnvSet)`__: Set an environment variable.
+  - __Key Parameters__: `key` (string), `value` (string).
+- __`osal.env_get(key string) !string`__: Get an environment variable's value.
+- __`osal.load_env_file(file_path string) !`__: Load variables from a file.
 
 ### 5. Command & Profile Management
 
-*   **`osal.cmd_add(args: CmdAddArgs) !`**: Add a binary to system paths and update profiles.
-    *   **Key Parameters**: `source` (string, required), `cmdname` (string).
-*   **`osal.profile_path_add_remove(args: ProfilePathAddRemoveArgs) !`**: Add/remove paths from profiles.
-    *   **Key Parameters**: `paths2add` (string), `paths2delete` (string).
+- __`osal.cmd_add(args: CmdAddArgs) !`__: Add a binary to system paths and update profiles.
+  - __Key Parameters__: `source` (string, required), `cmdname` (string).
+- __`osal.profile_path_add_remove(args: ProfilePathAddRemoveArgs) !`__: Add/remove paths from profiles.
+  - __Key Parameters__: `paths2add` (string), `paths2delete` (string).
 
 ### 6. System Information
 
-*   **`osal.platform() !PlatformType`**: Identify the operating system.
-*   **`osal.cputype() !CPUType`**: Identify the CPU architecture.
-*   **`osal.hostname() !string`**: Get system hostname.
+- __`osal.platform() !PlatformType`__: Identify the operating system.
+- __`osal.cputype() !CPUType`__: Identify the CPU architecture.
+- __`osal.hostname() !string`__: Get system hostname.
 
 ---
-
 
 ```
 
@@ -814,7 +814,7 @@ The `OurTime` module in V provides flexible time handling, supporting relative a
 ## Basic Usage
 
 ```v
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 
 // Current time
 mut t := ourtime.now()
@@ -896,6 +896,7 @@ t_invalid := ourtime.new('bad-date') or {
 ```
 
 File: /Users/despiegk/code/github/incubaid/herolib/aiprompts/herolib_core/core_params.md
+
 ```md
 # Parameter Parsing in Vlang
 
@@ -904,7 +905,7 @@ This document details the `paramsparser` module, essential for handling paramete
 ## Obtaining a `paramsparser` Instance
 
 ```v
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 
 // Create new params from a string
 params := paramsparser.new("color:red size:'large' priority:1 enable:true")!
@@ -918,12 +919,13 @@ params.set("color", "red")
 
 The parser supports various input formats:
 
-1.  **Key-value pairs**: `key:value`
-2.  **Quoted values**: `key:'value with spaces'` (single or double quotes)
-3.  **Arguments without keys**: `arg1 arg2` (accessed by index)
-4.  **Comments**: `// this is a comment` (ignored during parsing)
+1. __Key-value pairs__: `key:value`
+2. __Quoted values__: `key:'value with spaces'` (single or double quotes)
+3. __Arguments without keys__: `arg1 arg2` (accessed by index)
+4. __Comments__: `// this is a comment` (ignored during parsing)
 
 Example:
+
 ```v
 text := "name:'John Doe' age:30 active:true // user details"
 params := paramsparser.new(text)!
@@ -935,77 +937,77 @@ The `paramsparser` module provides a comprehensive set of methods for retrieving
 
 ### Basic Retrieval
 
--   `get(key string) !string`: Retrieves a string value by key. Returns an error if the key does not exist.
--   `get_default(key string, defval string) !string`: Retrieves a string value by key, or returns `defval` if the key is not found.
--   `exists(key string) bool`: Checks if a keyword argument (`key:value`) exists.
--   `exists_arg(key string) bool`: Checks if an argument (value without a key) exists.
+- `get(key string) !string`: Retrieves a string value by key. Returns an error if the key does not exist.
+- `get_default(key string, defval string) !string`: Retrieves a string value by key, or returns `defval` if the key is not found.
+- `exists(key string) bool`: Checks if a keyword argument (`key:value`) exists.
+- `exists_arg(key string) bool`: Checks if an argument (value without a key) exists.
 
 ### Argument Retrieval (Positional)
 
--   `get_arg(nr int) !string`: Retrieves an argument by its 0-based index. Returns an error if the index is out of bounds.
--   `get_arg_default(nr int, defval string) !string`: Retrieves an argument by index, or returns `defval` if the index is out of bounds.
+- `get_arg(nr int) !string`: Retrieves an argument by its 0-based index. Returns an error if the index is out of bounds.
+- `get_arg_default(nr int, defval string) !string`: Retrieves an argument by index, or returns `defval` if the index is out of bounds.
 
 ### Type-Specific Retrieval
 
--   `get_int(key string) !int`: Converts and retrieves an integer (int32).
--   `get_int_default(key string, defval int) !int`: Retrieves an integer with a default.
--   `get_u32(key string) !u32`: Converts and retrieves an unsigned 32-bit integer.
--   `get_u32_default(key string, defval u32) !u32`: Retrieves a u32 with a default.
--   `get_u64(key string) !u64`: Converts and retrieves an unsigned 64-bit integer.
--   `get_u64_default(key string, defval u64) !u64`: Retrieves a u64 with a default.
--   `get_u8(key string) !u8`: Converts and retrieves an unsigned 8-bit integer.
--   `get_u8_default(key string, defval u8) !u8`: Retrieves a u8 with a default.
--   `get_float(key string) !f64`: Converts and retrieves a 64-bit float.
--   `get_float_default(key string, defval f64) !f64`: Retrieves a float with a default.
--   `get_percentage(key string) !f64`: Converts a percentage string (e.g., "80%") to a float (0.8).
--   `get_percentage_default(key string, defval string) !f64`: Retrieves a percentage with a default.
+- `get_int(key string) !int`: Converts and retrieves an integer (int32).
+- `get_int_default(key string, defval int) !int`: Retrieves an integer with a default.
+- `get_u32(key string) !u32`: Converts and retrieves an unsigned 32-bit integer.
+- `get_u32_default(key string, defval u32) !u32`: Retrieves a u32 with a default.
+- `get_u64(key string) !u64`: Converts and retrieves an unsigned 64-bit integer.
+- `get_u64_default(key string, defval u64) !u64`: Retrieves a u64 with a default.
+- `get_u8(key string) !u8`: Converts and retrieves an unsigned 8-bit integer.
+- `get_u8_default(key string, defval u8) !u8`: Retrieves a u8 with a default.
+- `get_float(key string) !f64`: Converts and retrieves a 64-bit float.
+- `get_float_default(key string, defval f64) !f64`: Retrieves a float with a default.
+- `get_percentage(key string) !f64`: Converts a percentage string (e.g., "80%") to a float (0.8).
+- `get_percentage_default(key string, defval string) !f64`: Retrieves a percentage with a default.
 
 ### Boolean Retrieval
 
--   `get_default_true(key string) bool`: Returns `true` if the value is empty, "1", "true", "y", or "yes". Otherwise `false`.
--   `get_default_false(key string) bool`: Returns `false` if the value is empty, "0", "false", "n", or "no". Otherwise `true`.
+- `get_default_true(key string) bool`: Returns `true` if the value is empty, "1", "true", "y", or "yes". Otherwise `false`.
+- `get_default_false(key string) bool`: Returns `false` if the value is empty, "0", "false", "n", or "no". Otherwise `true`.
 
 ### List Retrieval
 
 Lists are typically comma-separated strings (e.g., `users: "john,jane,bob"`).
 
--   `get_list(key string) ![]string`: Retrieves a list of strings.
--   `get_list_default(key string, def []string) ![]string`: Retrieves a list of strings with a default.
--   `get_list_int(key string) ![]int`: Retrieves a list of integers.
--   `get_list_int_default(key string, def []int) []int`: Retrieves a list of integers with a default.
--   `get_list_f32(key string) ![]f32`: Retrieves a list of 32-bit floats.
--   `get_list_f32_default(key string, def []f32) []f32`: Retrieves a list of f32 with a default.
--   `get_list_f64(key string) ![]f64`: Retrieves a list of 64-bit floats.
--   `get_list_f64_default(key string, def []f64) []f64`: Retrieves a list of f64 with a default.
--   `get_list_i8(key string) ![]i8`: Retrieves a list of 8-bit signed integers.
--   `get_list_i8_default(key string, def []i8) []i8`: Retrieves a list of i8 with a default.
--   `get_list_i16(key string) ![]i16`: Retrieves a list of 16-bit signed integers.
--   `get_list_i16_default(key string, def []i16) []i16`: Retrieves a list of i16 with a default.
--   `get_list_i64(key string) ![]i64`: Retrieves a list of 64-bit signed integers.
--   `get_list_i64_default(key string, def []i64) []i64`: Retrieves a list of i64 with a default.
--   `get_list_u16(key string) ![]u16`: Retrieves a list of 16-bit unsigned integers.
--   `get_list_u16_default(key string, def []u16) []u16`: Retrieves a list of u16 with a default.
--   `get_list_u32(key string) ![]u32`: Retrieves a list of 32-bit unsigned integers.
--   `get_list_u32_default(key string, def []u32) []u32`: Retrieves a list of u32 with a default.
--   `get_list_u64(key string) ![]u64`: Retrieves a list of 64-bit unsigned integers.
--   `get_list_u64_default(key string, def []u64) []u64`: Retrieves a list of u64 with a default.
--   `get_list_namefix(key string) ![]string`: Retrieves a list of strings, normalizing each item (e.g., "My Name" -> "my_name").
--   `get_list_namefix_default(key string, def []string) ![]string`: Retrieves a list of name-fixed strings with a default.
+- `get_list(key string) ![]string`: Retrieves a list of strings.
+- `get_list_default(key string, def []string) ![]string`: Retrieves a list of strings with a default.
+- `get_list_int(key string) ![]int`: Retrieves a list of integers.
+- `get_list_int_default(key string, def []int) []int`: Retrieves a list of integers with a default.
+- `get_list_f32(key string) ![]f32`: Retrieves a list of 32-bit floats.
+- `get_list_f32_default(key string, def []f32) []f32`: Retrieves a list of f32 with a default.
+- `get_list_f64(key string) ![]f64`: Retrieves a list of 64-bit floats.
+- `get_list_f64_default(key string, def []f64) []f64`: Retrieves a list of f64 with a default.
+- `get_list_i8(key string) ![]i8`: Retrieves a list of 8-bit signed integers.
+- `get_list_i8_default(key string, def []i8) []i8`: Retrieves a list of i8 with a default.
+- `get_list_i16(key string) ![]i16`: Retrieves a list of 16-bit signed integers.
+- `get_list_i16_default(key string, def []i16) []i16`: Retrieves a list of i16 with a default.
+- `get_list_i64(key string) ![]i64`: Retrieves a list of 64-bit signed integers.
+- `get_list_i64_default(key string, def []i64) []i64`: Retrieves a list of i64 with a default.
+- `get_list_u16(key string) ![]u16`: Retrieves a list of 16-bit unsigned integers.
+- `get_list_u16_default(key string, def []u16) []u16`: Retrieves a list of u16 with a default.
+- `get_list_u32(key string) ![]u32`: Retrieves a list of 32-bit unsigned integers.
+- `get_list_u32_default(key string, def []u32) []u32`: Retrieves a list of u32 with a default.
+- `get_list_u64(key string) ![]u64`: Retrieves a list of 64-bit unsigned integers.
+- `get_list_u64_default(key string, def []u64) []u64`: Retrieves a list of u64 with a default.
+- `get_list_namefix(key string) ![]string`: Retrieves a list of strings, normalizing each item (e.g., "My Name" -> "my_name").
+- `get_list_namefix_default(key string, def []string) ![]string`: Retrieves a list of name-fixed strings with a default.
 
 ### Specialized Retrieval
 
--   `get_map() map[string]string`: Returns all parameters as a map.
--   `get_path(key string) !string`: Retrieves a path string.
--   `get_path_create(key string) !string`: Retrieves a path string, creating the directory if it doesn't exist.
--   `get_from_hashmap(key string, defval string, hashmap map[string]string) !string`: Retrieves a value from a provided hashmap based on the parameter's value.
--   `get_storagecapacity_in_bytes(key string) !u64`: Converts storage capacity strings (e.g., "10 GB", "500 MB") to bytes (u64).
--   `get_storagecapacity_in_bytes_default(key string, defval u64) !u64`: Retrieves storage capacity in bytes with a default.
--   `get_storagecapacity_in_gigabytes(key string) !u64`: Converts storage capacity strings to gigabytes (u64).
--   `get_time(key string) !ourtime.OurTime`: Parses a time string (relative or absolute) into an `ourtime.OurTime` object.
--   `get_time_default(key string, defval ourtime.OurTime) !ourtime.OurTime`: Retrieves time with a default.
--   `get_time_interval(key string) !Duration`: Parses a time interval string into a `Duration` object.
--   `get_timestamp(key string) !Duration`: Parses a timestamp string into a `Duration` object.
--   `get_timestamp_default(key string, defval Duration) !Duration`: Retrieves a timestamp with a default.
+- `get_map() map[string]string`: Returns all parameters as a map.
+- `get_path(key string) !string`: Retrieves a path string.
+- `get_path_create(key string) !string`: Retrieves a path string, creating the directory if it doesn't exist.
+- `get_from_hashmap(key string, defval string, hashmap map[string]string) !string`: Retrieves a value from a provided hashmap based on the parameter's value.
+- `get_storagecapacity_in_bytes(key string) !u64`: Converts storage capacity strings (e.g., "10 GB", "500 MB") to bytes (u64).
+- `get_storagecapacity_in_bytes_default(key string, defval u64) !u64`: Retrieves storage capacity in bytes with a default.
+- `get_storagecapacity_in_gigabytes(key string) !u64`: Converts storage capacity strings to gigabytes (u64).
+- `get_time(key string) !ourtime.OurTime`: Parses a time string (relative or absolute) into an `ourtime.OurTime` object.
+- `get_time_default(key string, defval ourtime.OurTime) !ourtime.OurTime`: Retrieves time with a default.
+- `get_time_interval(key string) !Duration`: Parses a time interval string into a `Duration` object.
+- `get_timestamp(key string) !Duration`: Parses a timestamp string into a `Duration` object.
+- `get_timestamp_default(key string, defval Duration) !Duration`: Retrieves a timestamp with a default.
 
 ```
 
@@ -1028,10 +1030,11 @@ The pathlib module provides a comprehensive interface for handling file system o
 
 ### Importing pathlib
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 ```
 
 ### Creating Path Objects
+
 ```v
 // Create a Path object for a file
 mut file_path := pathlib.get("path/to/file.txt")
@@ -1041,6 +1044,7 @@ mut dir_path := pathlib.get("path/to/directory")
 ```
 
 ### Basic Path Operations
+
 ```v
 // Get absolute path
 abs_path := file_path.absolute()
@@ -1057,6 +1061,7 @@ if file_path.exists() {
 ## Path Properties and Methods
 
 ### Path Types
+
 ```v
 // Check if path is a file
 if file_path.is_file() {
@@ -1075,6 +1080,7 @@ if file_path.is_link() {
 ```
 
 ### Path Normalization
+
 ```v
 // Normalize path (remove extra slashes, resolve . and ..)
 normalized_path := file_path.path_normalize()
@@ -1089,6 +1095,7 @@ name_no_ext := file_path.name_no_ext()
 ## File and Directory Operations
 
 ### File Operations
+
 ```v
 // Write to file
 file_path.write("Content to write")!
@@ -1101,6 +1108,7 @@ file_path.delete()!
 ```
 
 ### Directory Operations
+
 ```v
 // Create directory
 mut dir := pathlib.get_dir(
@@ -1116,6 +1124,7 @@ dir.delete()!
 ```
 
 ### Symlink Operations
+
 ```v
 // Create symlink
 file_path.link("path/to/symlink", delete_exists: true)!
@@ -1127,12 +1136,14 @@ real_path := file_path.realpath()
 ## Advanced Operations
 
 ### Path Copying
+
 ```v
 // Copy file to destination
 file_path.copy(dest: "path/to/destination")!
 ```
 
 ### Recursive Operations
+
 ```v
 // List directory recursively
 mut recursive_list := dir.list(recursive: true)!
@@ -1142,6 +1153,7 @@ dir.delete()!
 ```
 
 ### Path Filtering
+
 ```v
 // List files matching pattern
 mut filtered_list := dir.list(
@@ -1153,6 +1165,7 @@ mut filtered_list := dir.list(
 ## Best Practices
 
 ### Error Handling
+
 ```v
 if file_path.exists() {
     // Safe to operate
@@ -1160,7 +1173,6 @@ if file_path.exists() {
     // Handle missing file
 }
 ```
-
 
 ```
 
@@ -1173,93 +1185,121 @@ The `texttools` module provides a comprehensive set of utilities for text manipu
 ## Functions and Examples:
 
 ```v
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 assert hello_world == texttools.name_fix("Hello World!")
 
 ```
+
 ### Name/Path Processing
-*   `name_fix(name string) string`: Normalizes filenames and paths.
-*   `name_fix_keepspace(name string) !string`: Like name_fix but preserves spaces.
-*   `name_fix_no_ext(name_ string) string`: Removes file extension.
-*   `name_fix_snake_to_pascal(name string) string`: Converts snake_case to PascalCase.
+
+* `name_fix(name string) string`: Normalizes filenames and paths.
+- `name_fix_keepspace(name string) !string`: Like name_fix but preserves spaces.
+- `name_fix_no_ext(name_ string) string`: Removes file extension.
+- `name_fix_snake_to_pascal(name string) string`: Converts snake_case to PascalCase.
+
     ```v
     name := texttools.name_fix_snake_to_pascal("hello_world") // Result: "HelloWorld"
     ```
-*   `snake_case(name string) string`: Converts PascalCase to snake_case.
+
+* `snake_case(name string) string`: Converts PascalCase to snake_case.
+
     ```v
     name := texttools.snake_case("HelloWorld") // Result: "hello_world"
     ```
-*   `name_split(name string) !(string, string)`: Splits name into site and page components.
 
+* `name_split(name string) !(string, string)`: Splits name into site and page components.
 
 ### Text Cleaning
-*   `name_clean(r string) string`: Normalizes names by removing special characters.
+
+* `name_clean(r string) string`: Normalizes names by removing special characters.
+
     ```v
     name := texttools.name_clean("Hello@World!") // Result: "HelloWorld"
     ```
-*   `ascii_clean(r string) string`: Removes all non-ASCII characters.
-*   `remove_empty_lines(text string) string`: Removes empty lines from text.
+
+* `ascii_clean(r string) string`: Removes all non-ASCII characters.
+- `remove_empty_lines(text string) string`: Removes empty lines from text.
+
     ```v
     text := texttools.remove_empty_lines("line1\n\nline2\n\n\nline3") // Result: "line1\nline2\nline3"
     ```
-*   `remove_double_lines(text string) string`: Removes consecutive empty lines.
-*   `remove_empty_js_blocks(text string) string`: Removes empty code blocks (```...```).
+
+* `remove_double_lines(text string) string`: Removes consecutive empty lines.
+- `remove_empty_js_blocks(text string) string`: Removes empty code blocks (```...```).
 
 ### Command Line Parsing
-*   `cmd_line_args_parser(text string) ![]string`: Parses command line arguments with support for quotes and escaping.
+
+* `cmd_line_args_parser(text string) ![]string`: Parses command line arguments with support for quotes and escaping.
+
     ```v
     args := texttools.cmd_line_args_parser("'arg with spaces' --flag=value") // Result: ['arg with spaces', '--flag=value']
     ```
-*   `text_remove_quotes(text string) string`: Removes quoted sections from text.
-*   `check_exists_outside_quotes(text string, items []string) bool`: Checks if items exist in text outside of quotes.
+
+* `text_remove_quotes(text string) string`: Removes quoted sections from text.
+- `check_exists_outside_quotes(text string, items []string) bool`: Checks if items exist in text outside of quotes.
 
 ### Text Expansion
-*   `expand(txt_ string, l int, expand_with string) string`: Expands text to a specified length with a given character.
+
+* `expand(txt_ string, l int, expand_with string) string`: Expands text to a specified length with a given character.
 
 ### Indentation
-*   `indent(text string, prefix string) string`: Adds indentation prefix to each line.
+
+* `indent(text string, prefix string) string`: Adds indentation prefix to each line.
+
     ```v
     text := texttools.indent("line1\nline2", "  ") // Result: "  line1\n  line2\n"
     ```
-*   `dedent(text string) string`: Removes common leading whitespace from every line.
+
+* `dedent(text string) string`: Removes common leading whitespace from every line.
+
     ```v
     text := texttools.dedent("    line1\n    line2") // Result: "line1\nline2"
     ```
 
 ### String Validation
-*   `is_int(text string) bool`: Checks if text contains only digits.
-*   `is_upper_text(text string) bool`: Checks if text contains only uppercase letters.
+
+* `is_int(text string) bool`: Checks if text contains only digits.
+- `is_upper_text(text string) bool`: Checks if text contains only uppercase letters.
 
 ### Multiline Processing
-*   `multiline_to_single(text string) !string`: Converts multiline text to a single line with proper escaping.
+
+* `multiline_to_single(text string) !string`: Converts multiline text to a single line with proper escaping.
 
 ### Text Splitting
-*   `split_smart(t string, delimiter_ string) []string`: Intelligent string splitting that respects quotes.
+
+* `split_smart(t string, delimiter_ string) []string`: Intelligent string splitting that respects quotes.
 
 ### Tokenization
-*   `tokenize(text_ string) TokenizerResult`: Tokenizes text into meaningful parts.
-*   `text_token_replace(text string, tofind string, replacewith string) !string`: Replaces tokens in text.
+
+* `tokenize(text_ string) TokenizerResult`: Tokenizes text into meaningful parts.
+- `text_token_replace(text string, tofind string, replacewith string) !string`: Replaces tokens in text.
 
 ### Version Parsing
-*   `version(text_ string) int`: Converts version strings to comparable integers.
+
+* `version(text_ string) int`: Converts version strings to comparable integers.
+
     ```v
     ver := texttools.version("v0.4.36") // Result: 4036
     ver = texttools.version("v1.4.36") // Result: 1004036
     ```
 
 ### Formatting
-*   `format_rfc1123(t time.Time) string`: Formats a time.Time object into RFC 1123 format.
-  
 
+* `format_rfc1123(t time.Time) string`: Formats a time.Time object into RFC 1123 format.
+  
 ### Array Operations
-*   `to_array(r string) []string`: Converts a comma or newline separated list to an array of strings.
+
+* `to_array(r string) []string`: Converts a comma or newline separated list to an array of strings.
+
     ```v
     text := "item1,item2,item3"
     array := texttools.to_array(text) // Result: ['item1', 'item2', 'item3']
     ```
-*   `to_array_int(r string) []int`: Converts a text list to an array of integers.
-*   `to_map(mapstring string, line string, delimiter_ string) map[string]string`: Intelligent mapping of a line to a map based on a template.
+
+* `to_array_int(r string) []int`: Converts a text list to an array of integers.
+- `to_map(mapstring string, line string, delimiter_ string) map[string]string`: Intelligent mapping of a line to a map based on a template.
+
     ```v
     r := texttools.to_map("name,-,-,-,-,pid,-,-,-,-,path",
         "root   304   0.0  0.0 408185328   1360   ??  S    16Dec23   0:34.06 /usr/sbin/distnoted")
@@ -1277,7 +1317,7 @@ has mechanisms to print better to console, see the methods below
 import as
 
 ```v
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 ```
 
@@ -1296,23 +1336,23 @@ fn color_fg(c ForegroundColor) string
 
 struct PrintArgs {
 pub mut:
-	foreground   ForegroundColor
-	background   BackgroundColor
-	text         string
-	style        Style
-	reset_before bool = true
-	reset_after  bool = true
+ foreground   ForegroundColor
+ background   BackgroundColor
+ text         string
+ style        Style
+ reset_before bool = true
+ reset_after  bool = true
 }
 
 fn cprint(args PrintArgs)
     // print with colors, reset...
     // ```
-    //  	foreground ForegroundColor
-    //  	background BackgroundColor
-    //  	text string
-    //  	style Style
-    //  	reset_before bool = true
-    //  	reset_after bool = true
+    //   foreground ForegroundColor
+    //   background BackgroundColor
+    //   text string
+    //   style Style
+    //   reset_before bool = true
+    //   reset_after bool = true
     // ```
 
 fn cprintln(args_ PrintArgs)
@@ -1367,11 +1407,11 @@ Is used to ask feedback to users
 
 struct UIConsole {
 pub mut:
-	x_max      int = 80
-	y_max      int = 60
-	prev_lf    bool
-	prev_title bool
-	prev_item  bool
+ x_max      int = 80
+ y_max      int = 60
+ prev_lf    bool
+ prev_title bool
+ prev_item  bool
 }
 
 //DropDownArgs:
@@ -1422,51 +1462,51 @@ fn (mut c UIConsole) status() string
 
 ```v
 enum BackgroundColor {
-	default_color = 49 // 'default' is a reserved keyword in V
-	black         = 40
-	red           = 41
-	green         = 42
-	yellow        = 43
-	blue          = 44
-	magenta       = 45
-	cyan          = 46
-	light_gray    = 47
-	dark_gray     = 100
-	light_red     = 101
-	light_green   = 102
-	light_yellow  = 103
-	light_blue    = 104
-	light_magenta = 105
-	light_cyan    = 106
-	white         = 107
+ default_color = 49 // 'default' is a reserved keyword in V
+ black         = 40
+ red           = 41
+ green         = 42
+ yellow        = 43
+ blue          = 44
+ magenta       = 45
+ cyan          = 46
+ light_gray    = 47
+ dark_gray     = 100
+ light_red     = 101
+ light_green   = 102
+ light_yellow  = 103
+ light_blue    = 104
+ light_magenta = 105
+ light_cyan    = 106
+ white         = 107
 }
 enum ForegroundColor {
-	default_color = 39 // 'default' is a reserved keyword in V
-	white         = 97
-	black         = 30
-	red           = 31
-	green         = 32
-	yellow        = 33
-	blue          = 34
-	magenta       = 35
-	cyan          = 36
-	light_gray    = 37
-	dark_gray     = 90
-	light_red     = 91
-	light_green   = 92
-	light_yellow  = 93
-	light_blue    = 94
-	light_magenta = 95
-	light_cyan    = 96
+ default_color = 39 // 'default' is a reserved keyword in V
+ white         = 97
+ black         = 30
+ red           = 31
+ green         = 32
+ yellow        = 33
+ blue          = 34
+ magenta       = 35
+ cyan          = 36
+ light_gray    = 37
+ dark_gray     = 90
+ light_red     = 91
+ light_green   = 92
+ light_yellow  = 93
+ light_blue    = 94
+ light_magenta = 95
+ light_cyan    = 96
 }
 enum Style {
-	normal    = 99
-	bold      = 1
-	dim       = 2
-	underline = 4
-	blink     = 5
-	reverse   = 7
-	hidden    = 8
+ normal    = 99
+ bold      = 1
+ dim       = 2
+ underline = 4
+ blink     = 5
+ reverse   = 7
+ hidden    = 8
 }
 
 ```
@@ -1482,7 +1522,7 @@ this is how we want example scripts to be, see the first line
 ```v
 #!/usr/bin/env -S v -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib...
+import incubaid.herolib...
 
 ```
 
@@ -1688,6 +1728,7 @@ impl Company {
 ```
 
 File: /Users/despiegk/code/git.threefold.info/herocode/db/heromodels/src/models/biz/mod.rs
+
 ```rs
 // Business models module
 // Sub-modules will be declared here
@@ -1712,6 +1753,7 @@ pub use sale::{Sale, SaleItem, SaleStatus};
 ```
 
 File: /Users/despiegk/code/git.threefold.info/herocode/db/heromodels/src/models/biz/payment.rs
+
 ```rs
 use heromodels_core::BaseModelData;
 use heromodels_derive::model;
@@ -1933,6 +1975,7 @@ impl Payment {
 ```
 
 File: /Users/despiegk/code/git.threefold.info/herocode/db/heromodels/src/models/biz/product.rs
+
 ```rs
 use heromodels_core::BaseModelData;
 use heromodels_derive::model;
@@ -2086,6 +2129,7 @@ impl Product {
 ```
 
 File: /Users/despiegk/code/git.threefold.info/herocode/db/heromodels/src/models/biz/README.md
+
 ```md
 # Business Models (`biz`)
 
@@ -2149,6 +2193,7 @@ All models use the builder pattern for easy and readable instance creation.
 ```
 
 File: /Users/despiegk/code/git.threefold.info/herocode/db/heromodels/src/models/biz/sale.rs
+
 ```rs
 use heromodels_core::{BaseModelData, BaseModelDataOps, Model};
 use rhai::{CustomType, TypeBuilder};
@@ -2326,6 +2371,7 @@ impl Sale {
 ```
 
 File: /Users/despiegk/code/git.threefold.info/herocode/db/heromodels/src/models/biz/shareholder.rs
+
 ```rs
 use heromodels_core::BaseModelData;
 use heromodels_derive::model;
@@ -2410,6 +2456,7 @@ impl Shareholder {
 }
 
 ```
+
 </file_contents>
 <meta prompt 1 = "[Architect]">
 You are a senior software architect specializing in code design and implementation planning. Your role is to:
@@ -2425,6 +2472,7 @@ You are a senior software architect specializing in code design and implementati
    - Configuration updates
 
 For each change:
+
 - Describe the exact location in the code where changes are needed
 - Explain the logic and reasoning behind each modification
 - Provide example signatures, parameters, and return types
@@ -2448,7 +2496,6 @@ forget what rust does, there is no special module things needed, no re-exports o
 
 there is no defaults for empty strings or 0 ints, … defaults are only for non empty stuff
 
-
 </meta prompt 2>
 <user_instructions>
 $NAME = finance
@@ -2471,7 +2518,5 @@ don't do anything additional for modules, don't do import
 at top of each file we have ```module $NAME```
 
 don't create management classes, only output the structs
-
-
 
 </user_instructions>

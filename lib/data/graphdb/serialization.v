@@ -1,6 +1,6 @@
 module graphdb
 
-import freeflowuniverse.herolib.data.encoder
+import incubaid.herolib.data.encoder
 
 const version_v1 = u8(1)
 

@@ -1,7 +1,7 @@
 module vfs_local
 
 import os
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // Convert path to vfs.Metadata with improved security and information gathering
 fn (myvfs LocalVFS) os_attr_to_metadata(path string) !vfs.Metadata {

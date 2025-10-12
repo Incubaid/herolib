@@ -1,26 +1,26 @@
 module models_tfgrid
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // Contract - ROOT OBJECT
 @[heap]
 pub struct Contract {
 	db.Base
 pub mut:
-	customer_id           u32                         // links back to customer for this capacity
-	compute_slices        []ComputeSliceProvisioned
-	storage_slices        []StorageSliceProvisioned
-	compute_slice_price   f64                         // price per 1 GB agreed upon
-	storage_slice_price   f64                         // price per 1 GB agreed upon
-	network_slice_price   f64                         // price per 1 GB agreed upon (transfer)
-	status                ContractStatus
-	start_date            u32                         // epoch
-	end_date              u32
-	signature_user        string                      // signature as done by user/consumer
-	signature_hoster      string                      // signature as done by the hoster
-	billing_period        BillingPeriod
+	customer_id         u32 // links back to customer for this capacity
+	compute_slices      []ComputeSliceProvisioned
+	storage_slices      []StorageSliceProvisioned
+	compute_slice_price f64 // price per 1 GB agreed upon
+	storage_slice_price f64 // price per 1 GB agreed upon
+	network_slice_price f64 // price per 1 GB agreed upon (transfer)
+	status              ContractStatus
+	start_date          u32 // epoch
+	end_date            u32
+	signature_user      string // signature as done by user/consumer
+	signature_hoster    string // signature as done by the hoster
+	billing_period      BillingPeriod
 }
 
 pub enum ContractStatus {
@@ -33,14 +33,14 @@ pub enum ContractStatus {
 // Provisioned compute slice
 pub struct ComputeSliceProvisioned {
 pub mut:
-	node_id               u32
-	id                    u16 // the id of the slice in the node
-	mem_gb                f64
-	storage_gb            f64
-	passmark              int
-	vcores                int
-	cpu_oversubscription  int
-	tags                  string
+	node_id              u32
+	id                   u16 // the id of the slice in the node
+	mem_gb               f64
+	storage_gb           f64
+	passmark             int
+	vcores               int
+	cpu_oversubscription int
+	tags                 string
 }
 
 // Provisioned storage slice
@@ -51,7 +51,6 @@ pub mut:
 	storage_size_gb int
 	tags            string
 }
-
 
 pub struct DBContract {
 pub mut:
@@ -110,7 +109,7 @@ pub fn (self Contract) example(methodname string) (string, string) {
 
 pub fn (self Contract) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.customer_id)
-	
+
 	// Encode compute slices
 	e.add_int(self.compute_slices.len)
 	for slice in self.compute_slices {
@@ -123,7 +122,7 @@ pub fn (self Contract) dump(mut e encoder.Encoder) ! {
 		e.add_int(slice.cpu_oversubscription)
 		e.add_string(slice.tags)
 	}
-	
+
 	// Encode storage slices
 	e.add_int(self.storage_slices.len)
 	for slice in self.storage_slices {
@@ -132,7 +131,7 @@ pub fn (self Contract) dump(mut e encoder.Encoder) ! {
 		e.add_int(slice.storage_size_gb)
 		e.add_string(slice.tags)
 	}
-	
+
 	e.add_f64(self.compute_slice_price)
 	e.add_f64(self.storage_slice_price)
 	e.add_f64(self.network_slice_price)
@@ -146,7 +145,7 @@ pub fn (self Contract) dump(mut e encoder.Encoder) ! {
 
 fn (mut self DBContract) load(mut o Contract, mut e encoder.Decoder) ! {
 	o.customer_id = e.get_u32()!
-	
+
 	// Decode compute slices
 	compute_slices_len := e.get_int()!
 	o.compute_slices = []ComputeSliceProvisioned{len: compute_slices_len}
@@ -160,7 +159,7 @@ fn (mut self DBContract) load(mut o Contract, mut e encoder.Decoder) ! {
 		o.compute_slices[i].cpu_oversubscription = e.get_int()!
 		o.compute_slices[i].tags = e.get_string()!
 	}
-	
+
 	// Decode storage slices
 	storage_slices_len := e.get_int()!
 	o.storage_slices = []StorageSliceProvisioned{len: storage_slices_len}
@@ -170,7 +169,7 @@ fn (mut self DBContract) load(mut o Contract, mut e encoder.Decoder) ! {
 		o.storage_slices[i].storage_size_gb = e.get_int()!
 		o.storage_slices[i].tags = e.get_string()!
 	}
-	
+
 	o.compute_slice_price = e.get_f64()!
 	o.storage_slice_price = e.get_f64()!
 	o.network_slice_price = e.get_f64()!
@@ -185,20 +184,20 @@ fn (mut self DBContract) load(mut o Contract, mut e encoder.Decoder) ! {
 @[params]
 pub struct ContractArg {
 pub mut:
-	name                  string
-	description           string
-	customer_id           u32
-	compute_slices        []ComputeSliceProvisioned
-	storage_slices        []StorageSliceProvisioned
-	compute_slice_price   f64
-	storage_slice_price   f64
-	network_slice_price   f64
-	status                ContractStatus
-	start_date            u32
-	end_date              u32
-	signature_user        string
-	signature_hoster      string
-	billing_period        BillingPeriod
+	name                string
+	description         string
+	customer_id         u32
+	compute_slices      []ComputeSliceProvisioned
+	storage_slices      []StorageSliceProvisioned
+	compute_slice_price f64
+	storage_slice_price f64
+	network_slice_price f64
+	status              ContractStatus
+	start_date          u32
+	end_date            u32
+	signature_user      string
+	signature_hoster    string
+	billing_period      BillingPeriod
 }
 
 pub fn (mut self DBContract) new(args ContractArg) !Contract {

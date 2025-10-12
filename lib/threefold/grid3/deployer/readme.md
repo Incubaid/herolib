@@ -6,7 +6,7 @@ To get started
 
 
 
-import freeflowuniverse.herolib.clients. deployer
+import incubaid.herolib.clients. deployer
 
 mut client:= deployer.get()!
 

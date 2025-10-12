@@ -1,8 +1,8 @@
 module baobab
 
-import freeflowuniverse.herolib.mcp
-import freeflowuniverse.herolib.mcp.logger
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.mcp
+import incubaid.herolib.mcp.logger
+import incubaid.herolib.schemas.jsonrpc
 
 @[heap]
 pub struct Baobab {}

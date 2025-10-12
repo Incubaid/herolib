@@ -40,8 +40,8 @@ curl -fsSL https://bun.sh/install | bash
 To create a new MCP server using the core module:
 
 ```v
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.schemas.jsonrpc
 
 // Create a backend (memory-based or custom implementation)
 backend := mcp.MemoryBackend{

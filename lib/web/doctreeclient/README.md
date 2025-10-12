@@ -15,7 +15,7 @@ The client works with Redis as a backend storage system, where document collecti
 ### Creating a Client
 
 ```v
-import freeflowuniverse.herolib.web.doctreeclient
+import incubaid.herolib.web.doctreeclient
 
 // Create a new DocTreeClient instance
 mut client := doctreeclient.new()!
@@ -96,8 +96,8 @@ Here's a complete example that demonstrates how to use DocTreeClient with a docu
 ```v
 module main
 
-import freeflowuniverse.herolib.web.doctreeclient
-import freeflowuniverse.herolib.data.doctree
+import incubaid.herolib.web.doctreeclient
+import incubaid.herolib.data.doctree
 
 fn main() {
     // First, populate Redis with doctree data

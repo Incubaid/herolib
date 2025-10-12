@@ -1,7 +1,7 @@
 module main
 
-import freeflowuniverse.herolib.osal
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.osal
+import incubaid.herolib.builder
 import os
 
 const myexamplepath = os.dir(@FILE) + '/../..'

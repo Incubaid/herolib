@@ -1,7 +1,7 @@
 module zerodb_client
 
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.ui.console
 
 pub struct ZDB {
 pub mut:
