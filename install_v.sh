@@ -635,11 +635,24 @@ fi
 check_and_start_redis
 
 if [ "$HEROLIB" = true ]; then
+    echo "=== Herolib Installation ==="
+    echo "Current directory: $(pwd)"
+    echo "Checking for install_herolib.vsh: $([ -f "./install_herolib.vsh" ] && echo "found" || echo "not found")"
+    echo "Checking for lib directory: $([ -d "./lib" ] && echo "found" || echo "not found")"
+
     # Check if we're in GitHub Actions and already in the herolib directory
-    if is_github_actions && [ -f "./install_herolib.vsh" ]; then
-        echo "Running in GitHub Actions, using current directory for herolib installation"
-        HEROLIB_DIR="$(pwd)"
+    if is_github_actions; then
+        # In GitHub Actions, check if we're already in a herolib checkout
+        if [ -f "./install_herolib.vsh" ] && [ -d "./lib" ]; then
+            echo "✓ Running in GitHub Actions, using current directory for herolib installation"
+            HEROLIB_DIR="$(pwd)"
+        else
+            echo "⚠ Running in GitHub Actions, but not in herolib directory. Cloning..."
+            hero_lib_get
+            HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
+        fi
     else
+        echo "Not in GitHub Actions, using standard installation path"
         hero_lib_get
         HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
     fi
