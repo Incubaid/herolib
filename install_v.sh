@@ -635,8 +635,17 @@ fi
 check_and_start_redis
 
 if [ "$HEROLIB" = true ]; then
-    hero_lib_get
-    ~/code/github/incubaid/herolib/install_herolib.vsh
+    # Check if we're in GitHub Actions and already in the herolib directory
+    if is_github_actions && [ -f "./install_herolib.vsh" ]; then
+        echo "Running in GitHub Actions, using current directory for herolib installation"
+        HEROLIB_DIR="$(pwd)"
+    else
+        hero_lib_get
+        HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
+    fi
+
+    echo "Installing herolib from: $HEROLIB_DIR"
+    "$HEROLIB_DIR/install_herolib.vsh"
 fi
 
 
