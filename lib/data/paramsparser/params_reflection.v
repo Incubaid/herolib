@@ -15,16 +15,13 @@ pub fn (params Params) decode_struct[T](start T) !T {
 	$for field in T.fields {
 		mut should_skip := false
 		for attr in field.attrs {
-			attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
-			// Handle various skip attribute formats:
-			// @[skip], @[skip;...], @[...;skip], @[...;skip;...], etc.
-			if attr_clean == 'skip' || attr_clean.starts_with('skip;')
-				|| attr_clean.ends_with(';skip') || attr_clean.contains(';skip;') {
+			attr_clean := attr.to_lower()
+			if attr_clean.contains('skip') {
 				should_skip = true
 				break
 			}
 		}
-		println('Field: ${field.name}, should_skip: ${should_skip}, attrs: ${field.attrs}')
+		// println('Field: ${field.name}, should_skip: ${should_skip}, attrs: ${field.attrs}')
 		if ! should_skip {
 			$if field.is_enum {
 				t.$(field.name) = params.get_int(field.name) or { int(t.$(field.name)) }
@@ -127,27 +124,24 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 
 		// Check each attribute for skip patterns
 		for attr in field.attrs {
-			attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
-			// Handle various skip attribute formats:
-			// @[skip], @[skip;...], @[...;skip], @[...;skip;...], etc.
-			if attr_clean == 'skip' || attr_clean.starts_with('skip;')
-				|| attr_clean.ends_with(';skip') || attr_clean.contains(';skip;') {
+			attr_clean := attr.to_lower()
+			if attr_clean.contains('skip') {
 				should_skip = true
 				break
 			}
 		}
 
-		// Additional check: if field name suggests it should be skipped
-		// This is a fallback for cases where attribute parsing differs
-		if field.name == 'other' && !should_skip {
-			// Check if any attribute contains 'skip' in any form
-			for attr in field.attrs {
-				if attr.contains('skip') {
-					should_skip = true
-					break
-				}
-			}
-		}
+		// // Additional check: if field name suggests it should be skipped
+		// // This is a fallback for cases where attribute parsing differs
+		// if field.name == 'other' && !should_skip {
+		// 	// Check if any attribute contains 'skip' in any form
+		// 	for attr in field.attrs {
+		// 		if attr.contains('skip') {
+		// 			should_skip = true
+		// 			break
+		// 		}
+		// 	}
+		// }
 
 		if !should_skip {
 			val := t.$(field.name)
@@ -176,8 +170,12 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 					// If val is not none, it will be converted to string.
 					params.set(key, '${val}')
 				}
-			} $else $if val is string || val is int || val is bool || val is i64 || val is u32
-				|| val is time.Time || val is ourtime.OurTime {
+			} $else $if val is string {
+				if val.len > 0 {
+					params.set(key, '${val}')
+				}
+			} $else $if val is int || val is bool || val is i64 || val is u32 || val is time.Time
+				|| val is ourtime.OurTime {
 				params.set(key, '${val}')
 			} $else $if field.is_enum {
 				params.set(key, '${int(val)}')

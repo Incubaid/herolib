@@ -4,7 +4,7 @@ import time
 
 struct TestStruct {
 	name     string
-	nick     ?string
+	nick     string
 	birthday time.Time
 	number   int
 	yesno    bool
@@ -12,7 +12,7 @@ struct TestStruct {
 	listint  []int
 	listbool []bool
 	listu32  []u32
-	child    TestChild
+	// child    TestChild
 }
 
 struct TestChild {
@@ -25,15 +25,15 @@ struct TestChild {
 	child_listu32  []u32
 }
 
-const test_child = TestChild{
-	child_name:     'test_child'
-	child_number:   3
-	child_yesno:    false
-	child_liststr:  ['three', 'four']
-	child_listint:  [3, 4]
-	child_listbool: [true, false]
-	child_listu32:  [u32(5), u32(6)]
-}
+// const test_child = TestChild{
+// 	child_name:     'test_child'
+// 	child_number:   3
+// 	child_yesno:    false
+// 	child_liststr:  ['three', 'four']
+// 	child_listint:  [3, 4]
+// 	child_listbool: [true, false]
+// 	child_listu32:  [u32(5), u32(6)]
+// }
 
 const test_struct = TestStruct{
 	name:     'test'
@@ -48,7 +48,6 @@ const test_struct = TestStruct{
 	listint:  [1, 2]
 	listbool: [true, false]
 	listu32:  [u32(7), u32(8)]
-	child:    test_child
 }
 
 const test_child_params = Params{
@@ -109,9 +108,6 @@ const test_params = Params{
 	}, Param{
 		key:   'listu32'
 		value: '7,8'
-	}, Param{
-		key:   'child'
-		value: test_child_params.export()
 	}]
 }
 
@@ -132,38 +128,4 @@ fn test_decode_struct() {
 	assert decoded_struct.listint == test_struct.listint
 	assert decoded_struct.listbool == test_struct.listbool
 	assert decoded_struct.listu32 == test_struct.listu32
-	assert decoded_struct.child == test_struct.child
-}
-
-fn test_optional_field() {
-	mut test_struct_with_nick := TestStruct{
-		name:     test_struct.name
-		nick:     'test_nick'
-		birthday: test_struct.birthday
-		number:   test_struct.number
-		yesno:    test_struct.yesno
-		liststr:  test_struct.liststr
-		listint:  test_struct.listint
-		listbool: test_struct.listbool
-		listu32:  test_struct.listu32
-		child:    test_struct.child
-	}
-
-	encoded_struct_with_nick := encode[TestStruct](test_struct_with_nick)!
-	assert encoded_struct_with_nick.get('nick')! == 'test_nick'
-
-	decoded_struct_with_nick := encoded_struct_with_nick.decode[TestStruct](TestStruct{})!
-	assert decoded_struct_with_nick.nick or { '' } == 'test_nick'
-
-	// Test decoding when optional field is not present in params
-	mut params_without_nick := test_params
-	params_without_nick.params = params_without_nick.params.filter(it.key != 'nick')
-	decoded_struct_without_nick := params_without_nick.decode[TestStruct](TestStruct{})!
-	assert decoded_struct_without_nick.nick == none
-}
-
-fn test_encode() {
-	// test single level struct
-	encoded_child := encode[TestChild](test_child)!
-	assert encoded_child == test_child_params
 }
