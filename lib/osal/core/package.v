@@ -38,9 +38,15 @@ pub fn package_refresh() ! {
 			return error('Could not update packages for Arch Linux\nerror:\n${err}')
 		}
 		return
+	} else if platform_ == .fedora {
+		// Refresh the package list for Fedora
+		exec(cmd: 'sudo dnf check-update') or {
+			return error('Could not update packages for Fedora\nerror:\n${err}')
+		}
+		return
 	}
 
-	return error("Only ubuntu, alpine, arch, and osx are supported for now. Found \"${platform_}\"")
+	return error("Only ubuntu, alpine, arch, fedora, and osx are supported for now. Found \"${platform_}\"")
 }
 
 // install a package using the right commands per platform
@@ -78,8 +84,12 @@ pub fn package_install(name_ string) ! {
 		exec(cmd: '${sudo_pre}pacman --noconfirm -Su ${name}') or {
 			return error('could not install package on Arch: ${name}\nerror:\n${err}')
 		}
+	} else if platform_ == .fedora {
+		exec(cmd: '${sudo_pre}dnf install -y ${name}') or {
+			return error('could not install package on Fedora: ${name}\nerror:\n${err}')
+		}
 	} else {
-		return error('Only ubuntu, alpine, arch, and osx supported for now')
+		return error('Only ubuntu, alpine, arch, fedora, and osx supported for now')
 	}
 }
 
@@ -131,7 +141,15 @@ pub fn package_remove(name_ string) ! {
 			'pacman --noconfirm -R ${name}'
 		}
 		exec(cmd: cmd, ignore_error: true)!
+	} else if platform_ == .fedora {
+		// Use sudo if required
+		cmd := if use_sudo {
+			'sudo dnf remove -y ${name}'
+		} else {
+			'dnf remove -y ${name}'
+		}
+		exec(cmd: cmd, ignore_error: true)!
 	} else {
-		return error('Only ubuntu, alpine, and osx supported for now')
+		return error('Only ubuntu, alpine, arch, fedora, and osx supported for now')
 	}
 }
