@@ -110,5 +110,16 @@ pub fn print_info(txt string) {
 	c.reset()
 }
 
+// Print warning in yellow color
+pub fn print_warn(txt string) {
+	mut c := get()
+	if c.prev_title || c.prev_item {
+		lf()
+	}
+	txt2 := trim(texttools.indent(txt, ' . '))
+	cprintln(foreground: .yellow, text: txt2)
+	c.reset()
+}
+
 // import freeflowuniverse.herolib.ui.console
 // console.print_header()

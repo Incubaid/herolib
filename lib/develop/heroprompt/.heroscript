@@ -1,8 +1,9 @@
 
 !!hero_code.generate_client
     name:'heroprompt'
-    classname:'Workspace'
-    singleton:0
+    classname:'HeroPrompt'
+    singleton:1
     default:1
 	hasconfig:1
+    templates:
     reset:0

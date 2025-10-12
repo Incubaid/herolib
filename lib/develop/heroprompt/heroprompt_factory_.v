@@ -3,10 +3,9 @@ module heroprompt
 import freeflowuniverse.herolib.core.base
 import freeflowuniverse.herolib.core.playbook { PlayBook }
 import json
-import time
 
 __global (
-	heroprompt_global  map[string]&Workspace
+	heroprompt_global  shared map[string]&HeroPrompt
 	heroprompt_default string
 )
 
@@ -15,55 +14,81 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = 'default'
-	path   string
-	fromdb bool // will load from filesystem
-	create bool // default will not create if not exist
+	name   string = 'default' // HeroPrompt instance name
+	fromdb bool // Load from Redis (default: false, uses in-memory cache)
+	create bool // Create if doesn't exist (default: false, returns error if not found)
+	reset  bool // Delete and recreate if exists (default: false)
 }
 
-pub fn new(args ArgsGet) !&Workspace {
-	mut obj := Workspace{
-		name:     args.name
-		children: []
-		created:  time.now()
-		updated:  time.now()
-		is_saved: true
+// get retrieves or creates a HeroPrompt instance
+// This is the main entry point for accessing HeroPrompt instances
+pub fn get(args ArgsGet) !&HeroPrompt {
+	mut context := base.context()!
+	mut r := context.redis()!
+
+	// Handle reset: delete existing instance and create fresh
+	if args.reset {
+		// Delete from Redis and memory
+		r.hdel('context:heroprompt', args.name) or {}
+		lock heroprompt_global {
+			heroprompt_global.delete(args.name)
+		}
+
+		// Create new instance
+		mut obj := HeroPrompt{
+			name: args.name
+		}
+		set(obj)!
+		return get(name: args.name)! // Recursive call to load the new instance
 	}
 
-	set(obj)!
-	return get(name: args.name)!
-}
+	// Check if we need to load from DB
+	needs_load := rlock heroprompt_global {
+		args.fromdb || args.name !in heroprompt_global
+	}
 
-pub fn get(args ArgsGet) !&Workspace {
-	mut context := base.context()!
-	heroprompt_default = args.name
-	if args.fromdb || args.name !in heroprompt_global {
-		mut r := context.redis()!
+	if needs_load {
+		heroprompt_default = args.name
+
 		if r.hexists('context:heroprompt', args.name)! {
+			// Load existing instance from Redis
 			data := r.hget('context:heroprompt', args.name)!
 			if data.len == 0 {
-				return error('Workspace with name: heroprompt does not exist, prob bug.')
+				print_backtrace()
+				return error('HeroPrompt with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(Workspace, data)!
+			mut obj := json.decode(HeroPrompt, data)!
 			set_in_mem(obj)!
 		} else {
+			// Instance doesn't exist in Redis
 			if args.create {
-				new(args)!
+				// Create new instance
+				mut obj := HeroPrompt{
+					name: args.name
+				}
+				set(obj)!
 			} else {
-				return error("Workspace with name 'heroprompt' does not exist")
+				print_backtrace()
+				return error("HeroPrompt with name '${args.name}' does not exist")
 			}
 		}
-		return get(name: args.name)! // no longer from db nor create
+		return get(name: args.name)! // Recursive call to return the instance
 	}
-	return heroprompt_global[args.name] or {
-		return error('could not get config for heroprompt with name:heroprompt')
+
+	// Return from in-memory cache
+	return rlock heroprompt_global {
+		heroprompt_global[args.name] or {
+			print_backtrace()
+			return error('could not get config for heroprompt with name: ${args.name}')
+		}
 	}
 }
 
 // register the config for the future
-pub fn set(o Workspace) ! {
+pub fn set(o HeroPrompt) ! {
 	mut o2 := set_in_mem(o)!
 	heroprompt_default = o2.name
+
 	mut context := base.context()!
 	mut r := context.redis()!
 	r.hset('context:heroprompt', o2.name, json.encode(o2))!
@@ -80,6 +105,11 @@ pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
 	mut r := context.redis()!
 	r.hdel('context:heroprompt', args.name)!
+
+	// Also remove from memory
+	lock heroprompt_global {
+		heroprompt_global.delete(args.name)
+	}
 }
 
 @[params]
@@ -89,15 +119,17 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&Workspace {
-	mut res := []&Workspace{}
+pub fn list(args ArgsList) ![]&HeroPrompt {
+	mut res := []&HeroPrompt{}
 	mut context := base.context()!
+
 	if args.fromdb {
 		// reset what is in mem
-		heroprompt_global = map[string]&Workspace{}
+		lock heroprompt_global {
+			heroprompt_global = map[string]&HeroPrompt{}
+		}
 		heroprompt_default = ''
-	}
-	if args.fromdb {
+
 		mut r := context.redis()!
 		mut l := r.hkeys('context:heroprompt')!
 
@@ -107,18 +139,34 @@ pub fn list(args ArgsList) ![]&Workspace {
 		return res
 	} else {
 		// load from memory
-		for _, client in heroprompt_global {
-			res << client
+		rlock heroprompt_global {
+			for _, client in heroprompt_global {
+				res << client
+			}
 		}
 	}
 	return res
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o Workspace) !Workspace {
+fn set_in_mem(o HeroPrompt) !HeroPrompt {
 	mut o2 := obj_init(o)!
-	heroprompt_global[o2.name] = &o2
+
+	// Restore parent references for all workspaces AFTER storing in global
+	// This ensures the parent pointer points to the actual instance in memory
+	lock heroprompt_global {
+		heroprompt_global[o2.name] = &o2
+
+		// Now restore parent references using the stored instance
+		mut stored := heroprompt_global[o2.name] or {
+			return error('failed to store heroprompt instance in memory')
+		}
+		for _, mut ws in stored.workspaces {
+			ws.parent = stored
+		}
+	}
 	heroprompt_default = o2.name
+
 	return o2
 }
 
@@ -126,32 +174,17 @@ pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'heroprompt.') {
 		return
 	}
-	// 1) Configure workspaces
-	mut cfg_actions := plbook.find(filter: 'heroprompt.configure')!
-	for cfg_action in cfg_actions {
-		heroscript := cfg_action.heroscript()
-		mut obj := heroscript_loads(heroscript)!
-		set(obj)!
-	}
-	// 2) Add directories
-	for action in plbook.find(filter: 'heroprompt.add_dir')! {
-		mut p := action.params
-		wsname := p.get_default('name', heroprompt_default)!
-		mut wsp := get(name: wsname)!
-		path := p.get('path') or { return error("heroprompt.add_dir requires 'path'") }
-		wsp.add_dir(path: path)!
-	}
-	// 3) Add files
-	for action in plbook.find(filter: 'heroprompt.add_file')! {
-		mut p := action.params
-		wsname := p.get_default('name', heroprompt_default)!
-		mut wsp := get(name: wsname)!
-		path := p.get('path') or { return error("heroprompt.add_file requires 'path'") }
-		wsp.add_file(path: path)!
+	mut install_actions := plbook.find(filter: 'heroprompt.configure')!
+	if install_actions.len > 0 {
+		for mut install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+			install_action.done = true
+		}
 	}
 }
 
 // switch instance to be used for heroprompt
 pub fn switch(name string) {
-	heroprompt_default = name
 }

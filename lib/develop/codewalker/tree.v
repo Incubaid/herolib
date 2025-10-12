@@ -18,6 +18,7 @@ pub fn build_selected_tree(files []string, base_root string) string {
 		}
 		rels << rp
 	}
+
 	rels.sort()
 	return tree_from_rel_paths(rels, '')
 }
