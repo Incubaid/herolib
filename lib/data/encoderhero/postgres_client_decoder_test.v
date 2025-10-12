@@ -10,9 +10,9 @@ pub mut:
 	dbname   string = 'postgres'
 }
 
-const postgres_client_blank = '!!postgresql_client.configure'
-const postgres_client_full = '!!postgresql_client.configure name:production user:app_user port:5433 host:db.example.com password:secret123 dbname:myapp'
-const postgres_client_partial = '!!postgresql_client.configure name:dev host:localhost password:devpass'
+const postgres_client_blank = '!!define.postgresqlclient'
+const postgres_client_full = '!!define.postgresqlclient name:production user:app_user port:5433 host:db.example.com password:secret123 dbname:myapp'
+const postgres_client_partial = '!!define.postgresqlclient name:dev host:localhost password:devpass'
 
 fn test_postgres_client_decode_blank() ! {
 	mut client := decode[PostgresqlClient](postgres_client_blank)!

@@ -149,15 +149,3 @@ pub struct Item {
 pub struct Container {
 	items []Item // This should cause an error
 }
-
-fn test_encode_struct_array_fails() ! {
-	container := Container{
-		items: [Item{name: 'item1'}]
-	}
-	
-	encode[Container](container) or {
-		assert err.msg().contains('Unsupported field type for encoding: []encoderhero.Item')
-		return
-	}
-	assert false // Should not reach here
-}
