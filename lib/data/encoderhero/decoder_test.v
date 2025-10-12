@@ -7,8 +7,8 @@ pub struct TestStruct {
 	name string
 }
 
-const blank_script = '!!define.teststruct'
-const full_script = '!!define.teststruct id:42 name:testobject'
+const blank_script = '!!define.test_struct'
+const full_script = '!!define.test_struct id:42 name:testobject'
 const invalid_script = '!!define.another_struct'
 
 fn test_decode_simple() ! {
@@ -35,7 +35,7 @@ pub struct ConfigStruct {
 	hosts   []string
 }
 
-const config_script = "!!define.configstruct name:production enabled:true timeout:60 hosts:'host1.com,host2.com,host3.com'"
+const config_script = "!!define.config_struct name:production enabled:true timeout:60 hosts:'host1.com,host2.com,host3.com'"
 
 fn test_decode_with_arrays() ! {
 	object := decode[ConfigStruct](config_script)!

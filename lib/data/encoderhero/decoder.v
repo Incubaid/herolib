@@ -2,6 +2,7 @@ module encoderhero
 
 import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.ourtime
+import incubaid.herolib.core.texttools
 
 pub struct Decoder[T] {
 pub mut:
@@ -19,7 +20,7 @@ fn decode_struct[T](_ T, data string) !T {
 	mut typ := T{}
 
 	$if T is $struct {
-		obj_name := T.name.all_after_last('.').to_lower()
+		obj_name := texttools.snake_case(T.name.all_after_last('.'))
 
 		// Define possible action name formats to try
 		action_names_to_try := [
