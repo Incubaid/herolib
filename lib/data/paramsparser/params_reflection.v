@@ -42,7 +42,7 @@ pub fn (params Params) decode_value[T](val T, key string) !T {
 
 	// TODO: handle required fields
 	if !params.exists(key) {
-		return val
+		return val // For optional types, this will be `none`. For non-optional, it's the default value.
 	}
 
 	$if T is string {
@@ -80,6 +80,8 @@ pub fn (params Params) decode_value[T](val T, key string) !T {
 		child := child_params.decode_struct(T{})!
 		return child
 	}
+	// If no specific decode path is found, return the default value for T.
+	// For optional types, this will be `none`.
 	return T{}
 }
 
@@ -211,23 +213,22 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 					value: v2
 				}
 			} $else $if field.typ is $struct {
-				// TODO: Handle embeds better
-				is_embed := field.name[0].is_capital()
-				if is_embed {
-					$if val is string || val is int || val is bool || val is i64 || val is u32
-						|| val is time.Time {
-						params.set(key, '${val}')
+				// Handle embedded structs (capitalized field names) by flattening their fields
+				// Non-embedded structs are not supported by encoderhero, so this path is for embedded only.
+				if field.name[0].is_capital() {
+					// Recursively encode the embedded struct and merge its parameters
+					embedded_params := encode(val)!
+					for p in embedded_params.params {
+						params.set(p.key, p.value)
 					}
 				} else {
-					if args.recursive {
-						child_params := encode(val)!
-						params.params << Param{
-							key:   field.name
-							value: child_params.export()
-						}
-					}
+					// This case should ideally be caught by encoderhero's validation,
+					// but as a fallback, we can return an error here if it somehow reaches.
+					return error('Nested structs are not supported. Field: ${field.name}')
 				}
 			} $else {
+				// Fallback for unsupported types, though encoderhero should validate this.
+				return error('Unsupported field type for encoding: ${field.typ}')
 			}
 		}
 	}
