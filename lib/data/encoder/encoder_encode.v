@@ -115,6 +115,13 @@ pub fn (mut b Encoder) add_f64(data f64) {
 	b.add_u64(bits)
 }
 
+// adds a float32 value
+pub fn (mut b Encoder) add_f32(data f32) {
+	// Convert f32 to bits first, then store as u32
+	bits := unsafe { *(&u32(&data)) }
+	b.add_u32(bits)
+}
+
 // adds gid as a string
 pub fn (mut b Encoder) add_gid(data gid.GID) {
 	b.add_string(data.str())
@@ -182,6 +189,16 @@ pub fn (mut b Encoder) add_list_u64(data []u64) {
 	b.add_u16(u16(data.len)) // how many items in list
 	for item in data {
 		b.add_u64(item)
+	}
+}
+
+pub fn (mut b Encoder) add_list_f64(data []f64) {
+	if data.len > 64 * kb {
+		panic('list cannot have more than 64kb items.')
+	}
+	b.add_u16(u16(data.len)) // how many items in list
+	for item in data {
+		b.add_f64(item)
 	}
 }
 

@@ -3,7 +3,7 @@ module models_tfgrid
 import incubaid.herolib.data.encoder
 import incubaid.herolib.data.ourtime
 import incubaid.herolib.hero.db
-import incubaid.herolib.data.json
+import json
 
 // Bid - ROOT OBJECT
 @[heap]
@@ -106,8 +106,10 @@ pub fn (self Bid) dump(mut e encoder.Encoder) ! {
 
 fn (mut self DBBid) load(mut o Bid, mut e encoder.Decoder) ! {
 	o.customer_id = e.get_u32()!
-	o.requirements = json.decode[map[string]string](e.get_string()!)!
-	o.pricing = json.decode[map[string]string](e.get_string()!)!
+	requirements_str := e.get_string()!
+	o.requirements = json.decode(map[string]string, requirements_str)!
+	pricing_str := e.get_string()!
+	o.pricing = json.decode(map[string]string, pricing_str)!
 	o.status = unsafe { BidStatus(e.get_int()!) }
 	o.obligation = e.get_bool()!
 	o.start_date = e.get_u32()!

@@ -136,6 +136,14 @@ pub fn (mut d Decoder) get_f64() !f64 {
 	return f
 }
 
+pub fn (mut d Decoder) get_f32() !f32 {
+	// Get the u32 bits first and then convert back to f32
+	bits := d.get_u32()!
+	// Use unsafe to convert bits to f32
+	f := unsafe { *(&f32(&bits)) }
+	return f
+}
+
 pub fn (mut d Decoder) get_time() !time.Time {
 	secs_ := d.get_u32()!
 	secs := i64(secs_)
@@ -225,6 +233,15 @@ pub fn (mut d Decoder) get_list_u64() ![]u64 {
 	mut v := []u64{len: int(n)}
 	for i in 0 .. n {
 		v[i] = d.get_u64()!
+	}
+	return v
+}
+
+pub fn (mut d Decoder) get_list_f64() ![]f64 {
+	n := d.get_u16()!
+	mut v := []f64{len: int(n)}
+	for i in 0 .. n {
+		v[i] = d.get_f64()!
 	}
 	return v
 }
