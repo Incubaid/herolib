@@ -3,6 +3,7 @@ module models_ledger
 import incubaid.herolib.data.encoder
 import incubaid.herolib.data.ourtime
 import incubaid.herolib.hero.db
+import json
 
 // AccountStatus represents the status of an account
 pub enum AccountStatus {
@@ -343,38 +344,43 @@ pub mut:
 pub fn (mut self DBAccount) list(args AccountListArg) ![]Account {
 	mut all_accounts := self.db.list[Account]()!.map(self.get(it)!)
 	mut filtered_accounts := []Account{}
-	
+
 	for account in all_accounts {
 		// Add filter logic based on account properties
-		if args.filter != '' && !account.name.contains(args.filter) && !account.description.contains(args.filter) {
+		if args.filter != '' && !account.name.contains(args.filter)
+			&& !account.description.contains(args.filter) {
 			continue
 		}
-		
+
 		// We could add more filters based on status if the Account struct has a status field
-		
+
 		filtered_accounts << account
 	}
-	
+
 	// Apply pagination
 	mut start := args.offset
 	if start >= filtered_accounts.len {
 		start = 0
 	}
-	
+
 	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}
-	
+
 	if start + limit > filtered_accounts.len {
 		limit = filtered_accounts.len - start
 	}
-	
+
 	if limit <= 0 {
 		return []Account{}
 	}
-	
-	return if filtered_accounts.len > 0 { filtered_accounts[start..start+limit] } else { []Account{} }
+
+	return if filtered_accounts.len > 0 {
+		filtered_accounts[start..start + limit]
+	} else {
+		[]Account{}
+	}
 }
 
 pub fn (mut self DBAccount) list_all() ![]Account {
@@ -398,37 +404,37 @@ pub mut:
 
 pub fn new_response(rpcid int, result string) Response {
 	return Response{
-		id: rpcid
+		id:     rpcid
 		result: result
 	}
 }
 
 pub fn new_response_true(rpcid int) Response {
 	return Response{
-		id: rpcid
+		id:     rpcid
 		result: 'true'
 	}
 }
 
 pub fn new_response_false(rpcid int) Response {
 	return Response{
-		id: rpcid
+		id:     rpcid
 		result: 'false'
 	}
 }
 
 pub fn new_response_int(rpcid int, result int) Response {
 	return Response{
-		id: rpcid
+		id:     rpcid
 		result: result.str()
 	}
 }
 
 pub fn new_error(rpcid int, code int, message string) Response {
 	return Response{
-		id: rpcid
+		id:    rpcid
 		error: ResponseError{
-			code: code
+			code:    code
 			message: message
 		}
 	}
@@ -479,8 +485,8 @@ pub fn account_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 		}
 		else {
 			return new_error(
-				rpcid: rpcid
-				code: 32601
+				rpcid:   rpcid
+				code:    32601
 				message: 'Method ${method} not found on account'
 			)
 		}

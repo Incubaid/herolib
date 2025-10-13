@@ -343,8 +343,6 @@ This document describes the core functionalities of the Operating System Abstrac
 - **`osal.process_kill_recursive(args: ProcessKillArgs) !`**: Kill a process and its children.
   - **Key Parameters**: `name` (string), `pid` (int).
 - **`osal.whoami() !string`**: Return the current username.
-- **`osal.platform() !PlatformType`**: Identify the operating system.
-- **`osal.cputype() !CPUType`**: Identify the CPU architecture.
 - **`osal.hostname() !string`**: Get system hostname.
 - **`osal.sleep(duration int)`**: Pause execution for a specified duration.
 - **`osal.download(args: DownloadArgs) !pathlib.Path`**: Download a file from a URL.
@@ -354,8 +352,31 @@ This document describes the core functionalities of the Operating System Abstrac
 - **`osal.user_id_get(username string) !int`**: Get user ID.
 - **`osal.user_add(args: UserArgs) !int`**: Add a user.
   - **Key Parameters**: `name` (string).
-
-```
+ 
+ ```
+ 
+ ## 7. Platform Information
+ 
+ * **`core.platform() !PlatformType`**: Identify the operating system.
+   * **Returns**: Platform type (osx, ubuntu, arch, etc.)
+ * **`core.cputype() !CPUType`**: Identify the CPU architecture.
+   * **Returns**: CPU type (intel, arm, etc.)
+ 
+ ### Usage Example
+ 
+ ```v
+ import incubaid.herolib.core
+ 
+ platform := core.platform()! // Returns .osx, .ubuntu, etc.
+ cpu := core.cputype()! // Returns .intel, .arm, etc.
+ 
+ match platform {
+     .osx { println('Running on macOS') }
+     .ubuntu { println('Running on Ubuntu') }
+     .arch { println('Running on Arch Linux') }
+     else { println('Other platform') }
+ }
+ ```
 
 # OurTime Module
 
