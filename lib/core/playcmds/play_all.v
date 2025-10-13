@@ -3,7 +3,6 @@ module playcmds
 import incubaid.herolib.clients.giteaclient
 import incubaid.herolib.clients.ipapi
 import incubaid.herolib.clients.jina
-import incubaid.herolib.clients.livekit
 import incubaid.herolib.clients.mailclient
 import incubaid.herolib.clients.meilisearch
 import incubaid.herolib.clients.mycelium
@@ -72,7 +71,6 @@ pub fn run_all(args_ PlayArgs) ! {
 	giteaclient.play(mut plbook)!
 	ipapi.play(mut plbook)!
 	jina.play(mut plbook)!
-	livekit.play(mut plbook)!
 	mailclient.play(mut plbook)!
 	meilisearch.play(mut plbook)!
 	mycelium.play(mut plbook)!

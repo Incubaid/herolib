@@ -2,10 +2,11 @@ module qdrant_installer
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.osal.startupmanager
-import incubaid.herolib.core
 import incubaid.herolib.installers.ulist
 import incubaid.herolib.core.texttools
+import incubaid.herolib.core
 import incubaid.herolib.clients.zinit
+import incubaid.herolib.osal.core as osal
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
@@ -23,7 +24,6 @@ fn running() !bool {
 	console.print_header('checking qdrant is running')
 	res := os.execute('curl -s http://localhost:6336/healthz')
 	if res.exit_code == 0 && res.output.contains('healthz check passed') {
-		console.print_debug('qdrant is running')
 		return true
 	}
 	console.print_debug('qdrant is not running')
@@ -82,16 +82,16 @@ fn install() ! {
 	console.print_header('install qdrant')
 	mut url := ''
 
-	if (core.platform() == core.PlatformType.ubuntu || core.platform() == core.PlatformType.arch)
-		&& core.cputype() == core.CPUType.arm {
+	if (core.platform()! == core.PlatformType.ubuntu || core.platform()! == core.PlatformType.arch)
+		&& core.cputype()! == core.CPUType.arm {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-aarch64-unknown-linux-musl.tar.gz'
 	} else if
-		(core.platform() == core.PlatformType.ubuntu || core.platform() == core.PlatformType.arch)
-		&& core.cputype() == core.CPUType.intel {
+		(core.platform()! == core.PlatformType.ubuntu || core.platform()! == core.PlatformType.arch)
+		&& core.cputype()! == core.CPUType.intel {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-x86_64-unknown-linux-musl.tar.gz'
-	} else if core.platform() == core.PlatformType.osx && core.cputype() == core.CPUType.arm {
+	} else if core.platform()! == core.PlatformType.osx && osal.cputype()! == core.CPUType.arm {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-aarch64-apple-darwin.tar.gz'
-	} else if core.platform() == core.PlatformType.osx && core.cputype() == core.CPUType.intel {
+	} else if core.platform()! == core.PlatformType.osx && osal.cputype()! == core.CPUType.intel {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-x86_64-apple-darwin.tar.gz'
 	} else {
 		return error('unsported platform')
@@ -100,7 +100,7 @@ fn install() ! {
 		url:        url
 		minsize_kb: 18000
 		expand_dir: '/tmp/qdrant'
-	)
+	) or { return error('Failed to download qdrant: ${err}') }
 
 	mut binpath := dest.file_get('qdrant')!
 	osal.cmd_add(
