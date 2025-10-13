@@ -3,6 +3,7 @@ module pacman
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 import incubaid.herolib.core
+import incubaid.herolib.installers.ulist
 import os
 
 // checks if a certain version or above is installed
@@ -15,6 +16,13 @@ fn installed() !bool {
 	}
 	console.print_header('pacman is installed')
 	return true
+}
+
+fn ulist_get() !ulist.UList {
+	return ulist.UList{}
+}
+
+fn upload() ! {
 }
 
 // use https://archlinux.org/mirrorlist/

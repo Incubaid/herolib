@@ -4,11 +4,10 @@ import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.ui.console
 import json
-import incubaid.herolib.osal.startupmanager
 
 __global (
-	rclone_global  map[string]&RClone
-	rclone_default string
+	rclone_installer_global  map[string]&RClone
+	rclone_installer_default string
 )
 
 /////////FACTORY
@@ -31,8 +30,8 @@ pub fn new(args ArgsGet) !&RClone {
 
 pub fn get(args ArgsGet) !&RClone {
 	mut context := base.context()!
-	rclone_default = args.name
-	if args.fromdb || args.name !in rclone_global {
+	rclone_installer_default = args.name
+	if args.fromdb || args.name !in rclone_installer_global {
 		mut r := context.redis()!
 		if r.hexists('context:rclone', args.name)! {
 			data := r.hget('context:rclone', args.name)!
@@ -52,7 +51,7 @@ pub fn get(args ArgsGet) !&RClone {
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
-	return rclone_global[args.name] or {
+	return rclone_installer_global[args.name] or {
 		print_backtrace()
 		return error('could not get config for rclone with name:rclone')
 	}
@@ -61,7 +60,7 @@ pub fn get(args ArgsGet) !&RClone {
 // register the config for the future
 pub fn set(o RClone) ! {
 	mut o2 := set_in_mem(o)!
-	rclone_default = o2.name
+	rclone_installer_default = o2.name
 	mut context := base.context()!
 	mut r := context.redis()!
 	r.hset('context:rclone', o2.name, json.encode(o2))!
@@ -92,8 +91,8 @@ pub fn list(args ArgsList) ![]&RClone {
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		rclone_global = map[string]&RClone{}
-		rclone_default = ''
+		rclone_installer_global = map[string]&RClone{}
+		rclone_installer_default = ''
 	}
 	if args.fromdb {
 		mut r := context.redis()!
@@ -105,7 +104,7 @@ pub fn list(args ArgsList) ![]&RClone {
 		return res
 	} else {
 		// load from memory
-		for _, client in rclone_global {
+		for _, client in rclone_installer_global {
 			res << client
 		}
 	}
@@ -115,8 +114,8 @@ pub fn list(args ArgsList) ![]&RClone {
 // only sets in mem, does not set as config
 fn set_in_mem(o RClone) !RClone {
 	mut o2 := obj_init(o)!
-	rclone_global[o2.name] = &o2
-	rclone_default = o2.name
+	rclone_installer_global[o2.name] = &o2
+	rclone_installer_default = o2.name
 	return o2
 }
 
@@ -181,5 +180,5 @@ pub fn (mut self RClone) destroy() ! {
 
 // switch instance to be used for rclone
 pub fn switch(name string) {
-	rclone_default = name
+	rclone_installer_default = name
 }

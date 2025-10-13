@@ -1,7 +1,6 @@
 module cloudhypervisor
 
-import incubaid.herolib.data.paramsparser
-import os
+import incubaid.herolib.data.encoderhero
 
 pub const version0 = '41.0'
 pub const version = '${version0}.0'
@@ -23,4 +22,15 @@ fn obj_init(obj_ CloudHypervisor) !CloudHypervisor {
 // called before start if done
 fn configure() ! {
 	// mut installer := get()!
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj CloudHypervisor) !string {
+	return encoderhero.encode[CloudHypervisor](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !CloudHypervisor {
+	mut obj := encoderhero.decode[CloudHypervisor](heroscript)!
+	return obj
 }

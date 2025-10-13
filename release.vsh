@@ -65,7 +65,7 @@ if version_line_idx == -1 {
 
 // Get indentation
 old_line := lines[version_line_idx]
-indent := old_line.all_before('version:')
+// indent := old_line.all_before('version:')
 
 // Create backup
 os.cp(hero_v_path, '${hero_v_path}.backup') or {

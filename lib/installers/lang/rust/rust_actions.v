@@ -3,7 +3,6 @@ module rust
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 import incubaid.herolib.core.texttools
-import incubaid.herolib.core.pathlib
 import incubaid.herolib.core
 import incubaid.herolib.installers.base
 import incubaid.herolib.installers.ulist

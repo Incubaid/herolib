@@ -44,6 +44,11 @@ fn (mut t HTTPTransport) send(request string, params jsonrpc.SendParams) !string
 	return response
 }
 
+// url implements the IRPCTransportClient interface
+fn (t HTTPTransport) url() string {
+	return t.http_conn.base_url
+}
+
 // Admin methods
 
 // get_info gets general info about the node

@@ -1,7 +1,6 @@
 module zola
 
-import incubaid.herolib.data.paramsparser
-import os
+import incubaid.herolib.data.encoderhero
 
 const singleton = false
 const default = true
@@ -22,4 +21,15 @@ fn obj_init(obj_ ZolaInstaller) !ZolaInstaller {
 // called before start if done
 fn configure() ! {
 	// mut installer := get()!
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj ZolaInstaller) !string {
+	return encoderhero.encode[ZolaInstaller](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !ZolaInstaller {
+	mut obj := encoderhero.decode[ZolaInstaller](heroscript)!
+	return obj
 }

@@ -7,6 +7,7 @@ import incubaid.herolib.core.texttools
 import incubaid.herolib.installers.base
 import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.installers.web.tailwind
+import incubaid.herolib.installers.ulist
 import os
 
 pub const version = '0.18.0'
@@ -23,6 +24,13 @@ fn installed() !bool {
 		return true
 	}
 	return false
+}
+
+fn ulist_get() !ulist.UList {
+	return ulist.UList{}
+}
+
+fn upload() ! {
 }
 
 fn install() ! {
