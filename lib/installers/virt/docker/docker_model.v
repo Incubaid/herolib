@@ -1,5 +1,7 @@
 module docker
 
+import incubaid.herolib.data.encoderhero
+
 pub const version = '1.14.3'
 const singleton = false
 const default = true
@@ -20,4 +22,15 @@ fn obj_init(obj_ DockerInstaller) !DockerInstaller {
 // called before start if done
 fn configure() ! {
 	// mut installer := get()!
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj DockerInstaller) !string {
+	return encoderhero.encode[DockerInstaller](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !DockerInstaller {
+	mut obj := encoderhero.decode[DockerInstaller](heroscript)!
+	return obj
 }

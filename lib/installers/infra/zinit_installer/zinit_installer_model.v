@@ -23,3 +23,14 @@ fn obj_init(mycfg_ ZinitInstaller) !ZinitInstaller {
 fn configure() ! {
 	// mut installer := get()!
 }
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj ZinitInstaller) !string {
+	return encoderhero.encode[ZinitInstaller](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !ZinitInstaller {
+	mut obj := encoderhero.decode[ZinitInstaller](heroscript)!
+	return obj
+}
