@@ -12,7 +12,7 @@ const binary_extensions = ['.pdf', '.docx', '.xlsx', '.pptx', '.zip', '.tar', '.
 	'.mkv', '.wav', '.exe', '.dll', '.so', '.dylib', '.bin', '.dat', '.iso']
 
 // check if repo has lfs enabled
-pub fn (mut repo GitRepo) check() ! {
+pub fn (mut repo GitRepo) lfs_check() ! {
 	repo.init()!
 
 	// Get list of all files in the repository
@@ -165,6 +165,9 @@ pub fn (mut repo GitRepo) lfs_init() ! {
 		console.print_debug('.gitattributes created with LFS tracking rules.')
 	}
 
+	repo.commit('chore: Initialize Git LFS and track binary files')!
+	repo.push()!
+
 	// Step 7: Verify LFS is properly configured
 	if !repo.lfs()! {
 		return error('Git LFS initialization failed verification')
@@ -172,9 +175,6 @@ pub fn (mut repo GitRepo) lfs_init() ! {
 
 	console.print_green('Git LFS initialized successfully for ${repo.name}')
 	console.print_header('Next steps:')
-	console.print_item('1. Review .gitattributes to ensure all desired files are tracked')
-	console.print_item('2. Run: git add .gitattributes')
-	console.print_item('3. Commit the changes: git commit -m "chore: Initialize Git LFS"')
 }
 
 // Check if repo has lfs enabled
