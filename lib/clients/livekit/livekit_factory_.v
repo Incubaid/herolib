@@ -36,6 +36,7 @@ pub fn get(args ArgsGet) !&LivekitClient {
 		if r.hexists('context:livekit', args.name)! {
 			data := r.hget('context:livekit', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('LivekitClient with name: livekit does not exist, prob bug.')
 			}
 			mut obj := json.decode(LivekitClient, data)!
@@ -44,12 +45,14 @@ pub fn get(args ArgsGet) !&LivekitClient {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("LivekitClient with name 'livekit' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return livekit_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for livekit with name:livekit')
 	}
 }
@@ -122,10 +125,11 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'livekit.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
 }

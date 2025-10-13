@@ -13,7 +13,7 @@ pub fn generate(args_ GeneratorArgs) ! {
 	console.print_header('Generate code for path: ${args.path} (reset:${args.force}, force:${args.force})')
 	console.print_debug(args)
 	if args.path == '' {
-		args.path = os.getwd()
+		return error('no path provided')
 	}
 
 	if args.name == '' {

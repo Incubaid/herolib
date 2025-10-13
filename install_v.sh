@@ -444,7 +444,17 @@ check_and_start_redis() {
             fi
             return
         fi
-        
+
+        if command_exists zinit; then
+            # Check if redis service is managed by zinit and is running
+            if zinit status redis | grep -q "state: Running"; then
+                echo "redis is already running and managed by zinit."
+                return
+            else
+                echo "zinit is installed, but redis is not running or not managed by zinit. Proceeding with other checks."
+            fi
+        fi
+
         if systemctl is-active --quiet "redis"; then
             echo "redis is already running."
         else
@@ -631,7 +641,7 @@ if [ "$RESET" = true ] || ! command_exists v; then
     
 fi
 
-
+# set -x
 check_and_start_redis
 
 if [ "$HEROLIB" = true ]; then

@@ -2,6 +2,7 @@ module mycelium
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 import json
 
 __global (
@@ -35,6 +36,7 @@ pub fn get(args ArgsGet) !&Mycelium {
 		if r.hexists('context:mycelium', args.name)! {
 			data := r.hget('context:mycelium', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('Mycelium with name: mycelium does not exist, prob bug.')
 			}
 			mut obj := json.decode(Mycelium, data)!
@@ -43,12 +45,14 @@ pub fn get(args ArgsGet) !&Mycelium {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("Mycelium with name 'mycelium' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return mycelium_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for mycelium with name:mycelium')
 	}
 }
@@ -121,10 +125,11 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'mycelium.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
 }

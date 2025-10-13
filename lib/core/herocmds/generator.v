@@ -6,10 +6,10 @@ import cli { Command, Flag }
 
 pub fn cmd_generator(mut cmdroot Command) {
 	mut cmd_run := Command{
-		name:          'generate'
-		description:   'generator for vlang code in hero context.'
-		required_args: 0
-		execute:       cmd_generator_execute
+		name:        'generate'
+		description: 'generator for vlang code in hero context.\narg is path (required). Use "." for current directory.'
+		// required_args: 1
+		execute: cmd_generator_execute
 	}
 
 	cmd_run.add_flag(Flag{
@@ -18,14 +18,6 @@ pub fn cmd_generator(mut cmdroot Command) {
 		name:        'reset'
 		abbrev:      'r'
 		description: 'will reset.'
-	})
-
-	cmd_run.add_flag(Flag{
-		flag:        .string
-		required:    false
-		name:        'path'
-		abbrev:      'p'
-		description: 'path where to generate the code or scan over multiple directories.'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -48,7 +40,7 @@ pub fn cmd_generator(mut cmdroot Command) {
 		required:    false
 		name:        'scan'
 		abbrev:      's'
-		description: 'force scanning operation.'
+		description: 'scanning operation, walk over directories.'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -68,17 +60,30 @@ fn cmd_generator_execute(cmd Command) ! {
 	mut scan := cmd.flags.get_bool('scan') or { false }
 	mut playonly := cmd.flags.get_bool('playonly') or { false }
 	mut installer := cmd.flags.get_bool('installer') or { false }
-	mut path := cmd.flags.get_string('path') or { '' }
+
+	// Get path from required argument
+	mut path := ''
+
+	if cmd.args.len > 0 {
+		path = cmd.args[0]
+	}
 
 	if playonly {
 		force = true
 	}
 
-	if path == '' {
+	// Handle "." as current working directory
+	if path == '.' {
 		path = os.getwd()
-	}
+	} else {
+		// Expand home directory
+		path = path.replace('~', os.home_dir())
 
-	path = path.replace('~', os.home_dir())
+		// Validate that path exists
+		if !os.exists(path) {
+			return error('Path does not exist: ${path}')
+		}
+	}
 
 	mut cat := generic.Cat.client
 	if installer {

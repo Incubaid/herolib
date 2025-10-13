@@ -36,6 +36,7 @@ pub fn get(args ArgsGet) !&PostgresqlClient {
 		if r.hexists('context:postgresql_client', args.name)! {
 			data := r.hget('context:postgresql_client', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('PostgresqlClient with name: postgresql_client does not exist, prob bug.')
 			}
 			mut obj := json.decode(PostgresqlClient, data)!
@@ -44,12 +45,14 @@ pub fn get(args ArgsGet) !&PostgresqlClient {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("PostgresqlClient with name 'postgresql_client' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return postgresql_client_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for postgresql_client with name:postgresql_client')
 	}
 }
@@ -122,10 +125,11 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'postgresql_client.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
 }

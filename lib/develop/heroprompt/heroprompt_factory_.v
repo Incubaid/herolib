@@ -16,15 +16,13 @@ __global (
 pub struct ArgsGet {
 pub mut:
 	name   string = 'default'
-	path   string
 	fromdb bool // will load from filesystem
 	create bool // default will not create if not exist
 }
 
 pub fn new(args ArgsGet) !&Workspace {
 	mut obj := Workspace{
-		name:      args.name
-		base_path: args.path
+		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!
@@ -38,6 +36,7 @@ pub fn get(args ArgsGet) !&Workspace {
 		if r.hexists('context:heroprompt', args.name)! {
 			data := r.hget('context:heroprompt', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('Workspace with name: heroprompt does not exist, prob bug.')
 			}
 			mut obj := json.decode(Workspace, data)!
@@ -46,12 +45,14 @@ pub fn get(args ArgsGet) !&Workspace {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("Workspace with name 'heroprompt' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return heroprompt_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for heroprompt with name:heroprompt')
 	}
 }
@@ -122,28 +123,14 @@ pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'heroprompt.') {
 		return
 	}
-	// 1) Configure workspaces
-	mut cfg_actions := plbook.find(filter: 'heroprompt.configure')!
-	for cfg_action in cfg_actions {
-		heroscript := cfg_action.heroscript()
-		mut obj := heroscript_loads(heroscript)!
-		set(obj)!
-	}
-	// 2) Add directories
-	for action in plbook.find(filter: 'heroprompt.add_dir')! {
-		mut p := action.params
-		wsname := p.get_default('name', heroprompt_default)!
-		mut wsp := get(name: wsname)!
-		path := p.get('path') or { return error("heroprompt.add_dir requires 'path'") }
-		wsp.add_dir(path: path)!
-	}
-	// 3) Add files
-	for action in plbook.find(filter: 'heroprompt.add_file')! {
-		mut p := action.params
-		wsname := p.get_default('name', heroprompt_default)!
-		mut wsp := get(name: wsname)!
-		path := p.get('path') or { return error("heroprompt.add_file requires 'path'") }
-		wsp.add_file(path: path)!
+	mut install_actions := plbook.find(filter: 'heroprompt.configure')!
+	if install_actions.len > 0 {
+		for mut install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+			install_action.done = true
+		}
 	}
 }
 

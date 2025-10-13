@@ -21,10 +21,19 @@ pub fn scan(args_ GeneratorArgs) ! {
 		regex:          ['.heroscript']
 	)!
 
+	console.print_debug('Found ${plist.paths.len} directories with .heroscript file.')
 	for mut p in plist.paths {
 		pparent := p.parent()!
+		args.force = true
 		args.path = pparent.path
-		// println("-- ${pparent}")
 		generate(args)!
 	}
+	mut res := []GeneratorArgs{}
+	for mut p in plist.paths {
+		pparent := p.parent()!
+		res << args_get(pparent.path)!
+	}
+	console.print_debug('Found ${res.len} generator args.')
+	println(res)
+	$dbg;
 }
