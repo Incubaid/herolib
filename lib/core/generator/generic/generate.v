@@ -4,13 +4,21 @@ import incubaid.herolib.ui.console
 import os
 import incubaid.herolib.core.pathlib
 
+pub struct GenerateArgs {
+pub mut:
+	path  string
+	reset bool
+	force bool
+	name  string
+}
+
 // will ask questions when not in force mode
 // & generate the module
-pub fn generate(args_ GeneratorArgs) ! {
+pub fn generate(args_ GenerateArgs) ! {
 	mut myconsole := console.new()
 	mut args := args_
 
-	console.print_header('Generate code for path: ${args.path} (reset:${args.force}, force:${args.force})')
+	console.print_header('Generate code for path: ${args.path} (reset:${args.reset}, force:${args.force})')
 	console.print_debug(args)
 	if args.path == '' {
 		return error('no path provided')
@@ -73,10 +81,12 @@ pub fn generate(args_ GeneratorArgs) ! {
 		warning:     'Please select a category'
 	)!
 
+	mut meta := ModuleMeta{}
+
 	if mycat == 'installer' {
-		args.cat = .installer
+		meta.cat = .installer
 	} else {
-		args.cat = .client
+		meta.cat = .client
 	}
 
 	// if args.name==""{
@@ -86,28 +96,28 @@ pub fn generate(args_ GeneratorArgs) ! {
 	// 	}
 	// }
 
-	args.classname = myconsole.ask_question(
+	meta.classname = myconsole.ask_question(
 		description: 'Class name of the ${mycat}'
 		question:    'What is the class name of the generator e.g. MyClass ?'
 		warning:     'Please provide a valid class name for the generator'
 		minlen:      4
 	)!
 
-	args.title = myconsole.ask_question(
+	meta.title = myconsole.ask_question(
 		description: 'Title of the ${mycat} (optional)'
 	)!
 
-	if args.cat == .installer {
-		args.hasconfig = myconsole.ask_yesno(
+	if meta.cat == .installer {
+		meta.hasconfig = myconsole.ask_yesno(
 			description: 'Does your installer have a config (normally yes)?'
 		)!
 	}
 
-	if args.hasconfig {
-		args.default = myconsole.ask_yesno(
+	if meta.hasconfig {
+		meta.default = myconsole.ask_yesno(
 			description: 'Is it ok when doing new() that a default is created (normally yes)?'
 		)!
-		args.singleton = !myconsole.ask_yesno(
+		meta.singleton = !myconsole.ask_yesno(
 			description: 'Can there be multiple instances (normally yes)?'
 		)!
 	}
@@ -123,16 +133,16 @@ pub fn generate(args_ GeneratorArgs) ! {
 	// 	warning: 'Please select one or more platforms'
 	// )!
 
-	if args.cat == .installer {
-		args.templates = myconsole.ask_yesno(
+	if meta.cat == .installer {
+		meta.templates = myconsole.ask_yesno(
 			description: 'Will there be templates available for your installer?'
 		)!
 
-		args.startupmanager = myconsole.ask_yesno(
+		meta.startupmanager = myconsole.ask_yesno(
 			description: 'Is this an installer which will be managed by a startup mananger?'
 		)!
 
-		args.build = myconsole.ask_yesno(
+		meta.build = myconsole.ask_yesno(
 			description: 'Are there builders for the installers (compilation)'
 		)!
 	}
@@ -141,11 +151,11 @@ pub fn generate(args_ GeneratorArgs) ! {
 	// 	description: 'Reset, overwrite code.'
 	// 	question:    'This will overwrite all files in your existing dir, be carefule?'
 	// )!
-	create_heroscript(args)!
+	create_heroscript(meta)!
 	generate_exec(args.path, true)!
 }
 
-pub fn create_heroscript(args GeneratorArgs) ! {
+pub fn create_heroscript(args ModuleMeta) ! {
 	mut script := ''
 	if args.cat == .installer {
 		script = "
@@ -165,12 +175,11 @@ pub fn create_heroscript(args GeneratorArgs) ! {
 		}}
     title:'${args.title}'
     supported_platforms:''
-    reset:${if args.reset {
+    startupmanager:${if args.startupmanager {
 			'1'
 		} else {
 			'0'
 		}}
-    startupmanager:${if args.startupmanager { '1' } else { '0' }}
 	hasconfig:${if args.hasconfig {
 			'1'
 		} else {
@@ -197,11 +206,7 @@ pub fn create_heroscript(args GeneratorArgs) ! {
 		} else {
 			'0'
 		}}
-    reset:${if args.reset {
-			'1'
-		} else {
-			'0'
-		}}"
+	}"
 	}
 	if !os.exists(args.path) {
 		os.mkdir(args.path)!
