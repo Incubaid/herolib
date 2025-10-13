@@ -1,7 +1,7 @@
 module herorun2
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.tmux
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.tmux
 import time
 
 // Container struct and related functionality

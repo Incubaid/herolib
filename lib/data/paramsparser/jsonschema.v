@@ -1,6 +1,6 @@
 module paramsparser
 
-// import freeflowuniverse.herolib.data.jsonschema
+// import incubaid.herolib.data.jsonschema
 
 // pub struct ParamsPub {
 // pub mut:

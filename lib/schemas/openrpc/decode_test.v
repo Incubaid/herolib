@@ -3,8 +3,8 @@ module openrpc
 import x.json2
 import json
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.schemas.jsonschema
 
 const doc_path = '${os.dir(@FILE)}/testdata/openrpc.json'
 

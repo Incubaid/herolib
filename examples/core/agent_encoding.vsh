@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.jobs.model
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.core.jobs.model
 
 // Create a test agent with some sample data
 mut agent := model.Agent{

@@ -318,7 +318,7 @@ function hero_lib_get {
         hero_lib_pull
     else
         pushd $DIR_CODE/github/incubaid 2>&1 >> /dev/null
-        git clone --depth 1 --no-single-branch https://github.com/freeflowuniverse/herolib.git
+        git clone --depth 1 --no-single-branch https://github.com/incubaid/herolib.git
         popd 2>&1 >> /dev/null
     fi
 }
@@ -635,8 +635,30 @@ fi
 check_and_start_redis
 
 if [ "$HEROLIB" = true ]; then
-    hero_lib_get
-    ~/code/github/incubaid/herolib/install_herolib.vsh
+    echo "=== Herolib Installation ==="
+    echo "Current directory: $(pwd)"
+    echo "Checking for install_herolib.vsh: $([ -f "./install_herolib.vsh" ] && echo "found" || echo "not found")"
+    echo "Checking for lib directory: $([ -d "./lib" ] && echo "found" || echo "not found")"
+
+    # Check if we're in GitHub Actions and already in the herolib directory
+    if is_github_actions; then
+        # In GitHub Actions, check if we're already in a herolib checkout
+        if [ -f "./install_herolib.vsh" ] && [ -d "./lib" ]; then
+            echo "✓ Running in GitHub Actions, using current directory for herolib installation"
+            HEROLIB_DIR="$(pwd)"
+        else
+            echo "⚠ Running in GitHub Actions, but not in herolib directory. Cloning..."
+            hero_lib_get
+            HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
+        fi
+    else
+        echo "Not in GitHub Actions, using standard installation path"
+        hero_lib_get
+        HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
+    fi
+
+    echo "Installing herolib from: $HEROLIB_DIR"
+    "$HEROLIB_DIR/install_herolib.vsh"
 fi
 
 

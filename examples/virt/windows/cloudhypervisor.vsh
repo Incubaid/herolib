@@ -1,9 +1,9 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.installers.virt.cloudhypervisor as cloudhypervisor_installer
-import freeflowuniverse.herolib.virt.cloudhypervisor
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.installers.virt.cloudhypervisor as cloudhypervisor_installer
+import incubaid.herolib.virt.cloudhypervisor
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import os
 
 mut ci := cloudhypervisor_installer.get()!

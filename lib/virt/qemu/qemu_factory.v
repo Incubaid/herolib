@@ -1,7 +1,7 @@
 module qemu
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.virt.qemu as qemuinstaller
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.virt.qemu as qemuinstaller
 import virt.qemu.raw
 import os
 

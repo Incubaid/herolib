@@ -1,6 +1,6 @@
 module doctree
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // list_pages returns a map of collection names to a list of page names within that collection.
 // The structure is map[collectionname][]pagename.

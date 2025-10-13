@@ -1,10 +1,10 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Import, Object, Param, Result, VFile }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, Example }
-import freeflowuniverse.herolib.schemas.jsonschema.codegen { schemaref_to_type }
-import freeflowuniverse.herolib.baobab.specification { ActorMethod, ActorSpecification }
+import incubaid.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Import, Object, Param, Result, VFile }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.openrpc { ContentDescriptor, Example }
+import incubaid.herolib.schemas.jsonschema.codegen { schemaref_to_type }
+import incubaid.herolib.baobab.specification { ActorMethod, ActorSpecification }
 
 fn generate_handle_file(spec ActorSpecification) !VFile {
 	mut items := []CodeItem{}
@@ -16,11 +16,11 @@ fn generate_handle_file(spec ActorSpecification) !VFile {
 		name:    'act'
 		imports: [
 			Import{
-				mod:   'freeflowuniverse.herolib.baobab.stage'
+				mod:   'incubaid.herolib.baobab.stage'
 				types: ['Action']
 			},
 			Import{
-				mod: 'freeflowuniverse.herolib.core.texttools'
+				mod: 'incubaid.herolib.core.texttools'
 			},
 			Import{
 				mod: 'x.json2 as json'

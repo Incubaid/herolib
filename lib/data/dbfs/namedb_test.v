@@ -1,9 +1,9 @@
 module dbfs
 
 import os
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.crypt.secp256k1
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.crypt.secp256k1
+import incubaid.herolib.ui.console
 
 fn test_dbname1() {
 	data_dir := '/tmp/namedbtest'

@@ -1,6 +1,6 @@
 module tests
 
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 import os
 import time
 
@@ -34,7 +34,7 @@ fn create_new_file(repo_path string) !string {
 fn setup_repo() !GittoolsTests {
 	ts := GittoolsTests{
 		coderoot: '/tmp/code'
-		repo_url: 'https://github.com/freeflowuniverse/test_repo.git'
+		repo_url: 'https://github.com/incubaid/test_repo.git'
 	}
 
 	if os.exists(ts.coderoot) {

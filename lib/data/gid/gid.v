@@ -1,6 +1,6 @@
 module gid
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 pub struct GID {
 pub mut:

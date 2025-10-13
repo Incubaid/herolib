@@ -1,6 +1,6 @@
 module template
 
-import freeflowuniverse.herolib.ui.uimodel { YesNoArgs }
+import incubaid.herolib.ui.uimodel { YesNoArgs }
 
 // yes is true, no is false
 // args:

@@ -1,12 +1,12 @@
 module screen
 
-// import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.texttools
-// import freeflowuniverse.herolib.screen
+// import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core.texttools
+// import incubaid.herolib.screen
 import os
 import time
-// import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.core as osal
+// import incubaid.herolib.ui.console
+import incubaid.herolib.osal.core as osal
 
 @[heap]
 pub struct ScreensFactory {

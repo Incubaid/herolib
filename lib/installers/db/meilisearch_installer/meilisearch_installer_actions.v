@@ -1,11 +1,11 @@
 module meilisearch_installer
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.core.httpconnection
+import incubaid.herolib.core.texttools
 import os
 import rand
 import json

@@ -1,11 +1,11 @@
 module yggdrasil
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.installers.lang.golang
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.screen
-import freeflowuniverse.herolib.ui
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.installers.lang.golang
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.screen
+import incubaid.herolib.ui
+import incubaid.herolib.develop.gittools
 import os
 import time
 

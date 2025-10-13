@@ -1,13 +1,11 @@
 # ipapi
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.clients. ipapi
+import incubaid.herolib.clients. ipapi
 
 mut client:= ipapi.get()!
 
@@ -26,5 +24,3 @@ client...
     host: 'localhost'
     port: 8888
 ```
-
-

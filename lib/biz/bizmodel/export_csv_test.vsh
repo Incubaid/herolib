@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -no-retry-compilation -cc tcc -d use_openssl -enable-globals run
 
 import os
-import freeflowuniverse.herolib.biz.bizmodel
+import incubaid.herolib.biz.bizmodel
 
 bizmodel_name := 'test'
 export_path := '${os.home_dir}/Downloads/bizmodel'

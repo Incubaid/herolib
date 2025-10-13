@@ -1,9 +1,9 @@
 module tfrobot
 
-import freeflowuniverse.herolib.installers.threefold.tfrobot as tfrobot_installer
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.ui
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.installers.threefold.tfrobot as tfrobot_installer
+import incubaid.herolib.core.base
+import incubaid.herolib.ui
+import incubaid.herolib.ui.console
 
 pub struct TFRobot[T] {
 	base.BaseConfig[T]

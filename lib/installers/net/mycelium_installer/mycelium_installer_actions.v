@@ -1,15 +1,15 @@
 module mycelium_installer
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.clients.mycelium
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.installers.lang.rust
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.clients.mycelium
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.installers.lang.rust
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {

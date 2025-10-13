@@ -1,8 +1,8 @@
 module interfaces
 
-import freeflowuniverse.herolib.schemas.openapi { OpenAPI }
-import freeflowuniverse.herolib.baobab.stage { ClientConfig }
-import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
+import incubaid.herolib.schemas.openapi { OpenAPI }
+import incubaid.herolib.baobab.stage { ClientConfig }
+import incubaid.herolib.schemas.openrpc { OpenRPC }
 import veb
 
 pub struct HTTPServer {

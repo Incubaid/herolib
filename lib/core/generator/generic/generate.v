@@ -1,8 +1,8 @@
 module generic
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // will ask questions when not in force mode
 // & generate the module

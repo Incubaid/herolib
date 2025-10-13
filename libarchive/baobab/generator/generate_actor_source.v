@@ -1,9 +1,9 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { CustomCode, IFile, IFolder, Module, VFile }
-import freeflowuniverse.herolib.schemas.openapi
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.baobab.specification { ActorInterface, ActorSpecification }
+import incubaid.herolib.develop.codetools as code { CustomCode, IFile, IFolder, Module, VFile }
+import incubaid.herolib.schemas.openapi
+import incubaid.herolib.core.texttools
+import incubaid.herolib.baobab.specification { ActorInterface, ActorSpecification }
 import json
 
 pub fn generate_module_from_openapi(openapi_path string) !string {

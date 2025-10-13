@@ -1,6 +1,6 @@
 module redisclient
 
-import freeflowuniverse.herolib.data.resp
+import incubaid.herolib.data.resp
 
 pub fn (mut r Redis) cmd_str(script string, args []string) !string {
 	mut cmds := []string{}

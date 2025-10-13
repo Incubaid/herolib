@@ -1,7 +1,7 @@
 module heromodels
 
-import freeflowuniverse.herolib.hero.heroserver
-import freeflowuniverse.herolib.crypt.herocrypt
+import incubaid.herolib.hero.heroserver
+import incubaid.herolib.crypt.herocrypt
 
 // Start heromodels server using heroserver
 @[params]

@@ -1,6 +1,6 @@
 module coredns
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 // // Input parameter structs for each record type
 

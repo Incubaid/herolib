@@ -4,7 +4,7 @@ import time
 import os
 import log
 import x.json2
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // initialize_handler handles the initialize request according to the MCP specification
 fn (mut s Server) initialize_handler(data string) !string {

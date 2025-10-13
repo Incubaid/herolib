@@ -1,7 +1,7 @@
 module zinit
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.schemas.jsonrpc
 import os
 
 pub const version = '0.0.0'

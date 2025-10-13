@@ -1,9 +1,9 @@
 module secrets
 
 import rand
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui
-import freeflowuniverse.herolib.crypt.aes_symmetric
+import incubaid.herolib.ui.console
+import incubaid.herolib.ui
+import incubaid.herolib.crypt.aes_symmetric
 import crypto.md5
 import regex
 import os

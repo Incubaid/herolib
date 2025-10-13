@@ -1,6 +1,6 @@
 module gittools
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // GitLocation uniquely identifies a Git repository, its online URL, and its location in the filesystem.
 @[heap]

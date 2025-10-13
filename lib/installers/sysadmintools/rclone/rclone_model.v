@@ -1,7 +1,7 @@
 module rclone
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import os
 
 pub const version = '1.67.0'

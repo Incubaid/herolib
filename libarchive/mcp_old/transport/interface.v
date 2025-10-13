@@ -1,6 +1,6 @@
 module transport
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Transport defines the interface for different MCP transport mechanisms.
 // This abstraction allows MCP servers to work with multiple transport protocols

@@ -1,8 +1,8 @@
 module heromodels
 
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_true }
-import freeflowuniverse.herolib.hero.user { UserRef }
+import incubaid.herolib.hero.db
+import incubaid.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_true }
+import incubaid.herolib.hero.user { UserRef }
 import json
 
 // Tags represents a collection of tag names with a unique ID

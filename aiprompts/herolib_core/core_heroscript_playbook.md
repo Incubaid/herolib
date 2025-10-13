@@ -5,8 +5,8 @@
 HeroScript can be parsed into a `playbook.PlayBook` object, allowing structured access to actions and their parameters.
 
 ```v
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
 
 // path string
 // text string
@@ -21,5 +21,3 @@ mut plbook := playbook.new(path: "....")!
 playcmds.run(mut plbook)!
 
 ```
-
-

@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.osal
+import incubaid.herolib.osal
 
 fn do() ? {
 	mut pm := process.processmap_get()?

@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 import json
 
 // Start the server and listen for requests

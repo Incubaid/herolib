@@ -1,7 +1,7 @@
 module crun
 
 import json
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // Simple JSON generation using V's built-in json module
 pub fn (config CrunConfig) to_json() !string {

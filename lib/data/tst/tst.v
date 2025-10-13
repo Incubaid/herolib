@@ -1,6 +1,6 @@
 module tst
 
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.data.ourdb
 
 // Represents a node in the ternary search tree
 struct Node {

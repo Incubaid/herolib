@@ -1,6 +1,6 @@
 module nodejs
 
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.encoderhero
 
 pub const version = '9.15.2'
 const singleton = true

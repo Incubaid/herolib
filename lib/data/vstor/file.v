@@ -1,6 +1,6 @@
 module vstor
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // the metadata as required for retrieving info from set of ZDB's
 // this is the metadata which needs to be kept, otherwise data cannot be retrieved

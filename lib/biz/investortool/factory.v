@@ -1,6 +1,6 @@
 module investortool
 
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.core.playbook
 
 // TODO: need to do a global
 __global (

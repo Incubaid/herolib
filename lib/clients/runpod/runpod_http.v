@@ -2,7 +2,7 @@ module runpod
 
 import x.json2
 import net.http { Method }
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 
 // GraphQL response wrapper
 struct GqlResponse[T] {

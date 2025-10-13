@@ -1,6 +1,6 @@
 module vfs_nested
 
-import freeflowuniverse.herolib.vfs.vfs_local
+import incubaid.herolib.vfs.vfs_local
 import os
 
 fn test_nested() ! {

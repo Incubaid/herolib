@@ -10,13 +10,11 @@ start of output file is:
 ## factory
 
 is there factory, which one and quick example how to call, don’t say in which file not relevant
-show how to import the module is as follows: import freeflowuniverse.herolib. 
-and then starting from lib e.g. lib/clients/mycelium would result in import freeflowuniverse.herolib. clients.mycelium
+show how to import the module is as follows: import incubaid.herolib.
+and then starting from lib e.g. lib/clients/mycelium would result in import incubaid.herolib. clients.mycelium
 
 ## structs and methods
 
 quick overview as list with identations, of the structs and its methods
 
-
 ONLY OUTPUT THE MARKDOWN FILE, NOTHING ELSE
-

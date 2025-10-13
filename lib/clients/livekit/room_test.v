@@ -1,7 +1,7 @@
 module livekit
 
 import os
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 
 const env_file = '${os.dir(@FILE)}/.env'
 

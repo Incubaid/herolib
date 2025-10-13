@@ -1,8 +1,8 @@
 module hetznermanager
 
-import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.core.httpconnection
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.playbook
 
 pub const version = '0.0.0'
 const singleton = false

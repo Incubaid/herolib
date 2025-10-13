@@ -1,7 +1,7 @@
 module qdrant_installer
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.pathlib
 import os
 
 pub const version = '1.13.4'

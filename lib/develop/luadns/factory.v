@@ -1,6 +1,6 @@
 module luadns
 
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.develop.gittools
 
 struct LuaDNS {
 pub mut:

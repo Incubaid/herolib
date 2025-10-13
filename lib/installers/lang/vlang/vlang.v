@@ -1,13 +1,13 @@
 module vlang
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import os
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.develop.gittools
-// import freeflowuniverse.herolib.sysadmin.downloader
+import incubaid.herolib.installers.base
+import incubaid.herolib.develop.gittools
+// import incubaid.herolib.sysadmin.downloader
 
 pub fn install(args_ InstallArgs) ! {
 	mut args := args_

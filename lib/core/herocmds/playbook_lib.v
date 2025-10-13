@@ -1,12 +1,12 @@
 module herocmds
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playcmds
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.develop.vscode
-import freeflowuniverse.herolib.develop.sourcetree
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.base
+import incubaid.herolib.core.playcmds
+import incubaid.herolib.core.playbook
+import incubaid.herolib.ui.console
+import incubaid.herolib.develop.vscode
+import incubaid.herolib.develop.sourcetree
 import cli { Command, Flag }
 import os
 

@@ -1,13 +1,11 @@
 # meilisearch
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.db.meilisearch as meilisearchinstaller
+import incubaid.herolib.installers.db.meilisearch as meilisearchinstaller
 
 heroscript:="
 !!meilisearch.configure name:'test'
@@ -39,5 +37,3 @@ meilisearchinstaller.play(heroscript=heroscript)!
     production: 0
 
 ```
-
-

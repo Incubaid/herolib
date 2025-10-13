@@ -1,9 +1,9 @@
 module ui
 
-import freeflowuniverse.herolib.ui.generic { ChannelType, UserInterface }
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.data.paramsparser
-// import freeflowuniverse.herolib.ui.telegram
+import incubaid.herolib.ui.generic { ChannelType, UserInterface }
+import incubaid.herolib.ui.console
+import incubaid.herolib.data.paramsparser
+// import incubaid.herolib.ui.telegram
 
 @[params]
 pub struct UserInterfaceArgs {

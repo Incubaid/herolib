@@ -1,6 +1,6 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs as vfs_mod
+import incubaid.herolib.vfs as vfs_mod
 
 fn test_fsentry_directory() {
 	// Create a directory entry

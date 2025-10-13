@@ -2,8 +2,8 @@ module zinit
 
 import os
 import time
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.core
+import incubaid.herolib.osal.core as osal
 
 fn test_zinit() {
 	if !core.is_linux()! {

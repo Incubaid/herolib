@@ -1,11 +1,11 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem, Struct, VFile }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.jsonschema.codegen { schema_to_struct }
-import freeflowuniverse.herolib.baobab.specification { ActorSpecification }
-import freeflowuniverse.herolib.schemas.openapi
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.develop.codetools as code { CodeItem, Struct, VFile }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.jsonschema.codegen { schema_to_struct }
+import incubaid.herolib.baobab.specification { ActorSpecification }
+import incubaid.herolib.schemas.openapi
+import incubaid.herolib.schemas.openrpc
 
 pub fn generate_model_file_str(source Source) !string {
 	actor_spec := if path := source.openapi_path {

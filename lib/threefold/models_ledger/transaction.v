@@ -1,9 +1,9 @@
 // lib/threefold/models_ledger/transaction.v
 module models_ledger
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // Transaction represents a financial transaction
 @[heap]

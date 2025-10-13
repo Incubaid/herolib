@@ -1,6 +1,6 @@
 module herocluster
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 import crypto.ed25519
 import encoding.hex
 import time

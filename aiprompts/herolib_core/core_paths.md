@@ -14,8 +14,9 @@ The pathlib module provides a comprehensive interface for handling file system o
 ## Basic Usage
 
 ### Importing pathlib
+
 ```v
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 ```
 
 ### Creating Path Objects
@@ -33,6 +34,7 @@ mut dir_path := pathlib.get("path/to/directory")
 if you know in advance if you expect a dir or file its better to use `pathlib.get_dir(path:...,create:true)` or `pathlib.get_file(path:...,create:true)`.
 
 ### Basic Path Operations
+
 ```v
 // Get absolute path
 abs_path := file_path.absolute()
@@ -49,6 +51,7 @@ if file_path.exists() {
 ## Path Properties and Methods
 
 ### Path Types
+
 ```v
 // Check if path is a file
 if file_path.is_file() {
@@ -67,6 +70,7 @@ if file_path.is_link() {
 ```
 
 ### Path Normalization
+
 ```v
 // Normalize path (remove extra slashes, resolve . and ..)
 normalized_path := file_path.path_normalize()
@@ -81,6 +85,7 @@ name_no_ext := file_path.name_no_ext()
 ## File and Directory Operations
 
 ### File Operations
+
 ```v
 // Write to file
 file_path.write("Content to write")!
@@ -93,6 +98,7 @@ file_path.delete()!
 ```
 
 ### Directory Operations
+
 ```v
 // Create directory
 mut dir := pathlib.get_dir(
@@ -108,6 +114,7 @@ dir.delete()!
 ```
 
 ### Symlink Operations
+
 ```v
 // Create symlink
 file_path.link("path/to/symlink", delete_exists: true)!
@@ -119,12 +126,14 @@ real_path := file_path.realpath()
 ## Advanced Operations
 
 ### Path Copying
+
 ```v
 // Copy file to destination
 file_path.copy(dest: "path/to/destination")!
 ```
 
 ### Recursive Operations
+
 ```v
 // List directory recursively
 mut recursive_list := dir.list(recursive: true)!
@@ -134,6 +143,7 @@ dir.delete()!
 ```
 
 ### Path Filtering
+
 ```v
 // List files matching pattern
 mut filtered_list := dir.list(
@@ -145,6 +155,7 @@ mut filtered_list := dir.list(
 ## Best Practices
 
 ### Error Handling
+
 ```v
 if file_path.exists() {
     // Safe to operate
@@ -152,4 +163,3 @@ if file_path.exists() {
     // Handle missing file
 }
 ```
-

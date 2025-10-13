@@ -1,8 +1,8 @@
 module gittools
 
 import crypto.md5
-import freeflowuniverse.herolib.core.pathlib
-// import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+// import incubaid.herolib.ui.console
 import os
 import json
 

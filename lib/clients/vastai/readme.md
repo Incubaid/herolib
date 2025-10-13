@@ -1,13 +1,11 @@
 # vastai
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.clients. vastai
+import incubaid.herolib.clients. vastai
 
 mut client:= vastai.get()!
 
@@ -26,5 +24,3 @@ client...
     host: 'localhost'
     port: 8888
 ```
-
-

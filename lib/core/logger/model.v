@@ -1,7 +1,7 @@
 module logger
 
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.core.pathlib
 
 @[heap]
 pub struct Logger {

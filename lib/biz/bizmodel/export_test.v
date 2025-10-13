@@ -1,7 +1,7 @@
 module bizmodel
 
 import os
-import freeflowuniverse.herolib.web.docusaurus
+import incubaid.herolib.web.docusaurus
 
 const bizmodel_name = 'test'
 const export_path = os.join_path(os.dir(@FILE), 'exampledata')

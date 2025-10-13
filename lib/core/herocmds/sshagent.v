@@ -1,9 +1,9 @@
 module herocmds
 
 import os
-import freeflowuniverse.herolib.osal.sshagent
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui
+import incubaid.herolib.osal.sshagent
+import incubaid.herolib.ui.console
+import incubaid.herolib.ui
 import cli { Command, Flag }
 
 pub fn cmd_sshagent(mut cmdroot Command) {

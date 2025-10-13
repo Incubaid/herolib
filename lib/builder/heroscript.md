@@ -57,8 +57,8 @@ Here is a full example of a Heroscript playbook for the builder module:
 To run a playbook, you can use the `play` function in `builder.play`.
 
 ```v
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.core.playbook
+import incubaid.herolib.builder
 
 mut plbook := playbook.new(path: "path/to/your/playbook.hs")!
 builder.play(mut plbook)!

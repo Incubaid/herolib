@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.core.playbook
+import incubaid.herolib.data.paramsparser
 import os
 
 const testpath = os.dir(@FILE) + '/data'

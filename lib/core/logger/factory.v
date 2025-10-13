@@ -1,6 +1,6 @@
 module logger
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 // Logger Factory
 pub struct LoggerFactoryArgs {

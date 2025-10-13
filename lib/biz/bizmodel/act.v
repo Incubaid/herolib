@@ -1,13 +1,13 @@
 module bizmodel
 
 import os
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.playbook { Action }
-import freeflowuniverse.herolib.ui.console
-// import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.data.paramsparser { Params }
-import freeflowuniverse.herolib.biz.spreadsheet { PeriodType, RowGetArgs, UnitType }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.playbook { Action }
+import incubaid.herolib.ui.console
+// import incubaid.herolib.core.texttools
+import incubaid.herolib.data.paramsparser { Params }
+import incubaid.herolib.biz.spreadsheet { PeriodType, RowGetArgs, UnitType }
 
 pub fn (mut m BizModel) act(action Action) !Action {
 	return match texttools.snake_case(action.name) {

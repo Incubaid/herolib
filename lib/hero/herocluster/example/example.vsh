@@ -1,9 +1,9 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import crypto.ed25519
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.hero.herocluster
+import incubaid.herolib.core.base
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.hero.herocluster
 import os
 import rand
 

@@ -4,7 +4,7 @@ import os
 import veb
 import x.json2
 import net.http
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 const specification_path = os.join_path(os.dir(@FILE), '/testdata/openrpc.json')
 

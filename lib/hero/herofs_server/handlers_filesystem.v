@@ -2,7 +2,7 @@ module herofs_server
 
 import veb
 import json
-import freeflowuniverse.herolib.hero.herofs
+import incubaid.herolib.hero.herofs
 
 // =============================================================================
 // FILESYSTEM ENDPOINTS

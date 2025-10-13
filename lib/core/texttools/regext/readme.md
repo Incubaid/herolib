@@ -8,10 +8,10 @@
 
 Tool to flexibly replace elements in file(s) or text.
 
-next example does it for 
+next example does it for
 
 ```golang
-import freeflowuniverse.herolib.core.texttools.regext
+import incubaid.herolib.core.texttools.regext
 text := '
 
 this is test_1 SomeTest
@@ -43,16 +43,14 @@ mut text_out2 := ri.replace(text: text, dedent: true) or { panic(err) }
 
 //pub struct ReplaceDirArgs {
 //pub mut:
-//	path       string
-//	extensions []string
-//	dryrun     bool
+// path       string
+// extensions []string
+// dryrun     bool
 //}
 // if dryrun is true then will not replace but just show
 ri.replace_in_dir(path:"/tmp/mypath",extensions:["md"])!
 
 ```
-
-
 
 ```
 

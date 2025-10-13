@@ -1,8 +1,8 @@
 module generic
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.playbook
+import incubaid.herolib.ui.console
 
 pub struct GeneratorArgs {
 pub mut:
@@ -22,7 +22,7 @@ pub mut:
 	hasconfig           bool = true
 	playonly            bool
 	play_name           string // e.g. docusaurus is what we look for
-	module_path         string // e.g.freeflowuniverse.herolib.web.docusaurus	
+	module_path         string // e.g.incubaid.herolib.web.docusaurus	
 }
 
 pub enum Cat {

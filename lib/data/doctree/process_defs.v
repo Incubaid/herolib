@@ -1,8 +1,8 @@
 module doctree
 
-import freeflowuniverse.herolib.data.doctree.collection { CollectionError }
-import freeflowuniverse.herolib.data.doctree.collection.data
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.doctree.collection { CollectionError }
+import incubaid.herolib.data.doctree.collection.data
+import incubaid.herolib.ui.console
 
 // process definitions (!!wiki.def actions, elements.Def elements)
 // this must be done before processing includes.

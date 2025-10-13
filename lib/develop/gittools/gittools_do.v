@@ -1,8 +1,8 @@
 module gittools
 
-import freeflowuniverse.herolib.ui as gui
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui as gui
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 import os
 
 pub const gitcmds = 'clone,commit,pull,push,delete,reload,list,edit,sourcetree,path,exists'

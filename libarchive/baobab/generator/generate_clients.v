@@ -1,10 +1,10 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Import, Param, Result, VFile }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schemaref_to_type }
-import freeflowuniverse.herolib.schemas.openrpc.codegen { content_descriptor_to_parameter }
-import freeflowuniverse.herolib.baobab.specification { ActorMethod, ActorSpecification }
+import incubaid.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Import, Param, Result, VFile }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.jsonschema.codegen as jsonschema_codegen { schemaref_to_type }
+import incubaid.herolib.schemas.openrpc.codegen { content_descriptor_to_parameter }
+import incubaid.herolib.baobab.specification { ActorMethod, ActorSpecification }
 
 pub fn generate_client_file(spec ActorSpecification) !VFile {
 	actor_name_snake := texttools.snake_case(spec.name)
@@ -30,10 +30,10 @@ pub fn generate_client_file(spec ActorSpecification) !VFile {
 	return VFile{
 		imports: [
 			Import{
-				mod: 'freeflowuniverse.herolib.baobab.stage'
+				mod: 'incubaid.herolib.baobab.stage'
 			},
 			Import{
-				mod: 'freeflowuniverse.herolib.core.redisclient'
+				mod: 'incubaid.herolib.core.redisclient'
 			},
 			Import{
 				mod:   'x.json2 as json'
@@ -71,10 +71,10 @@ pub fn generate_example_client_file(spec ActorSpecification) !VFile {
 	return VFile{
 		imports: [
 			Import{
-				mod: 'freeflowuniverse.herolib.baobab.stage'
+				mod: 'incubaid.herolib.baobab.stage'
 			},
 			Import{
-				mod: 'freeflowuniverse.herolib.core.redisclient'
+				mod: 'incubaid.herolib.core.redisclient'
 			},
 			Import{
 				mod:   'x.json2 as json'

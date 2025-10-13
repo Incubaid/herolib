@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.core
+import incubaid.herolib.core
 
 fn do() ! {
 	// base.uninstall_brew()!

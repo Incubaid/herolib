@@ -1,8 +1,8 @@
 module logic
 
-import freeflowuniverse.herolib.ai.escalayer
-import freeflowuniverse.herolib.lang.rust
-import freeflowuniverse.herolib.ai.utils
+import incubaid.herolib.ai.escalayer
+import incubaid.herolib.lang.rust
+import incubaid.herolib.ai.utils
 import os
 
 pub fn generate_rhai_wrapper(name string, source_path string) !string {

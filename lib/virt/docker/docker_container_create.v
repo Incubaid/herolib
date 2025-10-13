@@ -1,7 +1,7 @@
 module docker
 
-import freeflowuniverse.herolib.osal.core as osal { exec }
-import freeflowuniverse.herolib.virt.utils
+import incubaid.herolib.osal.core as osal { exec }
+import incubaid.herolib.virt.utils
 
 @[params]
 pub struct DockerContainerCreateArgs {

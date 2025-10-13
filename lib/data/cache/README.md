@@ -32,7 +32,7 @@ pub mut:
 Here's a simple example of using the cache:
 
 ```v
-import freeflowuniverse.herolib.data.cache
+import incubaid.herolib.data.cache
 
 // Define your struct type
 @[heap]
@@ -117,12 +117,12 @@ cache.clear()
 
 1. **Choose Appropriate TTL**: Set TTL based on how frequently your data changes and how critical freshness is.
 
-2. **Memory Management**: 
+2. **Memory Management**:
    - Set reasonable `max_entries` and `max_size_mb` limits based on your application's memory constraints
    - Monitor cache size using `len()`
    - Use appropriate `eviction_ratio` (typically 0.05-0.2) to balance performance and memory usage
 
-3. **Type Safety**: 
+3. **Type Safety**:
    - Always use `@[heap]` attribute for structs stored in cache
    - Ensure cached types are properly memory managed
 

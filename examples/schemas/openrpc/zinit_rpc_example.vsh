@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.schemas.openrpc // for the model as used 
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.openrpc // for the model as used 
 import json
 
 // Define the service status response structure based on the OpenRPC schema

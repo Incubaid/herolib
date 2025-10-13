@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.clients.openai as op
+import incubaid.herolib.clients.openai as op
 
 mut ai_cli := op.new()!
 mut msg := []op.Message{}

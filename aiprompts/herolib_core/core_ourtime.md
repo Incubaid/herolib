@@ -3,6 +3,7 @@
 The `OurTime` module in V provides flexible time handling, supporting relative and absolute time formats, Unix timestamps, and formatting utilities.
 
 ## Key Features
+
 - Create time objects from strings or current time
 - Relative time expressions (e.g., `+1h`, `-2d`)
 - Absolute time formats (e.g., `YYYY-MM-DD HH:mm:ss`)
@@ -12,7 +13,7 @@ The `OurTime` module in V provides flexible time handling, supporting relative a
 ## Basic Usage
 
 ```v
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 
 // Current time
 mut t := ourtime.now()

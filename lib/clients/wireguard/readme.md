@@ -1,13 +1,11 @@
 # wireguard
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.clients. wireguard
+import incubaid.herolib.clients. wireguard
 
 mut client:= wireguard.get()!
 
@@ -26,5 +24,3 @@ client...
     host: 'localhost'
     port: 8888
 ```
-
-

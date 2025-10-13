@@ -2,7 +2,7 @@
 
 import os
 import flag
-import freeflowuniverse.herolib.core.generator.installer_client as generator
+import incubaid.herolib.core.generator.installer_client as generator
 
 mut fp := flag.new_flag_parser(os.args)
 fp.application('generate.vsh')

@@ -1,9 +1,9 @@
 module playbook
 
 import crypto.blake2b
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.texttools
-// import freeflowuniverse.herolib.core.smartid
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.core.texttools
+// import incubaid.herolib.core.smartid
 
 pub struct Action {
 pub mut:

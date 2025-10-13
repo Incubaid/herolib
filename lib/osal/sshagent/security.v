@@ -1,7 +1,7 @@
 module sshagent
 
 import os
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 // Security validation functions for SSH agent operations
 

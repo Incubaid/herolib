@@ -1,7 +1,7 @@
 module openrpc
 
 import veb
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Main controller for handling RPC requests
 pub struct HTTPController {

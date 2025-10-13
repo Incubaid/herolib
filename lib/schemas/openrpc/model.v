@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, SchemaRef }
+import incubaid.herolib.schemas.jsonschema { Reference, SchemaRef }
 
 // Generic type for any value in examples
 type Any = string | int | f64 | bool | map[string]Any | []Any

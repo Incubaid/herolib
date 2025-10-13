@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // The openrpc handler is a wrapper around a jsonrpc handler
 pub struct Handler {

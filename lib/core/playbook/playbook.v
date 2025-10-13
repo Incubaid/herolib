@@ -1,8 +1,8 @@
 module playbook
 
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.core.base
+import incubaid.herolib.core.texttools
+import incubaid.herolib.data.paramsparser
 import crypto.blake2b
 
 @[heap]

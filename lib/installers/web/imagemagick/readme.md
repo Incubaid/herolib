@@ -1,13 +1,11 @@
 # imagemagick
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.imagemagick as imagemagick_installer
+import incubaid.herolib.installers.something.imagemagick as imagemagick_installer
 
 heroscript:="
 !!imagemagick.configure name:'test'
@@ -40,5 +38,3 @@ imagemagick_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

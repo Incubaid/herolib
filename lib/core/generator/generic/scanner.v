@@ -1,8 +1,8 @@
 module generic
 
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 
 // scan over a set of directories call the play where
 pub fn scan(args_ GeneratorArgs) ! {

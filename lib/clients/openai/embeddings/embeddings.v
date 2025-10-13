@@ -1,7 +1,7 @@
 module embeddings
 
 import json
-import freeflowuniverse.herolib.clients.openai { OpenAI, Usage }
+import incubaid.herolib.clients.openai { OpenAI, Usage }
 
 type OpenAIAlias = OpenAI
 

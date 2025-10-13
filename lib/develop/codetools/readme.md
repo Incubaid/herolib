@@ -4,9 +4,9 @@ This directory contains various utilities and tools for code development.
 
 ## Available Tools
 
-*   `utils.v`: General utility functions.
-*   `vvet.v`: V language vetting tool.
-*   `vtest.v`: V language testing tool.
+* `utils.v`: General utility functions.
+* `vvet.v`: V language vetting tool.
+* `vtest.v`: V language testing tool.
 
 ## Usage Examples
 
@@ -15,14 +15,14 @@ This directory contains various utilities and tools for code development.
 To vet your Vlang code for common issues and best practices, you can use the `vvet.v` tool.
 
 ```v
-import freeflowuniverse.herolib.core.develop.codetools { list_v_files }
+import incubaid.herolib.core.develop.codetools { list_v_files }
 v run lib/develop/codetools/vvet.v your_file.v
 ```
-    
+
 ### Testing Vlang Code with `vtest.v`
 
 ```v
-import freeflowuniverse.herolib.core.de.vlang_utils { list_v_files }
+import incubaid.herolib.core.de.vlang_utils { list_v_files }
 v run lib/develop/codetools/vtest.v your_test_file.v
 To run tests for your Vlang code, use the `vtest.v` tool.
 

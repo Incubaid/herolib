@@ -1,8 +1,8 @@
 module dedupe_ourdb
 
-import freeflowuniverse.herolib.data.radixtree
-import freeflowuniverse.herolib.data.ourdb
-import freeflowuniverse.herolib.data.dedupestor
+import incubaid.herolib.data.radixtree
+import incubaid.herolib.data.ourdb
+import incubaid.herolib.data.dedupestor
 
 // DedupeStore provides a key-value store with deduplication based on content hashing
 pub struct DedupeStore {

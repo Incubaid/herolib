@@ -2,7 +2,7 @@ module currency
 
 // see encoder for binary
 
-// import freeflowuniverse.herolib.data.encoder
+// import incubaid.herolib.data.encoder
 
 // // CurrencyBytes represents serialized Currency data
 // pub struct CurrencyBytes {

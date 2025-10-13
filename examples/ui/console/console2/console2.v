@@ -1,7 +1,7 @@
 module main
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui.uimodel { DropDownArgs, QuestionArgs }
+import incubaid.herolib.ui.console
+import incubaid.herolib.ui.uimodel { DropDownArgs, QuestionArgs }
 
 fn do() ! {
 	mut c := console.new()

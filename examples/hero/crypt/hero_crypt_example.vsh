@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.hero.crypt
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.hero.crypt
+import incubaid.herolib.core.redisclient
 
 // Connect to default Redis instance (127.0.0.1:6379)
 mut age_client := crypt.new_age_client()!

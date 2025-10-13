@@ -2,7 +2,7 @@ module coredns
 
 import os
 import net
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn is_systemd_resolved_active() bool {
 	result := os.execute('systemctl is-active systemd-resolved')

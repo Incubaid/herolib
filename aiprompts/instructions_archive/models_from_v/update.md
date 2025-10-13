@@ -3,7 +3,7 @@ for governance and legal
 
 make sure we use core.base as follows
 
-import freeflowuniverse.herolib.hero.models.core
+import incubaid.herolib.hero.models.core
 
 // Account represents a financial account for tracking balances and transactions
 // Supports multiple account types (checking, savings, investment, etc.)

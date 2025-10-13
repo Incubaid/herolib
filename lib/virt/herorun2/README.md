@@ -28,7 +28,7 @@ lib/virt/herorun/
 ### Basic Example
 
 ```v
-import freeflowuniverse.herolib.virt.herorun
+import incubaid.herolib.virt.herorun
 
 // Create user with SSH key
 mut user := herorun.new_user(keyname: 'id_ed25519')!
@@ -92,10 +92,10 @@ chmod +x examples/virt/herorun/herorun.vsh
 
 ## Dependencies
 
-- `freeflowuniverse.herolib.osal.sshagent`
-- `freeflowuniverse.herolib.osal.tmux`
-- `freeflowuniverse.herolib.installers.web.hetznermanager`
-- `freeflowuniverse.herolib.ui.console`
+- `incubaid.herolib.osal.sshagent`
+- `incubaid.herolib.osal.tmux`
+- `incubaid.herolib.installers.web.hetznermanager`
+- `incubaid.herolib.ui.console`
 
 ## Future Enhancements
 

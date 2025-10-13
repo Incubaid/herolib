@@ -1,7 +1,7 @@
 module heromodels
 
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.hero.db
+import incubaid.herolib.data.ourtime
 
 fn test_planning_new() ! {
 	// Initialize DBPlanning for testing
@@ -75,8 +75,8 @@ fn test_planning_crud_operations() ! {
 
 	// Create some recurrence rules
 	mut rule1 := PlanningRecurrenceRule{
-		until:       1893456000 // 2030-01-01
-		by_weekday:  [u8(1), u8(3), u8(5)]  // Monday, Wednesday, Friday
+		until:       1893456000            // 2030-01-01
+		by_weekday:  [u8(1), u8(3), u8(5)] // Monday, Wednesday, Friday
 		by_monthday: []u8{}
 		hour_from:   9
 		hour_to:     17
@@ -161,8 +161,8 @@ fn test_planning_crud_operations() ! {
 
 	// Update rules
 	mut updated_rule1 := PlanningRecurrenceRule{
-		until:       1924992000 // 2031-01-01
-		by_weekday:  [u8(2), u8(4)]     // Tuesday, Thursday
+		until:       1924992000     // 2031-01-01
+		by_weekday:  [u8(2), u8(4)] // Tuesday, Thursday
 		by_monthday: []u8{}
 		hour_from:   8
 		hour_to:     16
@@ -259,7 +259,9 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 	mut rule1 := PlanningRecurrenceRule{
 		until:       1893456000 // 2030-01-01
 		by_weekday:  [u8(0), u8(1), u8(2), u8(3), u8(4), u8(5), u8(6)] // All days of week
-		by_monthday: [u8(1), u8(2), u8(3), u8(4), u8(5), u8(6), u8(7), u8(8), u8(9), u8(10), u8(11), u8(12), u8(13), u8(14), u8(15), u8(16), u8(17), u8(18), u8(19), u8(20), u8(21), u8(22), u8(23), u8(24), u8(25), u8(26), u8(27), u8(28), u8(29), u8(30), u8(31)] // All days of month
+		by_monthday: [u8(1), u8(2), u8(3), u8(4), u8(5), u8(6), u8(7), u8(8), u8(9), u8(10), u8(11),
+			u8(12), u8(13), u8(14), u8(15), u8(16), u8(17), u8(18), u8(19), u8(20), u8(21), u8(22),
+			u8(23), u8(24), u8(25), u8(26), u8(27), u8(28), u8(29), u8(30), u8(31)] // All days of month
 		hour_from:   0
 		hour_to:     23
 		duration:    15
@@ -291,7 +293,8 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 
 	// Verify first autoschedule rule details
 	assert retrieved_planning.autoschedule_rules[0].until == 1893456000
-	assert retrieved_planning.autoschedule_rules[0].by_weekday == [u8(0), u8(1), u8(2), u8(3), u8(4), u8(5), u8(6)]
+	assert retrieved_planning.autoschedule_rules[0].by_weekday == [u8(0), u8(1), u8(2), u8(3),
+		u8(4), u8(5), u8(6)]
 	assert retrieved_planning.autoschedule_rules[0].by_monthday.len == 31
 	assert retrieved_planning.autoschedule_rules[0].hour_from == 0
 	assert retrieved_planning.autoschedule_rules[0].hour_to == 23
@@ -309,7 +312,8 @@ fn test_planning_recurrence_rules_encoding_decoding() ! {
 
 	// Verify invite rule details
 	assert retrieved_planning.invite_rules[0].until == 1893456000
-	assert retrieved_planning.invite_rules[0].by_weekday == [u8(0), u8(1), u8(2), u8(3), u8(4), u8(5), u8(6)]
+	assert retrieved_planning.invite_rules[0].by_weekday == [u8(0), u8(1), u8(2), u8(3), u8(4),
+		u8(5), u8(6)]
 	assert retrieved_planning.invite_rules[0].by_monthday.len == 31
 	assert retrieved_planning.invite_rules[0].hour_from == 0
 	assert retrieved_planning.invite_rules[0].hour_to == 23

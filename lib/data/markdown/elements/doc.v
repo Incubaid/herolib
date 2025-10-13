@@ -1,6 +1,6 @@
 module elements
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 @[heap]
 pub struct Doc {

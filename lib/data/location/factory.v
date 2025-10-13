@@ -1,6 +1,6 @@
 module location
 
-import freeflowuniverse.herolib.clients.postgresql_client
+import incubaid.herolib.clients.postgresql_client
 
 // Location represents the main API for location operations
 pub struct Location {

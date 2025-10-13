@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.data.radixtree
+import incubaid.herolib.data.radixtree
 
 mut rt := radixtree.new(path: '/tmp/radixtree_test', reset: true)!
 

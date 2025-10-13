@@ -1,6 +1,6 @@
 module vfs_nested
 
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 import time
 
 // NestedVFS represents a VFS that can contain multiple nested VFS instances

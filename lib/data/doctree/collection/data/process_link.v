@@ -1,9 +1,9 @@
 module data
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.data.markdown.elements
-import freeflowuniverse.herolib.data.doctree.pointer
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.base
+import incubaid.herolib.data.markdown.elements
+import incubaid.herolib.data.doctree.pointer
 
 // Note: doc should not get reparsed after invoking this method
 pub fn (page Page) process_links(paths map[string]string) ![]string {
@@ -36,7 +36,7 @@ pub fn (page Page) process_links(paths map[string]string) ![]string {
 			// Check if Docusaurus-specific paths are available in Redis
 			mut context := base.context() or { base.context_new()! }
 			mut redis := context.redis() or { panic('Redis not available') }
-			
+
 			// Try to get Docusaurus-specific path from Redis
 			if docusaurus_path := redis.hget('doctree_docusaurus_paths', ptr.str()) {
 				// Use Docusaurus path (already without .md extension)

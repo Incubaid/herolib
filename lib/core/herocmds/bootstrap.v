@@ -1,9 +1,9 @@
 module herocmds
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.installers.lang.herolib
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.installers.base
+import incubaid.herolib.installers.lang.herolib
+import incubaid.herolib.builder
 import cli { Command, Flag }
 
 pub fn cmd_bootstrap(mut cmdroot Command) {

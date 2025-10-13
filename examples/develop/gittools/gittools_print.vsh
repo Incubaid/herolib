@@ -3,7 +3,7 @@
 // #!/usr/bin/env -S v -n -w -cg  -d use_openssl -enable-globals run
 //-parallel-cc
 import os
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.develop.gittools
 
 mut gs := gittools.get(reload: true)!
 

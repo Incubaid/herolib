@@ -1,9 +1,9 @@
 module playbook
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.develop.gittools // Added import for gittools
+import incubaid.herolib.core.texttools
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.gittools // Added import for gittools
 
 enum State {
 	start

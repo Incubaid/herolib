@@ -1,7 +1,7 @@
 module mcpgen
 
-import freeflowuniverse.herolib.mcp.logger
-import freeflowuniverse.herolib.mcp
+import incubaid.herolib.mcp.logger
+import incubaid.herolib.mcp
 
 @[heap]
 pub struct MCPGen {}

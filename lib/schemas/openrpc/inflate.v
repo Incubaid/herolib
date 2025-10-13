@@ -1,6 +1,6 @@
 module openrpc
 
-import freeflowuniverse.herolib.schemas.jsonschema { Items, Reference, Schema, SchemaRef }
+import incubaid.herolib.schemas.jsonschema { Items, Reference, Schema, SchemaRef }
 
 pub fn (s OpenRPC) inflate_method(method Method) Method {
 	return Method{

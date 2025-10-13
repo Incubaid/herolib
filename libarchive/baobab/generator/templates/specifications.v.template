@@ -1,5 +1,5 @@
-import freeflowuniverse.herolib.schemas.openapi
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.schemas.openapi
+import incubaid.herolib.schemas.openrpc
 import os
 
 @if support_openrpc

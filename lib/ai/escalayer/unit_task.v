@@ -1,7 +1,7 @@
 module escalayer
 
 import log
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 
 // UnitTask represents a single step in the task
 pub struct UnitTask {

@@ -1,12 +1,12 @@
 module docker
 
-import freeflowuniverse.herolib.osal.core as osal { exec }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.virt.utils
-import freeflowuniverse.herolib.core
+import incubaid.herolib.osal.core as osal { exec }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.virt.utils
+import incubaid.herolib.core
 import time
 
-// import freeflowuniverse.herolib.installers.swarm
+// import incubaid.herolib.installers.swarm
 
 // https://docs.docker.com/reference/
 

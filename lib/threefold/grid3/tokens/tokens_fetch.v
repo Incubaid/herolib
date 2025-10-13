@@ -1,8 +1,8 @@
 module tokens
 
 import json
-import freeflowuniverse.herolib.httpcache
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.httpcache
+import incubaid.herolib.ui.console
 
 //
 // Raw JSON struct

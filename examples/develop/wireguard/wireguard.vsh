@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none -no-retry-compilation -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.clients.wireguard
-import freeflowuniverse.herolib.installers.net.wireguard as wireguard_installer
+import incubaid.herolib.clients.wireguard
+import incubaid.herolib.installers.net.wireguard as wireguard_installer
 import time
 import os
 

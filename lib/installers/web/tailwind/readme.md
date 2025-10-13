@@ -1,14 +1,12 @@
 # tailwind
 
-
-
 To get started
 
 ```v
 
 
 
-import freeflowuniverse.herolib.installers.something. tailwind
+import incubaid.herolib.installers.something. tailwind
 
 mut installer:= tailwind.get()!
 
@@ -21,7 +19,6 @@ installer.start()!
 
 ## example heroscript
 
-
 ```hero
 !!tailwind.install
     homedir: '/home/user/tailwind'
@@ -32,5 +29,3 @@ installer.start()!
     port: 8888
 
 ```
-
-

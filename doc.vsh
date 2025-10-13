@@ -6,15 +6,22 @@ abs_dir_of_script := dir(@FILE)
 
 // Format code
 println('Formatting code...')
-if os.system('v fmt -w ${abs_dir_of_script}/examples') != 0 {
-	eprintln('Warning: Failed to format examples')
+// v fmt returns:
+// - 0: all files already formatted (no changes)
+// - 5: files were formatted (changes made) - this is SUCCESS
+// - other: actual errors (syntax errors, file access issues, etc.)
+fmt_examples_result := os.system('v fmt -w ${abs_dir_of_script}/examples')
+if fmt_examples_result != 0 && fmt_examples_result != 5 {
+	eprintln('Error: Failed to format examples (exit code: ${fmt_examples_result})')
 	exit(1)
 }
 
-if os.system('v fmt -w ${abs_dir_of_script}/lib') != 0 {
-	eprintln('Warning: Failed to format herolib')
+fmt_lib_result := os.system('v fmt -w ${abs_dir_of_script}/lib')
+if fmt_lib_result != 0 && fmt_lib_result != 5 {
+	eprintln('Error: Failed to format herolib (exit code: ${fmt_lib_result})')
 	exit(1)
 }
+println('✓ Code formatting completed')
 
 // Clean existing docs
 println('Cleaning existing documentation...')

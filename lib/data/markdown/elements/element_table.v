@@ -1,7 +1,7 @@
 module elements
 
 import regex
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 
 @[heap]
 pub struct Table {

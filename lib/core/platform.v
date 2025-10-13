@@ -2,7 +2,7 @@ module core
 
 import os
 
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 // Returns the enum value that matches the provided string for PlatformType
 
 pub enum PlatformType {
@@ -12,6 +12,7 @@ pub enum PlatformType {
 	alpine
 	arch
 	suse
+	fedora
 }
 
 pub fn platform_enum_from_string(platform string) PlatformType {
@@ -20,6 +21,8 @@ pub fn platform_enum_from_string(platform string) PlatformType {
 		'ubuntu' { .ubuntu }
 		'alpine' { .alpine }
 		'arch' { .arch }
+		'suse' { .suse }
+		'fedora' { .fedora }
 		else { .unknown }
 	}
 }
@@ -66,6 +69,8 @@ pub fn platform() !PlatformType {
 		platform_ = PlatformType.alpine
 	} else if cmd_exists('pacman') {
 		platform_ = PlatformType.arch
+	} else if cmd_exists('dnf') {
+		platform_ = PlatformType.fedora
 	} else {
 		return error('Unknown platform')
 	}
@@ -126,7 +131,7 @@ pub fn is_ubuntu() !bool {
 
 pub fn is_linux() !bool {
 	return platform()! == .ubuntu || platform()! == .arch || platform()! == .suse
-		|| platform()! == .alpine
+		|| platform()! == .alpine || platform()! == .fedora
 }
 
 pub fn is_linux_arm() !bool {

@@ -1,8 +1,8 @@
 module startupmanager
 
-// import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.screen
-// import freeflowuniverse.herolib.osal.systemd
+// import incubaid.herolib.ui.console
+import incubaid.herolib.osal.screen
+// import incubaid.herolib.osal.systemd
 import os
 import time
 

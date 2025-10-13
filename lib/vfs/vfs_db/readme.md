@@ -14,6 +14,7 @@ A virtual filesystem implementation that uses OurDB as its storage backend, prov
 ## Implementation Details
 
 ### Structure
+
 ```
 vfs_db/
 ├── factory.v               # VFS factory implementation
@@ -33,6 +34,7 @@ vfs_db/
 ### Key Components
 
 - `DatabaseVFS`: Main implementation struct
+
 ```v
 pub struct DatabaseVFS {
 pub mut:
@@ -46,6 +48,7 @@ pub mut:
 ```
 
 - `FSEntry` implementations:
+
 ```v
 pub type FSEntry = Directory | File | Symlink
 ```
@@ -53,6 +56,7 @@ pub type FSEntry = Directory | File | Symlink
 ### Data Storage
 
 #### Metadata Structure
+
 ```v
 struct Metadata {
     id          u32    // Unique identifier
@@ -69,6 +73,7 @@ struct Metadata {
 ```
 
 #### Database Interface
+
 ```v
 pub interface Database {
 mut:
@@ -81,7 +86,7 @@ mut:
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.vfs.vfs_db
+import incubaid.herolib.vfs.vfs_db
 
 // Create separate databases for data and metadata
 mut db_data := ourdb.new(
@@ -148,6 +153,7 @@ fs.destroy()!
 ## Testing
 
 The implementation includes tests for:
+
 - Basic operations (create, read, write, delete)
 - Directory operations and traversal
 - Symlink handling
@@ -157,6 +163,7 @@ The implementation includes tests for:
 - Data consistency
 
 Run tests with:
+
 ```bash
 v test vfs/vfs_db/
 ```

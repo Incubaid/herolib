@@ -1,7 +1,7 @@
 module rhai
 
 import os
-import freeflowuniverse.herolib.lang.rust // Import the rust module
+import incubaid.herolib.lang.rust // Import the rust module
 
 fn test_generate_container_registration() {
 	// Define the path to the test data file

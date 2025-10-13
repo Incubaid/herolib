@@ -1,9 +1,9 @@
 module b2
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.lang.python
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.lang.python
 import os
 
 //////////////////// following actions are not specific to instance of the object

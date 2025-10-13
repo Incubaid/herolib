@@ -2,8 +2,8 @@ module linux
 
 import os
 import json
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
 
 @[params]
 pub struct UserCreateArgs {

@@ -2,14 +2,14 @@ module main
 
 import os
 import cli { Command }
-import freeflowuniverse.herolib.core.herocmds
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.core.herocmds
+import incubaid.herolib.installers.base
+import incubaid.herolib.ui.console
+import incubaid.herolib.ui
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
 
 fn playcmds_do(path string) ! {
 	mut plbook := playbook.new(path: path)!
@@ -38,7 +38,8 @@ fn do() ! {
 
 	if os.args.len == 2 {
 		mypath := os.args[1]
-		if mypath.to_lower().ends_with('.hero')  || mypath.to_lower().ends_with('.heroscript') || mypath.to_lower().ends_with('.hs') {
+		if mypath.to_lower().ends_with('.hero') || mypath.to_lower().ends_with('.heroscript')
+			|| mypath.to_lower().ends_with('.hs') {
 			// hero was called from a file
 			playcmds_do(mypath)!
 			return

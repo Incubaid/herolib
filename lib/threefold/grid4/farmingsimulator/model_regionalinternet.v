@@ -1,6 +1,6 @@
 module farmingsimulator
 
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 pub struct RegionalInternet {
 pub mut:

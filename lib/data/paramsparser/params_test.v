@@ -1,8 +1,8 @@
 module paramsparser
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import json
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 const textin = "
 	id:a1 name6:aaaaa

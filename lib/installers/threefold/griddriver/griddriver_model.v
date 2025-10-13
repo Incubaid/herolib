@@ -1,6 +1,6 @@
 module griddriver
 
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.encoderhero
 
 pub const version = '0.1.2'
 const singleton = true

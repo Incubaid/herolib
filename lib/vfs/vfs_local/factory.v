@@ -1,7 +1,7 @@
 module vfs_local
 
 import os
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // LocalVFS implements vfs.VFSImplementation for local filesystem
 pub struct LocalVFS {

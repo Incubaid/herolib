@@ -19,7 +19,7 @@ module generator
 // 				types: [object_type]
 // 			},
 // 			Import{
-// 				mod: 'freeflowuniverse.herolib.baobab.backend'
+// 				mod: 'incubaid.herolib.baobab.backend'
 // 				types: ['FilterParams']
 // 			},
 // 		]
@@ -41,7 +41,7 @@ module generator
 // 	return a.objects.map(code.new_file(
 // 		mod: texttools.name_fix(a.name)
 // 		name: '${texttools.name_fix(it.structure.name)}_model'
-// 		// imports: [Import{mod:'freeflowuniverse.herolib.baobab.stage'}]
+// 		// imports: [Import{mod:'incubaid.herolib.baobab.stage'}]
 // 		items: [it.structure]
 // 	))
 // }

@@ -1,8 +1,8 @@
 module models_tfgrid
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // Storage device information
 pub struct StorageDevice {
@@ -74,18 +74,18 @@ pub mut:
 // Pricing policy for slices
 pub struct PricingPolicy {
 pub mut:
-	name                         string // Human friendly policy name (e.g. "fixed", "market")
-	details                      string // Optional free-form details as JSON-encoded string
-	marketplace_year_discounts   []int  // e.g. [30, 40, 50] means if user has more CC than 1Y utilization, 30% discount, etc.
+	name                       string // Human friendly policy name (e.g. "fixed", "market")
+	details                    string // Optional free-form details as JSON-encoded string
+	marketplace_year_discounts []int  // e.g. [30, 40, 50] means if user has more CC than 1Y utilization, 30% discount, etc.
 }
 
 // SLA policy for slices
 pub struct SLAPolicy {
 pub mut:
-	uptime                 f32 // Uptime in percentage (0..100)
-	max_response_time_ms   u32 // Max response time in ms
-	sla_bandwidth_mbit     int // minimal mbits we can expect avg over 1h per node, 0 means we don't guarantee
-	sla_penalty            int // 0-100, percent of money given back in relation to month if sla breached
+	uptime               f32 // Uptime in percentage (0..100)
+	max_response_time_ms u32 // Max response time in ms
+	sla_bandwidth_mbit   int // minimal mbits we can expect avg over 1h per node, 0 means we don't guarantee
+	sla_penalty          int // 0-100, percent of money given back in relation to month if sla breached
 }
 
 // Compute slice (typically represents a base unit of compute)
@@ -119,17 +119,17 @@ pub mut:
 pub struct Node {
 	db.Base
 pub mut:
-	nodegroupid     int          // Link to node group
-	uptime          int          // Uptime percentage 0..100
-	computeslices   []ComputeSlice
-	storageslices   []StorageSlice
-	devices         DeviceInfo
-	country         string       // 2 letter code
-	capacity        NodeCapacity // Hardware capacity details
-	birthtime       u32          // first time node was active
-	pubkey          string
-	signature_node  string       // signature done on node to validate pubkey with privkey
-	signature_farmer string      // signature as done by farmers to validate their identity
+	nodegroupid      int // Link to node group
+	uptime           int // Uptime percentage 0..100
+	computeslices    []ComputeSlice
+	storageslices    []StorageSlice
+	devices          DeviceInfo
+	country          string       // 2 letter code
+	capacity         NodeCapacity // Hardware capacity details
+	birthtime        u32          // first time node was active
+	pubkey           string
+	signature_node   string // signature done on node to validate pubkey with privkey
+	signature_farmer string // signature as done by farmers to validate their identity
 }
 
 pub struct DBNode {
@@ -190,7 +190,7 @@ pub fn (self Node) example(methodname string) (string, string) {
 pub fn (self Node) dump(mut e encoder.Encoder) ! {
 	e.add_int(self.nodegroupid)
 	e.add_int(self.uptime)
-	
+
 	// Encode compute slices
 	e.add_int(self.computeslices.len)
 	for slice in self.computeslices {
@@ -212,7 +212,7 @@ pub fn (self Node) dump(mut e encoder.Encoder) ! {
 		e.add_int(slice.sla_policy.sla_bandwidth_mbit)
 		e.add_int(slice.sla_policy.sla_penalty)
 	}
-	
+
 	// Encode storage slices
 	e.add_int(self.storageslices.len)
 	for slice in self.storageslices {
@@ -226,7 +226,7 @@ pub fn (self Node) dump(mut e encoder.Encoder) ! {
 		e.add_int(slice.sla_policy.sla_bandwidth_mbit)
 		e.add_int(slice.sla_policy.sla_penalty)
 	}
-	
+
 	// Encode devices
 	e.add_string(self.devices.vendor)
 	e.add_int(self.devices.storage.len)
@@ -265,7 +265,7 @@ pub fn (self Node) dump(mut e encoder.Encoder) ! {
 		e.add_int(device.speed_mbps)
 		e.add_string(device.description)
 	}
-	
+
 	e.add_string(self.country)
 	e.add_f64(self.capacity.storage_gb)
 	e.add_f64(self.capacity.mem_gb)
@@ -281,7 +281,7 @@ pub fn (self Node) dump(mut e encoder.Encoder) ! {
 fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 	o.nodegroupid = e.get_int()!
 	o.uptime = e.get_int()!
-	
+
 	// Decode compute slices
 	compute_slices_len := e.get_int()!
 	o.computeslices = []ComputeSlice{len: compute_slices_len}
@@ -304,7 +304,7 @@ fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 		o.computeslices[i].sla_policy.sla_bandwidth_mbit = e.get_int()!
 		o.computeslices[i].sla_policy.sla_penalty = e.get_int()!
 	}
-	
+
 	// Decode storage slices
 	storage_slices_len := e.get_int()!
 	o.storageslices = []StorageSlice{len: storage_slices_len}
@@ -319,10 +319,10 @@ fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 		o.storageslices[i].sla_policy.sla_bandwidth_mbit = e.get_int()!
 		o.storageslices[i].sla_policy.sla_penalty = e.get_int()!
 	}
-	
+
 	// Decode devices
 	o.devices.vendor = e.get_string()!
-	
+
 	storage_devices_len := e.get_int()!
 	o.devices.storage = []StorageDevice{len: storage_devices_len}
 	for i in 0 .. storage_devices_len {
@@ -330,7 +330,7 @@ fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 		o.devices.storage[i].size_gb = e.get_f64()!
 		o.devices.storage[i].description = e.get_string()!
 	}
-	
+
 	memory_devices_len := e.get_int()!
 	o.devices.memory = []MemoryDevice{len: memory_devices_len}
 	for i in 0 .. memory_devices_len {
@@ -338,7 +338,7 @@ fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 		o.devices.memory[i].size_gb = e.get_f64()!
 		o.devices.memory[i].description = e.get_string()!
 	}
-	
+
 	cpu_devices_len := e.get_int()!
 	o.devices.cpu = []CPUDevice{len: cpu_devices_len}
 	for i in 0 .. cpu_devices_len {
@@ -349,7 +349,7 @@ fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 		o.devices.cpu[i].cpu_brand = e.get_string()!
 		o.devices.cpu[i].cpu_version = e.get_string()!
 	}
-	
+
 	gpu_devices_len := e.get_int()!
 	o.devices.gpu = []GPUDevice{len: gpu_devices_len}
 	for i in 0 .. gpu_devices_len {
@@ -360,7 +360,7 @@ fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 		o.devices.gpu[i].gpu_brand = e.get_string()!
 		o.devices.gpu[i].gpu_version = e.get_string()!
 	}
-	
+
 	network_devices_len := e.get_int()!
 	o.devices.network = []NetworkDevice{len: network_devices_len}
 	for i in 0 .. network_devices_len {
@@ -368,7 +368,7 @@ fn (mut self DBNode) load(mut o Node, mut e encoder.Decoder) ! {
 		o.devices.network[i].speed_mbps = e.get_int()!
 		o.devices.network[i].description = e.get_string()!
 	}
-	
+
 	o.country = e.get_string()!
 	o.capacity.storage_gb = e.get_f64()!
 	o.capacity.mem_gb = e.get_f64()!
@@ -401,16 +401,16 @@ pub mut:
 
 pub fn (mut self DBNode) new(args NodeArg) !Node {
 	mut o := Node{
-		nodegroupid:     args.nodegroupid
-		uptime:          args.uptime
-		computeslices:   args.computeslices
-		storageslices:   args.storageslices
-		devices:         args.devices
-		country:         args.country
-		capacity:        args.capacity
-		birthtime:       args.birthtime
-		pubkey:          args.pubkey
-		signature_node:  args.signature_node
+		nodegroupid:      args.nodegroupid
+		uptime:           args.uptime
+		computeslices:    args.computeslices
+		storageslices:    args.storageslices
+		devices:          args.devices
+		country:          args.country
+		capacity:         args.capacity
+		birthtime:        args.birthtime
+		pubkey:           args.pubkey
+		signature_node:   args.signature_node
 		signature_farmer: args.signature_farmer
 	}
 

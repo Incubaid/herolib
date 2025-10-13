@@ -1,7 +1,7 @@
 module caddy
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import os
 
 pub const xcaddy_version = '0.4.2'

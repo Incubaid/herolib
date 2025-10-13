@@ -12,8 +12,8 @@ context             Context        //link back to the context
 
 ### **The PlayArgs:**
 
-- context             ?&Context   
-- session             ?&Session   
+- context             ?&Context
+- session             ?&Session
 - context_name        string = 'default'
 - session_name        string        //default will be based on a date when run
 - interactive         bool = true   //can ask questions, default on true
@@ -23,8 +23,8 @@ context             Context        //link back to the context
 - playbook_text       string        //heroscript to execute
 
 ```golang
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.core.base
+import incubaid.herolib.develop.gittools
 
 mut session:=play.session_new(
     coderoot:'/tmp/code'
@@ -34,16 +34,15 @@ mut session:=play.session_new(
 //THE next could be in a module which we call
 
 pub fn play_git(mut session Session) ! {
-	for mut action in session.plbook.find(filter:'gittools.*')! {
-		mut p := action.params
-		mut repo := p.get_default('repo', '')!
+ for mut action in session.plbook.find(filter:'gittools.*')! {
+  mut p := action.params
+  mut repo := p.get_default('repo', '')!
         ... do whatever is required to 
-	}
+ }
 }
 
 
 ```
-
 
 ### use playbook
 
@@ -55,7 +54,7 @@ pub fn play_git(mut session Session) ! {
 // text    string
 // prio    int = 99
 // url     string
-//```	
+//``` 
 fn (mut session Session) playbook_add(args_ PLayBookAddArgs) !
 
 //show the sesstion playbook as heroscript

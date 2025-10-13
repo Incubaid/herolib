@@ -2,7 +2,7 @@ module playbook
 
 import os
 import crypto.sha256
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 const testpath = os.dir(@FILE) + '/testdata'
 

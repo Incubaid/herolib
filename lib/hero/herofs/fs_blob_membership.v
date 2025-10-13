@@ -1,10 +1,10 @@
 module herofs
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
-import freeflowuniverse.herolib.hero.user { UserRef }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.encoder
+import incubaid.herolib.hero.db
+import incubaid.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_ok, new_response_true }
+import incubaid.herolib.hero.user { UserRef }
+import incubaid.herolib.ui.console
 import json
 
 // FsBlobMembership represents membership of a blob in one or more filesystems, the key is the hash of the blob

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
-import freeflowuniverse.herolib.crypt.herocrypt
+import incubaid.herolib.crypt.herocrypt
 import time
 
 // Initialize the HeroCrypt client

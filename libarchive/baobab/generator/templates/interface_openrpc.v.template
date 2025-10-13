@@ -1,5 +1,5 @@
-import freeflowuniverse.herolib.baobab.stage.interfaces
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.baobab.stage.interfaces
+import incubaid.herolib.schemas.openrpc
 
 pub fn new_openrpc_interface() !&interfaces.OpenRPCInterface {
 	// create OpenRPC Handler with actor's client

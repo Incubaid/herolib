@@ -1,6 +1,6 @@
 module qdrant
 
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 import json
 
 // Configuration of the collection

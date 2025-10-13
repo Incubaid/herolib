@@ -1,6 +1,6 @@
 module tmux
 
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 import rand
 
 fn testsuite_begin() {

@@ -13,7 +13,7 @@ The HTTPConnection module provides a robust HTTP client implementation with supp
 ## Basic Usage
 
 ```v
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 
 // Create a new HTTP connection
 mut conn := HTTPConnection{
@@ -28,18 +28,18 @@ mut conn := HTTPConnection{
 // e.g. HetznerManager is the object on which we want to have an http client
 
 pub fn (mut h HetznerManager) connection() !&httpconnection.HTTPConnection {
-	mut c := h.conn or {
-		mut c2 := httpconnection.new(
-			name:  'hetzner_${h.name}'
-			url:   h.baseurl
-			cache: true
-			retry: 3
-		)!
-		c2.basic_auth(h.user, h.password)
-		c2
-	}
+ mut c := h.conn or {
+  mut c2 := httpconnection.new(
+   name:  'hetzner_${h.name}'
+   url:   h.baseurl
+   cache: true
+   retry: 3
+  )!
+  c2.basic_auth(h.user, h.password)
+  c2
+ }
 
-	return c
+ return c
 }
 ```
 

@@ -1,8 +1,8 @@
 module herocmds
 
-import freeflowuniverse.herolib.installers
+import incubaid.herolib.installers
 import cli { Command, Flag }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn cmd_installers(mut cmdroot Command) {
 	mut cmd_run := Command{

@@ -1,8 +1,8 @@
 module generator
 
-import freeflowuniverse.herolib.baobab.specification
-import freeflowuniverse.herolib.develop.codetools as code { Param, Param, type_from_symbol }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.baobab.specification
+import incubaid.herolib.develop.codetools as code { Param, Param, type_from_symbol }
+import incubaid.herolib.core.texttools
 
 const id_param = Param{
 	name: 'id'
@@ -28,7 +28,7 @@ const id_param = Param{
 // 				types: [object_type]
 // 			},
 // 			Import{
-// 				mod: 'freeflowuniverse.herolib.baobab.backend'
+// 				mod: 'incubaid.herolib.baobab.backend'
 // 				types: ['FilterParams']
 // 			},
 // 		]

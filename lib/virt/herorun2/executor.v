@@ -1,8 +1,8 @@
 module herorun2
 
-import freeflowuniverse.herolib.osal.tmux
-import freeflowuniverse.herolib.osal.sshagent
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.tmux
+import incubaid.herolib.osal.sshagent
+import incubaid.herolib.osal.core as osal
 import time
 import os
 

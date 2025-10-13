@@ -5,7 +5,7 @@ To get started
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.docker as docker_installer
+import incubaid.herolib.installers.something.docker as docker_installer
 
 heroscript:="
 !!docker.configure name:'test'
@@ -38,5 +38,3 @@ docker_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

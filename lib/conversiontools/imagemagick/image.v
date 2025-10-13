@@ -1,6 +1,6 @@
 module imagemagick
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 pub struct Image {
 pub mut:

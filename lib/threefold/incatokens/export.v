@@ -1,7 +1,7 @@
 module incatokens
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 import time
 
 // Struct to hold all data for the report template

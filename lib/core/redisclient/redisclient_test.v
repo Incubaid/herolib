@@ -1,6 +1,6 @@
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 import time
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 // original code see https://github.com/patrickpissurno/vredis/blob/master/vredis_test.v
 // credits see there as well (-:
 

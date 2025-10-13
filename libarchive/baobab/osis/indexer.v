@@ -2,8 +2,8 @@ module osis
 
 import json
 import db.sqlite
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
 
 pub struct Indexer {
 	db sqlite.DB

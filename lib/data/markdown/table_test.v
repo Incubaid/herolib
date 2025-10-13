@@ -1,6 +1,6 @@
 module markdown
 
-import freeflowuniverse.herolib.data.markdown.elements { Table }
+import incubaid.herolib.data.markdown.elements { Table }
 
 fn test_table_no_rows_invalid() {
 	mut content := '

@@ -1,8 +1,8 @@
 module builder
 
 import rand
-import freeflowuniverse.herolib.data.ipaddress { IPAddress }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.ipaddress { IPAddress }
+import incubaid.herolib.ui.console
 
 // Assuming this function runs first (which is the case)
 // This generates ssh keys on local machine to use for

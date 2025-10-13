@@ -1,6 +1,6 @@
 module mailclient
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import net.smtp
 import time
 

@@ -1,6 +1,6 @@
 module bun
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 import os
 
 pub const version = '1.2.3'

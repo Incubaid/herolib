@@ -1,7 +1,7 @@
 module gittools
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 fn test_gitlocation_from_url() {
 	mut gs := GitStructure{}

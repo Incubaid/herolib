@@ -1,6 +1,6 @@
 module tailwind4
 
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.encoderhero
 
 pub const version = '4.0.8'
 const singleton = false

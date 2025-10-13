@@ -1,10 +1,10 @@
 module postgresql_client
 
 import db.pg
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.core.texttools
+import incubaid.herolib.osal.core as osal
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn (mut self PostgresqlClient) check() ! {
 	mut db := self.db()!

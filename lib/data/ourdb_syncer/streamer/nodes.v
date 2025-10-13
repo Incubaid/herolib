@@ -1,9 +1,9 @@
 module streamer
 
 import time
-import freeflowuniverse.herolib.clients.mycelium
-import freeflowuniverse.herolib.data.ourdb
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.clients.mycelium
+import incubaid.herolib.data.ourdb
+import incubaid.herolib.osal.core as osal
 import encoding.base64
 import json
 

@@ -1,6 +1,6 @@
 module meilisearch
 
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 import x.json2
 import json
 

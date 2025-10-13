@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.osal.sandbox
+import incubaid.herolib.osal.sandbox
 import os
 
 fn do() ! {

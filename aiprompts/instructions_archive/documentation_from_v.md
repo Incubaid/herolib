@@ -1,4 +1,4 @@
-params: 
+params:
 
 - filepath: /Users/despiegk/code/github/incubaid/herolib/lib/clients/openai
 
@@ -18,8 +18,8 @@ the template is as follows
 ## factory
 
 is there factory, which one and quick example how to call, don’t say in which file not relevant
-show how to import the module is as follows: import freeflowuniverse.herolib. 
-and then starting from lib e.g. lib/clients/mycelium would result in import freeflowuniverse.herolib. clients.mycelium
+show how to import the module is as follows: import incubaid.herolib. 
+and then starting from lib e.g. lib/clients/mycelium would result in import incubaid.herolib. clients.mycelium
 
 ## overview
 
@@ -45,7 +45,7 @@ don't mention what we don't show because of rules above.
 
 the only output we want is  markdown file as follows
 
-===WRITE=== 
+===WRITE===
 $filepath
 ===CONTENT===
 $the content of the generated markdown file

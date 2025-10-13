@@ -1,10 +1,10 @@
 module podman
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.installers.ulist
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core
+import incubaid.herolib.installers.ulist
 import os
 
 //////////////////// following actions are not specific to instance of the object

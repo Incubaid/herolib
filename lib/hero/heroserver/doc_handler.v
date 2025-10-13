@@ -2,9 +2,9 @@ module heroserver
 
 import veb
 import net.http
-import freeflowuniverse.herolib.schemas.openrpc
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.openrpc
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.jsonrpc
 import time
 
 // Home page handler - returns HTML homepage for GET, handles JSON-RPC for POST

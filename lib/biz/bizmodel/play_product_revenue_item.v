@@ -1,7 +1,7 @@
 module bizmodel
 
-import freeflowuniverse.herolib.core.playbook { Action }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.playbook { Action }
+import incubaid.herolib.core.texttools
 
 // see lib/biz/bizmodel/docs/revenue.md
 fn (mut m BizModel) revenue_item_action(action Action) !Action {

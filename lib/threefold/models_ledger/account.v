@@ -1,9 +1,8 @@
-// lib/threefold/models_ledger/account.v
 module models_ledger
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // AccountStatus represents the status of an account
 pub enum AccountStatus {
@@ -288,7 +287,7 @@ pub fn (mut self DBAccount) new(args AccountArg) !Account {
 			clawback_accounts:          policy_arg.clawback_accounts
 			clawback_min_signatures:    policy_arg.clawback_min_signatures
 			clawback_from:              policy_arg.clawback_from
-			clawback_till:              policy_arg.clawback_to
+			clawback_to:                policy_arg.clawback_to
 		}
 	}
 
@@ -313,8 +312,12 @@ pub fn (mut self DBAccount) set(o Account) !Account {
 	return self.db.set[Account](o)!
 }
 
-pub fn (mut self DBAccount) delete(id u32) ! {
+pub fn (mut self DBAccount) delete(id u32) !bool {
+	if !self.db.exists[Account](id)! {
+		return false
+	}
 	self.db.delete[Account](id)!
+	return true
 }
 
 pub fn (mut self DBAccount) exist(id u32) !bool {
@@ -328,6 +331,158 @@ pub fn (mut self DBAccount) get(id u32) !Account {
 	return o
 }
 
-pub fn (mut self DBAccount) list() ![]Account {
+@[params]
+pub struct AccountListArg {
+pub mut:
+	filter string
+	status int = -1
+	limit  int = 20
+	offset int = 0
+}
+
+pub fn (mut self DBAccount) list(args AccountListArg) ![]Account {
+	mut all_accounts := self.db.list[Account]()!.map(self.get(it)!)
+	mut filtered_accounts := []Account{}
+	
+	for account in all_accounts {
+		// Add filter logic based on account properties
+		if args.filter != '' && !account.name.contains(args.filter) && !account.description.contains(args.filter) {
+			continue
+		}
+		
+		// We could add more filters based on status if the Account struct has a status field
+		
+		filtered_accounts << account
+	}
+	
+	// Apply pagination
+	mut start := args.offset
+	if start >= filtered_accounts.len {
+		start = 0
+	}
+	
+	mut limit := args.limit
+	if limit > 100 {
+		limit = 100
+	}
+	
+	if start + limit > filtered_accounts.len {
+		limit = filtered_accounts.len - start
+	}
+	
+	if limit <= 0 {
+		return []Account{}
+	}
+	
+	return if filtered_accounts.len > 0 { filtered_accounts[start..start+limit] } else { []Account{} }
+}
+
+pub fn (mut self DBAccount) list_all() ![]Account {
 	return self.db.list[Account]()!.map(self.get(it)!)
+}
+
+// Response struct for API
+pub struct Response {
+pub mut:
+	id      int
+	jsonrpc string = '2.0'
+	result  string
+	error   ?ResponseError
+}
+
+pub struct ResponseError {
+pub mut:
+	code    int
+	message string
+}
+
+pub fn new_response(rpcid int, result string) Response {
+	return Response{
+		id: rpcid
+		result: result
+	}
+}
+
+pub fn new_response_true(rpcid int) Response {
+	return Response{
+		id: rpcid
+		result: 'true'
+	}
+}
+
+pub fn new_response_false(rpcid int) Response {
+	return Response{
+		id: rpcid
+		result: 'false'
+	}
+}
+
+pub fn new_response_int(rpcid int, result int) Response {
+	return Response{
+		id: rpcid
+		result: result.str()
+	}
+}
+
+pub fn new_error(rpcid int, code int, message string) Response {
+	return Response{
+		id: rpcid
+		error: ResponseError{
+			code: code
+			message: message
+		}
+	}
+}
+
+pub struct UserRef {
+pub mut:
+	id u32
+}
+
+pub fn account_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
+	match method {
+		'get' {
+			id := db.decode_u32(params)!
+			res := f.account.get(id)!
+			return new_response(rpcid, json.encode_pretty(res))
+		}
+		'set' {
+			mut args := db.decode_generic[AccountArg](params)!
+			mut o := f.account.new(args)!
+			if args.id != 0 {
+				o.id = args.id
+			}
+			o = f.account.set(o)!
+			return new_response_int(rpcid, int(o.id))
+		}
+		'delete' {
+			id := db.decode_u32(params)!
+			success := f.account.delete(id)!
+			if success {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'exist' {
+			id := db.decode_u32(params)!
+			if f.account.exist(id)! {
+				return new_response_true(rpcid)
+			} else {
+				return new_response_false(rpcid)
+			}
+		}
+		'list' {
+			args := db.decode_generic_or_default[AccountListArg](params, AccountListArg{})!
+			result := f.account.list(args)!
+			return new_response(rpcid, json.encode_pretty(result))
+		}
+		else {
+			return new_error(
+				rpcid: rpcid
+				code: 32601
+				message: 'Method ${method} not found on account'
+			)
+		}
+	}
 }

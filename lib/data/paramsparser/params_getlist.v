@@ -1,6 +1,6 @@
 module paramsparser
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import strconv
 
 // Looks for a list of strings in the parameters. If it doesn't exist this function will return an error. Furthermore an error will be returned if the list is not properly formatted

@@ -1,14 +1,12 @@
 # runpod
 
-
-
 To get started
 
 ```v
 
 
 
-import freeflowuniverse.herolib.clients. runpod
+import incubaid.herolib.clients. runpod
 
 mut client:= runpod.get()!
 
@@ -20,7 +18,6 @@ client...
 ```
 
 ## example heroscript
-
 
 ```hero
 !!runpod.configure
@@ -39,4 +36,4 @@ This script demonstrates creating, stopping, starting, and terminating RunPod po
 
 **How to Run**
 
-- Find out our example in: examples/develop/runpod/runpod_example.vsh
+* Find out our example in: examples/develop/runpod/runpod_example.vsh

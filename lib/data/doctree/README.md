@@ -4,27 +4,27 @@ The primary goal of this module is to transform structured document collections 
 
 ## Key Concepts
 
-*   **Tree:** The central component (`doctree.Tree`) that holds one or more `Collection` instances. It orchestrates the scanning, processing, and exporting of all contained collections.
-*   **Collection:** A directory that is marked as a collection by the presence of a `.collection` file. A collection groups related documents (pages, images, files) and can have its own configuration defined within the `.collection` file.
-*   **.collection file:** A file placed in a directory to designate it as a collection. This file can optionally contain parameters (using the `paramsparser` format) such as a custom name for the collection.
+* **Tree:** The central component (`doctree.Tree`) that holds one or more `Collection` instances. It orchestrates the scanning, processing, and exporting of all contained collections.
+* **Collection:** A directory that is marked as a collection by the presence of a `.collection` file. A collection groups related documents (pages, images, files) and can have its own configuration defined within the `.collection` file.
+* **.collection file:** A file placed in a directory to designate it as a collection. This file can optionally contain parameters (using the `paramsparser` format) such as a custom name for the collection.
 
 ## How it Works (Workflow)
 
 The typical workflow involves creating a `Tree`, scanning for collections, and then exporting the processed content.å
 
-1.  **Create Tree:** Initialize a `doctree.Tree` instance using `doctree.new()`.
-2.  **Scan:** Use the `tree.scan()`  method, providing a path to a directory or a Git repository URL. The scanner recursively looks for directories containing a `.collection` file.
-3.  **Load Content:** For each identified collection, the module loads its content, including markdown pages, images, and other files.
-4.  **Process Content:** The loaded content is processed. This includes handling definitions, includes (content from other files), and macros (dynamic content generation or transformation).
-5.  **Generate Output Paths:** The module determines the final paths for all processed files and assets in the destination directory.
-6.  **Export:** The `tree.export()` method writes the processed content and assets to the specified destination directory, maintaining the desired structure.
+1. **Create Tree:** Initialize a `doctree.Tree` instance using `doctree.new()`.
+2. **Scan:** Use the `tree.scan()`  method, providing a path to a directory or a Git repository URL. The scanner recursively looks for directories containing a `.collection` file.
+3. **Load Content:** For each identified collection, the module loads its content, including markdown pages, images, and other files.
+4. **Process Content:** The loaded content is processed. This includes handling definitions, includes (content from other files), and macros (dynamic content generation or transformation).
+5. **Generate Output Paths:** The module determines the final paths for all processed files and assets in the destination directory.
+6. **Export:** The `tree.export()` method writes the processed content and assets to the specified destination directory, maintaining the desired structure.
 
 ## Usage (For Developers)
 
 Here's a basic example of how to use the `doctree` module in your V project:
 
 ```v
-import freeflowuniverse.herolib.data.doctree
+import incubaid.herolib.data.doctree
 // 1. Create a new Tree instance
 mut tree := doctree.new(name: 'my_documentation')!
 
@@ -64,7 +64,7 @@ my_collection/
     └── data.csv
 ```
 
-Markdown files (`.md`) are treated as pages. 
+Markdown files (`.md`) are treated as pages.
 
 ## use Play
 
@@ -93,5 +93,3 @@ doctree:$collectionname $pagename   $rel_path_in_collection
 doctree:$collectionname $filename.$ext  $rel_path_in_collection
 doctree:meta            $collectionname     $collectionpath_on_disk
 ```
-
-

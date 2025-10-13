@@ -1,7 +1,7 @@
 module gittools
 
 import json
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 fn redis_get() &redisclient.Redis {
 	mut redis_client := redisclient.core_get() or { panic(err) }

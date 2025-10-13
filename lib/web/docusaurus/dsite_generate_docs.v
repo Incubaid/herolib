@@ -1,10 +1,10 @@
 module docusaurus
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.web.doctreeclient
-import freeflowuniverse.herolib.web.site { Page, Section, Site }
-import freeflowuniverse.herolib.data.markdown.tools as markdowntools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.web.doctreeclient
+import incubaid.herolib.web.site { Page, Section, Site }
+import incubaid.herolib.data.markdown.tools as markdowntools
+import incubaid.herolib.ui.console
 
 // THIS CODE GENERATES A DOCUSAURUS SITE FROM A DOCTREECLIENT AND SITE DEFINITION
 

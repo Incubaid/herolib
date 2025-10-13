@@ -1,9 +1,9 @@
 module db
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 // Current time
-// import freeflowuniverse.herolib.data.encoder
+// import incubaid.herolib.data.encoder
 
 pub struct DB {
 pub mut:
@@ -17,7 +17,7 @@ pub mut:
 }
 
 pub fn new(args DBArgs) !DB {
-	mut redisconnection := args.redis or {redisclient.core_get()!}
+	mut redisconnection := args.redis or { redisclient.core_get()! }
 	return DB{
 		redis: redisconnection
 	}

@@ -1,7 +1,7 @@
 module regext
 
 import os
-import freeflowuniverse.herolib.core.texttools { dedent }
+import incubaid.herolib.core.texttools { dedent }
 
 fn test_stdtext() {
 	// this is test without much fancyness, just rext replace, no regex, all case sensitive

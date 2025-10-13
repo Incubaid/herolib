@@ -1,7 +1,7 @@
 module jina
 
 import json
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 
 // ClassificationTrainAccess represents the accessibility of the classifier
 pub enum ClassificationTrainAccess {

@@ -1,9 +1,9 @@
 module herocmds
 
-import freeflowuniverse.herolib.conversiontools.docsorter
+import incubaid.herolib.conversiontools.docsorter
 import cli { Command, Flag }
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // const wikipath = os.dir(@FILE) + '/wiki'
 

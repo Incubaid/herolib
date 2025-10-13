@@ -1,7 +1,7 @@
 module herofs
 
 import os
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 
 // ImportOptions provides options for import operations
 @[params]

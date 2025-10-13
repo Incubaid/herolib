@@ -224,7 +224,7 @@ function hero_lib_get {
         hero_lib_pull
     else
         pushd $DIR_CODE/github/incubaid 2>&1 >> /dev/null
-        git clone --depth 1 --no-single-branch https://github.com/freeflowuniverse/herolib.git
+        git clone --depth 1 --no-single-branch https://github.com/incubaid/herolib.git
         popd 2>&1 >> /dev/null
     fi    
 }

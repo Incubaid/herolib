@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.ai.mcp.rhai.mcp
+import incubaid.herolib.ai.mcp.rhai.mcp
 
 fn main() {
 	// Create a new MCP server

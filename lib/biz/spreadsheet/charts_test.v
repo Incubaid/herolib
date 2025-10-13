@@ -1,8 +1,8 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.data.markdown.elements
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.web.echarts
+import incubaid.herolib.data.markdown.elements
+import incubaid.herolib.ui.console
+import incubaid.herolib.web.echarts
 
 fn test_title_chart() {
 	mut s := sheet_new() or { panic(err) }

@@ -1,9 +1,9 @@
 module podman
 
 import time
-import freeflowuniverse.herolib.osal.core as osal { exec }
-import freeflowuniverse.herolib.data.ipaddress { IPAddress }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.osal.core as osal { exec }
+import incubaid.herolib.data.ipaddress { IPAddress }
+import incubaid.herolib.core.texttools
 
 // PodmanContainer represents a podman container with structured data from CLI JSON output
 pub struct PodmanContainer {

@@ -2,8 +2,8 @@ module main
 
 import log
 import json
-import freeflowuniverse.herolib.schemas.jsonrpc { JsonRpcHandler, jsonrpcrequest_decode }
-import freeflowuniverse.herolib.data.rpcwebsocket
+import incubaid.herolib.schemas.jsonrpc { JsonRpcHandler, jsonrpcrequest_decode }
+import incubaid.herolib.data.rpcwebsocket
 import data.jsonrpc.testdata.testmodule { Config, testfunction0, testfunction1 }
 
 struct CustomJsonRpcHandler {

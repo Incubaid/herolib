@@ -2,7 +2,7 @@ module vfs_db
 
 import os
 import time
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 fn test_directory_encoder_decoder() ! {
 	println('Testing encoding/decoding directories...')

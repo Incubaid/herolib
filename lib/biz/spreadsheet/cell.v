@@ -1,6 +1,6 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.currency
 
 pub struct Cell {
 pub mut:

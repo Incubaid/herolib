@@ -1,7 +1,7 @@
 module griddriver
 
 import os
-import freeflowuniverse.herolib.threefold.grid3.models
+import incubaid.herolib.threefold.grid3.models
 
 pub fn (mut c Client) sign_deployment(hash string) !string {
 	res := os.execute("griddriver sign --substrate \"${c.substrate}\" --mnemonics \"${c.mnemonic}\" --hash \"${hash}\"")

@@ -1,12 +1,12 @@
 module doctree
 
-import freeflowuniverse.herolib.core.pathlib { Path }
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.doctree.collection { Collection }
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.core.pathlib { Path }
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.doctree.collection { Collection }
+import incubaid.herolib.develop.gittools
 import os
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 
 @[params]
 pub struct TreeScannerArgs {

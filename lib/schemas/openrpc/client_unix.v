@@ -3,8 +3,8 @@ module openrpc
 import x.json2 as json
 import net.unix
 import time
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.ui.console
+import incubaid.herolib.schemas.jsonrpc
 
 pub struct UNIXClient {
 pub mut:

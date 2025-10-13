@@ -1,6 +1,6 @@
 module bizmodel
 
-import freeflowuniverse.herolib.core.playbook { Action }
+import incubaid.herolib.core.playbook { Action }
 
 // !!hr.funding_define
 // - name: identifier for the funding entity

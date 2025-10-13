@@ -1,6 +1,6 @@
 module paramsparser
 
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.currency
 
 // TODO: fix if necessary
 // see currency object, gets it from params

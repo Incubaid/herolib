@@ -1,13 +1,11 @@
 # lima
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.virt.lima as lima_installer
+import incubaid.herolib.installers.virt.lima as lima_installer
 
 heroscript:="
 !!lima.install

@@ -1,9 +1,9 @@
 module pointer
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
-// import freeflowuniverse.herolib.core.pathlib
-// import freeflowuniverse.herolib.core.texttools
+// import incubaid.herolib.core.pathlib
+// import incubaid.herolib.core.texttools
 
 // fn test_pointerpath() {
 // 	p1 := pointerpath_new(path: '/tmp/A file.md') or { panic(err) }

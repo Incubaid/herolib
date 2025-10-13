@@ -1,9 +1,9 @@
 module generator
 
 import json
-import freeflowuniverse.herolib.develop.codetools as code { File, Function, Struct, VFile }
-import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
-import freeflowuniverse.herolib.schemas.openrpc.codegen { generate_client_file, generate_client_test_file }
+import incubaid.herolib.develop.codetools as code { File, Function, Struct, VFile }
+import incubaid.herolib.schemas.openrpc { OpenRPC }
+import incubaid.herolib.schemas.openrpc.codegen { generate_client_file, generate_client_test_file }
 
 pub fn generate_openrpc_file(spec OpenRPC) !File {
 	return File{

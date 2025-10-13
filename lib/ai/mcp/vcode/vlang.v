@@ -1,12 +1,12 @@
 module vcode
 
-// import freeflowuniverse.herolib.ai.mcp
-// import freeflowuniverse.herolib.ai.mcp.logger
+// import incubaid.herolib.ai.mcp
+// import incubaid.herolib.ai.mcp.logger
 import os
 import log
 
 fn get_module_dir(mod string) string {
-	module_parts := mod.trim_string_left('freeflowuniverse.herolib').split('.')
+	module_parts := mod.trim_string_left('incubaid.herolib').split('.')
 	return '${os.home_dir()}/code/github/incubaid/herolib/lib/${module_parts.join('/')}'
 }
 

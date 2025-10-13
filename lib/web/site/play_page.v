@@ -1,6 +1,6 @@
 module site
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.playbook { PlayBook }
 
 // plays the sections & pages
 fn play_pages(mut plbook PlayBook, mut site Site) ! {

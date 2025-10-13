@@ -1,6 +1,6 @@
 module data
 
-import freeflowuniverse.herolib.core.pathlib { Path }
+import incubaid.herolib.core.pathlib { Path }
 
 pub enum PageErrorCat {
 	unknown

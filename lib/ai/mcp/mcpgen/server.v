@@ -1,6 +1,6 @@
 module mcpgen
 
-import freeflowuniverse.herolib.ai.mcp
+import incubaid.herolib.ai.mcp
 
 @[heap]
 pub struct MCPGen {}

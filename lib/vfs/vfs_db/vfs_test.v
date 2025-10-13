@@ -1,9 +1,9 @@
 module vfs_db
 
 import os
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.data.ourdb
 import rand
-import freeflowuniverse.herolib.vfs as vfs_mod
+import incubaid.herolib.vfs as vfs_mod
 
 fn setup_vfs() !(&DatabaseVFS, string) {
 	test_data_dir := os.join_path(os.temp_dir(), 'vfsourdb_vfs_test_${rand.string(3)}')

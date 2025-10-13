@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.ai.mcp.vcode
+import incubaid.herolib.ai.mcp.vcode
 
 fn main() {
 	// Create a VCode instance

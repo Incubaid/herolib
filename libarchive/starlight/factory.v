@@ -1,7 +1,7 @@
 module starlight
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 @[heap]
 pub struct StarlightFactory {

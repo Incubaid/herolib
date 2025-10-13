@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v
 
-import freeflowuniverse.crystallib.core.playbook
+import incubaid.crystallib.core.playbook
 import geomind_poc
 
 fn main() {

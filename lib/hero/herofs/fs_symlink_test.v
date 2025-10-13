@@ -73,7 +73,7 @@ fn test_symlink_operations() ! {
 
 	// Test symlink deletion
 	fs_factory.fs_symlink.delete(file_symlink.id)!
-	
+
 	file_link_exists_after_delete := fs_factory.fs_symlink.exist(file_symlink.id)!
 	assert file_link_exists_after_delete == false
 

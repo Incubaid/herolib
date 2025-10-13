@@ -1,6 +1,6 @@
 # Git Tools Module
 
-## GitTools HeroScript 
+## GitTools HeroScript
 
 ### `!!git.define`
 
@@ -23,11 +23,11 @@ Clones a Git repository from a specified URL into the configured coderoot.
 
 ```heroscript
 !!git.clone
-	url: 'https://github.com/freeflowuniverse/test_repo.git'
+ url: 'https://github.com/incubaid/test_repo.git'
     pull: true // Optional: if true, pulls latest changes after cloning
     reset: false // Optional: if true, resets the repository before cloning/pulling
-	light: true // Optional: if true, clones only the last history (default: is from git structure as defined above)
-	recursive: false // Optional: if true, also clones submodules (default: false)
+ light: true // Optional: if true, clones only the last history (default: is from git structure as defined above)
+ recursive: false // Optional: if true, also clones submodules (default: false)
 ```
 
 ### `!!git.repo_action`
@@ -36,12 +36,12 @@ Performs various Git operations on an existing repository, the filter matches mo
 
 ```heroscript
 !!git.repo_action 
-    filter: 'freeflowuniverse/test_repo'
-	action: 'pull' // pull, commit, push, reset, branch_create, branch_switch, tag_create, tag_switch, delete
-	message: 'feat: Added new feature' // Optional: for 'commit' action
-	branchname: 'feature-branch' // Optional: for 'branch_create' or 'branch_switch' actions
-	tagname: 'v1.0.0' // Optional: for 'tag_create' or 'tag_switch' actions
-	submodules: true // Optional: for 'pull' action, if true, also updates submodules
+    filter: 'incubaid/test_repo'
+ action: 'pull' // pull, commit, push, reset, branch_create, branch_switch, tag_create, tag_switch, delete
+ message: 'feat: Added new feature' // Optional: for 'commit' action
+ branchname: 'feature-branch' // Optional: for 'branch_create' or 'branch_switch' actions
+ tagname: 'v1.0.0' // Optional: for 'tag_create' or 'tag_switch' actions
+ submodules: true // Optional: for 'pull' action, if true, also updates submodules
     error_ignore: false // Optional: if true, ignores errors during the action and continue for the next repo
 ```
 
@@ -49,15 +49,15 @@ Performs various Git operations on an existing repository, the filter matches mo
 
 - `filter` (string, **required**): A substring to filter repositories by name or relative path. This can match multiple repositories.
 - `action` (string, **required**): The Git operation to perform. Valid values:
-    -   `pull`: Pulls latest changes from the remote.
-    -   `commit`: Commits staged changes. Requires `message`.
-    -   `push`: Pushes local commits to the remote.
-    -   `reset`: Resets all local changes (hard reset).
-    -   `branch_create`: Creates a new branch. Requires `branchname`.
-    -   `branch_switch`: Switches to an existing branch. Requires `branchname`.
-    -   `tag_create`: Creates a new tag. Requires `tagname`.
-    -   `tag_switch`: Switches to an existing tag. Requires `tagname`.
-    -   `delete`: Deletes the local repository.
+  - `pull`: Pulls latest changes from the remote.
+  - `commit`: Commits staged changes. Requires `message`.
+  - `push`: Pushes local commits to the remote.
+  - `reset`: Resets all local changes (hard reset).
+  - `branch_create`: Creates a new branch. Requires `branchname`.
+  - `branch_switch`: Switches to an existing branch. Requires `branchname`.
+  - `tag_create`: Creates a new tag. Requires `tagname`.
+  - `tag_switch`: Switches to an existing tag. Requires `tagname`.
+  - `delete`: Deletes the local repository.
 
 ### `!!git.list`
 
@@ -65,17 +65,17 @@ Lists known Git repositories managed by the `gittools` module.
 
 ```heroscript
 !!git.list
-	filter: 'my_project' // Optional: filter by repository name or path
+ filter: 'my_project' // Optional: filter by repository name or path
     reload: true //if true then will check the status of those repo's against the remote's
 ```
 
-###  `!!git.reload`
+### `!!git.reload`
 
 Forces a reload of all Git repositories in the cache, re-scanning the `coderoot` and updating their statuses.
 
 ```heroscript
 !!git.reload
-	filter: 'my_project' // Optional: filter by repository name or path
+ filter: 'my_project' // Optional: filter by repository name or path
 ```
 
 ## Get a specific path starting from url
@@ -83,12 +83,12 @@ Forces a reload of all Git repositories in the cache, re-scanning the `coderoot`
 below is powerful command, will get the repo, put on right location, you can force a pull or even reset everything
 
 ```v
-import freeflowuniverse.herolib.develop.gittools
-// 	path      string
-// 	git_url   string
-// 	git_reset bool
-// 	git_root  string
-// 	git_pull  bool
+import incubaid.herolib.develop.gittools
+//  path      string
+//  git_url   string
+//  git_reset bool
+//  git_root  string
+//  git_pull  bool
 //  currentdir bool // can use currentdir, if true, will use current directory as base path if not giturl or path specified
 mydocs_path:=gittools.path(
     pull:true,
@@ -106,20 +106,20 @@ pub struct GitPathGetArgs {
 pub mut:
     someotherparams string // you can add other params here if you want
     //gittools will use these params to find the right path
-	path      string
-	git_url   string
-	git_reset bool
-	git_root  string
-	git_pull  bool
+ path      string
+ git_url   string
+ git_reset bool
+ git_root  string
+ git_pull  bool
 }
 pub fn something(args GitPathGetArgs) !string{
     mut path := gittools.path(path: args.path, git_url: args.git_url, git_reset: args.git_reset, git_root: args.git_root, git_pull: args.git_pull)!
-	if !path.is_dir() {
-		return error('path is not a directory')
-	}
-	if path.file_exists('.site') {
-		move_site_to_collection(mut path)!
-	}
+ if !path.is_dir() {
+  return error('path is not a directory')
+ }
+ if path.file_exists('.site') {
+  move_site_to_collection(mut path)!
+ }
     return path.path
 }
 
@@ -128,7 +128,7 @@ pub fn something(args GitPathGetArgs) !string{
 ### Repository Management
 
 ```v
-import freeflowuniverse.herolib.develop.gittools
+import incubaid.herolib.develop.gittools
 
 // Initialize with code root directory
 mut gs := gittools.new(coderoot: '~/code')!
@@ -256,19 +256,19 @@ pub mut:
 // GitStatus holds all live status information for a repository.
 pub struct GitStatus {
 pub mut:
-	// State from local and remote (`git fetch`)
-	branches map[string]string // branch name -> commit hash
-	tags     map[string]string // tag name -> commit hash
-	
-	// Current local state
-	branch   string // The current checked-out branch
-	tag      string // The current checked-out tag (if any)
-	ahead    int    // Commits ahead of remote
-	behind   int    // Commits behind remote
-	
-	// Overall status
-	has_changes bool   // True if there are uncommitted local changes
-	error       string // Error message if any status update fails
+ // State from local and remote (`git fetch`)
+ branches map[string]string // branch name -> commit hash
+ tags     map[string]string // tag name -> commit hash
+ 
+ // Current local state
+ branch   string // The current checked-out branch
+ tag      string // The current checked-out tag (if any)
+ ahead    int    // Commits ahead of remote
+ behind   int    // Commits behind remote
+ 
+ // Overall status
+ has_changes bool   // True if there are uncommitted local changes
+ error       string // Error message if any status update fails
 }
 ```
 

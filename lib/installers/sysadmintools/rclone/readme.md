@@ -1,14 +1,12 @@
 # rclone
 
-
-
 To get started
 
 ```v
 
 
 
-import freeflowuniverse.herolib.installers.something. rclone
+import incubaid.herolib.installers.something. rclone
 
 mut installer:= rclone.get()!
 
@@ -21,7 +19,6 @@ installer.start()!
 
 ## example heroscript
 
-
 ```hero
 !!rclone.install
     homedir: '/home/user/rclone'
@@ -32,5 +29,3 @@ installer.start()!
     port: 8888
 
 ```
-
-

@@ -43,10 +43,11 @@ Display the recorded timeline:
 
 ## Dependencies
 
-	•	Redis: Requires a Redis server for data storage.
-	•	Redis Client: Uses freeflowuniverse.herolib.core.redisclient.
+ • Redis: Requires a Redis server for data storage.
+ • Redis Client: Uses incubaid.herolib.core.redisclient.
 
 ## Example
+
 ```
 mut timer := performance.new('example_process')
 

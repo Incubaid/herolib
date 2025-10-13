@@ -7,7 +7,7 @@ The `Sheet` object is the central component of the spreadsheet module, providing
 A new sheet can be initialized using the `sheet_new` function.
 
 ```v
-import freeflowuniverse.herolib.biz.spreadsheet
+import incubaid.herolib.biz.spreadsheet
 
 // Create a new sheet named 'my_financial_sheet' with 60 columns
 mut my_sheet := spreadsheet.sheet_new(

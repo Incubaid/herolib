@@ -1,8 +1,8 @@
 module core
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
-// import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+// import incubaid.herolib.ui.console
 
 // will return temporary path which then can be executed, is a helper function for making script out of command
 pub fn cmd_to_script_path(cmd Command) !string {

@@ -1,6 +1,6 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // File represents a file in the virtual filesystem
 pub struct File {
