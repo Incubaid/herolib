@@ -52,7 +52,7 @@ jobs:
         id: setup
         run: |
           ./install_v.sh
-          ln -s $(pwd)/lib ~/.vmodules/freeflowuniverse/herolib
+          ln -s $(pwd)/lib ~/.vmodules/incubaid/herolib
           echo "Herolib symlink created to $(pwd)/lib"
         timeout-minutes: 10
 

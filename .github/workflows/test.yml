@@ -33,9 +33,9 @@ jobs:
       - name: Setup Herolib from current branch
         run: |
           # Create necessary directories
-          mkdir -p ~/.vmodules/freeflowuniverse
+          mkdir -p ~/.vmodules/incubaid
           # Create symlink to current code
-          ln -s $(pwd)/lib ~/.vmodules/freeflowuniverse/herolib
+          ln -s $(pwd)/lib ~/.vmodules/incubaid/herolib
           echo "Herolib symlink created to $(pwd)/lib"
 
       - name: Do all the basic tests
