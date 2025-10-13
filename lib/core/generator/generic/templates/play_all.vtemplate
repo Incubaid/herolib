@@ -1,0 +1,16 @@
+module playcmds
+
+@for item in meta_items
+import @{item.module_path}
+@end
+
+pub fn run_all(args_ PlayArgs) ! {
+    mut args := args_
+	// println('DEBUG: the args is: @@{args}')
+	mut plbook := args.plbook or {
+		playbook.new(text: args.heroscript, path: args.heroscript_path)!
+	}
+    @for item in meta_items
+    @{item.module_path.split(".").last()}.play(mut plbook)!
+    @end
+}

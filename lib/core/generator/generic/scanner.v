@@ -48,6 +48,5 @@ pub fn scan(args_ ScannerArgs) ! {
 		res << args_get(pparent.path)!
 	}
 	console.print_debug('Found ${res.len} generator args.')
-	println(res)
-	$dbg;
+	generate_play_all(res)!
 }
