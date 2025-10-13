@@ -1,8 +1,8 @@
 module ipapi
 
 import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import incubaid.herolib.core.httpconnection
-import os
 
 pub const version = '1.14.3'
 const singleton = false
@@ -11,7 +11,7 @@ const default = true
 // TODO: THIS IS EXAMPLE CODE AND NEEDS TO BE CHANGED IN LINE TO STRUCT BELOW, IS STRUCTURED AS HEROSCRIPT
 pub fn heroscript_default() !string {
 	heroscript := "
-    !!ipapi.configure 
+    !!ipapi.configure
         name:'default'
         "
 
@@ -24,7 +24,6 @@ pub fn heroscript_default() !string {
 pub struct IPApi {
 pub mut:
 	name string = 'default'
-
 	conn ?&httpconnection.HTTPConnection @[str: skip]
 }
 
@@ -39,6 +38,17 @@ fn cfg_play(p paramsparser.Params) ! {
 fn obj_init(obj_ IPApi) !IPApi {
 	// never call get here, only thing we can do here is work on object itself
 	mut obj := obj_
+	return obj
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj IPApi) !string {
+	return encoderhero.encode[IPApi](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !IPApi {
+	mut obj := encoderhero.decode[IPApi](heroscript)!
 	return obj
 }
 

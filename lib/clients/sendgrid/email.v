@@ -116,13 +116,12 @@ pub fn (mut e Email) add_content(content []Content) {
 }
 
 pub fn (mut e Email) add_headers(headers map[string]string) {
-	e.headers or {
+	if mut email_headers := e.headers {
+		for k, v in headers {
+			email_headers[k] = v
+		}
+	} else {
 		e.headers = headers.clone()
-		return
-	}
-
-	for k, v in headers {
-		e.headers[k] = v
 	}
 }
 

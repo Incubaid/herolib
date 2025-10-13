@@ -1,6 +1,7 @@
 module zerodb_client
 
 import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import os
 
 pub const version = '0.0.0'
@@ -24,5 +25,16 @@ fn obj_init(obj_ ZeroDBClient) !ZeroDBClient {
 	// never call get here, only thing we can do here is work on object itself
 	mut obj := obj_
 	panic('implement')
+	return obj
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj ZeroDBClient) !string {
+	return encoderhero.encode[ZeroDBClient](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !ZeroDBClient {
+	mut obj := encoderhero.decode[ZeroDBClient](heroscript)!
 	return obj
 }

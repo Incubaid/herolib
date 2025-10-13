@@ -1,6 +1,7 @@
 module wireguard
 
 import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 
 pub const version = '1.14.3'
 const singleton = false
@@ -34,5 +35,16 @@ fn cfg_play(p paramsparser.Params) ! {
 fn obj_init(obj_ WireGuard) !WireGuard {
 	// never call get here, only thing we can do here is work on object itself
 	mut obj := obj_
+	return obj
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj WireGuard) !string {
+	return encoderhero.encode[WireGuard](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !WireGuard {
+	mut obj := encoderhero.decode[WireGuard](heroscript)!
 	return obj
 }
