@@ -9,3 +9,4 @@
     build: true
     startupmanager: true
     supported_platforms: ""
+    active: false

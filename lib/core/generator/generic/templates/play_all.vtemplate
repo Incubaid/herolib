@@ -1,5 +1,7 @@
 module playcmds
 
+import incubaid.herolib.core.playbook 
+
 @for item in meta_items
 import @{item.module_path}
 @end

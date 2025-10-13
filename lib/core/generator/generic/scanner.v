@@ -19,8 +19,10 @@ pub fn scan(args_ ScannerArgs) ! {
 		args.path = os.getwd()
 	}
 
+	mut generateall := false
 	if args.path == '' {
 		args.path = '${os.home_dir()}/code/github/incubaid/herolib/lib'
+		generateall = true
 	}
 
 	// now walk over all directories, find .heroscript
@@ -32,9 +34,6 @@ pub fn scan(args_ ScannerArgs) ! {
 	)!
 
 	console.print_debug('Found ${plist.paths.len} directories with .heroscript file.')
-	if args.generate && args.path != '' {
-		return error('when scanning without generation then we always need to start from the root path, so no . or path provided.')
-	}
 	if args.generate {
 		console.print_debug('Now generating code for all found .heroscript files.')
 		for mut p in plist.paths {
@@ -45,8 +44,15 @@ pub fn scan(args_ ScannerArgs) ! {
 	mut res := []ModuleMeta{}
 	for mut p in plist.paths {
 		pparent := p.parent()!
-		res << args_get(pparent.path)!
+		mut t := args_get(pparent.path)!
+		if t.active {
+			res << t
+		} else {
+			console.print_debug('Skipping generation for ${t.name} as active is false.')
+		}
 	}
-	console.print_debug('Found ${res.len} generator args.')
-	generate_play_all(res)!
+	if generateall {
+		console.print_debug('Found ${res.len} generator args.')
+		generate_play_all(res)!
+	}
 }

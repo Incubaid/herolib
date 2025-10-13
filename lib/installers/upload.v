@@ -11,7 +11,7 @@ pub mut:
 	reset   bool
 }
 
-pub fn upload_(args_ UploadArgs) ! {
+pub fn upload(args_ UploadArgs) ! {
 	//_ := args_
 	panic('to implement')
 }

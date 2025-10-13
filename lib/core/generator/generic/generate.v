@@ -19,7 +19,7 @@ pub fn generate(args_ GenerateArgs) ! {
 	mut args := args_
 
 	console.print_header('Generate code for path: ${args.path} (reset:${args.reset}, force:${args.force})')
-	console.print_debug(args)
+
 	if args.path == '' {
 		return error('no path provided')
 	}

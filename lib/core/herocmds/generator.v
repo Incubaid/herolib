@@ -32,6 +32,7 @@ pub fn cmd_generator(mut cmdroot Command) {
 		flag:        .bool
 		required:    false
 		name:        'generate'
+		abbrev:      'g'
 		description: 'generate the code only relevant for scanning.'
 	})
 

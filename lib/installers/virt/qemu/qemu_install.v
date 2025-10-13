@@ -14,7 +14,7 @@ pub mut:
 	uninstall bool
 }
 
-pub fn install_(args_ InstallArgs) ! {
+pub fn install(args_ InstallArgs) ! {
 	mut args := args_
 	mut version := '10.0.0'
 

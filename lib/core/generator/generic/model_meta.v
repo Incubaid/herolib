@@ -21,6 +21,7 @@ pub mut:
 	hasconfig           bool = true
 	play_name           string // e.g. docusaurus is what we look for
 	module_path         string // e.g.incubaid.herolib.web.docusaurus
+	active              bool = true // if false then we skip generation
 }
 
 pub enum Cat {
@@ -29,8 +30,6 @@ pub enum Cat {
 }
 
 fn args_get(path string) !ModuleMeta {
-	console.print_debug('generate code for path: ${path}')
-
 	mut config_path := pathlib.get_file(path: '${path}/.heroscript', create: false)!
 
 	if !config_path.exists() {
@@ -74,6 +73,7 @@ fn args_get(path string) !ModuleMeta {
 			startupmanager:      p.get_default_true('startupmanager')
 			hasconfig:           p.get_default_true('hasconfig')
 			build:               p.get_default_false('build')
+			active:              p.get_default_true('active')
 			cat:                 .installer
 			path:                path
 		}
@@ -93,6 +93,7 @@ fn args_get(path string) !ModuleMeta {
 			title:     p.get_default('title', '')!
 			default:   p.get_default_true('default')
 			singleton: p.get_default_false('singleton')
+			active:    p.get_default_true('active')
 			cat:       .client
 			path:      path
 			play_name: p.get_default('play_name', name)!

@@ -3,12 +3,13 @@ module cloudhypervisor
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 import incubaid.herolib.core.texttools
+import incubaid.herolib.core
 // import incubaid.herolib.core.pathlib
 import incubaid.herolib.installers.ulist
 // import incubaid.herolib.installers.lang.rust
 import os
 
-fn installed_() !bool {
+fn installed() !bool {
 	res := os.execute('${osal.profile_path_source_and()!} cloud-hypervisor --version')
 	if res.exit_code == 0 {
 		r := res.output.split_into_lines().filter(it.contains('cloud-hypervisor'))
@@ -27,7 +28,7 @@ fn installed_() !bool {
 	return true
 }
 
-fn install_() ! {
+fn install() ! {
 	console.print_header('install cloudhypervisor')
 	// mut installer := get()!
 	mut url := ''
@@ -59,7 +60,7 @@ fn install_() ! {
 	)!
 }
 
-fn build_() ! {
+fn build() ! {
 }
 
 // get the Upload List of the files
@@ -70,7 +71,7 @@ fn ulist_get() !ulist.UList {
 }
 
 // uploads to S3 server if configured
-fn upload_() ! {
+fn upload() ! {
 	// mut installer := get()!
 	// installers.upload(
 	//     cmdname: 'cloudhypervisor'
@@ -78,7 +79,7 @@ fn upload_() ! {
 	// )!
 }
 
-fn destroy_() ! {
+fn destroy() ! {
 	osal.process_kill_recursive(name: 'cloud-hypervisor')!
 
 	osal.package_remove('

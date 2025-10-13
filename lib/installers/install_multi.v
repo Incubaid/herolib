@@ -129,7 +129,7 @@ pub fn install_multi(args_ InstallArgs) ! {
 			// 	fungistor.install(reset: args.reset)!
 			// }
 			// 'lima' {
-			// 	lima.install_(reset: args.reset, uninstall: args.uninstall)!
+			// 	lima.install(reset: args.reset, uninstall: args.uninstall)!
 			// }
 			// 'herocontainers' {
 			// 	mut podman_installer0 := podman_installer.get()!
