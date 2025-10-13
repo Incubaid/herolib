@@ -2,6 +2,7 @@ module encoderhero
 
 import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.ourtime
+import incubaid.herolib.core.texttools
 import v.reflection
 
 // Encoder encodes a struct into HEROSCRIPT representation.
@@ -42,10 +43,10 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 	mut mytype := reflection.type_of[T](t)
 	struct_attrs := attrs_get_reflection(mytype)
 
-	mut action_name := T.name.all_after_last('.').to_lower()
-	
+	mut action_name := texttools.snake_case(T.name.all_after_last('.'))
+
 	if 'alias' in struct_attrs {
-		action_name = struct_attrs['alias'].to_lower()
+		action_name = texttools.snake_case(struct_attrs['alias'])
 	}
 	e.action_names << action_name.to_lower()
 
@@ -57,7 +58,7 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 	$for field in T.fields {
 		if !should_skip_field(field.attrs) {
 			val := t.$(field.name)
-			
+
 			// Check for unsupported nested structs (non-embedded, non-time)
 			$if val is $struct {
 				$if val !is ourtime.OurTime {
@@ -81,11 +82,8 @@ pub fn (mut e Encoder) encode_struct[T](t T) ! {
 fn should_skip_field(attrs []string) bool {
 	for attr in attrs {
 		attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
-		if attr_clean == 'skip' 
-			|| attr_clean.starts_with('skip;')
-			|| attr_clean.ends_with(';skip')
-			|| attr_clean.contains(';skip;')
-			{
+		if attr_clean == 'skip' || attr_clean.starts_with('skip;') || attr_clean.ends_with(';skip')
+			|| attr_clean.contains(';skip;') {
 			return true
 		}
 	}

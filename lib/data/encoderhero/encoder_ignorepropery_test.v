@@ -32,13 +32,13 @@ fn test_encode_skip() ! {
 
 fn test_encode_skip_multiple_attrs() ! {
 	struct SkipTest {
-		id     int
-		name   string
-		skip1  string @[skip]
-		skip2  int    @[skip; other]
-		skip3  bool   @[skipdecode]
+		id    int
+		name  string
+		skip1 string @[skip]
+		skip2 int    @[other; skip]
+		skip3 bool   @[skipdecode]
 	}
-	
+
 	obj := SkipTest{
 		id:    1
 		name:  'test'
@@ -46,9 +46,9 @@ fn test_encode_skip_multiple_attrs() ! {
 		skip2: 999
 		skip3: true
 	}
-	
+
 	script := encode[SkipTest](obj)!
-	
+
 	assert script.contains('id:1')
 	assert script.contains('name:test')
 	assert !script.contains('skip1')

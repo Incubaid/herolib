@@ -7,12 +7,14 @@ HeroEncoder provides bidirectional conversion between V structs and HeroScript f
 This module is designed for **simple, flat structs** only:
 
 ✅ **Supported:**
+
 - Basic types: `int`, `string`, `bool`, `f32`, `f64`, `u8`, `u16`, `u32`, `u64`, `i8`, `i16`, `i32`, `i64`
 - Arrays of basic types: `[]string`, `[]int`, etc.
 - Time handling: `ourtime.OurTime`
 - Embedded structs (for inheritance)
 
 ❌ **Not Supported:**
+
 - Nested structs (non-embedded fields)
 - Arrays of structs
 - Complex nested structures
@@ -222,11 +224,13 @@ encoded := encoderhero.encode[MyStruct](my_struct)!
 ## Limitations
 
 **For Complex Data Structures, Use:**
+
 - `incubaid.herolib.data.ourdb` - For nested data storage
 - V's built-in `json` module - For JSON serialization
 - Custom serialization - For specific needs
 
 **This module is optimized for:**
+
 - Configuration files
 - Simple data exchange
 - Flat data structures

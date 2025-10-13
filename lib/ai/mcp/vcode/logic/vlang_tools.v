@@ -1,7 +1,7 @@
 module vcode
 
 import incubaid.herolib.ai.mcp
-import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.core.code
 import incubaid.herolib.schemas.jsonschema
 import x.json2 { Any }
 
