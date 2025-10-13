@@ -104,10 +104,3 @@ fn main() {
 		exit(1)
 	}
 }
-<<<<<<< HEAD
-
-// fn pre_func(cmd Command) ! {
-// 	herocmds.plbook_run(cmd)!
-// }
-=======
->>>>>>> f34ca98623427e7418c770c2d26da66358770bc8
