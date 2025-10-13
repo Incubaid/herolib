@@ -4,7 +4,7 @@ import incubaid.herolib.installers.base
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
-import incubaid.herolib.installers.infra.zinit
+import incubaid.herolib.clients.zinit
 import incubaid.herolib.osal.startupmanager as zinitmgmt
 import incubaid.herolib.ui.console
 import incubaid.herolib.osal.screen
