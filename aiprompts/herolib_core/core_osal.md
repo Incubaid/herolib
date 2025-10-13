@@ -1,5 +1,8 @@
 # OSAL Core Module - Key Capabilities (incubaid.herolib.osal.core)
 
+> **Note:** Platform detection functions (`platform()` and `cputype()`) have moved to `incubaid.herolib.core`.
+> Use `import incubaid.herolib.core` and call `core.platform()!` and `core.cputype()!` instead.
+
 ```v
 //example how to get started
 
@@ -68,8 +71,8 @@ This document describes the core functionalities of the Operating System Abstrac
 * **`osal.process_kill_recursive(args: ProcessKillArgs) !`**: Kill a process and its children.
   * **Key Parameters**: `name` (string), `pid` (int).
 * **`osal.whoami() !string`**: Return the current username.
-* **`osal.platform() !PlatformType`**: Identify the operating system.
-* **`osal.cputype() !CPUType`**: Identify the CPU architecture.
+* ~~**`osal.platform() !PlatformType`**: Identify the operating system.~~  → **Moved to `incubaid.herolib.core`**
+* ~~**`osal.cputype() !CPUType`**: Identify the CPU architecture.~~  → **Moved to `incubaid.herolib.core`**
 * **`osal.hostname() !string`**: Get system hostname.
 * **`osal.sleep(duration int)`**: Pause execution for a specified duration.
 * **`osal.download(args: DownloadArgs) !pathlib.Path`**: Download a file from a URL.

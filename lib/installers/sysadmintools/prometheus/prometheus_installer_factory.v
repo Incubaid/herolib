@@ -27,7 +27,7 @@ import time
 // 	// port       int = 8888
 // }
 
-// pub fn install_(args_ InstallArgs) ! {
+// pub fn install(args_ InstallArgs) ! {
 // 	install_prometheus(args_)!
 // 	install_alertmanager(args_)!
 // 	install_node_exporter(args_)!

@@ -38,6 +38,10 @@ fn do() ! {
 
 	if os.args.len == 2 {
 		mypath := os.args[1]
+		if mypath == '.' {
+			playcmds_do(os.getwd())!
+			return
+		}
 		if mypath.to_lower().ends_with('.hero') || mypath.to_lower().ends_with('.heroscript')
 			|| mypath.to_lower().ends_with('.hs') {
 			// hero was called from a file
@@ -82,7 +86,6 @@ fn do() ! {
 
 	base.redis_install()!
 
-	herocmds.cmd_run(mut cmd)
 	herocmds.cmd_git(mut cmd)
 	herocmds.cmd_generator(mut cmd)
 	herocmds.cmd_docusaurus(mut cmd)
@@ -101,7 +104,10 @@ fn main() {
 		exit(1)
 	}
 }
+<<<<<<< HEAD
 
 // fn pre_func(cmd Command) ! {
 // 	herocmds.plbook_run(cmd)!
 // }
+=======
+>>>>>>> f34ca98623427e7418c770c2d26da66358770bc8

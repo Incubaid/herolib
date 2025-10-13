@@ -15,7 +15,7 @@ pub mut:
 	uninstall bool
 }
 
-pub fn install_(args_ InstallArgs) ! {
+pub fn install(args_ InstallArgs) ! {
 	mut args := args_
 	version := '0.14.0'
 
@@ -35,11 +35,11 @@ pub fn install_(args_ InstallArgs) ! {
 
 	if args.reset {
 		console.print_header('install tfrobot')
-		build_()!
+		build()!
 	}
 }
 
-pub fn build_() ! {
+pub fn build() ! {
 	mut g := golang.get()!
 	g.install()!
 	console.print_header('build tfrobot')

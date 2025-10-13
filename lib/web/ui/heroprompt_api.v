@@ -79,31 +79,31 @@ pub fn (app &App) api_heroprompt_list(mut ctx Context) veb.Result {
 	return ctx.text(json.encode(names))
 }
 
-@['/api/heroprompt/workspaces'; post]
-pub fn (app &App) api_heroprompt_create(mut ctx Context) veb.Result {
-	name_input := ctx.form['name'] or { '' }
-	base_path_in := ctx.form['base_path'] or { '' }
-	if base_path_in.len == 0 {
-		return ctx.text(json_error('base_path required'))
-	}
+// @['/api/heroprompt/workspaces'; post]
+// pub fn (app &App) api_heroprompt_create(mut ctx Context) veb.Result {
+// 	name_input := ctx.form['name'] or { '' }
+// 	base_path_in := ctx.form['base_path'] or { '' }
+// 	if base_path_in.len == 0 {
+// 		return ctx.text(json_error('base_path required'))
+// 	}
 
-	base_path := expand_home_path(base_path_in)
+// 	base_path := expand_home_path(base_path_in)
 
-	// If no name provided, generate a random name
-	mut name := name_input.trim(' \t\n\r')
-	if name.len == 0 {
-		name = hp.generate_random_workspace_name()
-	}
+// 	// If no name provided, generate a random name
+// 	mut name := name_input.trim(' \t\n\r')
+// 	if name.len == 0 {
+// 		name = hp.generate_random_workspace_name()
+// 	}
 
-	wsp := hp.get(name: name, create: true, path: base_path) or {
-		return ctx.text(json_error('create failed'))
-	}
-	ctx.set_content_type('application/json')
-	return ctx.text(json.encode({
-		'name':      wsp.name
-		'base_path': wsp.base_path
-	}))
-}
+// 	wsp := hp.get(name: name, create: true, path: base_path) or {
+// 		return ctx.text(json_error('create failed'))
+// 	}
+// 	ctx.set_content_type('application/json')
+// 	return ctx.text(json.encode({
+// 		'name':      wsp.name
+// 		'base_path': wsp.base_path
+// 	}))
+// }
 
 @['/api/heroprompt/workspaces/:name'; get]
 pub fn (app &App) api_heroprompt_get(mut ctx Context, name string) veb.Result {

@@ -126,7 +126,7 @@ fn build() ! {
 	// url := 'https://github.com/threefoldtech/cometbft'
 
 	// make sure we install base on the node
-	// if osal.platform() != .ubuntu {
+	// if core.platform() != .ubuntu {
 	//     return error('only support ubuntu for now')
 	// }
 	// golang.install()!

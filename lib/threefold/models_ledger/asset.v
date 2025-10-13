@@ -145,65 +145,65 @@ pub fn (mut self DBAsset) get(id u32) !Asset {
 @[params]
 pub struct AssetListArg {
 pub mut:
-	filter       string
-	asset_type   string
-	is_frozen    bool = false
+	filter        string
+	asset_type    string
+	is_frozen     bool = false
 	filter_frozen bool = false
-	issuer       u32
+	issuer        u32
 	filter_issuer bool = false
-	limit        int = 20
-	offset       int = 0
+	limit         int  = 20
+	offset        int  = 0
 }
 
 pub fn (mut self DBAsset) list(args AssetListArg) ![]Asset {
 	mut all_assets := self.db.list[Asset]()!.map(self.get(it)!)
 	mut filtered_assets := []Asset{}
-	
+
 	for asset in all_assets {
 		// Filter by text in name or description
-		if args.filter != '' && !asset.name.contains(args.filter) && 
-		   !asset.description.contains(args.filter) && !asset.address.contains(args.filter) {
+		if args.filter != '' && !asset.name.contains(args.filter)
+			&& !asset.description.contains(args.filter) && !asset.address.contains(args.filter) {
 			continue
 		}
-		
+
 		// Filter by asset_type
 		if args.asset_type != '' && asset.asset_type != args.asset_type {
 			continue
 		}
-		
+
 		// Filter by is_frozen
 		if args.filter_frozen && asset.is_frozen != args.is_frozen {
 			continue
 		}
-		
+
 		// Filter by issuer
 		if args.filter_issuer && asset.issuer != args.issuer {
 			continue
 		}
-		
+
 		filtered_assets << asset
 	}
-	
+
 	// Apply pagination
 	mut start := args.offset
 	if start >= filtered_assets.len {
 		start = 0
 	}
-	
+
 	mut limit := args.limit
 	if limit > 100 {
 		limit = 100
 	}
-	
+
 	if start + limit > filtered_assets.len {
 		limit = filtered_assets.len - start
 	}
-	
+
 	if limit <= 0 {
 		return []Asset{}
 	}
-	
-	return if filtered_assets.len > 0 { filtered_assets[start..start+limit] } else { []Asset{} }
+
+	return if filtered_assets.len > 0 { filtered_assets[start..start + limit] } else { []Asset{} }
 }
 
 pub fn (mut self DBAsset) list_all() ![]Asset {
@@ -250,8 +250,8 @@ pub fn asset_handle(mut f ModelsFactory, rpcid int, servercontext map[string]str
 		}
 		else {
 			return new_error(
-				rpcid: rpcid
-				code: 32601
+				rpcid:   rpcid
+				code:    32601
 				message: 'Method ${method} not found on asset'
 			)
 		}

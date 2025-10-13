@@ -42,37 +42,20 @@ fn addtoscript(tofind string, toadd string) ! {
 	os.write_file(rc_file, new_content)!
 }
 
-abs_dir_of_script := dir(@FILE)
-
-println('Script directory: ${abs_dir_of_script}')
-
-// Determine the organization name from the current path
-// This makes the script work with any organization (incubaid, etc.)
-path_parts := abs_dir_of_script.split('/')
-mut org_name := 'incubaid' // default fallback
-for i, part in path_parts {
-	if part == 'github' && i + 1 < path_parts.len {
-		org_name = path_parts[i + 1]
-		break
-	}
-}
-
-println('Detected organization: ${org_name}')
-println('Will create symlink: ${os.home_dir()}/.vmodules/${org_name}/herolib -> ${abs_dir_of_script}/lib')
-
 // Reset symlinks (cleanup)
 println('Resetting all symlinks...')
 os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
-os.rm('${os.home_dir()}/.vmodules/${org_name}/herolib') or {}
+os.rm('${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {}
 
 // Create necessary directories
-os.mkdir_all('${os.home_dir()}/.vmodules/${org_name}') or {
-	panic('Failed to create directory ~/.vmodules/${org_name}: ${err}')
+os.mkdir_all('${os.home_dir()}/.vmodules/incubaid') or {
+	panic('Failed to create directory ~/.vmodules/incubaid: ${err}')
 }
 
 // Create new symlinks
+abs_dir_of_script := os.dir(@FILE)
 symlink_target := '${abs_dir_of_script}/lib'
-symlink_path := '${os.home_dir()}/.vmodules/${org_name}/herolib'
+symlink_path := '${os.home_dir()}/.vmodules/incubaid/herolib'
 
 os.symlink(symlink_target, symlink_path) or { panic('Failed to create herolib symlink: ${err}') }
 

@@ -92,16 +92,23 @@ pub fn cmd_git(mut cmdroot Command) {
 		description: 'Get the path to a git repository. Use with cd $(hero git path <url>)'
 	}
 
-	cmd_path.add_flag(Flag{
-		flag:        .string
-		required:    false
-		name:        'url'
-		abbrev:      'u'
-		description: 'url for git path operation, so we know which repo path to get'
-	})
+	mut cmd_check := Command{
+		sort_flags:  true
+		name:        'check'
+		execute:     cmd_git_execute
+		description: 'Check if a git repository is properly configured.'
+	}
+
+	mut cmd_lfs := Command{
+		sort_flags:  true
+		name:        'lfs'
+		execute:     cmd_git_execute
+		description: 'Make sure git repo has lfs enabled and system is ready to support lfs.'
+	}
 
 	mut allcmdsref := [&list_command, &clone_command, &push_command, &pull_command, &commit_command,
-		&reload_command, &delete_command, &sourcetree_command, &editor_command, &exists_command]
+		&reload_command, &delete_command, &sourcetree_command, &editor_command, &exists_command,
+		&cmd_check, &cmd_lfs]
 
 	for mut c in allcmdsref {
 		c.add_flag(Flag{
@@ -141,7 +148,8 @@ pub fn cmd_git(mut cmdroot Command) {
 		})
 	}
 
-	mut urlcmds := [&clone_command, &pull_command, &push_command, &editor_command, &sourcetree_command]
+	mut urlcmds := [&clone_command, &pull_command, &push_command, &editor_command, &sourcetree_command,
+		&cmd_check, &cmd_lfs]
 	for mut c in urlcmds {
 		c.add_flag(Flag{
 			flag:        .bool

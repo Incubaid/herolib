@@ -36,6 +36,7 @@ pub fn get(args ArgsGet) !&WireGuard {
 		if r.hexists('context:wireguard', args.name)! {
 			data := r.hget('context:wireguard', args.name)!
 			if data.len == 0 {
+				print_backtrace()
 				return error('WireGuard with name: wireguard does not exist, prob bug.')
 			}
 			mut obj := json.decode(WireGuard, data)!
@@ -44,12 +45,14 @@ pub fn get(args ArgsGet) !&WireGuard {
 			if args.create {
 				new(args)!
 			} else {
+				print_backtrace()
 				return error("WireGuard with name 'wireguard' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return wireguard_global[args.name] or {
+		print_backtrace()
 		return error('could not get config for wireguard with name:wireguard')
 	}
 }
@@ -122,10 +125,11 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'wireguard.configure')!
 	if install_actions.len > 0 {
-		for install_action in install_actions {
+		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
+			install_action.done = true
 		}
 	}
 }

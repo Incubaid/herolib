@@ -17,7 +17,7 @@ pub mut:
 	reset     bool // means reinstall
 }
 
-fn install_(args InstallArgs) ! {
+fn install0(args InstallArgs) ! {
 	// install herolib if it was already done will return true
 	console.print_header('install herolib (reset: ${args.reset})')
 	// osal.package_refresh()!
@@ -96,7 +96,7 @@ pub fn compile(args InstallArgs) ! {
 		return
 	}
 	console.print_header('compile hero')
-	install_(args)!
+	install(args)!
 
 	cmd := "
 		cd /tmp

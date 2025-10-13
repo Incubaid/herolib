@@ -6,7 +6,7 @@ import incubaid.herolib.core.texttools
 import incubaid.herolib.core
 import incubaid.herolib.osal.startupmanager
 import incubaid.herolib.installers.ulist
-import incubaid.herolib.libarchive.zinit as zinit_lib
+// import incubaid.herolib.libarchive.zinit as zinit_lib
 import incubaid.herolib.core.httpconnection
 import os
 import json

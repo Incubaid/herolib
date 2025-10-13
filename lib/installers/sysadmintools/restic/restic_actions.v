@@ -27,7 +27,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	return res
 }
 
-fn running_() !bool {
+fn running() !bool {
 	mut installer := get()!
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// this checks health of restic
@@ -64,7 +64,7 @@ fn stop_post() ! {
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
-fn installed_() !bool {
+fn installed() !bool {
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// res := os.execute('${osal.profile_path_source_and()!} restic version')
 	// if res.exit_code != 0 {
@@ -87,14 +87,14 @@ fn ulist_get() !ulist.UList {
 }
 
 // uploads to S3 server if configured
-fn upload_() ! {
+fn upload() ! {
 	// installers.upload(
 	//     cmdname: 'restic'
 	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/restic'
 	// )!
 }
 
-fn install_() ! {
+fn install() ! {
 	console.print_header('install restic')
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// mut url := ''
@@ -125,7 +125,7 @@ fn install_() ! {
 	// )!
 }
 
-fn build_() ! {
+fn build() ! {
 	// url := 'https://github.com/threefoldtech/restic'
 
 	// make sure we install base on the node
@@ -154,7 +154,7 @@ fn build_() ! {
 	// )!
 }
 
-fn destroy_() ! {
+fn destroy() ! {
 	// mut systemdfactory := systemd.new()!
 	// systemdfactory.destroy("zinit")!
 

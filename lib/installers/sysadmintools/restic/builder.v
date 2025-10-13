@@ -16,7 +16,7 @@ pub mut:
 }
 
 // install restic will return true if it was already installed
-pub fn build_(args BuildArgs) ! {
+pub fn build(args BuildArgs) ! {
 	// make sure we install base on the node
 	if core.platform() != .ubuntu {
 		return error('only support ubuntu for now')

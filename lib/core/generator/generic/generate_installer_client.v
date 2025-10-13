@@ -8,12 +8,8 @@ fn generate_exec(path string, reset bool) ! {
 	mut args := args_get(path)!
 	console.print_debug('generate code for path: ${path}')
 
-	if reset {
-		args.reset = true
-	}
-
 	mut path_actions := pathlib.get(args.path + '/${args.name}_actions.v')
-	if args.reset {
+	if reset {
 		path_actions.delete()!
 	}
 	if !path_actions.exists() && args.cat == .installer {
@@ -27,7 +23,7 @@ fn generate_exec(path string, reset bool) ! {
 	pathlib.template_write(templ_2, '${args.path}/${args.name}_factory_.v', true)!
 
 	mut path_model := pathlib.get(args.path + '/${args.name}_model.v')
-	if args.reset || !path_model.exists() {
+	if reset || !path_model.exists() {
 		console.print_debug('write model.')
 		mut templ_3 := $tmpl('templates/objname_model.vtemplate')
 		pathlib.template_write(templ_3, '${args.path}/${args.name}_model.v', true)!
@@ -35,13 +31,13 @@ fn generate_exec(path string, reset bool) ! {
 
 	// TODO: check case sensistivity for delete
 	mut path_readme := pathlib.get(args.path + '/readme.md')
-	if args.reset || !path_readme.exists() {
+	if reset || !path_readme.exists() {
 		mut templ_readme := $tmpl('templates/readme.md')
 		pathlib.template_write(templ_readme, '${args.path}/readme.md', true)!
 	}
 
 	mut path_templ_dir := pathlib.get_dir(path: args.path + '/templates', create: false)!
-	if args.reset {
+	if reset {
 		path_templ_dir.delete()!
 	}
 
@@ -55,7 +51,7 @@ fn generate_exec(path string, reset bool) ! {
 	osal.execute_silent('v fmt -w ${args.path}')!
 }
 
-fn platform_check(args GeneratorArgs) ! {
+fn platform_check(args ModuleMeta) ! {
 	ok := 'osx,ubuntu,arch'
 	ok2 := ok.split(',')
 	for i in args.supported_platforms {
@@ -65,7 +61,7 @@ fn platform_check(args GeneratorArgs) ! {
 	}
 }
 
-pub fn (args GeneratorArgs) platform_check_str() string {
+pub fn (args ModuleMeta) platform_check_str() string {
 	mut out := ''
 
 	if 'osx' in args.supported_platforms {

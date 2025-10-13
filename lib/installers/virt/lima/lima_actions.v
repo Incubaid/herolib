@@ -89,7 +89,7 @@ fn upload() ! {
 
 fn install() ! {
 	console.print_header('install lima')
-	qemu.install_()!
+	qemu.install()!
 	mut url := ''
 	mut url2 := ''
 	mut dest_on_os := '${os.home_dir()}/hero'
