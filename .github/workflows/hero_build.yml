@@ -71,6 +71,7 @@ jobs:
         run: |
           set -e
           if [ "${{ runner.os }}" = "Linux" ]; then
+            sudo apt-get install libpq-dev
             # Build for glibc
             v -w -d use_openssl -enable-globals -cc gcc cli/hero.v -o cli/hero-${{ matrix.target }}
 
