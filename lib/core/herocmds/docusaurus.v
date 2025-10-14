@@ -9,7 +9,7 @@ import cli { Command, Flag }
 
 pub fn cmd_docusaurus(mut cmdroot Command) Command {
 	mut cmd_run := Command{
-		name:          'docusaurus'
+		name:          'docs'
 		description:   'Generate, build, run docusaurus sites.'
 		required_args: 0
 		execute:       cmd_docusaurus_execute

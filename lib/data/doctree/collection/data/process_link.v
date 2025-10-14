@@ -39,12 +39,24 @@ pub fn (page Page) process_links(paths map[string]string) ![]string {
 
 			// Try to get Docusaurus-specific path from Redis
 			if docusaurus_path := redis.hget('doctree_docusaurus_paths', ptr.str()) {
-				// Use Docusaurus path (already without .md extension)
-				// Ensure it starts with / for absolute path
-				if docusaurus_path.starts_with('/') {
-					path = docusaurus_path
+				// Only use the Docusaurus path if it's not empty
+				if docusaurus_path.trim_space() != '' {
+					// Use Docusaurus path (already without .md extension)
+					// Ensure it starts with / for absolute path
+					if docusaurus_path.starts_with('/') {
+						path = docusaurus_path
+					} else {
+						path = '/' + docusaurus_path
+					}
 				} else {
-					path = '/' + docusaurus_path
+					// Empty Docusaurus path, fall back to default behavior
+					// Fall back to default behavior: relative paths with .md
+					if ptr.collection == page.collection_name {
+						// same directory
+						path = './' + path.all_after_first('/')
+					} else {
+						path = '../${path}'
+					}
 				}
 			} else {
 				// Fall back to default behavior: relative paths with .md
