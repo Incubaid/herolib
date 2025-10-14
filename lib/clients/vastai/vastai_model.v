@@ -1,6 +1,7 @@
 module vastai
 
 import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import incubaid.herolib.core.httpconnection
 import os
 
@@ -56,4 +57,15 @@ fn (mut v VastAI) httpclient() !&httpconnection.HTTPConnection {
 	http_conn.default_header.add(.accept, 'application/json')
 
 	return http_conn
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj VastAI) !string {
+	return encoderhero.encode[VastAI](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !VastAI {
+	mut obj := encoderhero.decode[VastAI](heroscript)!
+	return obj
 }

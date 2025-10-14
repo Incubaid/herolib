@@ -1,6 +1,7 @@
 module runpod
 
 import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import os
 
 pub const version = '1.14.3'
@@ -39,5 +40,16 @@ fn cfg_play(p paramsparser.Params) ! {
 fn obj_init(obj_ RunPod) !RunPod {
 	// never call get here, only thing we can do here is work on object itself
 	mut obj := obj_
+	return obj
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj RunPod) !string {
+	return encoderhero.encode[RunPod](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !RunPod {
+	mut obj := encoderhero.decode[RunPod](heroscript)!
 	return obj
 }

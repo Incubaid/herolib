@@ -8,13 +8,6 @@ import os
 // 	name string // name of the remote
 // }
 
-// new creates a new RCloneClient instance
-pub fn new(name string) !RCloneClient {
-	return RCloneClient{
-		name: name
-	}
-}
-
 // mount mounts a remote at the specified path
 pub fn (mut r RCloneClient) mount(remote_path string, local_path string) ! {
 	if !os.exists(local_path) {

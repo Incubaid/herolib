@@ -1,7 +1,6 @@
 module bun
 
-import incubaid.herolib.data.paramsparser
-import os
+import incubaid.herolib.data.encoderhero
 
 pub const version = '1.2.3'
 const singleton = true
@@ -23,4 +22,15 @@ fn obj_init(obj_ Bun) !Bun {
 // called before start if done
 fn configure() ! {
 	// mut installer := get()!
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj Bun) !string {
+	return encoderhero.encode[Bun](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !Bun {
+	mut obj := encoderhero.decode[Bun](heroscript)!
+	return obj
 }

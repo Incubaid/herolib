@@ -34,6 +34,12 @@ fn ulist_get() !ulist.UList {
 // uploads to S3 server if configured
 fn upload() ! {}
 
+fn build() ! {
+	// griddriver is distributed as a binary, no build needed
+	// just call install
+	install()!
+}
+
 fn install() ! {
 	console.print_header('installing griddriver')
 	mut url := ''
