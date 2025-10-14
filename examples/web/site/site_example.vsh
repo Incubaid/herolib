@@ -10,7 +10,7 @@ url := 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech'
 
 mysitepath := gittools.path(
 	git_url: url
-	git_pull: true
+	// git_pull: true
 	// git_reset: true  // Uncomment to reset to latest
 )!
 

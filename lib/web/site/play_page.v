@@ -8,19 +8,20 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 	// mut siteconfig := &site.siteconfig
 
 	// if only 1 doctree is specified, then we use that as the default doctree name
-	mut doctreename := 'main'
-	if plbook.exists(filter: 'site.doctree') {
-		if plbook.exists_once(filter: 'site.doctree') {
-			mut action := plbook.get(filter: 'site.doctree')!
-			mut p := action.params
-			doctreename = p.get('name') or { return error('need to specify name in site.doctree') }
-		} else {
-			return error("can't have more than one site.doctree")
-		}
-	}
+	// mut doctreename := 'main' // Not used for now, keep commented for future doctree integration
+	// if plbook.exists(filter: 'site.doctree') {
+	// 	if plbook.exists_once(filter: 'site.doctree') {
+	// 		mut action := plbook.get(filter: 'site.doctree')!
+	// 		mut p := action.params
+	// 		doctreename = p.get('name') or { return error('need to specify name in site.doctree') }
+	// 	} else {
+	// 		return error("can't have more than one site.doctree")
+	// 	}
+	// }
 
 	mut section_current := Section{} // is the category
 	mut position_section := 1
+	mut position_category := 100 // Start categories at position 100
 	mut collection_current := '' // current collection we are working on
 
 	mut all_actions := plbook.find(filter: 'site.')!
@@ -35,13 +36,14 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 		if action.name == 'page_category' {
 			mut section := Section{}
 			section.name = p.get('name') or {
-				return error('need to specify name in site.page_category.\n${action}')
+				return error('need to specify name in site.page_category. Action: ${action}')
 			}
 			position_section = 1 // go back to default position for pages in the category
-			section.position = p.get_int_default('position', section_current.position * 100)!
-			section.label = p.get('label') or {
-				return error('need to specify label in site.page_category.\n${action}')
+			section.position = p.get_int_default('position', position_category)!
+			if section.position == position_category {
+				position_category += 100 // Increment for next category
 			}
+			section.label = p.get_default('label', texttools.name_fix_snake_to_pascal(section.name))!
 			section.path = p.get_default('path', texttools.name_fix(section.label))!
 
 			site.sections << section
@@ -61,8 +63,9 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			} else {
 				if collection_current.len > 0 {
 					pagecollection = collection_current
+					pagename = pagesrc // ADD THIS LINE - use pagesrc as the page name
 				} else {
-					return error('need to specify collection in page.src path as collection:page_name or make sure someone before you did.\n${action}')
+					return error('need to specify collection in page.src path as collection:page_name or make sure someone before you did. Got src="${pagesrc}" with no collection set. Action: ${action}')
 				}
 			}
 
@@ -74,10 +77,10 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			}
 
 			if pagename == '' {
-				return error('need to specify name in page.src or specify in path as collection:page_name.\n${action}')
+				return error('need to specify name in page.src or specify in path as collection:page_name. Action: ${action}')
 			}
 			if pagecollection == '' {
-				return error('need to specify collection in page.src or specify in path as collection:page_name.\n${action}')
+				return error('need to specify collection in page.src or specify in path as collection:page_name. Action: ${action}')
 			}
 
 			// recreate the pagepath
@@ -99,7 +102,7 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 
 			mypage.position = p.get_int_default('position', 0)!
 			if mypage.position == 0 {
-				mypage.position = section_current.position * 100 + position_section
+				mypage.position = section_current.position + position_section
 				position_section += 1
 			}
 			mypage.title = p.get_default('title', '')!
@@ -115,9 +118,9 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			action.done = true // Mark the action as done
 		}
 
-		println(action)
-		println(section_current)
-		println(site.pages.last())
-		$dbg;
+		// println(action)
+		// println(section_current)
+		// println(site.pages.last())
+		// $dbg;
 	}
 }
