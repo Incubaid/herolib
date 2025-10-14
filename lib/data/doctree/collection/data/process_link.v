@@ -1,7 +1,6 @@
 module data
 
 import incubaid.herolib.core.texttools
-import incubaid.herolib.core.base
 import incubaid.herolib.data.markdown.elements
 import incubaid.herolib.data.doctree.pointer
 
@@ -33,39 +32,11 @@ pub fn (page Page) process_links(paths map[string]string) ![]string {
 				doc.linked_pages << ptr.str()
 			}
 
-			// Check if Docusaurus-specific paths are available in Redis
-			mut context := base.context() or { base.context_new()! }
-			mut redis := context.redis() or { panic('Redis not available') }
-
-			// Try to get Docusaurus-specific path from Redis
-			if docusaurus_path := redis.hget('doctree_docusaurus_paths', ptr.str()) {
-				// Only use the Docusaurus path if it's not empty
-				if docusaurus_path.trim_space() != '' {
-					// Use Docusaurus path (already without .md extension)
-					// Ensure it starts with / for absolute path
-					if docusaurus_path.starts_with('/') {
-						path = docusaurus_path
-					} else {
-						path = '/' + docusaurus_path
-					}
-				} else {
-					// Empty Docusaurus path, fall back to default behavior
-					// Fall back to default behavior: relative paths with .md
-					if ptr.collection == page.collection_name {
-						// same directory
-						path = './' + path.all_after_first('/')
-					} else {
-						path = '../${path}'
-					}
-				}
+			if ptr.collection == page.collection_name {
+				// same directory
+				path = './' + path.all_after_first('/')
 			} else {
-				// Fall back to default behavior: relative paths with .md
-				if ptr.collection == page.collection_name {
-					// same directory
-					path = './' + path.all_after_first('/')
-				} else {
-					path = '../${path}'
-				}
+				path = '../${path}'
 			}
 
 			if ptr.cat == .image && element.extra.trim_space() != '' {
