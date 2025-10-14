@@ -89,9 +89,13 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			// get sectionname from category, page_category or section, if not specified use current section
 			section_name := p.get_default('category', p.get_default('page_category', p.get_default('section',
 				section_current.name)!)!)!
-			mut pagepath := p.get_default('path', section_name)!
+			mut pagepath := p.get_default('path', section_current.path)!
 			pagepath = pagepath.trim_space().trim('/')
 			pagepath = texttools.name_fix(pagepath)
+			// Ensure pagepath ends with / to indicate it's a directory path
+			if pagepath.len > 0 && !pagepath.ends_with('/') {
+				pagepath += '/'
+			}
 
 			mut mypage := Page{
 				section_name: section_name
