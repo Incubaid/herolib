@@ -6,35 +6,38 @@ os_name="$(uname -s)"
 arch_name="$(uname -m)"
 version='1.0.36'
 
+# Detect Linux distribution type
+linux_type=""
+if [[ "$os_name" == "Linux" ]]; then
+    if [ -f /etc/os-release ]; then
+        linux_type="$(. /etc/os-release && echo "$ID")"
+    fi
+fi
 
 # Base URL for GitHub releases
 base_url="https://github.com/incubaid/herolib/releases/download/v${version}"
 
 # Select the URL based on the platform
 if [[ "$os_name" == "Linux" && "$arch_name" == "x86_64" ]]; then
-    url="$base_url/hero-x86_64-unknown-linux-musl"
+    if [[ "$linux_type" == "alpine" ]]; then
+        url="$base_url/hero-x86_64-linux-musl"
+    else
+        url="$base_url/hero-x86_64-linux"
+    fi
 elif [[ "$os_name" == "Linux" && "$arch_name" == "aarch64" ]]; then
-    url="$base_url/hero-aarch64-unknown-linux-musl"
+    if [[ "$linux_type" == "alpine" ]]; then
+        url="$base_url/hero-aarch64-linux-musl"
+    else
+        url="$base_url/hero-aarch64-linux"
+    fi
 elif [[ "$os_name" == "Darwin" && "$arch_name" == "arm64" ]]; then
     url="$base_url/hero-aarch64-apple-darwin"
-elif [[ "$os_name" == "Darwin" && "$arch_name" == "x86_64" ]]; then
-    url="$base_url/hero-x86_64-apple-darwin"
+# elif [[ "$os_name" == "Darwin" && "$arch_name" == "x86_64" ]]; then
+#     url="$base_url/hero-x86_64-apple-darwin"
 else
     echo "Unsupported platform: $os_name $arch_name"
     exit 1
 fi
-
-# # Select the URL based on the platform
-# if [[ "$os_name" == "Linux" && "$arch_name" == "x86_64" ]]; then
-#     url="https://f003.backblazeb2.com/file/threefold/linux-i64/hero"
-# elif [[ "$os_name" == "Darwin" && "$arch_name" == "arm64" ]]; then
-#     url="https://f003.backblazeb2.com/file/threefold/macos-arm64/hero"
-# # elif [[ "$os_name" == "Darwin" && "$arch_name" == "x86_64" ]]; then
-# #     url="https://f003.backblazeb2.com/file/threefold/macos-i64/hero"
-# else
-#     echo "Unsupported platform."
-#     exit 1
-# fi
 
 # Check for existing hero installations
 existing_hero=$(which hero 2>/dev/null || true)
