@@ -42,7 +42,6 @@ you can now just execute this script and hero will interprete the content
 ```v
 
 import incubaid.herolib.core.playbook
-import incubaid.herolib.core.playcmds
 
 mut plbook := playbook.new(path: "....") or { panic(err) }
 

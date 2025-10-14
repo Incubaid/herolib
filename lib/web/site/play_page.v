@@ -1,6 +1,7 @@
 module site
 
 import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.texttools
 
 // plays the sections & pages
 fn play_pages(mut plbook PlayBook, mut site Site) ! {
@@ -18,72 +19,105 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 		}
 	}
 
-	// LETS FIRST DO THE CATEGORIES
-	mut category_actions := plbook.find(filter: 'site.page_category')!
-	mut section := Section{}
-	for mut action in category_actions {
-		// println(action)
-		mut p := action.params
-		section.position = p.get_int_default('position', 20)!
-		section.label = p.get('label') or {
-			return error('need to specify label in site.page_category')
-		}
-		section.path = p.get('path') or {
-			return error('need to specify path in site.page_category')
-		}
-		site.sections << section
-		action.done = true // Mark the action as done
-	}
+	mut section_current := Section{} // is the category
+	mut position_section := 1
+	mut collection_current := '' // current collection we are working on
 
-	mut page_actions := plbook.find(filter: 'site.page')!
-	mut mypage := Page{
-		src:  ''
-		path: ''
-	}
-	mut position_next := 1
-	mut position := 0
-	mut path := ''
-	for mut action in page_actions {
-		// println(action)
+	mut all_actions := plbook.find(filter: 'site.')!
+
+	for mut action in all_actions {
+		if action.done {
+			continue
+		}
+
 		mut p := action.params
-		pathnew := p.get_default('path', '')!
-		if pathnew != '' {
-			mypage.path = path
-			if pathnew.ends_with('.md') {
-				// means we fully specified the name
-				mypage.path = pathnew
+
+		if action.name == 'page_category' {
+			mut section := Section{}
+			section.name = p.get('name') or {
+				return error('need to specify name in site.page_category.\n${action}')
+			}
+			position_section = 1 // go back to default position for pages in the category
+			section.position = p.get_int_default('position', section_current.position * 100)!
+			section.label = p.get('label') or {
+				return error('need to specify label in site.page_category.\n${action}')
+			}
+			section.path = p.get_default('path', texttools.name_fix(section.label))!
+
+			site.sections << section
+			action.done = true // Mark the action as done
+			section_current = section
+			continue // next action
+		}
+
+		if action.name == 'page' {
+			mut pagesrc := p.get_default('src', '')!
+			mut pagename := p.get_default('name', '')!
+			mut pagecollection := ''
+
+			if pagesrc.contains(':') {
+				pagecollection = pagesrc.split(':')[0]
+				pagename = pagesrc.split(':')[1]
 			} else {
-				// only remember path if no .md file specified
-				path = pathnew
-				if !path.ends_with('/') {
-					path += '/'
+				if collection_current.len > 0 {
+					pagecollection = collection_current
+				} else {
+					return error('need to specify collection in page.src path as collection:page_name or make sure someone before you did.\n${action}')
 				}
-				// println(' -- NEW PATH: ${path}')
-				mypage.path = path
 			}
-		} else {
-			mypage.path = path
-		}
-		position = p.get_int_default('position', 0)!
-		if position == 0 {
-			position = position_next
-			position_next += 1
-		} else {
-			if position > position_next {
-				position_next = position + 1
+
+			pagecollection = texttools.name_fix(pagecollection)
+			collection_current = pagecollection
+			pagename = texttools.name_fix_keepext(pagename)
+			if pagename.ends_with('.md') {
+				pagename = pagename.replace('.md', '')
 			}
+
+			if pagename == '' {
+				return error('need to specify name in page.src or specify in path as collection:page_name.\n${action}')
+			}
+			if pagecollection == '' {
+				return error('need to specify collection in page.src or specify in path as collection:page_name.\n${action}')
+			}
+
+			// recreate the pagepath
+			pagesrc = '${pagecollection}:${pagename}'
+
+			// get sectionname from category, page_category or section, if not specified use current section
+			section_name := p.get_default('category', p.get_default('page_category', p.get_default('section',
+				section_current.name)!)!)!
+			mut pagepath := p.get_default('path', section_name)!
+			pagepath = pagepath.trim_space().trim('/')
+			pagepath = texttools.name_fix(pagepath)
+
+			mut mypage := Page{
+				section_name: section_name
+				name:         pagename
+				path:         pagepath
+				src:          pagesrc
+			}
+
+			mypage.position = p.get_int_default('position', 0)!
+			if mypage.position == 0 {
+				mypage.position = section_current.position * 100 + position_section
+				position_section += 1
+			}
+			mypage.title = p.get_default('title', '')!
+
+			mypage.description = p.get_default('description', '')!
+			mypage.slug = p.get_default('slug', '')!
+			mypage.draft = p.get_default_false('draft')
+			mypage.hide_title = p.get_default_false('hide_title')
+			mypage.title_nr = p.get_int_default('title_nr', 0)!
+
+			site.pages << mypage
+
+			action.done = true // Mark the action as done
 		}
-		mypage.position = position
-		mypage.src = p.get('src') or { return error('need to specify src in site.page') }
-		mypage.title = p.get_default('title', '')!
-		mypage.description = p.get_default('description', '')!
-		mypage.slug = p.get_default('slug', '')!
-		mypage.draft = p.get_default_false('draft')
-		mypage.hide_title = p.get_default_false('hide_title')
-		mypage.title_nr = p.get_int_default('title_nr', 0)!
 
-		site.pages << mypage
-
-		action.done = true // Mark the action as done
+		println(action)
+		println(section_current)
+		println(site.pages.last())
+		$dbg;
 	}
 }
