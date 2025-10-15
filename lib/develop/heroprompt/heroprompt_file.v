@@ -1,8 +1,8 @@
 module heroprompt
 
 import rand
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.ourtime
 
 // HeropromptFile represents a standalone file added to a workspace
 // (not part of a directory)

@@ -1,8 +1,8 @@
 module heroprompt
 
 import os
-import incubaid.herolib.core.pathlib
-import incubaid.herolib.develop.codewalker
+import incubaid.herolib.ui.console
+import incubaid.herolib.data.ourtime
 
 @[params]
 pub struct WorkspaceAddDirectoryParams {
@@ -36,8 +36,10 @@ pub fn (mut ws Workspace) add_directory(args WorkspaceAddDirectoryParams) !&Dire
 	ws.updated = ourtime.now()
 
 	// Auto-save to Redis
-	ws.parent.save() or {
-		console.print_stderr('Warning: Failed to auto-save after adding directory: ${err}')
+	if mut parent := ws.parent {
+		parent.save() or {
+			console.print_stderr('Warning: Failed to auto-save after adding directory: ${err}')
+		}
 	}
 
 	console.print_info('Directory added: ${repo.name}')
@@ -87,8 +89,10 @@ pub fn (mut ws Workspace) remove_directory(args WorkspaceRemoveDirectoryParams) 
 	ws.updated = ourtime.now()
 
 	// Auto-save to Redis
-	ws.parent.save() or {
-		console.print_stderr('Warning: Failed to auto-save after removing directory: ${err}')
+	if mut parent := ws.parent {
+		parent.save() or {
+			console.print_stderr('Warning: Failed to auto-save after removing directory: ${err}')
+		}
 	}
 
 	console.print_info('Directory removed from workspace')
@@ -136,8 +140,10 @@ pub fn (mut ws Workspace) add_file(args WorkspaceAddFileParams) !HeropromptFile 
 	ws.updated = ourtime.now()
 
 	// Auto-save to Redis
-	ws.parent.save() or {
-		console.print_stderr('Warning: Failed to auto-save after adding file: ${err}')
+	if mut parent := ws.parent {
+		parent.save() or {
+			console.print_stderr('Warning: Failed to auto-save after adding file: ${err}')
+		}
 	}
 
 	console.print_info('File added: ${file.name}')
@@ -174,8 +180,10 @@ pub fn (mut ws Workspace) remove_file(args WorkspaceRemoveFileParams) ! {
 	ws.updated = ourtime.now()
 
 	// Auto-save to Redis
-	ws.parent.save() or {
-		console.print_stderr('Warning: Failed to auto-save after removing file: ${err}')
+	if mut parent := ws.parent {
+		parent.save() or {
+			console.print_stderr('Warning: Failed to auto-save after removing file: ${err}')
+		}
 	}
 
 	console.print_info('File removed from workspace')
@@ -219,8 +227,10 @@ pub fn (mut ws Workspace) select_file(path string) ! {
 		if os.real_path(file.path) == file_path {
 			file.is_selected = true
 			ws.updated = ourtime.now()
-			ws.parent.save() or {
-				console.print_stderr('Warning: Failed to auto-save after selecting file: ${err}')
+			if mut parent := ws.parent {
+				parent.save() or {
+					console.print_stderr('Warning: Failed to auto-save after selecting file: ${err}')
+				}
 			}
 			return
 		}
@@ -240,8 +250,10 @@ pub fn (mut ws Workspace) deselect_file(path string) ! {
 		if os.real_path(file.path) == file_path {
 			file.is_selected = false
 			ws.updated = ourtime.now()
-			ws.parent.save() or {
-				console.print_stderr('Warning: Failed to auto-save after deselecting file: ${err}')
+			if mut parent := ws.parent {
+				parent.save() or {
+					console.print_stderr('Warning: Failed to auto-save after deselecting file: ${err}')
+				}
 			}
 			return
 		}
@@ -259,8 +271,10 @@ pub fn (mut ws Workspace) select_all_files() ! {
 	}
 
 	ws.updated = ourtime.now()
-	ws.parent.save() or {
-		console.print_stderr('Warning: Failed to auto-save after selecting all files: ${err}')
+	if mut parent := ws.parent {
+		parent.save() or {
+			console.print_stderr('Warning: Failed to auto-save after selecting all files: ${err}')
+		}
 	}
 }
 
@@ -272,8 +286,10 @@ pub fn (mut ws Workspace) deselect_all_files() ! {
 	}
 
 	ws.updated = ourtime.now()
-	ws.parent.save() or {
-		console.print_stderr('Warning: Failed to auto-save after deselecting all files: ${err}')
+	if mut parent := ws.parent {
+		parent.save() or {
+			console.print_stderr('Warning: Failed to auto-save after deselecting all files: ${err}')
+		}
 	}
 }
 

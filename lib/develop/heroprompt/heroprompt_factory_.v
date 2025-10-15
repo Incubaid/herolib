@@ -17,17 +17,18 @@ pub mut:
 	name   string = 'default'
 	fromdb bool // will load from filesystem
 	create bool // default will not create if not exist
+	reset  bool // will delete and recreate if exists
 }
 
-pub fn new(args ArgsGet) !&Workspace {
-	mut obj := Workspace{
+pub fn new(args ArgsGet) !&HeroPrompt {
+	mut obj := HeroPrompt{
 		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&Workspace {
+pub fn get(args ArgsGet) !&HeroPrompt {
 	mut context := base.context()!
 	mut r := context.redis()!
 

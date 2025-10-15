@@ -1,6 +1,6 @@
 module heroprompt
 
-import freeflowuniverse.herolib.develop.codewalker
+import incubaid.herolib.develop.codewalker
 import os
 
 // Prompt generation functionality for HeroPrompt workspaces

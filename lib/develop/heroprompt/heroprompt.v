@@ -1,7 +1,7 @@
 module heroprompt
 
 import rand
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 
 // HeroPrompt Methods - Workspace Management
 

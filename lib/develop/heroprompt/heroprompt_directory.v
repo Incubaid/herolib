@@ -2,9 +2,9 @@ module heroprompt
 
 import os
 import rand
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.develop.codewalker
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.codewalker
+import incubaid.herolib.data.ourtime
 
 // Directory represents a directory/directory added to a workspace
 // It contains metadata about the directory and its location

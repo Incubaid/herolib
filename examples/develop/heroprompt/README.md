@@ -31,7 +31,7 @@ HeroPrompt helps you organize code files and generate structured prompts for AI 
 ### 1. Create Instance and Workspace
 
 ```v
-import freeflowuniverse.herolib.develop.heroprompt
+import incubaid.herolib.develop.heroprompt
 
 // Create or get instance
 mut hp := heroprompt.get(name: 'my_project', create: true)!

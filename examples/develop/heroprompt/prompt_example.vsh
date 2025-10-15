@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none -cg -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.develop.heroprompt
+import incubaid.herolib.develop.heroprompt
 import os
 
 println('=== HeroPrompt: AI Prompt Generation Example ===\n')
@@ -47,7 +47,7 @@ homepath := os.home_dir()
 
 // Add the examples directory
 mut examples_dir := workspace.add_directory(
-	path: '${homepath}/code/github/freeflowuniverse/herolib/examples/develop/heroprompt'
+	path: '${homepath}/code/github/incubaid/herolib/examples/develop/heroprompt'
 	name: 'examples'
 	scan: true
 )!
@@ -55,7 +55,7 @@ println('✓ Added directory: examples')
 
 // Add the library directory
 mut lib_dir := workspace.add_directory(
-	path: '${homepath}/code/github/freeflowuniverse/herolib/lib/develop/heroprompt'
+	path: '${homepath}/code/github/incubaid/herolib/lib/develop/heroprompt'
 	name: 'library'
 	scan: true
 )!
@@ -70,12 +70,12 @@ println('Step 5: Selecting specific files...')
 
 // Select individual files from the examples directory
 examples_dir.select_file(
-	path: '${homepath}/code/github/freeflowuniverse/herolib/examples/develop/heroprompt/README.md'
+	path: '${homepath}/code/github/incubaid/herolib/examples/develop/heroprompt/README.md'
 )!
 println('✓ Selected: README.md')
 
 examples_dir.select_file(
-	path: '${homepath}/code/github/freeflowuniverse/herolib/examples/develop/heroprompt/prompt_example.vsh'
+	path: '${homepath}/code/github/incubaid/herolib/examples/develop/heroprompt/prompt_example.vsh'
 )!
 println('✓ Selected: prompt_example.vsh')
 

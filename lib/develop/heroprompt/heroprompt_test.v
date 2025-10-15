@@ -1,6 +1,6 @@
 module heroprompt
 
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 // Test HeroPrompt: new_workspace
 fn test_heroprompt_new_workspace() ! {

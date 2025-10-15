@@ -1,7 +1,7 @@
 module heroprompt
 
 import os
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 // Test workspace: add directory
 fn test_workspace_add_directory() ! {

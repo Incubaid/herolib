@@ -17,7 +17,7 @@ The `heroprompt` module provides a hierarchical workspace-based system for organ
 ### 1. Getting Started
 
 ```v
-import freeflowuniverse.herolib.develop.heroprompt
+import incubaid.herolib.develop.heroprompt
 
 // Create or get a HeroPrompt instance
 mut hp := heroprompt.get(name: 'my_project', create: true)!
@@ -355,7 +355,7 @@ Files marked with `*` in the file_map are the selected files included in the pro
 ## Complete Example
 
 ```v
-import freeflowuniverse.herolib.develop.heroprompt
+import incubaid.herolib.develop.heroprompt
 
 mut hp := heroprompt.get(name: 'my_app', create: true)!
 mut ws := hp.new_workspace(name: 'backend')!

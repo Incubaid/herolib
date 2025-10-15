@@ -1,7 +1,9 @@
 module heroprompt
 
-import time
-import incubaid.herolib.core.playbook
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.logger
+import rand
 
 pub const version = '1.0.0'
 const singleton = false
@@ -41,7 +43,7 @@ pub mut:
 	files       []HeropromptFile      // Standalone files in this workspace
 	created     ourtime.OurTime       // Time of creation
 	updated     ourtime.OurTime       // Time of last update
-	parent      &HeroPrompt @[skip; str: skip] // Reference to parent HeroPrompt (not serialized)
+	parent      ?&HeroPrompt @[skip; str: skip] // Reference to parent HeroPrompt (not serialized)
 }
 
 // obj_init validates and initializes the HeroPrompt instance

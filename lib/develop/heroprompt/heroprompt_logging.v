@@ -1,7 +1,7 @@
 module heroprompt
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.logger
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.logger
 
 // log writes a log message with the specified level
 // Outputs to both console and log file (unless run_in_tests is true)

@@ -45,7 +45,7 @@ fn addtoscript(tofind string, toadd string) ! {
 // Reset symlinks (cleanup)
 println('Resetting all symlinks...')
 os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
-os.rm('${os.home_dir()}/.vmodules/freeflowuniverse/herolib') or {}
+os.rm('${os.home_dir()}/.vmodules/incubaid/herolib') or {}
 
 // Create necessary directories
 os.mkdir_all('${os.home_dir()}/.vmodules/incubaid') or {
