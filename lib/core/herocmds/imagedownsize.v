@@ -1,9 +1,9 @@
 module herocmds
 
-import freeflowuniverse.herolib.conversiontools.imagemagick
+import incubaid.herolib.conversiontools.imagemagick
 import cli { Command, Flag }
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // const wikipath = os.dir(@FILE) + '/wiki'
 

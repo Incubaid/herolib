@@ -1,7 +1,7 @@
 module codewalker
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 fn test_parse_basic() {
 	mut cw := new(CodeWalkerArgs{})!

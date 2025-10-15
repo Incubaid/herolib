@@ -1,7 +1,7 @@
 module vcode
 
-import freeflowuniverse.herolib.mcp
-import freeflowuniverse.herolib.mcp.logger
+import incubaid.herolib.mcp
+import incubaid.herolib.mcp.logger
 
 @[heap]
 pub struct VCode {

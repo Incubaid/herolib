@@ -1,13 +1,11 @@
 # cometbft
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.db.cometbft as cometbft_installer
+import incubaid.herolib.installers.db.cometbft as cometbft_installer
 
 heroscript:="
 !!cometbft.configure name:'test'
@@ -40,5 +38,3 @@ cometbft_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

@@ -16,7 +16,7 @@ A file system notification system for V that provides real-time monitoring of fi
 ## Usage Example
 
 ```v
-import freeflowuniverse.herolib.osal.notifier
+import incubaid.herolib.osal.notifier
 
 // Define callback function for file events
 fn on_file_change(event notifier.NotifyEvent, path string) {

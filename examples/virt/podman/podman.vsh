@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -enable-globals run
 
-import freeflowuniverse.herolib.virt.podman
-import freeflowuniverse.herolib.installers.virt.podman as podman_installer
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.virt.podman
+import incubaid.herolib.installers.virt.podman as podman_installer
+import incubaid.herolib.ui.console
 
 console.print_header('🐳 Comprehensive Podman Module Demo')
 console.print_stdout('This demo showcases both Simple API and Factory API approaches')

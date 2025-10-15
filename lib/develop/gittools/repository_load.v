@@ -1,7 +1,7 @@
 module gittools
 
 import time
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 // import os
 
 @[params]
@@ -46,7 +46,7 @@ pub fn (mut repo GitRepo) status_update(args StatusUpdateArgs) ! {
 // load_internal performs the expensive git operations to refresh the repository state.
 // It should only be called by status_update().
 fn (mut repo GitRepo) load_internal() ! {
-	console.print_debug('load ${repo.print_key()}')
+	console.print_item('load ${repo.print_key()}')
 	repo.init()!
 
 	repo.exec('fetch --all') or {

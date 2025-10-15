@@ -1,7 +1,7 @@
 module imagemagick
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
 
 fn (mut image Image) identify_verbose() ! {
 	if image.size_y != 0 {

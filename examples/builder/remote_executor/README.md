@@ -1,6 +1,6 @@
 # Remote Executor Example
 
-This example demonstrates how to compile and execute V code remotely using SSH. 
+This example demonstrates how to compile and execute V code remotely using SSH.
 
 It shows a practical implementation of the herolib builder's remote execution capabilities, its good for debugging.
 
@@ -19,6 +19,7 @@ A V program that demonstrates remote execution of system operations:
 ### `run.sh`
 
 A bash script that:
+
 1. Compiles the V program
 2. Copies it to a remote machine using SCP
 3. Executes it remotely using SSH
@@ -45,16 +46,19 @@ Modify these values to match your remote system configuration.
 ## Usage
 
 1. Set the required environment variable:
+
 ```bash
 export SECRET=your_secret_value
 ```
 
 2. Make the script executable:
+
 ```bash
 chmod +x run.sh
 ```
 
 3. Run the script:
+
 ```bash
 ./run.sh
 ```
@@ -66,9 +70,8 @@ This example demonstrates practical usage of the herolib builder module's remote
 The builder module provides a more structured way to manage remote nodes and execute commands:
 
 ```v
-import freeflowuniverse.herolib.builder
+import incubaid.herolib.builder
 mut b := builder.new()!
 mut n := b.node_new(ipaddr:"user@host:port")!
 // Execute commands on the remote node
 ```
-

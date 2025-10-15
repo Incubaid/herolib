@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.ufw
+import incubaid.herolib.osal.ufw
 
 ufw.enable()!
 println(ufw.ufw_status()!)

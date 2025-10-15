@@ -1,6 +1,6 @@
 module reflection
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 pub struct Handler[T] {
 pub mut:

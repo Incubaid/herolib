@@ -1,11 +1,11 @@
 module baobab
 
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.core.code
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.core.code
 import x.json2 as json { Any }
-import freeflowuniverse.herolib.baobab.generator
-import freeflowuniverse.herolib.baobab.specification
+import incubaid.herolib.baobab.generator
+import incubaid.herolib.baobab.specification
 
 // generate_methods_file MCP Tool
 //

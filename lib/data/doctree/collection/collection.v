@@ -1,8 +1,8 @@
 module collection
 
-import freeflowuniverse.herolib.core.pathlib { Path }
-import freeflowuniverse.herolib.data.doctree.collection.data
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.pathlib { Path }
+import incubaid.herolib.data.doctree.collection.data
+import incubaid.herolib.core.texttools
 
 @[heap]
 pub struct Collection {

@@ -6,7 +6,7 @@ module test
 
 import os
 import strings
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 const (
 	VERSION = '1.0.0'
@@ -45,7 +45,7 @@ pub fn create_person(name string, age int) Person {
 	assert vfile.imports.len == 3
 	assert vfile.imports[0].mod == 'os'
 	assert vfile.imports[1].mod == 'strings'
-	assert vfile.imports[2].mod == 'freeflowuniverse.herolib.core.texttools'
+	assert vfile.imports[2].mod == 'incubaid.herolib.core.texttools'
 
 	// Test constants
 	assert vfile.consts.len == 2

@@ -1,6 +1,6 @@
 module secrets
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_check() {
 	mut box := get(secret: 'mysecret')!

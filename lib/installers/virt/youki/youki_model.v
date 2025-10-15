@@ -1,7 +1,6 @@
 module youki
 
-import freeflowuniverse.herolib.data.paramsparser
-import os
+import incubaid.herolib.data.encoderhero
 
 pub const version = '1.14.3'
 const singleton = true
@@ -22,4 +21,15 @@ fn obj_init(obj_ YoukiInstaller) !YoukiInstaller {
 // called before start if done
 fn configure() ! {
 	// mut installer := get()!
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj YoukiInstaller) !string {
+	return encoderhero.encode[YoukiInstaller](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !YoukiInstaller {
+	mut obj := encoderhero.decode[YoukiInstaller](heroscript)!
+	return obj
 }

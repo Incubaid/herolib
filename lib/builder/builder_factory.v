@@ -1,6 +1,6 @@
 module builder
 
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 @[heap]
 pub struct BuilderFactory {

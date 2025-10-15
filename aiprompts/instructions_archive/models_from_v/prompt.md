@@ -17,16 +17,14 @@ don't do anything additional for modules, don't do import
 
 at top of each file we have ```module $NAME```
 
-
 make sure all time related fields are in u64 format, use unix timestamp for that
 
 don't create management classes, only output the structs, don't create a mod.v, don't make .v scripts executatble, don't create a main.v
 
-
 ## now also make sure we use core.base as follows
 
 ```
-import freeflowuniverse.herolib.hero.models.core
+import incubaid.herolib.hero.models.core
 
 // Account represents a financial account for tracking balances and transactions
 // Supports multiple account types (checking, savings, investment, etc.)

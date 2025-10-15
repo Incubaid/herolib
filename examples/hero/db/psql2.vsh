@@ -1,11 +1,11 @@
 #!/usr/bin/env -S v -n -cg -w -gc none -cc tcc -d use_openssl -enable-globals run
 
 // #!/usr/bin/env -S v -n -w -enable-globals run
-import freeflowuniverse.herolib.clients.postgresql_client
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.hero.models.circle
-import freeflowuniverse.herolib.core.playcmds
-import freeflowuniverse.herolib.hero.db.hero_db
+import incubaid.herolib.clients.postgresql_client
+import incubaid.herolib.core.playbook
+import incubaid.herolib.hero.models.circle
+import incubaid.herolib.core.playcmds
+import incubaid.herolib.hero.db.hero_db
 import db.pg
 
 // psql -h /tmp -U myuser -d mydb

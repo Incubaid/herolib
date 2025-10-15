@@ -1,6 +1,6 @@
 module tst
 
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.data.ourdb
 
 // Lists all keys with a given prefix
 pub fn (mut self TST) list(prefix string) ![]string {

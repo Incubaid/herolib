@@ -1,7 +1,7 @@
 module openai
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.httpconnection
 import os
 
 pub const version = '0.0.0'

@@ -1,18 +1,18 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Param, Struct, VFile, parse_import }
-import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.develop.codetools as code { CodeItem, CustomCode, Function, Param, Struct, VFile, parse_import }
+import incubaid.herolib.schemas.openrpc { OpenRPC }
+import incubaid.herolib.core.texttools
 import rand
 
 pub fn generate_handler_file(o OpenRPC, receiver Struct, method_map map[string]Function, object_map map[string]Struct) !VFile {
 	name := texttools.name_fix(o.info.title)
 
 	imports := [
-		parse_import('freeflowuniverse.herolib.schemas.jsonrpc'),
+		parse_import('incubaid.herolib.schemas.jsonrpc'),
 		parse_import('json'),
 		parse_import('x.json2'),
-		parse_import('import freeflowuniverse.herolib.core.texttools'),
+		parse_import('import incubaid.herolib.core.texttools'),
 	]
 
 	mut file := VFile{
@@ -80,7 +80,7 @@ pub fn generate_handler_test_file(o OpenRPC, receiver Struct, method_map map[str
 
 	items << handle_tests.map(CodeItem(it))
 
-	imports := parse_import('freeflowuniverse.herolib.schemas.jsonrpc {new_jsonrpcrequest, jsonrpcresponse_decode, jsonrpcerror_decode}')
+	imports := parse_import('incubaid.herolib.schemas.jsonrpc {new_jsonrpcrequest, jsonrpcresponse_decode, jsonrpcerror_decode}')
 
 	mut file := VFile{
 		name:    'handler_test'

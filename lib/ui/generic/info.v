@@ -1,8 +1,8 @@
 module generic
 
-// import freeflowuniverse.herolib.ui.console
-// import freeflowuniverse.herolib.ui.telegram { UITelegram }
-import freeflowuniverse.herolib.ui.uimodel
+// import incubaid.herolib.ui.console
+// import incubaid.herolib.ui.telegram { UITelegram }
+import incubaid.herolib.ui.uimodel
 
 // send info to the main pannel .
 // (not every UI has all capability e.g. html)

@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
-import freeflowuniverse.herolib.hero.herofs
+import incubaid.herolib.hero.herofs
 
 // Example demonstrating the new FsTools high-level filesystem operations
 // This shows how to use find, cp, rm, and mv operations

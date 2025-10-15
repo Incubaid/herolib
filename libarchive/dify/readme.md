@@ -7,7 +7,7 @@ To get started
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.dify as dify_installer
+import incubaid.herolib.installers.something.dify as dify_installer
 
 heroscript:="
 !!dify.configure name:'test'
@@ -40,5 +40,3 @@ dify_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

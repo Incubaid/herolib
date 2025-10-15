@@ -9,7 +9,7 @@ Create a file `screen_example.vsh`:
 ```v
 #!/usr/bin/env -S v run
 
-import freeflowuniverse.herolib.osal.screen
+import incubaid.herolib.osal.screen
 
 // Create a new screen factory
 mut sf := screen.new()!

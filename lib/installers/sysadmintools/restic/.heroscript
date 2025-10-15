@@ -8,4 +8,5 @@
     templates: false
     build: true
     startupmanager: true
+    active: false
 

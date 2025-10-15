@@ -1,8 +1,8 @@
 module doctreeclient
 
-import freeflowuniverse.herolib.data.doctree
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.data.doctree
+import incubaid.herolib.core.base
+import incubaid.herolib.core.pathlib
 import os
 
 fn test_doctree_client() ! {

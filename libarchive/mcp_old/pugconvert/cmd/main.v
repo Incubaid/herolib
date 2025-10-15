@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.mcp.servers.pugconvert.mcp
+import incubaid.herolib.mcp.servers.pugconvert.mcp
 
 fn main() {
 	// Create a new MCP server

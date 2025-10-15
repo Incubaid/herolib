@@ -1,6 +1,6 @@
 module geomind_poc
 
-import freeflowuniverse.crystallib.core.playbook { PlayBook }
+import incubaid.crystallib.core.playbook { PlayBook }
 
 // play_commerce processes heroscript actions for the commerce system
 pub fn play_commerce(mut plbook PlayBook) ! {

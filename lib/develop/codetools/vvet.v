@@ -1,6 +1,6 @@
 module code
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import os
 
 // vet_file runs v vet on a single file

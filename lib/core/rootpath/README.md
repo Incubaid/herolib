@@ -8,7 +8,7 @@ The rootpath module provides functionality for managing the Hero environment dir
 
 - `herodir()` - Returns the root directory for the Hero environment (`~/hero`)
 - `bindir()` - Returns the binary directory (`~/hero/bin`)
-- `vardir()` - Returns the variable directory (`~/hero/var`) 
+- `vardir()` - Returns the variable directory (`~/hero/var`)
 - `cfgdir()` - Returns the configuration directory (`~/hero/cfg`)
 - `ensure_hero_dirs()` - Creates all necessary Hero directories if they don't exist
 
@@ -22,7 +22,7 @@ The rootpath module provides functionality for managing the Hero environment dir
 ## Usage Example
 
 ```vsh
-import freeflowuniverse.herolib.core.rootpath
+import incubaid.herolib.core.rootpath
 
 // Get and ensure Hero directories exist
 hero_root := rootpath.ensure_hero_dirs()
@@ -45,4 +45,3 @@ The module manages the following directory structure:
   ├── var/     # Variable data
   └── cfg/     # Configuration files
 ```
-

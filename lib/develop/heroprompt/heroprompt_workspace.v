@@ -1,10 +1,8 @@
 module heroprompt
 
 import os
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.data.ourtime
-
-// Workspace Methods - Directory and File Management
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.codewalker
 
 @[params]
 pub struct WorkspaceAddDirectoryParams {

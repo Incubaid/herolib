@@ -1,6 +1,6 @@
 module hetznermanager
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 pub struct SSHKey {
 pub mut:

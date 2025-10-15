@@ -1,10 +1,10 @@
 module docusaurus
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.web.doctreeclient
-import freeflowuniverse.herolib.web.site { Page, Section, Site }
-import freeflowuniverse.herolib.data.markdown.tools as markdowntools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.web.doctreeclient
+import incubaid.herolib.web.site { Page, Section, Site }
+import incubaid.herolib.data.markdown.tools as markdowntools
+import incubaid.herolib.ui.console
 
 // THIS CODE GENERATES A DOCUSAURUS SITE FROM A DOCTREECLIENT AND SITE DEFINITION
 
@@ -117,6 +117,9 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 		page_content = markdowntools.set_titles(page_content, args.title_nr)
 	}
 
+	// Fix links to account for nested categories
+	page_content = generator.fix_links(page_content)
+
 	c += '\n${page_content}\n'
 
 	if args.path.ends_with('/') || args.path.trim_space() == '' {
@@ -154,4 +157,49 @@ fn (mut generator SiteGenerator) section_generate(args_ Section) ! {
 	mut catfile := pathlib.get_file(path: category_path, create: true)!
 
 	catfile.write(c)!
+}
+
+// Fix links to account for nested categories in Docusaurus
+// Doctree exports links as ../collection/page.md but Docusaurus may have nested paths
+fn (generator SiteGenerator) fix_links(content string) string {
+	mut result := content
+
+	// Build a map of collection name to actual directory path
+	mut collection_paths := map[string]string{}
+	for page in generator.site.pages {
+		parts := page.src.split(':')
+		if parts.len != 2 {
+			continue
+		}
+		collection := parts[0]
+
+		// Extract directory path from page.path
+		// page.path can be like "appendix/internet_today/" or "appendix/internet_today/page.md"
+		mut dir_path := page.path.trim('/')
+
+		// If path ends with a filename, remove it to get just the directory
+		if dir_path.contains('/') && !dir_path.ends_with('/') {
+			// Check if last part looks like a filename (has extension or is a page name)
+			last_part := dir_path.all_after_last('/')
+			if last_part.contains('.') || last_part == parts[1] {
+				dir_path = dir_path.all_before_last('/')
+			}
+		}
+
+		// If the directory path is different from collection name, store the mapping
+		// This handles nested categories like appendix/internet_today
+		if dir_path != collection && dir_path != '' {
+			collection_paths[collection] = dir_path
+		}
+	}
+
+	// Replace ../collection/ with ../actual/nested/path/ for nested collections
+	for collection, actual_path in collection_paths {
+		result = result.replace('../${collection}/', '../${actual_path}/')
+	}
+
+	// Remove .md extensions from all links (Docusaurus doesn't use them in URLs)
+	result = result.replace('.md)', ')')
+
+	return result
 }

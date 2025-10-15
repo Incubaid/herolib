@@ -1,7 +1,7 @@
 module code
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.code.vlang_utils { list_v_files }
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.code.vlang_utils { list_v_files }
 import os
 
 // ===== V LANGUAGE TOOLS =====

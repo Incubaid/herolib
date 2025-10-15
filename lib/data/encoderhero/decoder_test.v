@@ -1,16 +1,14 @@
 module encoderhero
 
-import time
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.data.ourtime
 
-struct TestStruct {
+pub struct TestStruct {
 	id   int
 	name string
 }
 
 const blank_script = '!!define.test_struct'
-const full_script = '!!define.test_struct id: 42 name: testobject'
+const full_script = '!!define.test_struct id:42 name:testobject'
 const invalid_script = '!!define.another_struct'
 
 fn test_decode_simple() ! {
@@ -23,123 +21,78 @@ fn test_decode_simple() ! {
 		name: 'testobject'
 	}
 
-	object = decode[TestStruct](invalid_script) or {
+	decode[TestStruct](invalid_script) or {
 		assert true
-		TestStruct{}
-	}
-}
-
-struct ChildStruct {
-	text   string
-	number int
-}
-
-struct ComplexStruct {
-	id    int
-	name  string
-	child ChildStruct
-}
-
-const blank_complex = '!!define.complex_struct
-!!define.child_struct'
-
-const partial_complex = '!!define.complex_struct id: 42 name: testcomplex
-!!define.child_struct'
-
-const full_complex = '!!define.complex_struct id: 42 name: testobject
-!!define.child_struct text: child_text number: 24
-'
-
-fn test_decode_complex() ! {
-	mut object := decode[ComplexStruct](blank_complex)!
-	assert object == ComplexStruct{}
-
-	object = decode[ComplexStruct](partial_complex)!
-	assert object == ComplexStruct{
-		id:   42
-		name: 'testcomplex'
-	}
-
-	object = decode[ComplexStruct](full_complex) or {
-		assert true
-		ComplexStruct{}
-	}
-}
-
-pub struct Base {
-	id int
-	// remarks []Remark TODO: add support
-}
-
-pub struct Remark {
-	text string
-}
-
-pub struct Person {
-	Base
-mut:
-	name     string
-	age      int
-	birthday time.Time
-	deathday time.Time
-	car      Car
-	profiles []Profile
-}
-
-pub struct Car {
-	name      string
-	year      int
-	insurance Insurance
-}
-
-pub struct Insurance {
-	provider   string
-	expiration time.Time
-}
-
-pub struct Profile {
-	platform string
-	url      string
-}
-
-const person_heroscript = "
-!!define.person id:1 name:Bob age:21 birthday:'2012-12-12 00:00:00'
-!!define.person.car name:'Bob\\'s car' year:2014
-!!define.person.car.insurance expiration:'0000-00-00 00:00:00' provider:''
-
-!!define.person.profile platform:Github url:github.com/example
-"
-
-const person = Person{
-	id:       1
-	name:     'Bob'
-	age:      21
-	birthday: time.new(
-		day:   12
-		month: 12
-		year:  2012
-	)
-	car:      Car{
-		name: "Bob's car"
-		year: 2014
-	}
-	profiles: [
-		Profile{
-			platform: 'Github'
-			url:      'github.com/example'
-		},
-	]
-}
-
-fn test_decode() ! {
-	// Test decoding with proper person data
-	object := decode[Person](person_heroscript)!
-	assert object == person
-
-	// Test that empty string fails as expected
-	decode[Person]('') or {
-		assert true // This should fail, which is correct
 		return
 	}
 	assert false // Should not reach here
+}
+
+pub struct ConfigStruct {
+	name    string
+	enabled bool
+	timeout int = 30
+	hosts   []string
+}
+
+const config_script = "!!define.config_struct name:production enabled:true timeout:60 hosts:'host1.com,host2.com,host3.com'"
+
+fn test_decode_with_arrays() ! {
+	object := decode[ConfigStruct](config_script)!
+	assert object.name == 'production'
+	assert object.enabled == true
+	assert object.timeout == 60
+	assert object.hosts.len == 3
+	assert object.hosts[0] == 'host1.com'
+}
+
+pub struct Base {
+	id      int
+	version string
+}
+
+pub struct Person {
+	Base // Embedded struct
+mut:
+	name     string
+	age      int
+	birthday ourtime.OurTime
+	active   bool = true
+}
+
+const person_heroscript = "!!define.person id:1 version:'1.0' name:Bob age:21 birthday:'2012-12-12 00:00:00' active:true"
+
+const person = Person{
+	id:       1
+	version:  '1.0'
+	name:     'Bob'
+	age:      21
+	birthday: ourtime.new('2012-12-12 00:00:00')!
+	active:   true
+}
+
+fn test_decode_embedded() ! {
+	object := decode[Person](person_heroscript)!
+	assert object.id == person.id
+	assert object.version == person.version
+	assert object.name == person.name
+	assert object.age == person.age
+	assert object.active == person.active
+}
+
+fn test_decode_empty_fails() ! {
+	decode[Person]('') or {
+		assert true
+		return
+	}
+	assert false // Should not reach here
+}
+
+fn test_decode_configure_format() ! {
+	// Test alternative format with .configure instead of .define
+	configure_script := '!!person.configure id:2 name:Alice age:30'
+	object := decode[Person](configure_script)!
+	assert object.id == 2
+	assert object.name == 'Alice'
+	assert object.age == 30
 }

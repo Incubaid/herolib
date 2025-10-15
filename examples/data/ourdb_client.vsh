@@ -2,7 +2,7 @@
 
 // Please note that before running this script you need to run the server first
 // See examples/data/ourdb_server.vsh
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.data.ourdb
 import os
 
 mut client := ourdb.new_client(

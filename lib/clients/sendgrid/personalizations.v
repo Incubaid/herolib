@@ -1,6 +1,5 @@
 module sendgrid
 
-@[params]
 pub struct Personalizations {
 pub mut:
 	to                    []Recipient @[required]
@@ -27,13 +26,12 @@ fn (mut p Personalizations) set_from(r Recipient) {
 
 // add_cc adds an array of recipients who will receive a copy of your email.
 fn (mut p Personalizations) add_cc(r []Recipient) {
-	p.cc or {
+	if mut cc := p.cc {
+		for item in r {
+			cc << item
+		}
+	} else {
 		p.cc = r
-		return
-	}
-
-	for item in r {
-		p.cc << item
 	}
 }
 
@@ -45,26 +43,24 @@ fn (mut p Personalizations) set_subject(s string) {
 // add_headers adds a plbook of key/value pairs to specify handling instructions for your email.
 // if some of the new headers already existed, their values are overwritten.
 fn (mut p Personalizations) add_headers(new_headers map[string]string) {
-	p.headers or {
+	if mut headers := p.headers {
+		for k, v in new_headers {
+			headers[k] = v
+		}
+	} else {
 		p.headers = new_headers.clone()
-		return
-	}
-
-	for k, v in new_headers {
-		p.headers[k] = v
 	}
 }
 
 // add_substitution adds a plbook of key/value pairs to allow you to insert data without using Dynamic Transactional Templates.
 // if some of the keys already existed, their values are overwritten.
 fn (mut p Personalizations) add_substitution(new_subs map[string]string) {
-	p.substitutions or {
+	if mut substitutions := p.substitutions {
+		for k, v in new_subs {
+			substitutions[k] = v
+		}
+	} else {
 		p.substitutions = new_subs.clone()
-		return
-	}
-
-	for k, v in new_subs {
-		p.substitutions[k] = v
 	}
 }
 
@@ -72,13 +68,12 @@ fn (mut p Personalizations) add_substitution(new_subs map[string]string) {
 // Dynamic template data is available using Handlebars syntax in Dynamic Transactional Templates.
 // if some of the keys already existed, their values are overwritten.
 fn (mut p Personalizations) add_dynamic_template_data(new_dynamic_template_data map[string]string) {
-	p.dynamic_template_data or {
+	if mut dynamic_template_data := p.dynamic_template_data {
+		for k, v in new_dynamic_template_data {
+			dynamic_template_data[k] = v
+		}
+	} else {
 		p.dynamic_template_data = new_dynamic_template_data.clone()
-		return
-	}
-
-	for k, v in new_dynamic_template_data {
-		p.dynamic_template_data[k] = v
 	}
 }
 
@@ -86,13 +81,12 @@ fn (mut p Personalizations) add_dynamic_template_data(new_dynamic_template_data 
 // custom args are values that are specific to this personalization that will be carried along with the email and its activity data.
 // if some of the keys already existed, their values are overwritten.
 fn (mut p Personalizations) add_custom_args(new_custom_args map[string]string) {
-	p.custom_args or {
+	if mut custom_args := p.custom_args {
+		for k, v in new_custom_args {
+			custom_args[k] = v
+		}
+	} else {
 		p.custom_args = new_custom_args.clone()
-		return
-	}
-
-	for k, v in new_custom_args {
-		p.custom_args[k] = v
 	}
 }
 

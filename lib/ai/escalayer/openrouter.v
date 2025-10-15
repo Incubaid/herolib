@@ -1,7 +1,7 @@
 module escalayer
 
-import freeflowuniverse.herolib.clients.openai
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.clients.openai
+import incubaid.herolib.osal.core as osal
 import os
 
 // Get an OpenAI client configured for OpenRouter

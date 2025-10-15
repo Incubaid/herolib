@@ -1,6 +1,6 @@
 module site
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 __global (
 	websites map[string]&Site

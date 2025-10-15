@@ -1,6 +1,6 @@
 module rust
 
-import freeflowuniverse.herolib.ai.mcp
+import incubaid.herolib.ai.mcp
 import os
 import x.json2 as json
 

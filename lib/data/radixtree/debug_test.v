@@ -1,6 +1,6 @@
 module radixtree
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_simple_debug() ! {
 	console.print_debug('=== Simple Debug Test ===')

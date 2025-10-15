@@ -1,8 +1,8 @@
 module herocmds
 
 import cli { Command, Flag }
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.develop.luadns
+import incubaid.herolib.ui.console
+import incubaid.herolib.develop.luadns
 
 // Main function to set up CLI commands
 pub fn cmd_luadns(mut cmdroot Command) {

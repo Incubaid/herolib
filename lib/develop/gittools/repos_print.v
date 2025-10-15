@@ -1,6 +1,6 @@
 module gittools
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Check and return the status of a repository (whether it needs a commit, pull, or push)
 fn get_repo_status(gr GitRepo) !string {

@@ -1,12 +1,12 @@
 module typescriptgenerator
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.texttools
 import os
 
 pub fn generate_typescript_client(spec IntermediateSpec, dest_path string) ! {
 	mut dest := pathlib.get_dir(path: dest_path, create: true)!
-	
+
 	// Generate a file for each schema
 	for name, schema in spec.schemas {
 		mut file_content := generate_interface(schema)
@@ -18,7 +18,7 @@ pub fn generate_typescript_client(spec IntermediateSpec, dest_path string) ! {
 	mut client_content := generate_client(spec)
 	mut client_file_path := pathlib.get_file(path: '${dest.path}/client.ts', create: true)!
 	client_file_path.write(client_content) or { panic(err) }
-	
+
 	// Copy templates to destination
 	mut templates_src := os.dir(@FILE) + '/templates'
 	if os.exists(templates_src) {
@@ -26,17 +26,17 @@ pub fn generate_typescript_client(spec IntermediateSpec, dest_path string) ! {
 		mut index_content := os.read_file('${templates_src}/index.html')!
 		mut index_file := pathlib.get_file(path: '${dest.path}/index.html', create: true)!
 		index_file.write(index_content)!
-		
+
 		// Copy package.json template
 		mut package_content := os.read_file('${templates_src}/package.json')!
 		mut package_file := pathlib.get_file(path: '${dest.path}/package.json', create: true)!
 		package_file.write(package_content)!
-		
+
 		// Copy tsconfig.json template
 		mut tsconfig_content := os.read_file('${templates_src}/tsconfig.json')!
 		mut tsconfig_file := pathlib.get_file(path: '${dest.path}/tsconfig.json', create: true)!
 		tsconfig_file.write(tsconfig_content)!
-		
+
 		// Copy dev-server.ts template
 		mut dev_server_content := os.read_file('${templates_src}/dev-server.ts')!
 		mut dev_server_file := pathlib.get_file(path: '${dest.path}/dev-server.ts', create: true)!
@@ -54,20 +54,20 @@ fn generate_interface(schema IntermediateSchema) string {
 }
 
 fn generate_client(spec IntermediateSpec) string {
-    mut methods_str := ''
-    for method in spec.methods {
-        params_str := method.params.map('${it.name}: ${ts_type(it.type_info)}').join(', ')
-        methods_str += '
+	mut methods_str := ''
+	for method in spec.methods {
+		params_str := method.params.map('${it.name}: ${ts_type(it.type_info)}').join(', ')
+		methods_str += '
     async ${texttools.snake_case(method.name)}(params: { ${params_str} }): Promise<${ts_type(method.result.type_info)}> {
         return this.send(\'${method.name}\', params);
     }
 '
-    }
+	}
 
-    mut imports_str := ''
-    for schema_name in spec.schemas.keys() {
-        imports_str += "import { ${schema_name} } from './${schema_name}';\n"
-    }
+	mut imports_str := ''
+	for schema_name in spec.schemas.keys() {
+		imports_str += "import { ${schema_name} } from './${schema_name}';\n"
+	}
 
 	return "
 import fetch from 'node-fetch';
@@ -96,12 +96,12 @@ export class HeroModelsClient {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${"$"}{response.status}`);
+            throw new Error(`HTTP error! status: ${'$'}{response.status}`);
         }
 
         const jsonResponse:any = await response.json();
         if (jsonResponse.error) {
-            throw new Error(`RPC error: ${"$"}{jsonResponse.error.message}`);
+            throw new Error(`RPC error: ${'$'}{jsonResponse.error.message}`);
         }
 
         return jsonResponse.result;
@@ -111,7 +111,6 @@ ${methods_str}
 "
 }
 
-
 fn ts_type(v_type string) string {
 	return match v_type {
 		'string' { 'string' }
@@ -120,7 +119,7 @@ fn ts_type(v_type string) string {
 		'f32', 'f64' { 'number' }
 		'[]string' { 'string[]' }
 		'[]int' { 'number[]' }
-        'array' { 'any[]' }
-        else { v_type }
+		'array' { 'any[]' }
+		else { v_type }
 	}
 }

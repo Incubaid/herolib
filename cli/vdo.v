@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.mcp.v_do
+import incubaid.herolib.mcp.v_do
 
 fn main() {
 	// Create and start the MCP server

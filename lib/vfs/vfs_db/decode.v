@@ -1,7 +1,7 @@
 module vfs_db
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.data.encoder
+import incubaid.herolib.vfs
 
 // decode_directory decodes a binary format back to Directory
 pub fn decode_directory(data []u8) !Directory {

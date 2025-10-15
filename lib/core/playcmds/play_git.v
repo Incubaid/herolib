@@ -1,8 +1,8 @@
 module playcmds
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console // For verbose error reporting
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console // For verbose error reporting
 
 // ---------------------------------------------------------------
 // Git actions interpreter for HeroScript. This file
@@ -162,5 +162,75 @@ fn play_git(mut plbook PlayBook) ! {
 		coderoot := p.get_default('coderoot', '')!
 		gs = gittools.new(coderoot: coderoot)!
 		gs.load(true)! // Force reload
+	}
+
+	// Handle !!git.check
+	check_actions := plbook.find(filter: 'git.check')!
+	for action in check_actions {
+		mut p := action.params
+		filter_str := p.get_default('filter', '')!
+		name := p.get_default('name', '')!
+		account := p.get_default('account', '')!
+		provider := p.get_default('provider', '')!
+		error_ignore := p.get_default_false('error_ignore')
+
+		mut repos := gs.get_repos(
+			filter:   filter_str
+			name:     name
+			account:  account
+			provider: provider
+		)!
+
+		if repos.len == 0 {
+			if !error_ignore {
+				return error('No repositories found for git.check with filter: ${filter_str}, name: ${name}, account: ${account}, provider: ${provider}')
+			}
+			console.print_stderr('No repositories found for git.check. Ignoring due to error_ignore: true.')
+			continue
+		}
+
+		for mut repo in repos {
+			repo.lfs_check() or {
+				if !error_ignore {
+					return error('LFS check failed for ${repo.name}: ${err}')
+				}
+				console.print_stderr('LFS check failed for ${repo.name}: ${err}. Ignoring due to error_ignore: true.')
+			}
+		}
+	}
+
+	// Handle !!git.lfs
+	lfs_actions := plbook.find(filter: 'git.lfs')!
+	for action in lfs_actions {
+		mut p := action.params
+		filter_str := p.get_default('filter', '')!
+		name := p.get_default('name', '')!
+		account := p.get_default('account', '')!
+		provider := p.get_default('provider', '')!
+		error_ignore := p.get_default_false('error_ignore')
+
+		mut repos := gs.get_repos(
+			filter:   filter_str
+			name:     name
+			account:  account
+			provider: provider
+		)!
+
+		if repos.len == 0 {
+			if !error_ignore {
+				return error('No repositories found for git.lfs with filter: ${filter_str}, name: ${name}, account: ${account}, provider: ${provider}')
+			}
+			console.print_stderr('No repositories found for git.lfs. Ignoring due to error_ignore: true.')
+			continue
+		}
+
+		for mut repo in repos {
+			repo.lfs_init() or {
+				if !error_ignore {
+					return error('LFS initialization failed for ${repo.name}: ${err}')
+				}
+				console.print_stderr('LFS initialization failed for ${repo.name}: ${err}. Ignoring due to error_ignore: true.')
+			}
+		}
 	}
 }

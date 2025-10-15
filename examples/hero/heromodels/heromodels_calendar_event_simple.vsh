@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.hero.heromodels
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.hero.heromodels
 
 mut mydb := heromodels.new()!
 // mydb.calendar_event.db.redis.flushdb()!

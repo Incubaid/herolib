@@ -1,6 +1,6 @@
 module pacman
 
-import freeflowuniverse.herolib.data.encoderhero
+import incubaid.herolib.data.encoderhero
 
 pub const version = 'v1.0'
 const singleton = true

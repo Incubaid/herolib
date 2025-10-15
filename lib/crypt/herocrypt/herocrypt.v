@@ -1,6 +1,6 @@
 module herocrypt
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 // HeroCrypt provides a client for HeroDB's AGE cryptography features.
 pub struct HeroCrypt {

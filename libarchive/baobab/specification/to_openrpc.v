@@ -1,8 +1,8 @@
 module specification
 
-import freeflowuniverse.herolib.schemas.openrpc { Components, OpenRPC }
-import freeflowuniverse.herolib.schemas.jsonschema { SchemaRef }
-import freeflowuniverse.herolib.schemas.jsonschema.codegen
+import incubaid.herolib.schemas.openrpc { Components, OpenRPC }
+import incubaid.herolib.schemas.jsonschema { SchemaRef }
+import incubaid.herolib.schemas.jsonschema.codegen
 
 // pub fn from_openrpc(spec openrpc.OpenRPC) !ActorSpecification {
 // 	// Extract Actor metadata from OpenRPC info

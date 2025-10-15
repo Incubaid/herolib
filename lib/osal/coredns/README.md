@@ -2,12 +2,12 @@
 
 This module provides functionality for managing DNS records in Redis for use with CoreDNS. It supports various DNS record types and provides a simple interface for adding and managing DNS records.
 
-
 ## Heroscript Examples
 
 The following examples demonstrate how to define DNS records using heroscript actions:
 
 ### A Record
+
 ```
 !!dns.a_record
     sub_domain: 'host1'
@@ -16,6 +16,7 @@ The following examples demonstrate how to define DNS records using heroscript ac
 ```
 
 ### AAAA Record
+
 ```
 !!dns.aaaa_record
     sub_domain: 'host1'
@@ -24,6 +25,7 @@ The following examples demonstrate how to define DNS records using heroscript ac
 ```
 
 ### MX Record
+
 ```
 !!dns.mx_record
     sub_domain: '*'
@@ -33,6 +35,7 @@ The following examples demonstrate how to define DNS records using heroscript ac
 ```
 
 ### TXT Record
+
 ```
 !!dns.txt_record
     sub_domain: '*'
@@ -41,6 +44,7 @@ The following examples demonstrate how to define DNS records using heroscript ac
 ```
 
 ### SRV Record
+
 ```
 !!dns.srv_record
     service: 'ssh'
@@ -54,6 +58,7 @@ The following examples demonstrate how to define DNS records using heroscript ac
 ```
 
 ### NS Record
+
 ```
 !!dns.ns_record
     sub_domain: '@'
@@ -62,6 +67,7 @@ The following examples demonstrate how to define DNS records using heroscript ac
 ```
 
 ### SOA Record
+
 ```
 !!dns.soa_record
     mbox: 'hostmaster.example.com'
@@ -73,11 +79,10 @@ The following examples demonstrate how to define DNS records using heroscript ac
     ttl: 300
 ```
 
-
 ## v
 
 ```v
-import freeflowuniverse.herolib.osal.core.coredns
+import incubaid.herolib.osal.core.coredns
 
 // Create a new DNS record set
 mut rs := coredns.new_dns_record_set()
@@ -96,12 +101,12 @@ rs.add_ns(host: 'ns2.example.net.')
 rs.set('example.com')!
 ```
 
-
 ## Record Types
 
 The following DNS record types are supported:
 
 ### SRV Record
+
 ```v
 SRVRecord {
     target   string  // Required: Target hostname
@@ -113,6 +118,7 @@ SRVRecord {
 ```
 
 ### TXT Record
+
 ```v
 TXTRecord {
     text string  // Required: Text content
@@ -121,6 +127,7 @@ TXTRecord {
 ```
 
 ### MX Record
+
 ```v
 MXRecord {
     host       string  // Required: Mail server hostname
@@ -130,6 +137,7 @@ MXRecord {
 ```
 
 ### A Record
+
 ```v
 ARecord {
     name string  // Required: Hostname
@@ -139,6 +147,7 @@ ARecord {
 ```
 
 ### AAAA Record
+
 ```v
 AAAARecord {
     name string  // Required: Hostname
@@ -148,6 +157,7 @@ AAAARecord {
 ```
 
 ### NS Record
+
 ```v
 NSRecord {
     host string  // Required: Nameserver hostname
@@ -156,6 +166,7 @@ NSRecord {
 ```
 
 ### SOA Record
+
 ```v
 SOARecord {
     mbox    string  // Required: Email address of the admin
@@ -167,5 +178,3 @@ SOARecord {
     ttl     int     // Default: 300
 }
 ```
-
-

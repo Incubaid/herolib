@@ -16,11 +16,11 @@ The `ZProcessNewArgs` struct defines the parameters for creating and managing a 
 
 You can initialize the `StartupManager` in a few ways:
 
-1.  **Automatic Detection (Recommended):**
+1. **Automatic Detection (Recommended):**
     The manager will automatically detect if `zinit` is available and use it, otherwise it defaults to `screen`.
 
     ```v
-    import freeflowuniverse.herolib.osal.startupmanager
+    import incubaid.herolib.osal.startupmanager
 
     fn main() {
         mut sm := startupmanager.get(cat:.screen)!
@@ -29,11 +29,11 @@ You can initialize the `StartupManager` in a few ways:
     }
     ```
 
-2.  **Explicitly Specify Type:**
+2. **Explicitly Specify Type:**
     You can force the manager to use a specific type.
 
     ```v
-    import freeflowuniverse.herolib.osal.startupmanager
+    import incubaid.herolib.osal.startupmanager
 
     fn main() {
         mut sm_zinit := startupmanager.get(cat: .zinit)!
@@ -56,7 +56,7 @@ The following examples demonstrate how to use the `StartupManager` to interact w
 This method creates and optionally starts a new process.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -111,7 +111,7 @@ fn main() {
 Starts an existing process.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -125,7 +125,7 @@ fn main() {
 Stops a running process.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -139,7 +139,7 @@ fn main() {
 Restarts a process.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -153,7 +153,7 @@ fn main() {
 Removes a process from the startup manager.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -167,7 +167,7 @@ fn main() {
 Returns the current status of a process.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -181,7 +181,7 @@ fn main() {
 Returns `true` if the process is active, `false` otherwise.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -195,7 +195,7 @@ fn main() {
 Retrieves the output (logs) of a process. Currently supported for `systemd`.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get(startupmanager.StartupManagerArgs{cat: .systemd})!
@@ -209,7 +209,7 @@ fn main() {
 Returns `true` if the process is known to the startup manager, `false` otherwise.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!
@@ -223,7 +223,7 @@ fn main() {
 Returns a list of names of all services managed by the startup manager.
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut sm := startupmanager.get()!

@@ -1,6 +1,6 @@
 module code
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 pub interface IBasicFolder {
 	name    string

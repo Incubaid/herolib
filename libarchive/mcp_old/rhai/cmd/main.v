@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.mcp.rhai.mcp
+import incubaid.herolib.mcp.rhai.mcp
 import log
 
 fn main() {

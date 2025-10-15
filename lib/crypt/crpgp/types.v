@@ -1,6 +1,6 @@
 module crpgp
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn new_secret_key_param_builder() !SecretKeyParamsBuilder {
 	builder := C.params_builder_new()

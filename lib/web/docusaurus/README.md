@@ -15,15 +15,14 @@ For quick setup and development, use the hero command:
 
 ```bash
 # Start development server
-hero docusaurus -d -path /path/to/your/site
+hero docs -d -path /path/to/your/site
 
 # Build for production
-hero docusaurus -b -path /path/to/your/site
+hero docs -b -path /path/to/your/site
 
 # Build and publish
-hero docusaurus -bp -path /path/to/your/site
+hero docs -bp -path /path/to/your/site
 ```
-
 
 ### Example HeroScript
 

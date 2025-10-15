@@ -1,7 +1,7 @@
 module tun
 
 import os
-import freeflowuniverse.herolib.core
+import incubaid.herolib.core
 
 // available checks if TUN/TAP is available on the system
 pub fn available() !bool {

@@ -1,9 +1,9 @@
 module paramsparser
 
 import time
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 import v.reflection
-// import freeflowuniverse.herolib.data.encoderhero
+// import incubaid.herolib.data.encoderhero
 // TODO: support more field types
 
 pub fn (params Params) decode[T](args T) !T {
@@ -13,20 +13,30 @@ pub fn (params Params) decode[T](args T) !T {
 pub fn (params Params) decode_struct[T](start T) !T {
 	mut t := T{}
 	$for field in T.fields {
-		$if field.is_enum {
-			t.$(field.name) = params.get_int(field.name) or { int(t.$(field.name)) }
-		} $else {
-			// super annoying didn't find other way, then to ignore options
-			$if field.is_option {
-				// For optional fields, if the key exists, decode it. Otherwise, leave it as none.
-				if params.exists(field.name) {
-					t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
-				}
+		mut should_skip := false
+		for attr in field.attrs {
+			attr_clean := attr.to_lower()
+			if attr_clean.contains('skip') {
+				should_skip = true
+				break
+			}
+		}
+		// println('Field: ${field.name}, should_skip: ${should_skip}, attrs: ${field.attrs}')
+		if !should_skip {
+			$if field.is_enum {
+				t.$(field.name) = params.get_int(field.name) or { int(t.$(field.name)) }
 			} $else {
-				if field.name[0].is_capital() {
-					t.$(field.name) = params.decode_struct(t.$(field.name))!
-				} else {
-					t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
+				// super annoying didn't find other way, then to ignore options
+				$if field.is_option {
+					// For optional fields, skip decoding entirely
+					// They will remain as none (default value)
+					// This avoids type system issues with ?T vs !T
+				} $else {
+					if field.name[0].is_capital() {
+						t.$(field.name) = params.decode_struct(t.$(field.name))!
+					} else {
+						t.$(field.name) = params.decode_value(t.$(field.name), field.name)!
+					}
 				}
 			}
 		}
@@ -35,14 +45,9 @@ pub fn (params Params) decode_struct[T](start T) !T {
 }
 
 pub fn (params Params) decode_value[T](val T, key string) !T {
-	// $if T is $option {
-	// 	return error("is option")
-	// }
-	// value := params.get(field.name)!
-
 	// TODO: handle required fields
 	if !params.exists(key) {
-		return val
+		return val // For non-optional types, this is the default value
 	}
 
 	$if T is string {
@@ -79,8 +84,10 @@ pub fn (params Params) decode_value[T](val T, key string) !T {
 		child_params := params.get_params(key)!
 		child := child_params.decode_struct(T{})!
 		return child
+	} $else {
+		// For any other type, return the default
+		return val
 	}
-	return T{}
 }
 
 pub fn (params Params) get_list_bool(key string) ![]bool {
@@ -113,8 +120,7 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 		// Check each attribute for skip patterns
 		for attr in field.attrs {
 			attr_clean := attr.to_lower().replace(' ', '').replace('\t', '')
-			// Handle various skip attribute formats:
-			// @[skip], @[skip;...], @[...;skip], @[...;skip;...], etc.
+			// During encoding, only skip fields with @[skip], not @[skipdecode]
 			if attr_clean == 'skip' || attr_clean.starts_with('skip;')
 				|| attr_clean.ends_with(';skip') || attr_clean.contains(';skip;') {
 				should_skip = true
@@ -122,17 +128,17 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 			}
 		}
 
-		// Additional check: if field name suggests it should be skipped
-		// This is a fallback for cases where attribute parsing differs
-		if field.name == 'other' && !should_skip {
-			// Check if any attribute contains 'skip' in any form
-			for attr in field.attrs {
-				if attr.contains('skip') {
-					should_skip = true
-					break
-				}
-			}
-		}
+		// // Additional check: if field name suggests it should be skipped
+		// // This is a fallback for cases where attribute parsing differs
+		// if field.name == 'other' && !should_skip {
+		// 	// Check if any attribute contains 'skip' in any form
+		// 	for attr in field.attrs {
+		// 		if attr.contains('skip') {
+		// 			should_skip = true
+		// 			break
+		// 		}
+		// 	}
+		// }
 
 		if !should_skip {
 			val := t.$(field.name)
@@ -161,8 +167,12 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 					// If val is not none, it will be converted to string.
 					params.set(key, '${val}')
 				}
-			} $else $if val is string || val is int || val is bool || val is i64 || val is u32
-				|| val is time.Time || val is ourtime.OurTime {
+			} $else $if val is string {
+				if val.len > 0 {
+					params.set(key, '${val}')
+				}
+			} $else $if val is int || val is bool || val is i64 || val is u32 || val is time.Time
+				|| val is ourtime.OurTime {
 				params.set(key, '${val}')
 			} $else $if field.is_enum {
 				params.set(key, '${int(val)}')
@@ -211,23 +221,22 @@ pub fn encode[T](t T, args EncodeArgs) !Params {
 					value: v2
 				}
 			} $else $if field.typ is $struct {
-				// TODO: Handle embeds better
-				is_embed := field.name[0].is_capital()
-				if is_embed {
-					$if val is string || val is int || val is bool || val is i64 || val is u32
-						|| val is time.Time {
-						params.set(key, '${val}')
+				// Handle embedded structs (capitalized field names) by flattening their fields
+				// Non-embedded structs are not supported by encoderhero, so this path is for embedded only.
+				if field.name[0].is_capital() {
+					// Recursively encode the embedded struct and merge its parameters
+					embedded_params := encode(val)!
+					for p in embedded_params.params {
+						params.set(p.key, p.value)
 					}
 				} else {
-					if args.recursive {
-						child_params := encode(val)!
-						params.params << Param{
-							key:   field.name
-							value: child_params.export()
-						}
-					}
+					// This case should ideally be caught by encoderhero's validation,
+					// but as a fallback, we can return an error here if it somehow reaches.
+					return error('Nested structs are not supported. Field: ${field.name}')
 				}
 			} $else {
+				// Fallback for unsupported types, though encoderhero should validate this.
+				return error('Unsupported field type for encoding: ${field.typ}')
 			}
 		}
 	}

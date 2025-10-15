@@ -1,11 +1,11 @@
 module prometheus
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core.httpconnection
+import incubaid.herolib.osal.startupmanager
 import os
 import time
 
@@ -27,7 +27,7 @@ import time
 // 	// port       int = 8888
 // }
 
-// pub fn install_(args_ InstallArgs) ! {
+// pub fn install(args_ InstallArgs) ! {
 // 	install_prometheus(args_)!
 // 	install_alertmanager(args_)!
 // 	install_node_exporter(args_)!

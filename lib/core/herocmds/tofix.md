@@ -11,7 +11,7 @@ Below you’ll find a **concise, actionable “TODO list”** grouped by file, t
 | Problem | What to do |
 |---|---|
 | **Name clash** – the file defines a **`fn play(mut plbook PlayBook) !`** in the `playcmds` module. This collides with other possible `play` functions (e.g. `play_core`, `play_git`), and the function is never used by the factory. | 1. **Rename** the function to `pub fn play_docusaurus(mut plbook PlayBook) !`. <br>2. Update the `factory.v` to call the renamed function (or simply remove this file and call `docusaurus.play` directly). <br>3. Remove the import of `PlayBook` from the file header if it is no longer needed. |
-| **Unused import** – `import freeflowuniverse.herolib.core.playbook { PlayBook }` is only needed for the renamed function. If we decide to keep the wrapper, keep it; otherwise, delete the whole file. | Delete or comment out the file if you prefer to call `docusaurus.play` directly from `factory.v`. |
+| **Unused import** – `import incubaid.herolib.core.playbook { PlayBook }` is only needed for the renamed function. If we decide to keep the wrapper, keep it; otherwise, delete the whole file. | Delete or comment out the file if you prefer to call `docusaurus.play` directly from `factory.v`. |
 | **Missing documentation** – The file has no comment describing why the wrapper exists. | Add a short comment: `// Wrapper used by legacy scripts – forwards to the docusaurus module.` |
 
 ### Concrete Patch (rename function, update factory)
@@ -20,8 +20,8 @@ Below you’ll find a **concise, actionable “TODO list”** grouped by file, t
 // lib/core/playcmds/play_docusaurus.v
 module playcmds
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.web.docusaurus
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.web.docusaurus
 
 // -------------------------------------------------------------------
 // Legacy wrapper: older scripts expected a “play” function in the
@@ -49,12 +49,12 @@ play_docusaurus.play(mut plbook)!   // <-- new line, optional
 | Problem | What to do |
 |---|---|
 | **Wrong API name** – the code uses **`gittools.new(gittools.GitStructureArgGet{})`** – there is no `GitStructureArgGet` struct in the git‑tools package. The correct type is **`gittools.GitStructureArgs`** (or the default `gittools.GitStructure` argument). | Replace `GitStructureArgGet` with the correct type (`gittools.GitStructureArgs`). |
-| **Missing import alias** – the file uses `gittools.new` and `gittools.new` but the import is just `import freeflowuniverse.herolib.develop.gittools`. That is fine, but for clarity rename the import to **`gittools`** (it already is) and use the same alias everywhere. |
+| **Missing import alias** – the file uses `gittools.new` and `gittools.new` but the import is just `import incubaid.herolib.develop.gittools`. That is fine, but for clarity rename the import to **`gittools`** (it already is) and use the same alias everywhere. |
 | **Potential nil `gs`** – after a `git.clone` we do `gs = gittools.new(coderoot: coderoot)!`. This shadows the previous `gs` and loses the original configuration (e.g. `light`, `log`). The intent is to **re‑initialise** the `GitStructure` **only** when a `coderoot` is explicitly given. Keep the current flow but **document** the intention. |
 | **Unused variable `action_`** – the variable `action_` is used only for iteration. No problem. |
 | **Missing `gittools.GitCloneArgs`** – check that the struct is actually named `GitCloneArgs` in the git‑tools package. If not, change to the proper name. | Verify and, if needed, replace with the correct struct name (`gittools.GitCloneArgs`). |
 | **Missing error handling for unknown actions** – the code already prints an error and continues when `error_ignore` is true. That part is OK. |
-| **Redundant import** – the file imports `freeflowuniverse.herolib.ui.console` but only uses `console.print_stderr`. Keep it, but add a comment that it is for verbose error reporting. |
+| **Redundant import** – the file imports `incubaid.herolib.ui.console` but only uses `console.print_stderr`. Keep it, but add a comment that it is for verbose error reporting. |
 | **Formatting** – add a header comment explaining what this file does (process git actions). | Add a comment block at the top of the file. |
 
 ### Concrete Patch (partial)
@@ -63,9 +63,9 @@ play_docusaurus.play(mut plbook)!   // <-- new line, optional
 // lib/core/playcmds/play_git.v
 module playcmds
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 
 // ---------------------------------------------------------------
 // Git actions interpreter for HeroScript. This file
@@ -125,10 +125,10 @@ fn play_git(mut plbook PlayBook) ! {
 // lib/core/playcmds/play_core.v
 module playcmds
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
 
 // -------------------------------------------------------------------
 // Core play‑command processing (context, session, env‑subst, etc)
@@ -191,11 +191,11 @@ fn play_core(mut plbook PlayBook) ! {
 ```v
 module playcmds
 
-import freeflowuniverse.herolib.core.playbook { PlayBook, PlayArgs }
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
-import freeflowuniverse.herolib.core.playcmds.{play_core, play_git, play_docusaurus}
-import freeflowuniverse.herolib.web.docusaurus as docusaurus_mod   // optional alias
+import incubaid.herolib.core.playbook { PlayBook, PlayArgs }
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
+import incubaid.herolib.core.playcmds.{play_core, play_git, play_docusaurus}
+import incubaid.herolib.web.docusaurus as docusaurus_mod   // optional alias
 
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands
@@ -251,7 +251,7 @@ The `_archive` folder contains **dead, commented‑out, or placeholder code** (e
 
 | Problem | What to do |
 |---|---|
-| **Unused import** – `import freeflowuniverse.herolib.osal.sshagent` is used, fine. |
+| **Unused import** – `import incubaid.herolib.osal.sshagent` is used, fine. |
 | **No `pub` on `play_ssh`** – the function is private but is referenced from `factory.v`. It is already called as `play_ssh(mut plbook)`. The function is **public** (no `pub` needed because it's called inside the same module). No change needed. |
 | **Comment about missing actions** – Keep a short comment stating “Currently only `key_add` is supported”. |
 | **Add error handling** – The `else` branch returns an error. This is fine. No changes needed. |
@@ -269,7 +269,7 @@ The `_archive` folder contains **dead, commented‑out, or placeholder code** (e
 
 ---
 
-## 8️⃣ `lib/core/playcmds/play_zola.v` – **All code is commented out** 
+## 8️⃣ `lib/core/playcmds/play_zola.v` – **All code is commented out**
 
 No current code. Keep the file as a placeholder for future implementation. No action needed unless you want to **delete** it to keep the repo tidy.
 
@@ -288,7 +288,7 @@ No current code. Keep the file as a placeholder for future implementation. No ac
 # Using the playcmds package
 
 ```v
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.core.playcmds
 
 mut args := playcmds.PlayArgs{
     heroscript:         my_hero_script,
@@ -297,6 +297,7 @@ mut args := playcmds.PlayArgs{
 }
 playcmds.run(args)!
 ```
+
 ```
 
 ---

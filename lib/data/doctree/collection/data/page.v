@@ -1,8 +1,8 @@
 module data
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.data.markdown.elements { Action, Doc, Element, Frontmatter2 }
-import freeflowuniverse.herolib.data.markdown
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.markdown.elements { Action, Doc, Element, Frontmatter2 }
+import incubaid.herolib.data.markdown
 
 pub enum PageStatus {
 	unknown

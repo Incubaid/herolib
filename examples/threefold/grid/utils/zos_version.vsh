@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.threefold.grid as tfgrid
-import freeflowuniverse.herolib.threefold.griddriver
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.threefold.grid as tfgrid
+import incubaid.herolib.threefold.griddriver
+import incubaid.herolib.ui.console
 import log
 
 fn test_get_zos_version(node_id u32) ! {

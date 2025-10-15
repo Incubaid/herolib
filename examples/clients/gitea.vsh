@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -g -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.playcmds
-import freeflowuniverse.herolib.clients.giteaclient
+import incubaid.herolib.core.playcmds
+import incubaid.herolib.clients.giteaclient
 
 heroscript := "
 !!giteaclient.configure

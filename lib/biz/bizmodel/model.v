@@ -1,8 +1,8 @@
 module bizmodel
 
 import os
-import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.biz.spreadsheet
+import incubaid.herolib.data.ourtime
 
 @[heap]
 pub struct BizModel {

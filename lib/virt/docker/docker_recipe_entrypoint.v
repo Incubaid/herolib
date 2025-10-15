@@ -1,6 +1,6 @@
 module docker
 
-// import freeflowuniverse.herolib.builder
+// import incubaid.herolib.builder
 
 @[params]
 pub struct EntryPointArgs {

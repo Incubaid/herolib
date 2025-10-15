@@ -8,12 +8,12 @@ To get started
 
 @if args.cat == .installer
 
-import freeflowuniverse.herolib.installers.something.${args.name} as ${args.name}_installer
+import incubaid.herolib.installers.something.${args.name} as ${args.name}_installer
 
 heroscript:="
 !!${args.name}.configure name:'test'
-	password: '1234'
-	port: 7701
+ password: '1234'
+ port: 7701
 
 !!${args.name}.start name:'test' reset:1 
 "
@@ -26,7 +26,7 @@ ${args.name}_installer.play(heroscript=heroscript)!
 
 @else
 
-import freeflowuniverse.herolib.clients. ${args.name}
+import incubaid.herolib.clients. ${args.name}
 
 mut client:= ${args.name}.get()!
 
@@ -41,6 +41,7 @@ client...
 ## example heroscript
 
 @if args.cat == .installer
+
 ```hero
 !!${args.name}.configure
     homedir: '/home/user/${args.name}'
@@ -51,13 +52,14 @@ client...
     port: 8888
 
 ```
+
 @else
+
 ```hero
 !!${args.name}.configure
     secret: '...'
     host: 'localhost'
     port: 8888
 ```
+
 @end
-
-

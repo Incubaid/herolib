@@ -2,7 +2,7 @@ module main
 
 import os
 import flag
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn convert_to_text(path string, dst string) !os.Result {
 	if !os.exists(path) {

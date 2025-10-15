@@ -1,7 +1,6 @@
 module sendgrid
 
-import freeflowuniverse.herolib.data.paramsparser
-import os
+import incubaid.herolib.data.encoderhero
 
 pub const version = '0.0.0'
 const singleton = true
@@ -24,5 +23,16 @@ fn obj_init(obj_ SendGrid) !SendGrid {
 	// never call get here, only thing we can do here is work on object itself
 	mut obj := obj_
 	panic('implement')
+	return obj
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj SendGrid) !string {
+	return encoderhero.encode[SendGrid](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !SendGrid {
+	mut obj := encoderhero.decode[SendGrid](heroscript)!
 	return obj
 }

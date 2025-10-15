@@ -1,9 +1,9 @@
 #!/usr/bin/env -S v -n -w -cg -gc none  -cc tcc -d use_openssl -enable-globals run
 
-// import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import log
-import freeflowuniverse.herolib.data.markdownparser
+import incubaid.herolib.data.markdownparser
 import os
 
 console.print_header('Print markdown in treeview.')

@@ -1,7 +1,7 @@
 module mycelium_rpc
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.schemas.jsonrpc
 
 pub const version = '0.0.0'
 const singleton = true
@@ -15,9 +15,9 @@ pub const default_url = 'http://localhost:8990'
 @[heap]
 pub struct MyceliumRPC {
 pub mut:
-	name string = 'default'
-	url  string = default_url // RPC server URL
-	// rpc_client ?&jsonrpc.Client @[skip]
+	name       string = 'default'
+	url        string = default_url // RPC server URL
+	rpc_client ?&jsonrpc.Client @[skip]
 }
 
 // your checking & initialization code if needed

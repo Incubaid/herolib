@@ -1,6 +1,6 @@
 module data
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 fn test_get_def_actions() {
 	mut page1_path := pathlib.get_file(path: '/tmp/page1', create: true)!

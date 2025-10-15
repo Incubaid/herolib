@@ -1,8 +1,8 @@
 module herorun2
 
 import os
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.tmux
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.tmux
 
 // HetznerBackend implements NodeBackend for Hetzner cloud servers
 pub struct HetznerBackend {

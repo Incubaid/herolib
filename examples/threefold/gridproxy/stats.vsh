@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.threefold.grid3.gridproxy
-import freeflowuniverse.herolib.threefold.grid3.gridproxy.model { NodeStatus }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.threefold.grid3.gridproxy
+import incubaid.herolib.threefold.grid3.gridproxy.model { NodeStatus }
+import incubaid.herolib.ui.console
 
 fn get_online_grid_stats_example() ! {
 	mut myfilter := gridproxy.statfilter()!

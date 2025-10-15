@@ -1,9 +1,9 @@
 module generator
 
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.baobab.specification
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.baobab.specification
 import rand
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 // // generate_object_methods generates CRUD actor methods for a provided structure
 // pub fn generate_object_test_code(actor Struct, object BaseObject) !VFile {

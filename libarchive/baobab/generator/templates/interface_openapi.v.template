@@ -1,6 +1,6 @@
-import freeflowuniverse.herolib.baobab.stage.interfaces
-import freeflowuniverse.herolib.baobab.stage
-import freeflowuniverse.herolib.schemas.openapi
+import incubaid.herolib.baobab.stage.interfaces
+import incubaid.herolib.baobab.stage
+import incubaid.herolib.schemas.openapi
 
 pub fn new_openapi_interface(config stage.ActorConfig) !&interfaces.OpenAPIInterface {
 	// create OpenAPI Handler with actor's client

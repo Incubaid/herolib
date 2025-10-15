@@ -1,10 +1,10 @@
 module heroserver
 
-import freeflowuniverse.herolib.crypt.herocrypt
-import freeflowuniverse.herolib.schemas.openrpc
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.logger
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.crypt.herocrypt
+import incubaid.herolib.schemas.openrpc
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.logger
+import incubaid.herolib.osal.core as osal
 import time
 import veb
 

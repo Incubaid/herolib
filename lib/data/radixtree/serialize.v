@@ -1,6 +1,6 @@
 module radixtree
 
-import freeflowuniverse.herolib.data.encoder
+import incubaid.herolib.data.encoder
 
 const version = u8(2) // Updated binary format version
 const max_inline_value_size = 1024 // Values larger than this are stored out-of-line

@@ -2,14 +2,14 @@ module main
 
 import os
 import cli { Command }
-import freeflowuniverse.herolib.core.herocmds
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.ui
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.core.herocmds
+import incubaid.herolib.installers.base
+import incubaid.herolib.ui.console
+import incubaid.herolib.ui
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
 
 fn playcmds_do(path string) ! {
 	mut plbook := playbook.new(path: path)!
@@ -38,7 +38,12 @@ fn do() ! {
 
 	if os.args.len == 2 {
 		mypath := os.args[1]
-		if mypath.to_lower().ends_with('.hero')  || mypath.to_lower().ends_with('.heroscript') || mypath.to_lower().ends_with('.hs') {
+		if mypath == '.' {
+			playcmds_do(os.getwd())!
+			return
+		}
+		if mypath.to_lower().ends_with('.hero') || mypath.to_lower().ends_with('.heroscript')
+			|| mypath.to_lower().ends_with('.hs') {
 			// hero was called from a file
 			playcmds_do(mypath)!
 			return
@@ -48,7 +53,7 @@ fn do() ! {
 	mut cmd := Command{
 		name:        'hero'
 		description: 'Your HERO toolset.'
-		version:     '1.0.33'
+		version:     '1.0.36'
 	}
 
 	// herocmds.cmd_run_add_flags(mut cmd)
@@ -81,7 +86,6 @@ fn do() ! {
 
 	base.redis_install()!
 
-	herocmds.cmd_run(mut cmd)
 	herocmds.cmd_git(mut cmd)
 	herocmds.cmd_generator(mut cmd)
 	herocmds.cmd_docusaurus(mut cmd)
@@ -100,7 +104,3 @@ fn main() {
 		exit(1)
 	}
 }
-
-// fn pre_func(cmd Command) ! {
-// 	herocmds.plbook_run(cmd)!
-// }

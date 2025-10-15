@@ -2,7 +2,7 @@
 
 import os
 import time
-import freeflowuniverse.herolib.osal.zinit
+import incubaid.herolib.osal.zinit
 
 zinit.destroy()!
 mut z := zinit.new()!

@@ -3,7 +3,7 @@ module griddriver
 import os
 import strconv
 import json
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn (mut c Client) get_node_twin(node_id u64) !u32 {
 	if u32(node_id) in c.node_twin {

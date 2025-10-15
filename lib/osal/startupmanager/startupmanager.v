@@ -1,10 +1,10 @@
 module startupmanager
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.screen
-import freeflowuniverse.herolib.osal.systemd
-// import freeflowuniverse.herolib.osal.zinit // Comment or remove this line
-import freeflowuniverse.herolib.clients.zinit // Add this line
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.screen
+import incubaid.herolib.osal.systemd
+// import incubaid.herolib.osal.zinit // Comment or remove this line
+import incubaid.herolib.clients.zinit // Add this line
 
 pub struct StartupManager {
 pub mut:

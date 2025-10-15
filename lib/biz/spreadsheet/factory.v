@@ -1,6 +1,6 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.data.currency
+import incubaid.herolib.data.currency
 
 __global (
 	sheets shared map[string]&Sheet

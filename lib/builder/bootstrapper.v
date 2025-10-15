@@ -1,9 +1,9 @@
 module builder
 
 import os
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 
 const heropath_ = os.dir(@FILE) + '/../'
 

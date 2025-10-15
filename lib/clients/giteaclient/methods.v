@@ -1,7 +1,7 @@
 // File: lib/clients/giteaclient/methods.v
 module giteaclient
 
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 import json
 import net.http
 

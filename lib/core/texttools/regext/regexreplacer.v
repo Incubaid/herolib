@@ -1,8 +1,8 @@
 module regext
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import regex
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 import os
 
 pub struct ReplaceInstructions {

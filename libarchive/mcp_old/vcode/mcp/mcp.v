@@ -1,8 +1,8 @@
 module pugconvert
 
-import freeflowuniverse.herolib.mcp
-import freeflowuniverse.herolib.mcp.logger
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.mcp
+import incubaid.herolib.mcp.logger
+import incubaid.herolib.schemas.jsonrpc
 
 pub fn new_mcp_server() !&mcp.Server {
 	logger.info('Creating new Developer MCP server')

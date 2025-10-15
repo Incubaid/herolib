@@ -1,7 +1,7 @@
 module zerodb_client
 
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.ui.console
 
 pub struct ZDB {
 pub mut:
@@ -12,7 +12,7 @@ pub mut:
 // examples:
 //   localhost:6379
 //   /tmp/redis-default.sock
-pub fn get(addr string, auth string, namespace string) !ZDB {
+pub fn get_zdb(addr string, auth string, namespace string) !ZDB {
 	console.print_header(' ZDB get: addr:${addr} namespace:${namespace}')
 	mut redis := redisclient.new(addr)!
 	mut zdb := ZDB{

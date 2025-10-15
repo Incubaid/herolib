@@ -14,8 +14,8 @@ HeroServer is a secure web server built in V, designed for public key-based auth
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.hero.heroserver
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.hero.heroserver
+import incubaid.herolib.schemas.openrpc
 
 fn main() {
     // 1. Create a new server instance with CORS support

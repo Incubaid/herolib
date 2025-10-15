@@ -2,12 +2,12 @@ module main
 
 import os
 import cli { Command, Flag }
-import freeflowuniverse.herolib.osal.core as osal
-// import freeflowuniverse.herolib.ai.mcp.vcode
-// import freeflowuniverse.herolib.ai.mcp.mcpgen
-// import freeflowuniverse.herolib.ai.mcp.baobab
-// import freeflowuniverse.herolib.ai.mcp.rhai.mcp as rhai_mcp
-// import freeflowuniverse.herolib.ai.mcp.rust
+import incubaid.herolib.osal.core as osal
+// import incubaid.herolib.ai.mcp.vcode
+// import incubaid.herolib.ai.mcp.mcpgen
+// import incubaid.herolib.ai.mcp.baobab
+// import incubaid.herolib.ai.mcp.rhai.mcp as rhai_mcp
+// import incubaid.herolib.ai.mcp.rust
 
 fn main() {
 	do() or { panic(err) }

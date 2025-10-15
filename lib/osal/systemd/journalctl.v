@@ -1,6 +1,6 @@
 module systemd
 
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 
 // Add more flexible journalctl options
 @[params]

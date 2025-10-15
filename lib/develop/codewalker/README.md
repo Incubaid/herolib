@@ -12,7 +12,7 @@ The CodeWalker module provides functionality to walk through directories and cre
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.lib.lang.codewalker
+import incubaid.herolib.lib.lang.codewalker
 
 mut cw := codewalker.new('/tmp/adir')!
 

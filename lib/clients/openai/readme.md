@@ -4,8 +4,8 @@ To get started
 
 ```v
 
-import freeflowuniverse.herolib.clients.openai
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.clients.openai
+import incubaid.herolib.core.playcmds
 
 playcmds.run(
     heroscript:'
@@ -21,10 +21,10 @@ playcmds.run(
 mut client:= openai.get()!
 
 mut r:=client.chat_completion(
-	model: "gpt-3.5-turbo",
-	message: 'Hello, world!'
-	temperature: 0.5
-	max_completion_tokens: 1024
+ model: "gpt-3.5-turbo",
+ message: 'Hello, world!'
+ temperature: 0.5
+ max_completion_tokens: 1024
 )!
 
 ```

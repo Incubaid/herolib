@@ -1,6 +1,6 @@
 module console
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 __global (
 	consoles map[string]&UIConsole

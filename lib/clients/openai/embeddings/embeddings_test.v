@@ -4,7 +4,7 @@ import os
 import clients.openai
 import clients.openai.embeddings
 import clients.openai.openai_factory_ { get }
-import freeflowuniverse.crystallib.osal { play }
+import incubaid.crystallib.osal { play }
 
 fn test_embeddings() {
 	key := os.getenv('OPENAI_API_KEY')

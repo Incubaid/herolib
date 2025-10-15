@@ -1,7 +1,7 @@
 // File: lib/virt/hetznermanager/play.v
 module hetznermanager
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.playbook { PlayBook }
 
 // play processes playbook actions for the hetznermanager module.
 // It allows configuring and managing Hetzner servers through heroscript.

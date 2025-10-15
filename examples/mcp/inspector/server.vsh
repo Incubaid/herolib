@@ -1,9 +1,9 @@
 #!/usr/bin/env -S v -n -w -cg -d use_openssl -d json_no_inline_sumtypes -enable-globals run
 
-import freeflowuniverse.herolib.mcp
-import freeflowuniverse.herolib.mcp.transport
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.mcp
+import incubaid.herolib.mcp.transport
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonschema
 import x.json2
 import os
 

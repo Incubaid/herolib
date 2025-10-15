@@ -1,23 +1,23 @@
 module mcp
 
-import freeflowuniverse.herolib.mcp
-import freeflowuniverse.herolib.mcp.logger
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.mcp
+import incubaid.herolib.mcp.logger
+import incubaid.herolib.schemas.jsonrpc
 
-pub fn new_mcp_server() !&mcp.Server {
+pub fn new_mcp_server() !&Server {
 	logger.info('Creating new Developer MCP server')
 
 	// Initialize the server with the empty handlers map
-	mut server := mcp.new_server(mcp.MemoryBackend{
+	mut server := mcp.new_server(MemoryBackend{
 		tools:         {
 			'pugconvert': specs
 		}
 		tool_handlers: {
 			'pugconvert': handler
 		}
-	}, mcp.ServerParams{
-		config: mcp.ServerConfiguration{
-			server_info: mcp.ServerInfo{
+	}, ServerParams{
+		config: ServerConfiguration{
+			server_info: ServerInfo{
 				name:    'developer'
 				version: '1.0.0'
 			}

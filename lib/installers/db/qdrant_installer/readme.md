@@ -6,7 +6,7 @@ To get started
 
 ```v
 
-import freeflowuniverse.herolib.installers.db.qdrant_installer
+import incubaid.herolib.installers.db.qdrant_installer
 
 heroscript:="
 !!qdrant.configure name:'test'

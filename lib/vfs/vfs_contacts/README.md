@@ -30,6 +30,7 @@ The Contacts VFS implementation provides a read-only virtual file system interfa
 The Contacts VFS organizes contact groups as directories, with contacts as JSON files, browsable by name and email.
 
 **Example Structure**:
+
 ```
 /personal/
 ├── by_name/
@@ -44,40 +45,41 @@ The Contacts VFS organizes contact groups as directories, with contacts as JSON 
 ```
 
 **Usage Example**:
+
 ```v
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 import vfs_contacts
-import freeflowuniverse.herolib.circles.dbs.core
+import incubaid.herolib.circles.dbs.core
 
 fn main() ! {
     // Setup mock database
     mut contacts_db := core.new_mock_contacts_db()
     contact1 := contacts.Contact{
-		id:          1
+  id:          1
         first_name: 'John'
         last_name: 'Doe'
         email: 'john.doe@example.com'
         group: 'personal'
         created_at: 1698777600
         modified_at: 1698777600
-	}
+ }
 
     contact2 := contacts.Contact{
-		id:          2
+  id:          2
         first_name: 'Said'
         last_name: 'Moaawad'
         email: 'said.moaawad@example.com'
         group: 'personal'
         created_at: 1698777600
         modified_at: 1698777600
-	}
+ }
 
-	// Add contacts to the database
-	contacts_db.set(contact1) or { panic(err) }
-	contacts_db.set(contact2) or { panic(err) }
+ // Add contacts to the database
+ contacts_db.set(contact1) or { panic(err) }
+ contacts_db.set(contact2) or { panic(err) }
 
-	// Create VFS instance
-	mut contacts_vfs := new(&contacts_db) or { panic(err) }
+ // Create VFS instance
+ mut contacts_vfs := new(&contacts_db) or { panic(err) }
 
     // List groups at root
     groups := contacts_vfs.dir_list('')!
@@ -118,16 +120,19 @@ fn main() ! {
 The Contacts VFS implementation includes comprehensive unit tests in the `vfs_implementation_test.v` file. To run the tests:
 
 1. **Navigate to the Module Directory**:
+
    ```bash
    cd lib/vfs/vfs_contacts/
    ```
 
 2. **Run Tests**:
+
    ```bash
    v test .
    ```
 
 The tests cover:
+
 - Listing groups, subdirectories, and contact files
 - Reading contact file contents
 - Existence checks

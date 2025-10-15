@@ -1,9 +1,9 @@
 module playcmds
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.builder
-import freeflowuniverse.herolib.osal.sshagent
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
+import incubaid.herolib.builder
+import incubaid.herolib.osal.sshagent
 
 pub fn play_ssh(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'sshagent.') {

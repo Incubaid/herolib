@@ -1,6 +1,6 @@
 module template
 
-import freeflowuniverse.herolib.ui.uimodel { QuestionArgs }
+import incubaid.herolib.ui.uimodel { QuestionArgs }
 
 pub fn (mut c UIExample) ask_date(args QuestionArgs) !string {
 	panic('implement')

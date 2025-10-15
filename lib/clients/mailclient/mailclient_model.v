@@ -1,11 +1,17 @@
 module mailclient
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 import os
 
 pub const version = '0.0.0'
 const singleton = false
 const default = true
+
+@[params]
+pub struct DefaultConfigArgs {
+	instance string = 'default'
+}
 
 pub fn heroscript_default(args DefaultConfigArgs) !string {
 	mail_from := os.getenv_opt('MAIL_FROM') or { 'info@example.com' }
@@ -20,7 +26,7 @@ pub fn heroscript_default(args DefaultConfigArgs) !string {
     mail_password: '${mail_password}'
     mail_port: ${mail_port}
     mail_server: '${mail_server}'
-    mail_username: '${mail_username}'  
+    mail_username: '${mail_username}'
 "
 
 	return heroscript
@@ -53,5 +59,16 @@ fn cfg_play(p paramsparser.Params) ! {
 
 fn obj_init(obj_ MailClient) !MailClient {
 	mut obj := obj_
+	return obj
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj MailClient) !string {
+	return encoderhero.encode[MailClient](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !MailClient {
+	mut obj := encoderhero.decode[MailClient](heroscript)!
 	return obj
 }

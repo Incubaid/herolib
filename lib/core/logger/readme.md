@@ -15,8 +15,8 @@ Logs are stored in hourly files with a consistent format that makes them both hu
 ## Usage
 
 ```v
-import freeflowuniverse.herolib.core.logger
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.core.logger
+import incubaid.herolib.data.ourtime
 
 // Create a new logger
 mut l := logger.new(path: '/var/logs')!

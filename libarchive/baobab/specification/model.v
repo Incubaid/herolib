@@ -1,9 +1,9 @@
 module specification
 
-import freeflowuniverse.herolib.develop.codetools as code { Struct }
-import freeflowuniverse.herolib.schemas.openapi
-import freeflowuniverse.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, ExamplePairing }
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema }
+import incubaid.herolib.develop.codetools as code { Struct }
+import incubaid.herolib.schemas.openapi
+import incubaid.herolib.schemas.openrpc { ContentDescriptor, ErrorSpec, ExamplePairing }
+import incubaid.herolib.schemas.jsonschema { Reference, Schema }
 
 pub struct ActorSpecification {
 pub mut:

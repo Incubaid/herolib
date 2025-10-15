@@ -1,6 +1,6 @@
 module herorun2
 
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.core as osal
 
 // Package installer functions for herorun dependencies
 // Each function installs a specific package on the remote node

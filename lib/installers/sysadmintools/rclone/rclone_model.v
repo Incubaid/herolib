@@ -1,8 +1,6 @@
 module rclone
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
-import os
+import incubaid.herolib.data.encoderhero
 
 pub const version = '1.67.0'
 const singleton = false

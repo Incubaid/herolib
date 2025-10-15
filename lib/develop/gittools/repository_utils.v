@@ -1,9 +1,9 @@
 module gittools
 
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.develop.vscode
-import freeflowuniverse.herolib.develop.sourcetree
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
+import incubaid.herolib.develop.vscode
+import incubaid.herolib.develop.sourcetree
 import os
 
 @[params]

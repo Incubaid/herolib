@@ -1,8 +1,8 @@
 module bizmodel
 
 import arrays
-import freeflowuniverse.herolib.core.playbook { Action, PlayBook }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook { Action, PlayBook }
+import incubaid.herolib.ui.console
 
 const action_priorities = {
 	0: ['department_define', 'costcenter_define']

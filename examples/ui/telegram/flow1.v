@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 struct RoomOrderFlow {
 	current_product string

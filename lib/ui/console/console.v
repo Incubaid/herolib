@@ -1,6 +1,6 @@
 module console
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 pub fn clear() {
 	if !silent_get() {
@@ -120,6 +120,3 @@ pub fn print_warn(txt string) {
 	cprintln(foreground: .yellow, text: txt2)
 	c.reset()
 }
-
-// import freeflowuniverse.herolib.ui.console
-// console.print_header()

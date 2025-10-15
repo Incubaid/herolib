@@ -1,18 +1,18 @@
 module models_ledger
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
 
 // Notary represents a cryptographic notary in the system
 @[heap]
 pub struct Notary {
 	db.Base
 pub mut:
-	  notary_id u32 @[index]
-	  pubkey    string
-	  address   string
-	  is_active bool
+	notary_id u32 @[index]
+	pubkey    string
+	address   string
+	is_active bool
 }
 
 pub struct DBNotary {
@@ -87,12 +87,12 @@ fn (mut self DBNotary) load(mut o Notary, mut e encoder.Decoder) ! {
 @[params]
 pub struct NotaryArg {
 pub mut:
-	name      string
+	name        string
 	description string
-	notary_id u32
-	pubkey    string
-	address   string
-	is_active bool = true
+	notary_id   u32
+	pubkey      string
+	address     string
+	is_active   bool = true
 }
 
 pub fn (mut self DBNotary) new(args NotaryArg) !Notary {

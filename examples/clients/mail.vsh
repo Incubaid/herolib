@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.clients.mailclient
+import incubaid.herolib.clients.mailclient
 
 // remove the previous one, otherwise the env variables are not read
 mailclient.config_delete(name: 'test')!

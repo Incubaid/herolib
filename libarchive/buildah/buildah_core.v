@@ -1,11 +1,11 @@
 module buildah
 
-import freeflowuniverse.herolib.osal.core as osal
-// import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.lang.herolib
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.builder
-import freeflowuniverse.herolib.virt.utils
+import incubaid.herolib.osal.core as osal
+// import incubaid.herolib.ui.console
+import incubaid.herolib.installers.lang.herolib
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.builder
+import incubaid.herolib.virt.utils
 import os
 import json
 

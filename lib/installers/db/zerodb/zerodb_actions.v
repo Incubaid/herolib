@@ -1,14 +1,14 @@
 module zerodb
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.crypt.secrets
-import freeflowuniverse.herolib.clients.zerodb_client
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.installers.base
+import incubaid.herolib.crypt.secrets
+import incubaid.herolib.clients.zerodb_client
 import crypto.md5
 import rand
 import os

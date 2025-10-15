@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.core.base
 
 pub struct MyClient[T] {
 	base.BaseConfig[T]

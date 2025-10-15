@@ -1,10 +1,10 @@
 module restic
 
-// import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.installers.lang.golang
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.installers.base
+import incubaid.herolib.installers.lang.golang
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.ui.console
 
 const url = 'https://github.com/restic/restic'
 
@@ -16,7 +16,7 @@ pub mut:
 }
 
 // install restic will return true if it was already installed
-pub fn build_(args BuildArgs) ! {
+pub fn build(args BuildArgs) ! {
 	// make sure we install base on the node
 	if core.platform() != .ubuntu {
 		return error('only support ubuntu for now')

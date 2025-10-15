@@ -1,7 +1,7 @@
 module vcode
 
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.ai.mcp.vcode.logic
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.ai.mcp.vcode.logic
 
 pub fn new_mcp_server() !&mcp.Server {
 	// Note: Removed logger.info() as it interferes with STDIO transport JSON-RPC communication

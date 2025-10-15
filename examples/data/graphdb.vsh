@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 // Example demonstrating GraphDB usage in a social network context
-import freeflowuniverse.herolib.data.graphdb
+import incubaid.herolib.data.graphdb
 
 fn main() {
 	// Initialize a new graph database with default cache settings

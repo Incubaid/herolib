@@ -1,11 +1,9 @@
 
-
 Each document we will sort need to have e.g. `[aac]` in the name, the aac is the id of the document
 
 How to use
 
 - documents can be downloaded from any source and put in a directory which is the the source of the information
-
 
 ## example
 
@@ -13,7 +11,7 @@ How to use
 #!/usr/bin/env -S v -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
-import import freeflowuniverse.herolib.conversiontools.docsorter
+import import incubaid.herolib.conversiontools.docsorter
 
 docsorter.sort(
     path: '/Users/despiegk1/Downloads/pdfcleaner'

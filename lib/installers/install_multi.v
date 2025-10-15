@@ -1,30 +1,30 @@
 module installers
 
-import freeflowuniverse.herolib.installers.base
-// import freeflowuniverse.herolib.installers.develapps.vscode
-// import freeflowuniverse.herolib.installers.develapps.chrome
-// import freeflowuniverse.herolib.installers.virt.podman as podman_installer
-// import freeflowuniverse.herolib.installers.virt.buildah as buildah_installer
-// import freeflowuniverse.herolib.installers.virt.lima
-// import freeflowuniverse.herolib.installers.net.mycelium
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.installers.lang.rust
-import freeflowuniverse.herolib.installers.lang.golang
-import freeflowuniverse.herolib.installers.lang.vlang
-import freeflowuniverse.herolib.installers.lang.herolib
-import freeflowuniverse.herolib.installers.lang.nodejs
-import freeflowuniverse.herolib.installers.lang.python
-// import freeflowuniverse.herolib.installers.web.zola
-// import freeflowuniverse.herolib.installers.web.tailwind
-// import freeflowuniverse.herolib.installers.hero.heroweb
-// import freeflowuniverse.herolib.installers.hero.herodev
-// import freeflowuniverse.herolib.installers.sysadmintools.daguserver
-import freeflowuniverse.herolib.installers.sysadmintools.rclone
-// import freeflowuniverse.herolib.installers.sysadmintools.prometheus
-// import freeflowuniverse.herolib.installers.sysadmintools.grafana
-// import freeflowuniverse.herolib.installers.sysadmintools.fungistor
-// import freeflowuniverse.herolib.installers.sysadmintools.garage_s3
-import freeflowuniverse.herolib.installers.infra.zinit_installer
+import incubaid.herolib.installers.base
+// import incubaid.herolib.installers.develapps.vscode
+// import incubaid.herolib.installers.develapps.chrome
+// import incubaid.herolib.installers.virt.podman as podman_installer
+// import incubaid.herolib.installers.virt.buildah as buildah_installer
+// import incubaid.herolib.installers.virt.lima
+// import incubaid.herolib.installers.net.mycelium
+import incubaid.herolib.core.texttools
+import incubaid.herolib.installers.lang.rust
+import incubaid.herolib.installers.lang.golang
+import incubaid.herolib.installers.lang.vlang
+import incubaid.herolib.installers.lang.herolib
+import incubaid.herolib.installers.lang.nodejs
+import incubaid.herolib.installers.lang.python
+// import incubaid.herolib.installers.web.zola
+// import incubaid.herolib.installers.web.tailwind
+// import incubaid.herolib.installers.hero.heroweb
+// import incubaid.herolib.installers.hero.herodev
+// import incubaid.herolib.installers.sysadmintools.daguserver
+import incubaid.herolib.installers.sysadmintools.rclone
+// import incubaid.herolib.installers.sysadmintools.prometheus
+// import incubaid.herolib.installers.sysadmintools.grafana
+// import incubaid.herolib.installers.sysadmintools.fungistor
+// import incubaid.herolib.installers.sysadmintools.garage_s3
+import incubaid.herolib.installers.infra.zinit_installer
 
 @[params]
 pub struct InstallArgs {
@@ -129,7 +129,7 @@ pub fn install_multi(args_ InstallArgs) ! {
 			// 	fungistor.install(reset: args.reset)!
 			// }
 			// 'lima' {
-			// 	lima.install_(reset: args.reset, uninstall: args.uninstall)!
+			// 	lima.install(reset: args.reset, uninstall: args.uninstall)!
 			// }
 			// 'herocontainers' {
 			// 	mut podman_installer0 := podman_installer.get()!

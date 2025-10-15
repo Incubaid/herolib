@@ -1,6 +1,6 @@
 module farmingsimulator
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn (mut s Simulator) node_template_wiki(name_ string) !string {
 	name := name_.to_lower()

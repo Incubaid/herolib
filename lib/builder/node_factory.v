@@ -1,6 +1,6 @@
 module builder
 
-import freeflowuniverse.herolib.data.ipaddress
+import incubaid.herolib.data.ipaddress
 
 // get node connection to local machine
 pub fn (mut bldr BuilderFactory) node_local() !&Node {

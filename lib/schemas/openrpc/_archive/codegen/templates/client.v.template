@@ -1,7 +1,7 @@
 module @{module}
 
-import freeflowuniverse.herolib.data.rpcwebsocket
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.data.rpcwebsocket
+import incubaid.herolib.schemas.jsonrpc
 import log
 import json
 

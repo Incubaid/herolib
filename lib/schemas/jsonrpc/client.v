@@ -1,6 +1,6 @@
 module jsonrpc
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // IRPCTransportClient defines the interface for transport mechanisms used by the JSON-RPC client.
 // This allows for different transport implementations (HTTP, WebSocket, etc.) to be used

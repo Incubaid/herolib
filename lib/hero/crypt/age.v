@@ -1,6 +1,6 @@
 module crypt
 
-import freeflowuniverse.herolib.data.resp
+import incubaid.herolib.data.resp
 
 // Stateless AGE operations
 

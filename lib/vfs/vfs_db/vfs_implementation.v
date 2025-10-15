@@ -1,7 +1,7 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.vfs
+import incubaid.herolib.core.texttools
 import arrays
 import log
 import os

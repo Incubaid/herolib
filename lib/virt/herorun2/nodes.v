@@ -1,6 +1,6 @@
 module herorun2
 
-import freeflowuniverse.herolib.osal.sshagent
+import incubaid.herolib.osal.sshagent
 
 // Node-related structs and functionality
 pub struct NodeSettings {

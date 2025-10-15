@@ -73,6 +73,7 @@ pub mut:
 	ssh_name string
 }
 
+//is to import one docusaurus site into another, can be used to e.g. import static parts from one location into the build one we are building
 pub struct ImportItem {
 pub mut:
 	name    string // will normally be empty

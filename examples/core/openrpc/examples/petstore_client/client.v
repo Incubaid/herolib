@@ -1,6 +1,6 @@
 module petstore_client
 
-import freeflowuniverse.herolib.data.jsonrpc { JsonRpcRequest }
+import incubaid.herolib.data.jsonrpc { JsonRpcRequest }
 import net.websocket
 
 struct Client {

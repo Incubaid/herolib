@@ -1,8 +1,7 @@
 module models_ledger
 
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.hero.db
 
 fn setup_test_db() !db.DB {
-	mut mydb := db.new()!
-	return mydb
+	return db.new(path: '/tmp/testdb')!
 }

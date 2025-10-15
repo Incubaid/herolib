@@ -1,7 +1,7 @@
 module qdrant
 
-// import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.data.encoderhero
+// import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
 // import json
 // import os
 

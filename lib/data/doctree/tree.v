@@ -1,9 +1,9 @@
 module doctree
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.data.doctree.collection
-import freeflowuniverse.herolib.data.doctree.collection.data
-import freeflowuniverse.herolib.core.texttools.regext
+import incubaid.herolib.core.texttools
+import incubaid.herolib.data.doctree.collection
+import incubaid.herolib.data.doctree.collection.data
+import incubaid.herolib.core.texttools.regext
 
 __global (
 	doctrees shared map[string]&Tree

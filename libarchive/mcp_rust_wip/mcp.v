@@ -1,7 +1,7 @@
 module rust
 
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.schemas.jsonrpc
 import log
 
 pub fn new_mcp_server() !&mcp.Server {

@@ -3,8 +3,8 @@
 // Mycelium RPC Client Example
 // This example demonstrates how to use the new Mycelium JSON-RPC client
 // to interact with a Mycelium node's admin API
-import freeflowuniverse.herolib.clients.mycelium_rpc
-import freeflowuniverse.herolib.installers.net.mycelium_installer
+import incubaid.herolib.clients.mycelium_rpc
+import incubaid.herolib.installers.net.mycelium_installer
 import time
 import os
 import encoding.base64

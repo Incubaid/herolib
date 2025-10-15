@@ -1,11 +1,11 @@
 module core
 
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.core
+import incubaid.herolib.ui.console
 // import regex
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 pub struct CmdAddArgs {
 pub mut:
@@ -13,7 +13,7 @@ pub mut:
 	source  string @[required] // path where the binary is
 	symlink bool // if rather than copy do a symlink
 	reset   bool = true // if existing cmd will delete
-	// bin_repo_url string = 'https://github.com/freeflowuniverse/freeflow_binary' // binary where we put the results
+	// bin_repo_url string = 'https://github.com/incubaid/freeflow_binary' // binary where we put the results
 }
 
 // copy a binary to the right location on the local computer .

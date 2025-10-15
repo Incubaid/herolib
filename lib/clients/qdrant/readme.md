@@ -15,7 +15,7 @@ This is a V client for [Qdrant](https://qdrant.tech/), a high-performance vector
 
 ```v
 // Create a new Qdrant client
-import freeflowuniverse.herolib.clients.qdrant
+import incubaid.herolib.clients.qdrant
 
 mut client := qdrant.get()!
 

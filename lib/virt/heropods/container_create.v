@@ -1,9 +1,9 @@
 module heropods
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.virt.crun
-import freeflowuniverse.herolib.installers.virt.herorunner as herorunner_installer
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.virt.crun
+import incubaid.herolib.installers.virt.herorunner as herorunner_installer
 import os
 
 // Updated enum to be more flexible

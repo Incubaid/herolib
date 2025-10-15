@@ -2,9 +2,9 @@
 
 import os
 import rand
-import freeflowuniverse.herolib.vfs.vfs_db
-import freeflowuniverse.herolib.data.dedupestor
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.vfs.vfs_db
+import incubaid.herolib.data.dedupestor
+import incubaid.herolib.data.ourdb
 
 pub struct VFSDedupeDB {
 	dedupestor.DedupeStore

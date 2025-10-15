@@ -1,6 +1,6 @@
 module coredns
 
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.core.playbook
 
 // play_dns processes DNS-related actions from heroscript
 pub fn play_dns(mut plbook playbook.PlayBook) !DNSRecordSet {

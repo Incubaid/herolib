@@ -1,6 +1,6 @@
 module mcpgen
 
-import freeflowuniverse.herolib.ai.mcp
+import incubaid.herolib.ai.mcp
 
 pub fn result_to_mcp_tool_contents[T](result T) []mcp.ToolContent {
 	return [result_to_mcp_tool_content(result)]

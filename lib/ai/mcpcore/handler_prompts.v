@@ -5,7 +5,7 @@ import os
 import log
 import x.json2
 import json
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Prompt related structs
 

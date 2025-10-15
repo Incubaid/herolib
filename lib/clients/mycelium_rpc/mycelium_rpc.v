@@ -1,7 +1,7 @@
 module mycelium_rpc
 
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.core.httpconnection
 import encoding.base64
 
 // Helper function to get or create the RPC client
@@ -42,6 +42,11 @@ fn (mut t HTTPTransport) send(request string, params jsonrpc.SendParams) !string
 
 	response := t.http_conn.post_json_str(req)!
 	return response
+}
+
+// url implements the IRPCTransportClient interface
+fn (t HTTPTransport) url() string {
+	return t.http_conn.base_url
 }
 
 // Admin methods

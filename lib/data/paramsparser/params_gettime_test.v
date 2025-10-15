@@ -1,6 +1,6 @@
 module paramsparser
 
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.data.ourtime
 import time
 
 const testparams = Params{

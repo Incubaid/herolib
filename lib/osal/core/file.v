@@ -1,8 +1,8 @@
 module core
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core
+import incubaid.herolib.ui.console
 import os
 
 pub fn file_write(path string, text string) ! {
@@ -52,7 +52,7 @@ pub fn rm(todelete_ string) ! {
 			if os.exists(item) {
 				console.print_debug(' - rm: ${item}')
 				if os.is_dir(item) {
-					if core.sudo_path_ok(item)! {
+					if core.sudo_path_ok(item)! || whoami()! == 'root' {
 						// console.print_debug("rm deletedir: ${item}")
 						os.rmdir_all(item)!
 					} else {
@@ -64,7 +64,7 @@ pub fn rm(todelete_ string) ! {
 					}
 				} else {
 					// console.print_debug("rm delete file: ${item}")
-					if core.sudo_path_ok(item)! {
+					if core.sudo_path_ok(item)! || whoami()! == 'root' {
 						os.rm(item)!
 					} else {
 						if core.interactive()! {

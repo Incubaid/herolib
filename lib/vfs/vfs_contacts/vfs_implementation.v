@@ -2,9 +2,9 @@ module vfs_contacts
 
 import json
 import time
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.circles.mcc.models as contacts
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.vfs
+import incubaid.herolib.circles.mcc.models as contacts
+import incubaid.herolib.core.texttools
 
 // Basic operations
 pub fn (mut myvfs ContactsVFS) root_get() !vfs.FSEntry {

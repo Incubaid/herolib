@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
-import freeflowuniverse.herolib.vfs.vfs_db
-import freeflowuniverse.herolib.data.ourdb
+import incubaid.herolib.vfs.vfs_db
+import incubaid.herolib.data.ourdb
 
 // This example demonstrates directory operations in the VFS
 // - Creating directories with subdirectories

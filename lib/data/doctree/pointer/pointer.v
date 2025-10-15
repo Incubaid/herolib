@@ -1,6 +1,6 @@
 module pointer
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 
 pub enum PointerCat {
 	page

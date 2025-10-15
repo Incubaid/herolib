@@ -1,12 +1,12 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code { File, Folder }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema }
-import freeflowuniverse.herolib.schemas.jsonschema.codegen { schema_to_struct }
-import freeflowuniverse.herolib.schemas.openrpc.codegen as openrpc_codegen
-import freeflowuniverse.herolib.schemas.openapi { OpenAPI, Operation }
-import freeflowuniverse.herolib.baobab.specification
+import incubaid.herolib.develop.codetools as code { File, Folder }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.jsonschema { Reference, Schema }
+import incubaid.herolib.schemas.jsonschema.codegen { schema_to_struct }
+import incubaid.herolib.schemas.openrpc.codegen as openrpc_codegen
+import incubaid.herolib.schemas.openapi { OpenAPI, Operation }
+import incubaid.herolib.baobab.specification
 import net.http
 
 // the body_generator is a function that takes an OpenAPI operation, its path, and its method

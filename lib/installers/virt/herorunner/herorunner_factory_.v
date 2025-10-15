@@ -1,9 +1,9 @@
 module herorunner
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 import json
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 __global (
 	herorunner_global  map[string]&HeroRunner
@@ -35,7 +35,7 @@ pub fn play(mut plbook PlayBook) ! {
 		return error("can't configure herorunner, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'herorunner.')!
-	for other_action in other_actions {
+	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
@@ -48,6 +48,7 @@ pub fn play(mut plbook PlayBook) ! {
 				install()!
 			}
 		}
+		other_action.done = true
 	}
 }
 

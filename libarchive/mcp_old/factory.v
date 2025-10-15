@@ -1,7 +1,7 @@
 module mcp
 
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.mcp.transport
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.mcp.transport
 
 // Wrapper functions to convert string-based handlers to jsonrpc.Request/Response format
 // We reconstruct the original JSON to avoid double-encoding issues

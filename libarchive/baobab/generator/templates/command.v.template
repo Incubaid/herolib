@@ -1,7 +1,7 @@
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 import cli { Command, Flag }
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 pub fn cmd_example_actor() Command {
 	mut cmd := Command{

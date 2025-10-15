@@ -1,13 +1,11 @@
 # rust
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.rust as rust_installer
+import incubaid.herolib.installers.something.rust as rust_installer
 
 heroscript:="
 !!rust.configure name:'test'
@@ -40,5 +38,3 @@ rust_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

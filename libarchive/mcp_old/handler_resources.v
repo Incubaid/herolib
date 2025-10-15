@@ -1,7 +1,7 @@
 module mcp
 
 import json
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 pub struct Resource {
 pub:

@@ -1,11 +1,11 @@
 module gittools
 
-import freeflowuniverse.herolib.ui as gui
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui as gui
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 import os
 
-pub const gitcmds = 'clone,commit,pull,push,delete,reload,list,edit,sourcetree,path,exists'
+pub const gitcmds = 'clone,commit,pull,push,delete,reload,list,edit,sourcetree,path,exists,check,lfs'
 
 @[params]
 pub struct ReposActionsArgs {
@@ -300,6 +300,87 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 		return ''
 	}
 	// end for the commit, pull, push, delete
+
+	if args.cmd == 'check' {
+		gs.repos_print(
+			filter:   args.filter
+			name:     args.repo
+			account:  args.account
+			provider: args.provider
+		)!
+
+		if repos.len == 0 {
+			console.print_header(' - nothing to check.')
+			return ''
+		}
+
+		mut ok := false
+		if args.script {
+			ok = true
+		} else {
+			ok = ui.ask_yesno(question: 'Run check on ${repos.len} repo(s)?')!
+		}
+
+		if !ok {
+			return error('Check cancelled by user.\n${args}')
+		}
+
+		for mut repo in repos {
+			console.print_header(' - checking LFS for ${repo.account}/${repo.name}')
+			repo.lfs_check() or {
+				console.print_stderr('LFS check failed for ${repo.name}: ${err}')
+				continue
+			}
+		}
+
+		return ''
+	}
+
+	if args.cmd == 'lfs' {
+		gs.repos_print(
+			filter:   args.filter
+			name:     args.repo
+			account:  args.account
+			provider: args.provider
+		)!
+
+		if repos.len == 0 {
+			console.print_header(' - nothing to initialize.')
+			return ''
+		}
+
+		mut ok := false
+		if args.script {
+			ok = true
+		} else {
+			ok = ui.ask_yesno(
+				question: 'Initialize LFS for ${repos.len} repo(s)? This will modify repository configuration.'
+			)!
+		}
+
+		if !ok {
+			return error('LFS initialization cancelled by user.\n${args}')
+		}
+
+		for mut repo in repos {
+			console.print_header(' - initializing LFS for ${repo.account}/${repo.name}')
+			repo.lfs_init() or {
+				console.print_stderr('LFS initialization failed for ${repo.name}: ${err}')
+				if !args.script {
+					continue_anyway := ui.ask_yesno(
+						question: 'Continue with remaining repositories?'
+					)!
+					if !continue_anyway {
+						return error('LFS initialization stopped by user.')
+					}
+				}
+				continue
+			}
+			console.print_green('LFS initialized successfully for ${repo.name}')
+		}
+
+		return ''
+	}
 
 	$if debug {
 		print_backtrace()

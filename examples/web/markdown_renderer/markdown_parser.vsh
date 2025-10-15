@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none run
 
-import freeflowuniverse.herolib.data.markdownparser2
+import incubaid.herolib.data.markdownparser2
 
 // Sample markdown text
 text := '# Heading 1

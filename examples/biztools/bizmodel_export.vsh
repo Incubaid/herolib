@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -no-retry-compilation -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.biz.bizmodel
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.biz.bizmodel
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
 import os
 
 heroscript_path := os.join_path(os.dir(@FILE), 'examples/complete.heroscript')

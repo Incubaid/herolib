@@ -1,8 +1,8 @@
 // Replace the current content with:
 module herofs
 
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.hero.db
+import incubaid.herolib.core.redisclient
 
 @[heap]
 pub struct FSFactory {

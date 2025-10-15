@@ -1,9 +1,7 @@
 module heroprompt
 
-import freeflowuniverse.herolib.data.encoderhero
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.logger
-import rand
+import time
+import incubaid.herolib.core.playbook
 
 pub const version = '1.0.0'
 const singleton = false

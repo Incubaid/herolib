@@ -1,7 +1,7 @@
 module bizmodel
 
 import os
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 @[params]
 pub struct ExportCSVArgs {

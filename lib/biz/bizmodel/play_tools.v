@@ -1,7 +1,7 @@
 module bizmodel
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.playbook { Action }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.playbook { Action }
 
 pub struct RowDescrFields {
 pub mut:

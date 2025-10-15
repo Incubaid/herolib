@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.tun
+import incubaid.herolib.osal.tun
 
 // Check if TUN is available
 if available := tun.available() {

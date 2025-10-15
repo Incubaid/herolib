@@ -28,7 +28,7 @@ A lightweight, efficient graph database implementation in V that supports proper
 GraphDB is part of the HeroLib library. Include it in your V project:
 
 ```v
-import freeflowuniverse.herolib.data.graphdb
+import incubaid.herolib.data.graphdb
 ```
 
 ## Basic Usage
@@ -36,7 +36,7 @@ import freeflowuniverse.herolib.data.graphdb
 Here's a simple example demonstrating core functionality:
 
 ```v
-import freeflowuniverse.herolib.data.graphdb
+import incubaid.herolib.data.graphdb
 
 fn main() {
     // Create a new graph database

@@ -1,6 +1,6 @@
 module codewalker
 
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 
 pub struct CodeWalker {
 pub mut:

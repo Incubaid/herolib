@@ -5,6 +5,7 @@ This module provides functionality to manage Traefik configurations using Redis 
 ## Overview
 
 The module allows you to:
+
 - Define HTTP/HTTPS routes
 - Configure backend services
 - Set up middlewares
@@ -14,7 +15,7 @@ The module allows you to:
 ## Usage Example
 
 ```v
-import freeflowuniverse.herolib.osal.core.traefik
+import incubaid.herolib.osal.core.traefik
 
 fn main() ! {
     // Create a new Traefik configuration
@@ -73,6 +74,7 @@ The module uses the following Redis key structure as per Traefik's KV store spec
 ## Configuration Types
 
 ### Router Configuration
+
 ```v
 RouteConfig {
     name: string          // Router name
@@ -85,6 +87,7 @@ RouteConfig {
 ```
 
 ### Service Configuration
+
 ```v
 ServiceConfig {
     name: string
@@ -101,6 +104,7 @@ ServerConfig {
 ```
 
 ### Middleware Configuration
+
 ```v
 MiddlewareConfig {
     name: string
@@ -110,6 +114,7 @@ MiddlewareConfig {
 ```
 
 ### TLS Configuration
+
 ```v
 TLSConfig {
     domain: string      // Domain name

@@ -344,5 +344,5 @@ MIT License - see the LICENSE file for details.
 ## Related
 
 - [HeroFS Server Documentation](../README.md)
-- [HeroLib Main Repository](https://github.com/freeflowuniverse/herolib)
+- [HeroLib Main Repository](https://github.com/incubaid/herolib)
 - [HeroFS API Specification](../handlers_common.v)

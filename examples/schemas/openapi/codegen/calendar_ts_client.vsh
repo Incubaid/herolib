@@ -4,8 +4,8 @@
 // This example demonstrates how to generate a typescript client
 // from a given OpenAPI Specification using the `openapi/codegen` module.
 import os
-import freeflowuniverse.herolib.schemas.openapi
-import freeflowuniverse.herolib.schemas.openapi.codegen
+import incubaid.herolib.schemas.openapi
+import incubaid.herolib.schemas.openapi.codegen
 
 const dir = os.dir(@FILE)
 const specification = openapi.new(path: '${dir}/meeting_api.json') or {

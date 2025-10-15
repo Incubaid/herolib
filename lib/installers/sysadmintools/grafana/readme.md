@@ -1,13 +1,11 @@
 # grafana
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.grafana as grafana_installer
+import incubaid.herolib.installers.something.grafana as grafana_installer
 
 heroscript:="
 !!grafana.configure name:'test'
@@ -40,5 +38,3 @@ grafana_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

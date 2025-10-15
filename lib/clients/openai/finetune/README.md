@@ -1,8 +1,7 @@
 # OpenAI Fine-tuning Client
 
-
 ```v
-import freeflowuniverse.herolib.clients.openai
+import incubaid.herolib.clients.openai
 
 mut client:= openai.get()! //will be the default client, key is in `AIKEY` on environment variable or `OPENROUTER_API_KEY`
 

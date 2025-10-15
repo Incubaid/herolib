@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
-import freeflowuniverse.herolib.hero.herofs
+import incubaid.herolib.hero.herofs
 
 // Basic example of using HeroFS - the Hero Filesystem
 // Demonstrates creating a filesystem, directories, and files
@@ -26,7 +26,6 @@ fn test_basic() ! {
 		quota_bytes: 1024 * 1024 * 1024 // 1GB quota
 	)!
 	println('Created test filesystem with ID: ${test_fs.id}')
-
 
 	assert test_fs.id > 0
 	assert test_fs.root_dir_id > 0

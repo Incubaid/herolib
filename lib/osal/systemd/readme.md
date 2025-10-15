@@ -13,7 +13,7 @@ A V module for managing systemd services with comprehensive error handling and m
 ## Quick Start
 
 ```v
-import freeflowuniverse.herolib.lib.osal.systemd
+import incubaid.herolib.lib.osal.systemd
 
 // Create systemd factory
 mut systemd := systemd.new()!

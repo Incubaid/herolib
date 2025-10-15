@@ -9,16 +9,16 @@ In V, there is a wrapper to make call pure-v style.
 ```v
 module main
 
-import freeflowuniverse.herolib.data.verasure
+import incubaid.herolib.data.verasure
 
 fn main() {
-	mut e := verasure.new(16, 4)
-	shards := e.encode("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer consectetur accumsan augue, at pharetra".bytes())
-	println(shards)
+ mut e := verasure.new(16, 4)
+ shards := e.encode("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer consectetur accumsan augue, at pharetra".bytes())
+ println(shards)
 
-	data := e.decode(shards)
-	println(data.len)
-	println(data.bytestr())
+ data := e.decode(shards)
+ println(data.len)
+ println(data.bytestr())
 }
 ```
 

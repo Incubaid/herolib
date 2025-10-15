@@ -1,9 +1,9 @@
 module wireguard_installer
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.ui.console
+import incubaid.herolib.core
 
 //////////////////// following actions are not specific to instance of the object
 

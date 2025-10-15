@@ -1,13 +1,11 @@
 # herorunner
 
-
-
 To get started
 
 ```vlang
 
 
-import freeflowuniverse.herolib.installers.something.herorunner as herorunner_installer
+import incubaid.herolib.installers.something.herorunner as herorunner_installer
 
 heroscript:="
 !!herorunner.configure name:'test'
@@ -40,5 +38,3 @@ herorunner_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

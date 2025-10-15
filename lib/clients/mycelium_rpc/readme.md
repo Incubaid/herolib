@@ -25,7 +25,7 @@ Mycelium is a mesh networking system that creates secure, encrypted connections 
 ### Basic Example
 
 ```v
-import freeflowuniverse.herolib.clients.mycelium_rpc
+import incubaid.herolib.clients.mycelium_rpc
 
 // Create a new client
 mut client := mycelium_rpc.new_client(
@@ -51,7 +51,7 @@ for peer in peers {
 The client can be configured with:
 
 - `name`: Client instance name (default: 'default')
-- `url`: Mycelium node API URL (default: 'http://localhost:8990')
+- `url`: Mycelium node API URL (default: '<http://localhost:8990>')
 
 ### Available Methods
 
@@ -94,6 +94,7 @@ The client can be configured with:
 ## Data Types
 
 ### Info
+
 ```v
 struct Info {
     node_subnet string // The subnet owned by the node
@@ -102,6 +103,7 @@ struct Info {
 ```
 
 ### PeerStats
+
 ```v
 struct PeerStats {
     endpoint         Endpoint // Peer endpoint
@@ -113,6 +115,7 @@ struct PeerStats {
 ```
 
 ### InboundMessage
+
 ```v
 struct InboundMessage {
     id      string // Message ID (hex encoded)
@@ -150,6 +153,7 @@ v run examples/clients/mycelium_rpc.vsh
 ```
 
 The example will:
+
 1. Install Mycelium if needed
 2. Start a Mycelium node with API enabled
 3. Demonstrate various RPC operations
@@ -176,5 +180,3 @@ info := client.get_info() or {
 ## License
 
 This client follows the same license as the HeroLib project.
-
-

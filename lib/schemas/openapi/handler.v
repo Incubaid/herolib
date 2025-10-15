@@ -2,7 +2,7 @@ module openapi
 
 import net.http
 import x.json2 { Any }
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 pub struct Request {
 pub:

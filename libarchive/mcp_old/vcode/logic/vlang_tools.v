@@ -1,8 +1,8 @@
 module vcode
 
-import freeflowuniverse.herolib.mcp
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.mcp
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.schemas.jsonschema
 import x.json2 { Any }
 
 const get_function_from_file_tool = mcp.Tool{

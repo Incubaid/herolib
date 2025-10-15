@@ -1,6 +1,6 @@
 module osis
 
-import freeflowuniverse.herolib.data.ourdb { OurDB }
+import incubaid.herolib.data.ourdb { OurDB }
 import os
 
 pub struct Storer {

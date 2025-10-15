@@ -7,8 +7,8 @@ Our heroscript is a simple way to execute commands in a playbook. It allows you 
 the following will load heroscript and execute
 
 ```v
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
 
 // path string
 // text string
@@ -24,6 +24,7 @@ playcmds.run(mut plbook)!
 
 
 ```
+
 ## execute a heroscript and make executable
 
 ```bash
@@ -36,14 +37,11 @@ playcmds.run(mut plbook)!
 
 you can now just execute this script and hero will interprete the content
 
-
-
 ## filtersort
 
 ```v
 
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.playcmds
+import incubaid.herolib.core.playbook
 
 mut plbook := playbook.new(path: "....") or { panic(err) }
 
@@ -52,7 +50,7 @@ mut plbook := playbook.new(path: "....") or { panic(err) }
 // string for filter is $actor:$action, ... name and globs are possible (*,?)
 //
 // struct FilterSortArgs
-// 	 priorities  map[int]string //filter and give priority
+//   priorities  map[int]string //filter and give priority
 //```
 // the action_names or actor_names can be a glob in match_glob .
 // see https://modules.vlang.io/index.html#string.match_glob .
@@ -75,4 +73,3 @@ for a in actions{
 }
 
 ```
-

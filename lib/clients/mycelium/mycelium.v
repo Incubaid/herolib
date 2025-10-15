@@ -2,7 +2,7 @@ module mycelium
 
 import json
 import encoding.base64
-import freeflowuniverse.herolib.core.httpconnection
+import incubaid.herolib.core.httpconnection
 
 // Represents a destination for a message, can be either IP or public key
 pub struct MessageDestination {

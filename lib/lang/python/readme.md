@@ -13,7 +13,7 @@ This module provides modern Python environment management using `uv` - a fast Py
 ## Quick Start
 
 ```v
-import freeflowuniverse.herolib.lang.python
+import incubaid.herolib.lang.python
 
 // Create a new Python environment
 py := python.new(
@@ -179,6 +179,7 @@ py.exec(
 ## Migration from Old Implementation
 
 ### Before (Database-based)
+
 ```v
 py := python.new(name: 'test')!
 py.update()! // Manual pip upgrade
@@ -186,6 +187,7 @@ py.pip('requests')! // Manual package tracking
 ```
 
 ### After (UV-based)
+
 ```v
 py := python.new(
     name: 'test'

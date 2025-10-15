@@ -1,4 +1,5 @@
 // File: lib/clients/giteaclient/readme.md
+
 # giteaclient
 
 This library provides a client for interacting with the Gitea API.
@@ -19,31 +20,31 @@ You can configure the client using a HeroScript file:
 Here's how to get the client and use its methods.
 
 ```v
-import freeflowuniverse.herolib.clients.giteaclient
-import freeflowuniverse.herolib.core.base
+import incubaid.herolib.clients.giteaclient
+import incubaid.herolib.core.base
 
 fn main() ! {
     // Make sure hero is initialized
     base.init()!
 
-	// Example configuration (can also be loaded from file)
-	heroscript_config := "!!giteaclient.configure url:'https://gitea.com' secret:'...your_token...'"
-	mut plbook := playbook.new(text: heroscript_config)!
-	giteaclient.play(mut plbook)!
+ // Example configuration (can also be loaded from file)
+ heroscript_config := "!!giteaclient.configure url:'https://gitea.com' secret:'...your_token...'"
+ mut plbook := playbook.new(text: heroscript_config)!
+ giteaclient.play(mut plbook)!
 
-	// Get the default configured client
-	mut client := giteaclient.get()!
+ // Get the default configured client
+ mut client := giteaclient.get()!
 
-	// Get the authenticated user
-	user := client.get_current_user()!
-	println('Authenticated as: ${user.login}')
+ // Get the authenticated user
+ user := client.get_current_user()!
+ println('Authenticated as: ${user.login}')
 
-	// List repositories for the authenticated user
-	repos := client.user_list_repos()!
-	println('Found ${repos.len} repositories:')
-	for repo in repos {
-		println('- ${repo.full_name}')
-	}
+ // List repositories for the authenticated user
+ repos := client.user_list_repos()!
+ println('Found ${repos.len} repositories:')
+ for repo in repos {
+  println('- ${repo.full_name}')
+ }
 
     // Get a specific repository's issues
     owner := 'gitea'

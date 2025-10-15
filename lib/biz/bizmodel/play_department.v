@@ -1,6 +1,6 @@
 module bizmodel
 
-import freeflowuniverse.herolib.core.playbook { Action }
+import incubaid.herolib.core.playbook { Action }
 
 // !!bizmodel.department_define bizname:'test'
 //     name:'engineering'

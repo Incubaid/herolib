@@ -1,8 +1,8 @@
 module codegen
 
 import log
-import freeflowuniverse.herolib.develop.codetools as code { Alias, Array, Attribute, CodeItem, Object, Struct, StructField, Type, type_from_symbol }
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
+import incubaid.herolib.develop.codetools as code { Alias, Array, Attribute, CodeItem, Object, Struct, StructField, Type, type_from_symbol }
+import incubaid.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
 
 const vtypes = {
 	'integer': 'int'

@@ -1,9 +1,9 @@
 module markdown
 
-import freeflowuniverse.herolib.data.paramsparser { Param, Params }
-import freeflowuniverse.herolib.data.markdown.elements { Action }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.paramsparser { Param, Params }
+import incubaid.herolib.data.markdown.elements { Action }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 
 fn test_action_empty_params() {
 	mut docs := new(

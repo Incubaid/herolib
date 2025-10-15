@@ -1,7 +1,7 @@
 module tools
 
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_markdown_min_header_basic() {
 	txt := '

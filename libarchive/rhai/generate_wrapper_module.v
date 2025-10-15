@@ -1,6 +1,6 @@
 module rhai
 
-import freeflowuniverse.herolib.lang.rust
+import incubaid.herolib.lang.rust
 import os
 
 // generates rhai wrapper for given source rust code

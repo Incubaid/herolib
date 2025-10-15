@@ -1,11 +1,12 @@
 module meilisearch_installer
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.core.httpconnection
+import incubaid.herolib.core.texttools
+import incubaid.herolib.clients.zinit
 import os
 import rand
 import json
@@ -164,14 +165,10 @@ fn destroy() ! {
 		osal.execute_silent('sudo rm -rf /usr/local/bin/meilisearch')!
 	}
 
-	mut zinit_factory := zinit.new()!
-	if zinit_factory.exists('meilisearch') {
-		zinit_factory.stop('meilisearch') or {
-			return error('Could not stop meilisearch service due to: ${err}')
-		}
-		zinit_factory.delete('meilisearch') or {
-			return error('Could not delete meilisearch service due to: ${err}')
-		}
+	mut zinit_factory := zinit.ZinitRPC{}
+	if zinit_factory.service_list()!.keys().contains('meilisearch') {
+		zinit_factory.service_stop('meilisearch')!
+		zinit_factory.service_delete('meilisearch')!
 	}
 
 	console.print_header('meilisearch is destroyed')

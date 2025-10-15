@@ -22,7 +22,7 @@ Zinit is a process manager that allows you to manage services on a system. This 
 ### Basic Usage
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     // Create a new Zinit client with the default socket path
@@ -47,7 +47,7 @@ fn main() {
 ### Creating a New Service
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut zinit_client := zinit.new_stateless()!
@@ -77,7 +77,7 @@ fn main() {
 ### Getting Service Statistics
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut zinit_client := zinit.new_stateless()!
@@ -98,7 +98,7 @@ fn main() {
 ### Retrieving Logs
 
 ```v
-import freeflowuniverse.herolib.osal.startupmanager
+import incubaid.herolib.osal.startupmanager
 
 fn main() {
     mut zinit_client := zinit.new_stateless()!

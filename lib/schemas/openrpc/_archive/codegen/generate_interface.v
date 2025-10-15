@@ -1,8 +1,8 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code { CustomCode, VFile, parse_function, parse_import }
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.openrpc { OpenRPC }
+import incubaid.herolib.develop.codetools as code { CustomCode, VFile, parse_function, parse_import }
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.openrpc { OpenRPC }
 
 // pub fn (mut handler AccountantHandler) handle_ws(client &websocket.Client, message string) string {
 // 	return handler.handle(message) or { panic(err) }
@@ -36,7 +36,7 @@ pub fn generate_interface_file(specification OpenRPC) !VFile {
 		imports: [
 			parse_import('log'),
 			parse_import('net.websocket'),
-			parse_import('freeflowuniverse.herolib.schemas.rpcwebsocket {RpcWsServer}'),
+			parse_import('incubaid.herolib.schemas.rpcwebsocket {RpcWsServer}'),
 		]
 		items:   [
 			handle_ws_fn,

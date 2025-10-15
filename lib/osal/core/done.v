@@ -1,8 +1,8 @@
 module core
 
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.redisclient
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.base
+import incubaid.herolib.core.redisclient
+import incubaid.herolib.ui.console
 
 fn donedb() !&redisclient.Redis {
 	mut context := base.context()!

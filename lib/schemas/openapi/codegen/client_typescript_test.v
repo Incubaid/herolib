@@ -1,12 +1,12 @@
 module codegen
 
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
-import freeflowuniverse.herolib.schemas.jsonschema.codegen
-import freeflowuniverse.herolib.schemas.openrpc.codegen as openrpc_codegen
-import freeflowuniverse.herolib.schemas.openapi { Operation, ResponseSpec }
-import freeflowuniverse.herolib.baobab.specification
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.core.texttools
+import incubaid.herolib.schemas.jsonschema { Reference, Schema, SchemaRef }
+import incubaid.herolib.schemas.jsonschema.codegen
+import incubaid.herolib.schemas.openrpc.codegen as openrpc_codegen
+import incubaid.herolib.schemas.openapi { Operation, ResponseSpec }
+import incubaid.herolib.baobab.specification
 import net.http
 
 const test_operation = Operation{

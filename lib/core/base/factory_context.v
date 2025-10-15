@@ -1,6 +1,6 @@
 module base
 
-import freeflowuniverse.herolib.data.paramsparser
+import incubaid.herolib.data.paramsparser
 
 @[params]
 pub struct ContextConfigArgs {

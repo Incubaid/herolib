@@ -1,8 +1,12 @@
 module qdrant_installer
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.installers.ulist
+import incubaid.herolib.ui.console
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core
+import incubaid.herolib.clients.zinit
+import incubaid.herolib.osal.core as osal
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
@@ -20,7 +24,6 @@ fn running() !bool {
 	console.print_header('checking qdrant is running')
 	res := os.execute('curl -s http://localhost:6336/healthz')
 	if res.exit_code == 0 && res.output.contains('healthz check passed') {
-		console.print_debug('qdrant is running')
 		return true
 	}
 	console.print_debug('qdrant is not running')
@@ -78,13 +81,17 @@ fn upload() ! {
 fn install() ! {
 	console.print_header('install qdrant')
 	mut url := ''
-	if core.is_linux_arm()! {
+
+	if (core.platform()! == core.PlatformType.ubuntu || core.platform()! == core.PlatformType.arch)
+		&& core.cputype()! == core.CPUType.arm {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-aarch64-unknown-linux-musl.tar.gz'
-	} else if core.is_linux_intel()! {
+	} else if
+		(core.platform()! == core.PlatformType.ubuntu || core.platform()! == core.PlatformType.arch)
+		&& core.cputype()! == core.CPUType.intel {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-x86_64-unknown-linux-musl.tar.gz'
-	} else if core.is_osx_arm()! {
+	} else if core.platform()! == core.PlatformType.osx && osal.cputype()! == core.CPUType.arm {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-aarch64-apple-darwin.tar.gz'
-	} else if core.is_osx_intel()! {
+	} else if core.platform()! == core.PlatformType.osx && osal.cputype()! == core.CPUType.intel {
 		url = 'https://github.com/qdrant/qdrant/releases/download/v${version}/qdrant-x86_64-apple-darwin.tar.gz'
 	} else {
 		return error('unsported platform')
@@ -93,7 +100,7 @@ fn install() ! {
 		url:        url
 		minsize_kb: 18000
 		expand_dir: '/tmp/qdrant'
-	)!
+	) or { return error('Failed to download qdrant: ${err}') }
 
 	mut binpath := dest.file_get('qdrant')!
 	osal.cmd_add(
@@ -110,14 +117,10 @@ fn destroy() ! {
 	osal.rm('${os.home_dir()}/hero/bin/qdrant')!
 	osal.rm('/usr/local/bin/qdrant')!
 
-	mut zinit_factory := zinit.new()!
-	if zinit_factory.exists('qdrant') {
-		zinit_factory.stop('qdrant') or {
-			return error('Could not stop qdrant service due to: ${err}')
-		}
-		zinit_factory.delete('qdrant') or {
-			return error('Could not delete qdrant service due to: ${err}')
-		}
+	mut zinit_factory := zinit.ZinitRPC{}
+	if zinit_factory.service_list()!.keys().contains('qdrant') {
+		zinit_factory.service_stop('qdrant')!
+		zinit_factory.service_delete('qdrant')!
 	}
 	console.print_header('qdrant removed')
 }

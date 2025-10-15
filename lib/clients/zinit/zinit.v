@@ -1,8 +1,8 @@
 module zinit
 
 import json
-import freeflowuniverse.herolib.schemas.jsonrpc
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.openrpc
 
 // Helper function to get or create the RPC client
 fn (mut c ZinitRPC) client_() !&jsonrpc.Client {

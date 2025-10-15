@@ -1,6 +1,6 @@
 module heromodels
 
-import freeflowuniverse.herolib.hero.db
+import incubaid.herolib.hero.db
 
 fn test_chat_group_new() ! {
 	// Initialize DBChatGroup for testing
@@ -15,7 +15,7 @@ fn test_chat_group_new() ! {
 		description:    'Test chat group for unit testing'
 		chat_type:      .public_channel
 		last_activity:  1678886400
-		is_archived:   false
+		is_archived:    false
 		group_id:       1
 		securitypolicy: 0
 		tags:           []string{}
@@ -48,7 +48,7 @@ fn test_chat_group_crud_operations() ! {
 		description:    'Test chat group for CRUD operations'
 		chat_type:      .private_channel
 		last_activity:  1678886400
-		is_archived:   false
+		is_archived:    false
 		group_id:       2
 		securitypolicy: 0
 		tags:           []string{}
@@ -81,7 +81,7 @@ fn test_chat_group_crud_operations() ! {
 		description:    'Updated test chat group'
 		chat_type:      .direct_message
 		last_activity:  1678886500
-		is_archived:   true
+		is_archived:    true
 		group_id:       3
 		securitypolicy: 0
 		tags:           []string{}
@@ -124,7 +124,7 @@ fn test_chat_group_encoding_decoding() ! {
 		description:    'Test chat group for encoding/decoding'
 		chat_type:      .group_message
 		last_activity:  1678886600
-		is_archived:   true
+		is_archived:    true
 		group_id:       4
 		securitypolicy: 0
 		tags:           []string{}
@@ -163,7 +163,7 @@ fn test_chat_group_type_name() ! {
 		description:    'Test chat group for type name'
 		chat_type:      .public_channel
 		last_activity:  1678886400
-		is_archived:   false
+		is_archived:    false
 		group_id:       1
 		securitypolicy: 0
 		tags:           []string{}
@@ -192,7 +192,7 @@ fn test_chat_group_description() ! {
 		description:    'Test chat group for description'
 		chat_type:      .public_channel
 		last_activity:  1678886400
-		is_archived:   false
+		is_archived:    false
 		group_id:       1
 		securitypolicy: 0
 		tags:           []string{}
@@ -225,7 +225,7 @@ fn test_chat_group_example() ! {
 		description:    'Test chat group for example'
 		chat_type:      .public_channel
 		last_activity:  1678886400
-		is_archived:   false
+		is_archived:    false
 		group_id:       1
 		securitypolicy: 0
 		tags:           []string{}

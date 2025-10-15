@@ -1,7 +1,7 @@
 module heroprompt
 
-import freeflowuniverse.herolib.core.base
-import freeflowuniverse.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.base
+import incubaid.herolib.core.playbook { PlayBook }
 import json
 
 __global (
@@ -14,15 +14,20 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = 'default' // HeroPrompt instance name
-	fromdb bool // Load from Redis (default: false, uses in-memory cache)
-	create bool // Create if doesn't exist (default: false, returns error if not found)
-	reset  bool // Delete and recreate if exists (default: false)
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
 }
 
-// get retrieves or creates a HeroPrompt instance
-// This is the main entry point for accessing HeroPrompt instances
-pub fn get(args ArgsGet) !&HeroPrompt {
+pub fn new(args ArgsGet) !&Workspace {
+	mut obj := Workspace{
+		name: args.name
+	}
+	set(obj)!
+	return get(name: args.name)!
+}
+
+pub fn get(args ArgsGet) !&Workspace {
 	mut context := base.context()!
 	mut r := context.redis()!
 
@@ -55,7 +60,7 @@ pub fn get(args ArgsGet) !&HeroPrompt {
 			data := r.hget('context:heroprompt', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('HeroPrompt with name: ${args.name} does not exist, prob bug.')
+				return error('Workspace with name: heroprompt does not exist, prob bug.')
 			}
 			mut obj := json.decode(HeroPrompt, data)!
 			set_in_mem(obj)!
@@ -69,18 +74,14 @@ pub fn get(args ArgsGet) !&HeroPrompt {
 				set(obj)!
 			} else {
 				print_backtrace()
-				return error("HeroPrompt with name '${args.name}' does not exist")
+				return error("Workspace with name 'heroprompt' does not exist")
 			}
 		}
 		return get(name: args.name)! // Recursive call to return the instance
 	}
-
-	// Return from in-memory cache
-	return rlock heroprompt_global {
-		heroprompt_global[args.name] or {
-			print_backtrace()
-			return error('could not get config for heroprompt with name: ${args.name}')
-		}
+	return heroprompt_global[args.name] or {
+		print_backtrace()
+		return error('could not get config for heroprompt with name:heroprompt')
 	}
 }
 

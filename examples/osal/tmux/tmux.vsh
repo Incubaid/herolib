@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.tmux
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.osal.tmux
+import incubaid.herolib.osal.core as osal
 import time
 
 // Constants for display formatting

@@ -1,6 +1,6 @@
 module vfs_db
 
-import freeflowuniverse.herolib.vfs
+import incubaid.herolib.vfs
 
 // Symlink represents a symbolic link in the virtual filesystem
 pub struct Symlink {

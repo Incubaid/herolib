@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.sshagent
-import freeflowuniverse.herolib.osal.linux
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.sshagent
+import incubaid.herolib.osal.linux
+import incubaid.herolib.ui.console
 
 fn demo_sshagent_basic() ! {
 	console.print_header('SSH Agent Basic Demo')

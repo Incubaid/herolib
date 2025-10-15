@@ -1,6 +1,6 @@
 module deployer2
 
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.core.redisclient
 
 struct ZDBSpecs {
 	deployment_name string

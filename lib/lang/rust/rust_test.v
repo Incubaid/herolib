@@ -1,6 +1,6 @@
 module rust_test
 
-import freeflowuniverse.herolib.lang.rust
+import incubaid.herolib.lang.rust
 import os
 
 fn test_extract_functions_from_content() {

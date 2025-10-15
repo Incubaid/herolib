@@ -1,10 +1,10 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import json
-import freeflowuniverse.herolib.baobab.specification
-import freeflowuniverse.herolib.core.code
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.baobab.specification
+import incubaid.herolib.core.code
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.schemas.openrpc
 import os
 
 const actor_specification = specification.ActorSpecification{

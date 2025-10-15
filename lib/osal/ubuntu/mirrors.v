@@ -1,7 +1,7 @@
 module ubuntu
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core.texttools
 import net.http
 import os
 import time

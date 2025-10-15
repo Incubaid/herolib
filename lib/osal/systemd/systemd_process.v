@@ -2,9 +2,9 @@ module systemd
 
 // import os
 import maps
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 import os
 import time
 

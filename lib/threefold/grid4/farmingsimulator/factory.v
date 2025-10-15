@@ -1,10 +1,10 @@
 module farmingsimulator
 
-import freeflowuniverse.herolib.core.playbook
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.biz.spreadsheet
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.texttools
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.biz.spreadsheet
+import incubaid.herolib.ui.console
 
 __global (
 	farmingsimulators shared map[string]&Simulator

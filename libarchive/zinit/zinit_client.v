@@ -1,6 +1,6 @@
 module zinit
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Default socket path for Zinit
 pub const default_socket_path = '/tmp/zinit.sock'

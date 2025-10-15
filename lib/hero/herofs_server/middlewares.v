@@ -1,7 +1,7 @@
 module herofs_server
 
 import net.http
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Request logging middleware
 pub fn (mut server FSServer) middleware_log_request(mut ctx Context) {

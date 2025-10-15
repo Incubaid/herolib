@@ -1,8 +1,8 @@
 module mcpgen
 
-import freeflowuniverse.herolib.ai.mcp
-import freeflowuniverse.herolib.develop.codetools as code
-import freeflowuniverse.herolib.schemas.jsonschema
+import incubaid.herolib.ai.mcp
+import incubaid.herolib.develop.codetools as code
+import incubaid.herolib.schemas.jsonschema
 import x.json2 as json { Any }
 // import json
 

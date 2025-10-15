@@ -1,7 +1,7 @@
 module tests
 
-import freeflowuniverse.herolib.develop.gittools
-import freeflowuniverse.herolib.osal.core as osal
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.osal.core as osal
 import os
 import time
 

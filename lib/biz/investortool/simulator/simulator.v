@@ -1,7 +1,7 @@
 module investorsimulator
 
-import freeflowuniverse.herolib.core.playbook { PlayBook }
-import freeflowuniverse.herolib.biz.investortool
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.biz.investortool
 
 __global (
 	simulators map[string]Simulator

@@ -1,6 +1,6 @@
 module datamodelsimulator
 
-import freeflowuniverse.herolib.threefold.grid4.datamodel { NodeCapacity }
+import incubaid.herolib.threefold.grid4.datamodel { NodeCapacity }
 import time
 
 // NodeTotalSim represents the aggregated data for a node simulation, including hardware specs, pricing, and location.

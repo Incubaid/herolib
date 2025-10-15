@@ -19,7 +19,7 @@ Create a file `example.vsh`:
 ```v
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.osal.core.hostsfile
+import incubaid.herolib.osal.core.hostsfile
 import os
 
 // Create a new instance by reading the hosts file

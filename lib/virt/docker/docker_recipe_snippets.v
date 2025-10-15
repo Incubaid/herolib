@@ -1,7 +1,7 @@
 module docker
 
-// import freeflowuniverse.herolib.develop.gittools
-// import freeflowuniverse.herolib.core.pathlib
+// import incubaid.herolib.develop.gittools
+// import incubaid.herolib.core.pathlib
 
 pub fn (mut r DockerBuilderRecipe) add_zinit() ! {
 	mut pkg_manager := 'apk add'

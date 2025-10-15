@@ -1,6 +1,6 @@
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.core.pathlib
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 const testpath = os.dir(@FILE) + '/examples/test_path'
 

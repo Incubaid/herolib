@@ -1,13 +1,11 @@
 # nodejs
 
-
-
 To get started
 
 ```v
 
 
-import freeflowuniverse.herolib.installers.something.nodejs as nodejs_installer
+import incubaid.herolib.installers.something.nodejs as nodejs_installer
 
 heroscript:="
 !!nodejs.configure name:'test'
@@ -40,5 +38,3 @@ nodejs_installer.play(heroscript=heroscript)!
     port: 8888
 
 ```
-
-

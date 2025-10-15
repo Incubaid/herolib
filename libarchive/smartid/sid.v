@@ -1,8 +1,8 @@
 module smartid
 
-// import freeflowuniverse.herolib.core.redisclient
+// import incubaid.herolib.core.redisclient
 import math
-// import freeflowuniverse.herolib.core.texttools.regext
+// import incubaid.herolib.core.texttools.regext
 // import rand
 
 // each part min3 max 6 chars, each char = a...z or 0...9

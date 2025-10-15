@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
-import freeflowuniverse.herolib.osal
-import freeflowuniverse.herolib.develop.juggler
+import incubaid.herolib.osal
+import incubaid.herolib.develop.juggler
 import veb
 
 osal.load_env_file('${os.dir(@FILE)}/.env')!

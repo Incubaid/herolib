@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals -no-skip-unused run
 
-import freeflowuniverse.herolib.hero.herofs
+import incubaid.herolib.hero.herofs
 
 // Advanced example of using HeroFS - the Hero Filesystem
 // Demonstrates more complex operations including:

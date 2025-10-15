@@ -1,8 +1,8 @@
 module meilisearch
 
-import freeflowuniverse.herolib.data.paramsparser
-import freeflowuniverse.herolib.core.httpconnection
-import os
+import incubaid.herolib.data.paramsparser
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.core.httpconnection
 
 pub const version = '1.0.0'
 const singleton = false
@@ -52,4 +52,15 @@ fn (mut self MeilisearchClient) httpclient() !&httpconnection.HTTPConnection {
 		http_conn.default_header.add(.authorization, 'Bearer ${self.api_key}')
 	}
 	return http_conn
+}
+
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_dumps(obj MeilisearchClient) !string {
+	return encoderhero.encode[MeilisearchClient](obj)!
+}
+
+pub fn heroscript_loads(heroscript string) !MeilisearchClient {
+	mut obj := encoderhero.decode[MeilisearchClient](heroscript)!
+	return obj
 }

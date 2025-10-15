@@ -1,10 +1,10 @@
 module starlight
 
-import freeflowuniverse.herolib.osal.screen
+import incubaid.herolib.osal.screen
 import os
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
 
 @[heap]
 pub struct DocSite {

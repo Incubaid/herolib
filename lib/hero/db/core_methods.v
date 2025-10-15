@@ -1,7 +1,7 @@
 module db
 
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.data.encoder
 
 pub fn (mut self DB) set[T](obj_ T) !T {
 	// Get the next ID	
@@ -90,7 +90,7 @@ fn (mut self DB) db_name[T]() string {
 }
 
 pub fn (mut self DB) new_id() !u32 {
-	r:=u32(self.redis.incr('db:id')!)
-	assert r>0
+	r := u32(self.redis.incr('db:id')!)
+	assert r > 0
 	return r
 }

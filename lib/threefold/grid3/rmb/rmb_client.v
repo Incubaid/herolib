@@ -1,7 +1,7 @@
 module rmb
 
-// import freeflowuniverse.herolib.core.httpconnection
-import freeflowuniverse.herolib.core.redisclient { RedisURL }
+// import incubaid.herolib.core.httpconnection
+import incubaid.herolib.core.redisclient { RedisURL }
 import os
 
 pub struct RMBClient {

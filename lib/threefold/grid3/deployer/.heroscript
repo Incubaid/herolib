@@ -6,3 +6,4 @@
     default:1
 	hasconfig:1
     reset:0
+    active:false

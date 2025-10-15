@@ -1,12 +1,11 @@
 module herofs
 
-import freeflowuniverse.herolib.data.encoder
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.hero.db
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
-import freeflowuniverse.herolib.hero.user { UserRef }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.data.encoder
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.hero.db
+import incubaid.herolib.schemas.jsonrpc { Response, new_error, new_response, new_response_false, new_response_int, new_response_ok, new_response_true }
+import incubaid.herolib.hero.user { UserRef }
+import incubaid.herolib.ui.console
 import json
 
 // Fs represents a filesystem, is the top level container for files and directories and symlinks, blobs are used over filesystems
@@ -109,6 +108,13 @@ pub mut:
 	used_bytes  u64
 	tags        []string
 	messages    []db.MessageArg
+}
+
+@[params]
+pub struct FsListArg {
+pub mut:
+	group_id u32
+	limit    int = 100 // Default limit is 100
 }
 
 // get new filesystem, not from the DB
@@ -320,7 +326,6 @@ pub fn fs_handle(mut f FSFactory, rpcid int, servercontext map[string]string, us
 			res := f.fs.list(args)!
 			return new_response(rpcid, json.encode(res))
 		}
-		
 		else {
 			console.print_stderr('Method not found on fs: ${method}')
 			return new_error(rpcid,

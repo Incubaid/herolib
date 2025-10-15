@@ -1,7 +1,7 @@
 module vfs_contacts
 
-import freeflowuniverse.herolib.vfs
-import freeflowuniverse.herolib.circles.mcc.models as contacts
+import incubaid.herolib.vfs
+import incubaid.herolib.circles.mcc.models as contacts
 
 // ContactsFSEntry implements FSEntry for contacts objects
 pub struct ContactsFSEntry {

@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -n -w -gc none -cg  -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.crypt.aes_symmetric { decrypt, encrypt }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.crypt.aes_symmetric { decrypt, encrypt }
+import incubaid.herolib.ui.console
 
 msg := 'my message'.bytes()
 console.print_debug('${msg}')

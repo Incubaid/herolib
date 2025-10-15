@@ -1,7 +1,7 @@
 module spreadsheet
 
-import freeflowuniverse.herolib.core.playbook { Action }
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.core.playbook { Action }
+import incubaid.herolib.ui.console
 
 pub fn playmacro(action Action) !string {
 	console.print_green('playmacro for worksheet')

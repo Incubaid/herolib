@@ -1,9 +1,9 @@
 module zinit
 
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.data.ourtime
+import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.ourtime
 import os
 import json
 

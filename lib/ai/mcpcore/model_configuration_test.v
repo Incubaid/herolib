@@ -1,6 +1,6 @@
 module mcpcore
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 import json
 
 // This file contains tests for the MCP initialize handler implementation.

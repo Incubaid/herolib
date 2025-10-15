@@ -1,6 +1,6 @@
 module radixtree
 
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 // Gets a node from the database by its ID
 pub fn (mut rt RadixTree) get_node_by_id(id u32) !Node {

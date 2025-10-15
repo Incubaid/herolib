@@ -1,9 +1,9 @@
 module herofs_server
 
 import veb
-import freeflowuniverse.herolib.hero.herofs
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.redisclient
+import incubaid.herolib.hero.herofs
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.redisclient
 
 // FSServer is the main server struct
 pub struct FSServer {
@@ -29,7 +29,7 @@ pub mut:
 	host            string   = 'localhost'
 	cors_enabled    bool     = true
 	allowed_origins []string = ['*']
-	redis ?&redisclient.Redis
+	redis           ?&redisclient.Redis
 }
 
 // Create a new filesystem server

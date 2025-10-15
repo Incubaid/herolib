@@ -17,7 +17,9 @@ A hierarchical workspace-based system for organizing code files and directories 
 ## Hierarchical API Structure
 
 ```v
-import freeflowuniverse.herolib.develop.heroprompt
+
+
+import incubaid.herolib.develop.heroprompt
 
 // 1. Get or create a heroprompt instance
 mut hp := heroprompt.get(name: 'my_heroprompt', create: true)!

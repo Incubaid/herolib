@@ -1,9 +1,9 @@
 module pugconvert
 
-import freeflowuniverse.herolib.mcp
+import incubaid.herolib.mcp
 import x.json2 as json { Any }
-import freeflowuniverse.herolib.mcp.aitools.pugconvert
-import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.mcp.aitools.pugconvert
+import incubaid.herolib.core.pathlib
 import os
 
 pub fn handler(arguments map[string]Any) !mcp.ToolCallResult {

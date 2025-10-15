@@ -1,6 +1,6 @@
 module main
 
-import freeflowuniverse.herolib.osal.zinit
+import incubaid.herolib.osal.zinit
 import json
 
 fn main() {

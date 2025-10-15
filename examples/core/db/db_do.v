@@ -1,9 +1,9 @@
 #!/usr/bin/env -S v -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import time
-import freeflowuniverse.herolib.core.smartid
-import freeflowuniverse.herolib.data.ourtime
-import freeflowuniverse.herolib.core.db
+import incubaid.herolib.core.smartid
+import incubaid.herolib.data.ourtime
+import incubaid.herolib.core.db
 
 pub struct MyStruct {
 	db.Base

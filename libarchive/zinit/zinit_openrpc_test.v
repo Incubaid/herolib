@@ -1,6 +1,6 @@
 module zinit
 
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 import os
 import rand
 import time

@@ -1,7 +1,7 @@
 module cloudhypervisor
 
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.installers.virt.cloudhypervisor as cloudhypervisorinstaller
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.virt.cloudhypervisor as cloudhypervisorinstaller
 import os
 
 @[heap]

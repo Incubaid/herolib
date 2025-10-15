@@ -1,8 +1,8 @@
 module builder
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.osal.rsync
-// import freeflowuniverse.herolib.core.pathlib
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.osal.rsync
+// import incubaid.herolib.core.pathlib
 import os
 
 @[heap]

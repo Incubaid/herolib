@@ -2,7 +2,7 @@ module mcpcore
 
 import time
 import os
-import freeflowuniverse.herolib.schemas.jsonrpc
+import incubaid.herolib.schemas.jsonrpc
 
 // Server is the main MCP server struct
 @[heap]

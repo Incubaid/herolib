@@ -1,11 +1,11 @@
 module mcp
 
-import freeflowuniverse.herolib.ai.mcp
+import incubaid.herolib.ai.mcp
 import x.json2 as json
-import freeflowuniverse.herolib.schemas.jsonschema
-import freeflowuniverse.herolib.ai.mcp.logger
+import incubaid.herolib.schemas.jsonschema
+import incubaid.herolib.ai.mcp.logger
 
-const specs = mcp.Tool{
+const specs = Tool{
 	name:         'pugconvert'
 	description:  'Convert Pug template files to Jet template files'
 	input_schema: jsonschema.Schema{

@@ -1,15 +1,15 @@
 module fungistor
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.osal.systemd
-import freeflowuniverse.herolib.osal.startupmanager
-import freeflowuniverse.herolib.installers.ulist
-import freeflowuniverse.herolib.installers.lang.golang
-import freeflowuniverse.herolib.installers.lang.rust
-import freeflowuniverse.herolib.installers.lang.python
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.osal.systemd
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.installers.lang.golang
+import incubaid.herolib.installers.lang.rust
+import incubaid.herolib.installers.lang.python
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
@@ -27,7 +27,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	return res
 }
 
-fn running_() !bool {
+fn running() !bool {
 	mut installer := get()!
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// this checks health of fungistor
@@ -64,7 +64,7 @@ fn stop_post() ! {
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
-fn installed_() !bool {
+fn installed() !bool {
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// res := os.execute('${osal.profile_path_source_and()!} fungistor version')
 	// if res.exit_code != 0 {
@@ -87,14 +87,14 @@ fn ulist_get() !ulist.UList {
 }
 
 // uploads to S3 server if configured
-fn upload_() ! {
+fn upload() ! {
 	// installers.upload(
 	//     cmdname: 'fungistor'
 	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/fungistor'
 	// )!
 }
 
-fn install_() ! {
+fn install() ! {
 	console.print_header('install fungistor')
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// mut url := ''
@@ -125,7 +125,7 @@ fn install_() ! {
 	// )!
 }
 
-fn build_() ! {
+fn build() ! {
 	// url := 'https://github.com/threefoldtech/fungistor'
 
 	// make sure we install base on the node
@@ -154,7 +154,7 @@ fn build_() ! {
 	// )!
 }
 
-fn destroy_() ! {
+fn destroy() ! {
 	// mut systemdfactory := systemd.new()!
 	// systemdfactory.destroy("zinit")!
 

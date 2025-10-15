@@ -1,8 +1,8 @@
 module elements
 
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import os
-// import freeflowuniverse.herolib.ui.console
+// import incubaid.herolib.ui.console
 
 @[heap]
 pub struct Link {

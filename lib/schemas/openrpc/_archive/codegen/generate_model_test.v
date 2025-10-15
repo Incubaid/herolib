@@ -2,9 +2,9 @@ module codegen
 
 import os
 import json
-import freeflowuniverse.herolib.develop.codetools as code { Alias, Struct }
-import freeflowuniverse.herolib.core.pathlib
-import freeflowuniverse.herolib.schemas.openrpc
+import incubaid.herolib.develop.codetools as code { Alias, Struct }
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.schemas.openrpc
 
 const doc_path = '${os.dir(@FILE)}/testdata/openrpc.json'
 

@@ -2,7 +2,7 @@ module dbfs
 
 import time
 import os
-import freeflowuniverse.herolib.ui.console
+import incubaid.herolib.ui.console
 
 fn test_dbfs() {
 	data_dir := '/tmp/db'

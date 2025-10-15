@@ -1,7 +1,7 @@
 #!/usr/bin/env -S v -gc none -no-retry-compilation -cc tcc -d use_openssl -enable-globals run
 
-import freeflowuniverse.herolib.biz.investortool
-import freeflowuniverse.herolib.core.playbook
+import incubaid.herolib.biz.investortool
+import incubaid.herolib.core.playbook
 import os
 
 mut plbook := playbook.new(

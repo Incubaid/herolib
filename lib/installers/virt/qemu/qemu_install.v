@@ -1,10 +1,10 @@
 module qemu
 
-import freeflowuniverse.herolib.osal.core as osal
-import freeflowuniverse.herolib.core
-import freeflowuniverse.herolib.installers.base
-import freeflowuniverse.herolib.ui.console
-import freeflowuniverse.herolib.core.texttools
+import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core
+import incubaid.herolib.installers.base
+import incubaid.herolib.ui.console
+import incubaid.herolib.core.texttools
 import os
 
 @[params]
@@ -14,7 +14,7 @@ pub mut:
 	uninstall bool
 }
 
-pub fn install_(args_ InstallArgs) ! {
+pub fn install(args_ InstallArgs) ! {
 	mut args := args_
 	mut version := '10.0.0'
 

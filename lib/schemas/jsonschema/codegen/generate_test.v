@@ -1,7 +1,7 @@
 module codegen
 
 import log
-import freeflowuniverse.herolib.develop.codetools as code
+import incubaid.herolib.develop.codetools as code
 
 fn test_struct_to_schema() {
 	struct_ := code.Struct{
