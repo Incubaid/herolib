@@ -1,8 +1,25 @@
 #!/bin/bash
 
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+#==============================================================================
+# GLOBAL VARIABLES
+#==============================================================================
+RESET=false
+REMOVE=false
+INSTALL_ANALYZER=false
+HEROLIB=false
+START_REDIS=false
+
+export DIR_BASE="$HOME"
+export DIR_BUILD="/tmp"
+export DIR_CODE="$DIR_BASE/code"
+export DIR_CODE_V="$DIR_BASE/_code"
+export OSNAME=""
+
+
+#==============================================================================
+# FUNCTION DEFINITIONS
+#==============================================================================
 
 # Help function
 print_help() {
@@ -16,6 +33,7 @@ print_help() {
     echo "  --remove       Remove V installation and exit"
     echo "  --analyzer     Install/update v-analyzer"
     echo "  --herolib      Install our herolib"
+    echo "  --start-redis  Start the Redis service if installed"
     echo
     echo "Examples:"
     echo "  $0"
@@ -26,38 +44,6 @@ print_help() {
     echo "  $0 --reset --analyzer # Fresh install of both"
     echo
 }
-
-# Parse arguments
-RESET=false
-REMOVE=false
-INSTALL_ANALYZER=false
-HEROLIB=false
-
-for arg in "$@"; do
-    case $arg in
-        -h|--help)
-            print_help
-            exit 0
-        ;;
-        --reset)
-            RESET=true
-        ;;
-        --remove)
-            REMOVE=true
-        ;;
-        --herolib)
-            HEROLIB=true
-        ;;
-        --analyzer)
-            INSTALL_ANALYZER=true
-        ;;
-        *)
-            echo "Unknown option: $arg"
-            echo "Use -h or --help to see available options"
-            exit 1
-        ;;
-    esac
-done
 
 # Function to check if command exists
 command_exists() {
@@ -80,25 +66,20 @@ function run_sudo() {
     fi
 }
 
-export DIR_BASE="$HOME"
-export DIR_BUILD="/tmp"
-export DIR_CODE="$DIR_BASE/code"
-export DIR_CODE_V="$DIR_BASE/_code"
-
 check_release() {
     if ! command -v lsb_release >/dev/null 2>&1; then
         echo "❌ lsb_release command not found. Install 'lsb-release' package first."
         exit 1
     fi
-    
+
     CODENAME=$(lsb_release -sc)
     RELEASE=$(lsb_release -rs)
-    
+
     if dpkg --compare-versions "$RELEASE" lt "24.04"; then
         echo "ℹ️ Detected Ubuntu $RELEASE ($CODENAME). Skipping mirror fix (requires 24.04+)."
         return 1
     fi
-    
+
     return 0
 }
 
@@ -108,25 +89,25 @@ ubuntu_sources_fix() {
         echo "ℹ️ Not running on Ubuntu. Skipping mirror fix."
         return 1
     fi
-    
+
     if check_release; then
         local CODENAME
         CODENAME=$(lsb_release -sc)
         local TIMESTAMP
         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-        
+
         echo "🔎 Fixing apt mirror setup for Ubuntu $(lsb_release -rs) ($CODENAME)..."
-        
+
         if [ -f /etc/apt/sources.list ]; then
             echo "📦 Backing up /etc/apt/sources.list -> /etc/apt/sources.list.backup.$TIMESTAMP"
             sudo mv /etc/apt/sources.list /etc/apt/sources.list.backup.$TIMESTAMP
         fi
-        
+
         if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
             echo "📦 Backing up /etc/apt/sources.list.d/ubuntu.sources -> /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP"
             sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP
         fi
-        
+
         echo "📝 Writing new /etc/apt/sources.list.d/ubuntu.sources"
     sudo tee /etc/apt/sources.list.d/ubuntu.sources >/dev/null <<EOF
 Types: deb
@@ -134,10 +115,10 @@ URIs: mirror://mirrors.ubuntu.com/mirrors.txt
 Suites: $CODENAME $CODENAME-updates $CODENAME-backports $CODENAME-security
 Components: main restricted universe multiverse
 EOF
-        
+
         echo "🔄 Running apt update..."
         sudo apt update -qq
-        
+
         echo "✅ Done! Your system now uses the rotating Ubuntu mirror list."
     fi
 }
@@ -156,37 +137,14 @@ function sshknownkeysadd {
         ssh-keyscan git.threefold.info >> ~/.ssh/known_hosts
     fi
     git config --global pull.rebase false
-    
+
 }
 
-function package_check_install {
-    local command_name="$1"
-    if command -v "$command_name" >/dev/null 2>&1; then
-        echo "command '$command_name' is already installed."
-    else
-        package_install '$command_name'
-    fi
-}
-
-function package_install {
-    local command_name="$1"
-    if [[ "${OSNAME}" == "ubuntu" ]]; then
-        if is_github_actions; then
-            run_sudo apt -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef" install $1 -q -y --allow-downgrades --allow-remove-essential
-        else
-            apt -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef" install $1 -q -y --allow-downgrades --allow-remove-essential
-        fi
-        
-        elif [[ "${OSNAME}" == "darwin"* ]]; then
-        brew install $command_name
-        elif [[ "${OSNAME}" == "alpine"* ]]; then
-        apk add $command_name
-        elif [[ "${OSNAME}" == "arch"* ]]; then
-        pacman --noconfirm -Su $command_name
-    else
-        echo "platform : ${OSNAME} not supported"
-        exit 1
-    fi
+# Performs a non-interactive, forceful apt installation.
+# WARNING: This is designed for CI/automated environments. It can be dangerous
+# on a personal machine as it may remove essential packages to resolve conflicts.
+function apt_force_install {
+    run_sudo apt -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef" install "$1" -q -y --allow-downgrades --allow-remove-essential
 }
 
 is_github_actions() {
@@ -201,11 +159,10 @@ is_github_actions() {
     fi
 }
 
-
 function myplatform {
     if [[ "${OSTYPE}" == "darwin"* ]]; then
         export OSNAME='darwin'
-        elif [ -e /etc/os-release ]; then
+    elif [ -e /etc/os-release ]; then
         # Read the ID field from the /etc/os-release file
         export OSNAME=$(grep '^ID=' /etc/os-release | cut -d= -f2)
         if [ "${OSNAME,,}" == "ubuntu" ]; then
@@ -221,27 +178,14 @@ function myplatform {
         echo "Unable to determine the operating system."
         exit 1
     fi
-    
-    
-    # if [ "$(uname -m)" == "x86_64" ]; then
-    #     echo "This system is running a 64-bit processor."
-    # else
-    #     echo "This system is not running a 64-bit processor."
-    #     exit 1
-    # fi
-    
 }
 
-myplatform
-
-function os_update {
+function update_system {
+    echo ' - System Update'
     if [[ "${OSNAME}" == "ubuntu" ]]; then
         ubuntu_sources_fix
-    fi
-    echo ' - os update'
-    if [[ "${OSNAME}" == "ubuntu" ]]; then
         if is_github_actions; then
-            echo "github actions"
+            echo "github actions: preparing system"
         else
             rm -f /var/lib/apt/lists/lock
             rm -f /var/cache/apt/archives/lock
@@ -252,53 +196,55 @@ function os_update {
         run_sudo dpkg --configure -a
         run_sudo apt update -y
         if is_github_actions; then
-            echo "** IN GITHUB ACTIONS, DON'T DO UPDATE"
+            echo "** IN GITHUB ACTIONS, DON'T DO SYSTEM UPGRADE"
         else
             set +e
-            echo "** UPDATE"
+            echo "** System Upgrade"
             apt-mark hold grub-efi-amd64-signed
             set -e
             apt upgrade  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --force-yes
             apt autoremove  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --force-yes
         fi
-        #apt install apt-transport-https ca-certificates curl software-properties-common  -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" --force-yes
-        package_install "apt-transport-https ca-certificates curl wget software-properties-common tmux make gcc"
-        package_install "rclone rsync mc redis-server screen net-tools git dnsutils htop ca-certificates screen lsb-release binutils pkg-config libssl-dev iproute2"
-        
-        elif [[ "${OSNAME}" == "darwin"* ]]; then
-        if command -v brew >/dev/null 2>&1; then
-            echo ' - homebrew installed'
-        else
+    elif [[ "${OSNAME}" == "darwin"* ]]; then
+        if ! command -v brew >/dev/null 2>&1; then
+            echo ' - Installing Homebrew'
             export NONINTERACTIVE=1
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             unset NONINTERACTIVE
         fi
+    elif [[ "${OSNAME}" == "alpine"* ]]; then
+        apk update
+    elif [[ "${OSNAME}" == "arch"* ]]; then
+        pacman -Syyu --noconfirm
+    fi
+    echo ' - System Update Done'
+}
+
+function install_packages {
+    echo ' - Installing Packages'
+    if [[ "${OSNAME}" == "ubuntu" ]]; then
+        apt_force_install apt-transport-https ca-certificates curl wget software-properties-common tmux make gcc rclone rsync mc redis-server screen net-tools git dnsutils htop lsb-release binutils pkg-config libssl-dev iproute2
+    elif [[ "${OSNAME}" == "darwin"* ]]; then
+        # The set +e is to prevent script failure if some packages are already installed.
         set +e
         brew install mc redis curl tmux screen htop wget rclone tcc
         set -e
-        elif [[ "${OSNAME}" == "alpine"* ]]; then
-        apk update screen git htop tmux
-        apk add mc curl rsync htop redis bash bash-completion screen git rclone
+    elif [[ "${OSNAME}" == "alpine"* ]]; then
+        apk add --no-cache screen git htop tmux mc curl rsync redis bash bash-completion rclone
+        # Switch default shell to bash for better interactive use
         sed -i 's#/bin/ash#/bin/bash#g' /etc/passwd
-        elif [[ "${OSNAME}" == "arch"* ]]; then
-        pacman -Syy --noconfirm
-        pacman -Syu --noconfirm
-        pacman -Su --noconfirm arch-install-scripts gcc mc git tmux curl htop redis wget screen net-tools git sudo htop ca-certificates lsb-release screen rclone
-        
+    elif [[ "${OSNAME}" == "arch"* ]]; then
+        pacman -Su --noconfirm arch-install-scripts gcc mc git tmux curl htop redis wget screen net-tools sudo lsb-release rclone
+
         # Check if builduser exists, create if not
         if ! id -u builduser > /dev/null 2>&1; then
             useradd -m builduser
             echo "builduser:$(openssl rand -base64 32 | sha256sum | base64 | head -c 32)" | chpasswd
             echo 'builduser ALL=(ALL) NOPASSWD: ALL' | tee /etc/sudoers.d/builduser
         fi
-        
-        # if [[ -n "${DEBUG}" ]]; then
-        #     execute_with_marker "paru_install" paru_install
-        # fi
     fi
-    echo ' - os update done'
+    echo ' - Package Installation Done'
 }
-
 
 function hero_lib_pull {
     pushd $DIR_CODE/github/incubaid/herolib 2>&1 >> /dev/null
@@ -311,7 +257,7 @@ function hero_lib_pull {
 }
 
 function hero_lib_get {
-    
+
     mkdir -p $DIR_CODE/github/incubaid
     if [[ -d "$DIR_CODE/github/incubaid/herolib" ]]
     then
@@ -322,44 +268,6 @@ function hero_lib_get {
         popd 2>&1 >> /dev/null
     fi
 }
-
-# function install_secp256k1 {
-
-#     echo "Installing secp256k1..."
-#     if [[ "${OSNAME}" == "darwin"* ]]; then
-#         # Attempt installation only if not already found
-#         echo "Attempting secp256k1 installation via Homebrew..."
-#         brew install secp256k1
-#     elif [[ "${OSNAME}" == "ubuntu" ]]; then
-#         # Install build dependencies
-#         package_install "build-essential wget autoconf libtool"
-
-#         # Download and extract secp256k1
-#         cd "${DIR_BUILD}"
-#         wget https://github.com/bitcoin-core/secp256k1/archive/refs/tags/v0.3.2.tar.gz
-#         tar -xvf v0.3.2.tar.gz
-
-#         # Build and install
-#         cd secp256k1-0.3.2/
-#         ./autogen.sh
-#         ./configure
-#         make -j 5
-#         if is_github_actions; then
-#             run_sudo make install
-#         else
-#             make install
-#         fi
-
-#         # Cleanup
-#         cd ..
-#         rm -rf secp256k1-0.3.2 v0.3.2.tar.gz
-#     else
-#         echo "secp256k1 installation not implemented for ${OSNAME}"
-#         exit 1
-#     fi
-#     echo "secp256k1 installation complete!"
-# }
-
 
 remove_all() {
     echo "Removing V installation..."
@@ -377,7 +285,7 @@ remove_all() {
         echo "Removing v-analyzer from system..."
         run_sudo rm -f $(which v-analyzer)
     fi
-    
+
     # Remove v-analyzer path from rc files
     for RC_FILE in ~/.zshrc ~/.bashrc; do
         if [ -f "$RC_FILE" ]; then
@@ -393,127 +301,54 @@ remove_all() {
             echo "Cleaned up $RC_FILE"
         fi
     done
-    
+
     echo "V removal complete"
 }
 
+# Starts the Redis service if it is not already running.
+function start_redis_service() {
+    echo "Attempting to start Redis service..."
+    # Check if redis-server is even installed
+    if ! command_exists redis-server; then
+        echo "Warning: redis-server command not found. Skipping."
+        return 0
+    fi
 
+    # Check if redis is already running by pinging it
+    if redis-cli ping > /dev/null 2>&1; then
+        echo "Redis is already running."
+        return 0
+    fi
 
-# Function to check if a service is running and start it if needed
-check_and_start_redis() {
-    
-    # Normal service management for non-container environments
-    if [[ "${OSNAME}" == "ubuntu" ]] || [[ "${OSNAME}" == "debian" ]]; then
-        
-        # Handle Redis installation for GitHub Actions environment
-        if is_github_actions; then
-            
-            # Import Redis GPG key
-            curl -fsSL https://packages.redis.io/gpg | run_sudo gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
-            # Add Redis repository
-            echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | run_sudo tee /etc/apt/sources.list.d/redis.list
-            # Install Redis
-            run_sudo apt-get update
-            run_sudo apt-get install -y redis
-            
-            # Start Redis
-            redis-server --daemonize yes
-            
-            # Print versions
-            redis-cli --version
-            redis-server --version
-            
-            return
-        fi
-        
-        # Check if running inside a container
-        if grep -q "/docker/" /proc/1/cgroup || [ ! -d "/run/systemd/system" ]; then
-            echo "Running inside a container. Starting redis directly."
-            
-            if pgrep redis-server > /dev/null; then
-                echo "redis is already running."
-            else
-                echo "redis is not running. Starting it in the background..."
-                redis-server --daemonize yes
-                if pgrep redis-server > /dev/null; then
-                    echo "redis started successfully."
-                else
-                    echo "Failed to start redis. Please check logs for details."
-                    exit 1
-                fi
-            fi
-            return
-        fi
-
-        if command_exists zinit; then
-            # Check if redis service is managed by zinit and is running
-            if zinit status redis | grep -q "state: Running"; then
-                echo "redis is already running and managed by zinit."
-                return
-            else
-                echo "zinit is installed, but redis is not running or not managed by zinit. Proceeding with other checks."
-            fi
-        fi
-
-        if systemctl is-active --quiet "redis"; then
-            echo "redis is already running."
-        else
-            echo "redis is not running. Starting it..."
-            run_sudo systemctl start "redis"
-            if systemctl is-active --quiet "redis"; then
-                echo "redis started successfully."
-            else
-                echo "Failed to start redis. Please check logs for details."
-                exit 1
-            fi
-        fi
-        elif [[ "${OSNAME}" == "darwin"* ]]; then
-        # Check if we're in GitHub Actions
-        if is_github_actions; then
-            echo "Running in GitHub Actions on macOS. Starting redis directly..."
-            if pgrep redis-server > /dev/null; then
-                echo "redis is already running."
-            else
-                echo "redis is not running. Starting it in the background..."
-                redis-server --daemonize yes
-                if pgrep redis-server > /dev/null; then
-                    echo "redis started successfully."
-                else
-                    echo "Failed to start redis. Please check logs for details."
-                    exit 1
-                fi
-            fi
-        else
-            # For regular macOS environments, use brew services
-            if brew services list | grep -q "^redis.*started"; then
-                echo "redis is already running."
-            else
-                echo "redis is not running. Starting it..."
-                brew services start redis
-            fi
-        fi
-        elif [[ "${OSNAME}" == "alpine"* ]]; then
-        if rc-service "redis" status | grep -q "running"; then
-            echo "redis is already running."
-        else
-            echo "redis is not running. Starting it..."
-            rc-service "redis" start
-        fi
-        elif [[ "${OSNAME}" == "arch"* ]]; then
-        if systemctl is-active --quiet "redis"; then
-            echo "redis is already running."
-        else
-            echo "redis is not running. Starting it..."
-            run_sudo systemctl start "redis"
+    echo "Redis is not running. Attempting to start it..."
+    if command_exists systemctl; then
+        run_sudo systemctl start redis
+        # For Alpine, use rc-service
+    elif command_exists rc-service; then
+        run_sudo rc-service redis start
+    elif [[ "${OSNAME}" == "darwin"* ]]; then
+        # For macOS, use brew services
+        if ! brew services list | grep -q "^redis.*started"; then
+            brew services start redis
         fi
     else
-        echo "Service management for redis is not implemented for platform: $OSNAME"
+        echo "No service manager found, starting Redis manually..."
+        redis-server --daemonize yes
+        return 1
+    fi
+
+    # Final check to see if it started
+    sleep 1 # Give it a second to start up
+    if redis-cli ping > /dev/null 2>&1; then
+        echo "Redis started successfully."
+    else
+        echo "Error: Failed to start Redis."
         exit 1
     fi
 }
 
 v-install() {
-    
+
     # Check if v is already installed and in PATH
     if command_exists v; then
         echo "V is already installed and in PATH."
@@ -521,8 +356,8 @@ v-install() {
         # For now, just exit the function assuming it's okay
         return 0
     fi
-    
-    
+
+
     # Only clone and install if directory doesn't exist
     # Note: The original check was for ~/code/v, but the installation happens in ~/_code/v.
     if [ ! -d ~/_code/v ]; then
@@ -535,8 +370,8 @@ v-install() {
             exit 1
         fi
     fi
-    
-    
+
+
     # Only clone and install if directory doesn't exist
     # Note: The original check was for ~/code/v, but the installation happens in ~/_code/v.
     # Adjusting the check to the actual installation directory.
@@ -555,43 +390,43 @@ v-install() {
     fi
     echo "V built successfully. Creating symlink..."
     run_sudo ./v symlink
-    
+
     # Verify v is in path
     if ! command_exists v; then
         echo "Error: V installation failed or not in PATH"
         echo "Please ensure ~/code/v is in your PATH"
         exit 1
     fi
-    
+
     echo "V installation successful!"
-    
+
 }
 
 
 v-analyzer() {
-    
+
     set -ex
-    
+
     # Install v-analyzer if requested
     if [ "$INSTALL_ANALYZER" = true ]; then
         echo "Installing v-analyzer..."
         cd /tmp
         v download -RD https://raw.githubusercontent.com/vlang/v-analyzer/main/install.vsh
-        
+
         # Check if v-analyzer bin directory exists
         if [ ! -d "$HOME/.config/v-analyzer/bin" ]; then
             echo "Error: v-analyzer bin directory not found at $HOME/.config/v-analyzer/bin"
             echo "Please ensure v-analyzer was installed correctly"
             exit 1
         fi
-        
+
         echo "v-analyzer installation successful!"
     fi
-    
+
     # Add v-analyzer to PATH if installed
     if [ -d "$HOME/.config/v-analyzer/bin" ]; then
         V_ANALYZER_PATH='export PATH="$PATH:$HOME/.config/v-analyzer/bin"'
-        
+
         # Function to add path to rc file if not present
         add_to_rc() {
             local RC_FILE="$1"
@@ -605,7 +440,7 @@ v-analyzer() {
                 fi
             fi
         }
-        
+
         # Add to both .zshrc and .bashrc if they exist
         add_to_rc ~/.zshrc
         if [ "$(uname)" = "Darwin" ] && [ -f ~/.bashrc ]; then
@@ -615,70 +450,111 @@ v-analyzer() {
 }
 
 
+#==============================================================================
+# MAIN EXECUTION
+#==============================================================================
+main() {
+    # Make sure we're running in the directory where the script is
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    cd "$SCRIPT_DIR"
 
-# Handle remove if requested
-if [ "$REMOVE" = true ]; then
-    remove_all
-    exit 0
-fi
+    # Parse arguments
+    for arg in "$@"; do
+        case $arg in
+            -h|--help)
+                print_help
+                exit 0
+            ;;
+            --reset)
+                RESET=true
+            ;;
+            --remove)
+                REMOVE=true
+            ;;
+            --herolib)
+                HEROLIB=true
+            ;;
+            --analyzer)
+                INSTALL_ANALYZER=true
+            ;;
+            --start-redis)
+                START_REDIS=true
+            ;;
+            *)
+                echo "Unknown option: $arg"
+                echo "Use -h or --help to see available options"
+                exit 1
+            ;;
+        esac
+done
 
-# Create code directory if it doesn't exist
-mkdir -p ~/code
+    myplatform
+
+    # Handle remove if requested
+    if [ "$REMOVE" = true ]; then
+        remove_all
+        exit 0
+    fi
+
+    # Create code directory if it doesn't exist
+    mkdir -p ~/code
 
 
-# Check if v needs to be installed
-if [ "$RESET" = true ] || ! command_exists v; then
-    
-    os_update
-    
-    sshknownkeysadd
-    
-    # Install secp256k1
-    
-    v-install
-    
-    
-    
-fi
+    # Check if v needs to be installed
+    if [ "$RESET" = true ] || ! command_exists v; then
 
-# set -x
-check_and_start_redis
+        update_system
+        install_packages
 
-if [ "$HEROLIB" = true ]; then
-    echo "=== Herolib Installation ==="
-    echo "Current directory: $(pwd)"
-    echo "Checking for install_herolib.vsh: $([ -f "./install_herolib.vsh" ] && echo "found" || echo "not found")"
-    echo "Checking for lib directory: $([ -d "./lib" ] && echo "found" || echo "not found")"
+        sshknownkeysadd
 
-    # Check if we're in GitHub Actions and already in the herolib directory
-    if is_github_actions; then
-        # In GitHub Actions, check if we're already in a herolib checkout
-        if [ -f "./install_herolib.vsh" ] && [ -d "./lib" ]; then
-            echo "✓ Running in GitHub Actions, using current directory for herolib installation"
-            HEROLIB_DIR="$(pwd)"
+        # Install secp256k1
+
+        v-install
+    fi
+
+    if [ "$START_REDIS" = true ]; then
+        start_redis_service
+    fi
+
+    if [ "$HEROLIB" = true ]; then
+        echo "=== Herolib Installation ==="
+        echo "Current directory: $(pwd)"
+        echo "Checking for install_herolib.vsh: $([ -f "./install_herolib.vsh" ] && echo "found" || echo "not found")"
+        echo "Checking for lib directory: $([ -d "./lib" ] && echo "found" || echo "not found")"
+
+        # Check if we're in GitHub Actions and already in the herolib directory
+        if is_github_actions; then
+            # In GitHub Actions, check if we're already in a herolib checkout
+            if [ -f "./install_herolib.vsh" ] && [ -d "./lib" ]; then
+                echo "✓ Running in GitHub Actions, using current directory for herolib installation"
+                HEROLIB_DIR="$(pwd)"
+            else
+                echo "⚠ Running in GitHub Actions, but not in herolib directory. Cloning..."
+                hero_lib_get
+                HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
+            fi
         else
-            echo "⚠ Running in GitHub Actions, but not in herolib directory. Cloning..."
+            echo "Not in GitHub Actions, using standard installation path"
             hero_lib_get
             HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
         fi
-    else
-        echo "Not in GitHub Actions, using standard installation path"
-        hero_lib_get
-        HEROLIB_DIR="$HOME/code/github/incubaid/herolib"
+
+        echo "Installing herolib from: $HEROLIB_DIR"
+        "$HEROLIB_DIR/install_herolib.vsh"
     fi
 
-    echo "Installing herolib from: $HEROLIB_DIR"
-    "$HEROLIB_DIR/install_herolib.vsh"
-fi
 
-
-if [ "$INSTALL_ANALYZER" = true ]; then
-    # Only install v-analyzer if not in GitHub Actions environment
-    if ! is_github_actions; then
-        v-analyzer
+    if [ "$INSTALL_ANALYZER" = true ]; then
+        # Only install v-analyzer if not in GitHub Actions environment
+        if ! is_github_actions; then
+            v-analyzer
+        fi
+        echo "Run 'source ~/.bashrc' or 'source ~/.zshrc' to update PATH for v-analyzer"
     fi
-    echo "Run 'source ~/.bashrc' or 'source ~/.zshrc' to update PATH for v-analyzer"
-fi
 
 
-echo "Installation complete!"
+    echo "Installation complete!"
+}
+
+main "$@"
