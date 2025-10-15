@@ -159,46 +159,134 @@ fn (mut generator SiteGenerator) section_generate(args_ Section) ! {
 	catfile.write(c)!
 }
 
-// Fix links to account for nested categories in Docusaurus
-// Doctree exports links as ../collection/page.md but Docusaurus may have nested paths
+// Strip numeric prefix from filename (e.g., "03_linux_installation" -> "linux_installation")
+// Docusaurus automatically strips these prefixes from URLs
+fn strip_numeric_prefix(name string) string {
+	// Match pattern: digits followed by underscore at the start
+	if name.len > 2 && name[0].is_digit() {
+		for i := 1; i < name.len; i++ {
+			if name[i] == `_` {
+				// Found the underscore, return everything after it
+				return name[i + 1..]
+			}
+			if !name[i].is_digit() {
+				// Not a numeric prefix pattern, return as-is
+				return name
+			}
+		}
+	}
+	return name
+}
+
+// Fix links to account for nested categories and Docusaurus URL conventions
 fn (generator SiteGenerator) fix_links(content string) string {
 	mut result := content
 
-	// Build a map of collection name to actual directory path
-	mut collection_paths := map[string]string{}
+	// Build maps for link fixing
+	mut collection_paths := map[string]string{} // collection -> directory path (for nested collections)
+	mut page_to_path := map[string]string{} // page_name -> full directory path in Docusaurus
+	mut collection_page_map := map[string]string{} // "collection:page" -> directory path
+
 	for page in generator.site.pages {
 		parts := page.src.split(':')
 		if parts.len != 2 {
 			continue
 		}
 		collection := parts[0]
+		page_name := parts[1]
 
 		// Extract directory path from page.path
-		// page.path can be like "appendix/internet_today/" or "appendix/internet_today/page.md"
 		mut dir_path := page.path.trim('/')
-
-		// If path ends with a filename, remove it to get just the directory
 		if dir_path.contains('/') && !dir_path.ends_with('/') {
-			// Check if last part looks like a filename (has extension or is a page name)
 			last_part := dir_path.all_after_last('/')
-			if last_part.contains('.') || last_part == parts[1] {
+			if last_part.contains('.') || last_part == page_name {
 				dir_path = dir_path.all_before_last('/')
 			}
 		}
 
-		// If the directory path is different from collection name, store the mapping
-		// This handles nested categories like appendix/internet_today
+		// Store collection -> directory mapping for nested collections
 		if dir_path != collection && dir_path != '' {
 			collection_paths[collection] = dir_path
 		}
+
+		// Store page_name -> directory path for fixing same-collection links
+		// Strip numeric prefix from page_name for the map key
+		clean_page_name := strip_numeric_prefix(page_name)
+		page_to_path[clean_page_name] = dir_path
+
+		// Store collection:page -> directory path for fixing collection:page format links
+		collection_page_map['${collection}:${clean_page_name}'] = dir_path
 	}
 
-	// Replace ../collection/ with ../actual/nested/path/ for nested collections
+	// STEP 1: Strip numeric prefixes from all page references in links FIRST
+	mut lines := result.split('\n')
+	for i, line in lines {
+		if !line.contains('](') {
+			continue
+		}
+
+		mut new_line := line
+		parts := line.split('](')
+		if parts.len < 2 {
+			continue
+		}
+
+		for j := 1; j < parts.len; j++ {
+			close_idx := parts[j].index(')') or { continue }
+			link_url := parts[j][..close_idx]
+
+			mut new_url := link_url
+			if link_url.contains('/') {
+				path_part := link_url.all_before_last('/')
+				file_part := link_url.all_after_last('/')
+				new_file := strip_numeric_prefix(file_part)
+				if new_file != file_part {
+					new_url = '${path_part}/${new_file}'
+				}
+			} else {
+				new_url = strip_numeric_prefix(link_url)
+			}
+
+			if new_url != link_url {
+				new_line = new_line.replace('](${link_url})', '](${new_url})')
+			}
+		}
+		lines[i] = new_line
+	}
+	result = lines.join('\n')
+
+	// STEP 2: Replace ../collection/ with ../actual/nested/path/ for cross-collection links
 	for collection, actual_path in collection_paths {
 		result = result.replace('../${collection}/', '../${actual_path}/')
 	}
 
-	// Remove .md extensions from all links (Docusaurus doesn't use them in URLs)
+	// STEP 3: Fix same-collection links: ./page -> correct path based on Docusaurus structure
+	for page_name, target_dir in page_to_path {
+		old_link := './${page_name}'
+		if result.contains(old_link) && target_dir != '' {
+			new_link := '../${target_dir}/${page_name}'
+			result = result.replace(old_link, new_link)
+		}
+	}
+
+	// STEP 4: Convert collection:page format to proper relative paths
+	// Pattern: collection:page_name -> ../dir/page_name
+	for collection_page, target_dir in collection_page_map {
+		old_pattern := collection_page
+		if result.contains(old_pattern) {
+			// Extract just the page name from "collection:page"
+			page_name := collection_page.all_after(':')
+			mut new_link := ''
+			if target_dir != '' {
+				new_link = '../${target_dir}/${page_name}'
+			} else {
+				new_link = './${page_name}'
+			}
+			result = result.replace(old_pattern, new_link)
+		}
+	}
+
+	// STEP 5: Remove .md extensions from all links (Docusaurus doesn't use them in URLs)
 	result = result.replace('.md)', ')')
 
 	return result
