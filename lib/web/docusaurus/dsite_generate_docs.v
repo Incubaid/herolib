@@ -145,13 +145,25 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 fn (mut generator SiteGenerator) section_generate(args_ Section) ! {
 	mut args := args_
 
-	mut c := '{
+	mut c := ''
+	if args.description.len > 0 {
+		c = '{
+    "label": "${args.label}",
+    "position": ${args.position},
+    "link": {
+      "type": "generated-index",
+      "description": "${args.description}"
+    }
+  }'
+	} else {
+		c = '{
     "label": "${args.label}",
     "position": ${args.position},
     "link": {
       "type": "generated-index"
     }
   }'
+	}
 
 	mut category_path := '${generator.path.path}/${args.path}/_category_.json'
 	mut catfile := pathlib.get_file(path: category_path, create: true)!
