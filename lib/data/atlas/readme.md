@@ -1,0 +1,61 @@
+atlas is a tool which walks over directories, reads metadata files and generates a site structure.
+
+specs
+
+- walk over directories recursively (use path module)
+- find .collection files, each of them defines a collection
+  - for each collection rename .collection to .collection.json
+  - init .collection.json with default values if not present
+  - this is just intial step to get started
+- create Atlas struct which holds all collections
+  - key is collection name, value is Collection struct
+  - each Collection struct has name, path, pages map, files map
+- make a factory to create or get an Atlas struct
+- make a function to load an atlas from a given path
+  - now find .collection.json files and read them into a Collection struct
+- find all files with .md extension as well as other files (images and other files)
+- remember these files per collection in a Collection struct
+- keep a dict in a collection for pages
+  - the key is a texttools namefix of the filename without extension, the value is a Page struct
+- keep a dict in a collection for other files
+  - the key is the filename, the value is a File struct
+- make a save() function on collection which saves the collection as a json file .collection.json in the collection directory
+- make a find_page(collection_name, page_name) function on Atlas which returns a Page struct or error
+- make a find_file(collection_name, file_name) function on Atlas which returns a File struct
+- make a list_collections() function on Atlas which returns a list of collection names
+- make a list_pages(collection_name) function on Atlas which returns a list of page names in that collection
+- make a list_files(collection_name) function on Atlas which returns a list of file names in that collection
+- make a function to add or update a page in a collection
+  - this function takes collection name, page name, title, description, draft status, position
+  - it updates or adds the page in the collection's pages dict
+  - it saves the collection afterwards
+- make a function to add or update a file in a collection
+  - this function takes collection name, file name, path
+  - it updates or adds the file in the collection's files dict
+  - it saves the collection afterwards
+- make a function to delete a page from a collection
+  - this function takes collection name, page name
+  - it removes the page from the collection's pages dict
+  - it saves the collection afterwards
+- make a function to delete a file from a collection
+  - this function takes collection name, file name
+  - it removes the file from the collection's files dict
+  - it saves the collection afterwards
+- create a link_check function on page, which checks if all links in the page content are valid
+  - it uses the Atlas struct to check if linked pages or files exist 
+  - links can be in the form of collection_name:page_name or collection_name:file_name
+  - if collection_name is omitted, it is assumed to be the current collection
+  - it can also be http... links which are ignored in the check
+  - if paths ignore the leading / or ./ or ../ as well as path part, only focus on the last part (the name)
+  - do namefix on names before checking
+  - it creates error objects in collection
+  - it returns a markdown file where links are replaced to: 
+    - collection:page_name if valid page in other collection
+    - relative path in the collection if valid page in same collection (relative from page where link is found)
+    - if error we just leave original link
+- create a list of Error objects on Collection so we know what is wrong with a collection
+  - errors can be missing .collection.json, invalid json, missing title in page, broken links in pages
+- create a validate() function on Collection which checks for errors and fills the errors list
+- create a validate() function on Atlas which validates all collections
+- create a report() function on Atlas which prints a report of all collections and their errors as markdown
+
