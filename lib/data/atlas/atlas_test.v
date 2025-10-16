@@ -341,6 +341,8 @@ fn test_cross_collection_links() {
 	
 	fixed := page1.read()!
 	assert fixed.contains('[Link to col2](col2:page2)')  // Unchanged
+}
+
 fn test_save_and_load() {
 	// Setup
 	col_path := '${test_base}/save_test'
@@ -444,5 +446,4 @@ fn test_load_from_directory() {
 	assert a2.collections.len == 2
 	assert a2.get_collection('col1')!.page_exists('page1')
 	assert a2.get_collection('col2')!.page_exists('page2')
-}
 }
