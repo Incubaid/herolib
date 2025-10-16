@@ -26,5 +26,10 @@ pub fn (mut a Atlas) export(args ExportArgs) ! {
             include:     args.include
             redis:       args.redis
         )!
+  
+  // Print errors for this collection if any
+  if col.has_errors() {
+   col.print_errors()
+  }
     }
 }

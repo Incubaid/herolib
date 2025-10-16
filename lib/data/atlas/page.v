@@ -2,7 +2,6 @@ module atlas
 
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
-import incubaid.herolib.data.atlas.collection_error { CollectionError, CollectionErrorCategory }
 
 @[heap]
 pub struct Page {
@@ -59,12 +58,13 @@ fn (mut p Page) process_includes(content string, mut visited map[string]bool) !s
 	// Prevent circular includes
 	page_key := p.key()
 	if page_key in visited {
-		p.collection.errors << CollectionError{
-			page_key: page_key
-			message:  'Circular include detected for page `${page_key}`.'
-			category: .circular_include
-		}
-		return '' // Return empty string for circular includes
+		p.collection.error(
+			category:     .circular_include
+			page_key:     page_key
+			message:      'Circular include detected for page `${page_key}`'
+			show_console: false // Don't show immediately, collect for later
+		)
+		return ''
 	}
 	visited[page_key] = true
 
@@ -90,11 +90,12 @@ fn (mut p Page) process_includes(content string, mut visited map[string]bool) !s
 					target_collection = texttools.name_fix(parts[0])
 					target_page = texttools.name_fix(parts[1])
 				} else {
-					p.collection.errors << CollectionError{
-						page_key: page_key
-						message:  'Invalid include format: `${include_ref}`.'
-						category: .include_syntax_error
-					}
+					p.collection.error(
+						category:     .include_syntax_error
+						page_key:     page_key
+						message:      'Invalid include format: `${include_ref}`'
+						show_console: false
+					)
 					processed_lines << '<!-- Invalid include format: ${include_ref} -->'
 					continue
 				}
@@ -112,12 +113,12 @@ fn (mut p Page) process_includes(content string, mut visited map[string]bool) !s
 
 			// Get the referenced page from atlas
 			mut include_page := atlas.page_get(page_ref) or {
-				p.collection.errors << CollectionError{
-					page_key: page_key
-					message:  'Included page `${page_ref}` not found.'
-					category: .missing_include
-				}
-				// If page not found, keep original line as comment
+				p.collection.error(
+					category:     .missing_include
+					page_key:     page_key
+					message:      'Included page `${page_ref}` not found'
+					show_console: false
+				)
 				processed_lines << '<!-- Include not found: ${page_ref} -->'
 				continue
 			}

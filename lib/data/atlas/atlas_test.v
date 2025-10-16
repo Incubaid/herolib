@@ -124,3 +124,48 @@ fn test_export_without_includes() {
     exported := os.read_file('${export_path}/test_col2/page1.md')!
     assert exported.contains('!!include')
 }
+
+fn test_error_deduplication() {
+	mut a := new(name: 'test')!
+	mut col := a.new_collection(name: 'test', path: test_base)!
+	
+	// Report same error twice
+	col.error(
+		category: .missing_include
+		page_key: 'test:page1'
+		message:  'Test error'
+	)
+	
+	col.error(
+		category: .missing_include
+		page_key: 'test:page1'
+		message:  'Test error' // Same hash, should be deduplicated
+	)
+	
+	assert col.errors.len == 1
+	
+	// Different page_key = different hash
+	col.error(
+		category: .missing_include
+		page_key: 'test:page2'
+		message:  'Test error'
+	)
+	
+	assert col.errors.len == 2
+}
+
+fn test_error_hash() {
+	err1 := CollectionError{
+		category: .missing_include
+		page_key: 'col:page1'
+		message:  'Error message'
+	}
+	
+	err2 := CollectionError{
+		category: .missing_include
+		page_key: 'col:page1'
+		message:  'Different message' // Hash is same!
+	}
+	
+	assert err1.hash() == err2.hash()
+}

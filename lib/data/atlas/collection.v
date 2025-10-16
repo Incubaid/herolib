@@ -3,6 +3,7 @@ module atlas
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
 import incubaid.herolib.core.base
+import incubaid.herolib.ui.console
 import os
 
 @[heap]
@@ -13,8 +14,9 @@ pub mut:
 	pages  map[string]&Page
 	images map[string]&File
 	files  map[string]&File
-	atlas  &Atlas @[skip; str: skip] // Reference to parent atlas for include resolution
-	errors []CollectionError
+	atlas       &Atlas @[skip; str: skip] // Reference to parent atlas for include resolution
+	errors      []CollectionError
+	error_cache map[string]bool // Track error hashes to avoid duplicates
 }
 
 @[params]
@@ -30,9 +32,10 @@ fn (mut self Atlas) new_collection(args CollectionNewArgs) !Collection {
 	mut path := pathlib.get_dir(path: args.path)!
 
 	mut col := Collection{
-		name:  name
-		path:  path
-		atlas: &self // Set atlas reference
+		name:        name
+		path:        path
+		atlas:       &self // Set atlas reference
+		error_cache: map[string]bool{}
 	}
 
 	return col
@@ -206,5 +209,89 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		mut context := base.context()!
 		mut redis := context.redis()!
 		redis.hset('atlas:path', c.name, col_dir.path)!
+	}
+}
+
+@[params]
+pub struct CollectionErrorArgs {
+pub mut:
+	category     CollectionErrorCategory @[required]
+	message      string                  @[required]
+	page_key     string
+	file         string
+	show_console bool // Show error in console immediately
+	log_error    bool = true // Log to errors array (default: true)
+}
+
+// Report an error, avoiding duplicates based on hash
+pub fn (mut c Collection) error(args CollectionErrorArgs) {
+	// Create error struct
+	err := CollectionError{
+		category: args.category
+		page_key: args.page_key
+		message:  args.message
+		file:     args.file
+	}
+	
+	// Calculate hash for deduplication
+	hash := err.hash()
+	
+	// Check if this error was already reported
+	if hash in c.error_cache {
+		return // Skip duplicate
+	}
+	
+	// Mark this error as reported
+	c.error_cache[hash] = true
+	
+	// Log to errors array if requested
+	if args.log_error {
+		c.errors << err
+	}
+	
+	// Show in console if requested
+	if args.show_console {
+		console.print_stderr('[${c.name}] ${err.str()}')
+	}
+}
+
+// Get all errors
+pub fn (c Collection) get_errors() []CollectionError {
+	return c.errors
+}
+
+// Check if collection has errors
+pub fn (c Collection) has_errors() bool {
+	return c.errors.len > 0
+}
+
+// Clear all errors
+pub fn (mut c Collection) clear_errors() {
+	c.errors = []CollectionError{}
+	c.error_cache = map[string]bool{}
+}
+
+// Get error summary by category
+pub fn (c Collection) error_summary() map[CollectionErrorCategory]int {
+	mut summary := map[CollectionErrorCategory]int{}
+	
+	for err in c.errors {
+		summary[err.category] = summary[err.category] + 1
+	}
+	
+	return summary
+}
+
+// Print all errors to console
+pub fn (c Collection) print_errors() {
+	if c.errors.len == 0 {
+		console.print_green('Collection ${c.name}: No errors')
+		return
+	}
+	
+	console.print_header('Collection ${c.name} - Errors (${c.errors.len})')
+	
+	for err in c.errors {
+		console.print_stderr('  ${err.str()}')
 	}
 }
