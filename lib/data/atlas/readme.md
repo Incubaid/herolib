@@ -81,7 +81,7 @@ a.add_collection(name: 'guides', path: './docs/guides')!
 ```v
 // Get a page
 page := a.page_get('guides:introduction')!
-content := page.read_content()!
+content := page.content()!
 
 // Check if page exists
 if a.page_exists('guides:setup') {
@@ -207,12 +207,8 @@ mut page := a.page_get('col:mypage')!
 content := page.content(include: true)!
 
 // Read raw content without processing includes
-content := page.read_content()!
+content := page.content()!
 ```
-
-#### Circular Include Detection
-
-Atlas automatically detects circular includes and reports them as errors without causing infinite loops.
 
 ## Links
 
@@ -471,7 +467,7 @@ print(f"Pages: {len(col.pages)}")
 # Access pages
 page = atlas.page_get('guides:intro')
 if page:
-    content = page.read_content()
+    content = page.content()
     print(content)
 
 # Check for errors
@@ -506,7 +502,7 @@ if atlas.has_errors():
 #### Page Class
 
 - `page.key()` - Get page key in format 'collection:page'
-- `page.read_content()` - Read page content from file
+- `page.content()` - Read page content from file
 
 #### File Class
 
@@ -572,7 +568,7 @@ atlas = Atlas.load_from_directory('/path/to/docs')
 # Access pages
 page = atlas.page_get('guides:intro')
 if page:
-    content = page.read_content()
+    content = page.content()
     print(content)
 
 # Check errors
@@ -630,3 +626,285 @@ if col.has_errors():
 ```
 
 
+
+## HeroScript Integration
+
+Atlas integrates with HeroScript, allowing you to define Atlas operations in `.vsh` or playbook files.
+
+### Available Actions
+
+#### 1. `atlas.scan` - Scan Directory for Collections
+
+Scan a directory tree to find and load collections marked with `.collection` files.
+
+```heroscript
+!!atlas.scan
+ name: 'main'
+ path: './docs'
+```
+
+**Parameters:**
+- `name` (optional, default: 'main') - Atlas instance name
+- `path` (required) - Directory path to scan
+
+#### 2. `atlas.load` - Load from Saved Collections
+
+Load collections from `.collection.json` files (previously saved with `atlas.save`).
+
+```heroscript
+!!atlas.load
+ name: 'main'
+ path: './docs'
+```
+
+**Parameters:**
+- `name` (optional, default: 'main') - Atlas instance name
+- `path` (required) - Directory path containing `.collection.json` files
+
+#### 3. `atlas.validate` - Validate All Links
+
+Validate all markdown links in all collections.
+
+```heroscript
+!!atlas.validate
+ name: 'main'
+```
+
+**Parameters:**
+- `name` (optional, default: 'main') - Atlas instance name
+
+#### 4. `atlas.fix_links` - Fix All Links
+
+Automatically rewrite all local links with correct relative paths.
+
+```heroscript
+!!atlas.fix_links
+ name: 'main'
+```
+
+**Parameters:**
+- `name` (optional, default: 'main') - Atlas instance name
+
+#### 5. `atlas.save` - Save Collections
+
+Save all collections to `.collection.json` files in their respective directories.
+
+```heroscript
+!!atlas.save
+ name: 'main'
+```
+
+**Parameters:**
+- `name` (optional, default: 'main') - Atlas instance name
+
+#### 6. `atlas.export` - Export Collections
+
+Export collections to a destination directory.
+
+```heroscript
+!!atlas.export
+ name: 'main'
+ destination: './output'
+ reset: true
+ include: true
+ redis: true
+```
+
+**Parameters:**
+- `name` (optional, default: 'main') - Atlas instance name
+- `destination` (required) - Export destination path
+- `reset` (optional, default: true) - Clear destination before export
+- `include` (optional, default: true) - Process `!!include` actions
+- `redis` (optional, default: true) - Store metadata in Redis
+
+### Complete Workflow Examples
+
+#### Example 1: Scan, Validate, and Export
+
+```heroscript
+# Scan for collections
+!!atlas.scan
+ path: '~/docs/myproject'
+
+# Validate all links
+!!atlas.validate
+
+# Export to output directory
+!!atlas.export
+ destination: '~/docs/output'
+ include: true
+```
+
+#### Example 2: Load, Fix Links, and Export
+
+```heroscript
+# Load from saved collections
+!!atlas.load
+ path: '~/docs/myproject'
+
+# Fix all broken links
+!!atlas.fix_links
+
+# Save updated collections
+!!atlas.save
+
+# Export
+!!atlas.export
+ destination: '~/docs/output'
+```
+
+#### Example 3: Multiple Atlas Instances
+
+```heroscript
+# Main documentation
+!!atlas.scan
+ name: 'docs'
+ path: '~/docs'
+
+# API reference
+!!atlas.scan
+ name: 'api'
+ path: '~/api-docs'
+
+# Export docs
+!!atlas.export
+ name: 'docs'
+ destination: '~/output/docs'
+
+# Export API
+!!atlas.export
+ name: 'api'
+ destination: '~/output/api'
+```
+
+#### Example 4: Development Workflow
+
+```heroscript
+# Scan collections
+!!atlas.scan
+ path: './docs'
+
+# Validate links (errors will be reported)
+!!atlas.validate
+
+# Fix links automatically
+!!atlas.fix_links
+
+# Save updated collections
+!!atlas.save
+
+# Export final version
+!!atlas.export
+ destination: './public'
+ include: true
+ redis: true
+```
+
+### Using in V Scripts
+
+Create a `.vsh` script to process Atlas operations:
+
+```v
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
+
+import incubaid.herolib.core.playbook
+import incubaid.herolib.data.atlas
+
+// Define your HeroScript content
+heroscript := "
+!!atlas.scan
+ path: './docs'
+
+!!atlas.validate
+
+!!atlas.export
+ destination: './output'
+ include: true
+"
+
+// Create playbook from text
+mut plbook := playbook.new(text: heroscript)!
+
+// Execute atlas actions
+atlas.play(mut plbook)!
+
+println('Atlas processing complete!')
+```
+
+### Using in Playbook Files
+
+Create a `docs.play` file:
+
+```heroscript
+!!atlas.scan
+ name: 'main'
+ path: '~/code/docs'
+
+!!atlas.validate
+
+!!atlas.fix_links
+
+!!atlas.save
+
+!!atlas.export
+ destination: '~/code/output'
+ reset: true
+ include: true
+ redis: true
+```
+
+Execute it:
+
+```bash
+vrun process_docs.vsh
+```
+
+Where `process_docs.vsh` contains:
+
+```v
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
+
+import incubaid.herolib.core.playbook
+import incubaid.herolib.core.playcmds
+
+// Load and execute playbook
+mut plbook := playbook.new(path: './docs.play')!
+playcmds.run(mut plbook)!
+```
+
+### Error Handling
+
+Errors are automatically collected and reported:
+
+```heroscript
+!!atlas.scan
+ path: './docs'
+
+!!atlas.validate
+
+# Errors will be printed during export
+!!atlas.export
+ destination: './output'
+```
+
+Errors are shown in the console:
+
+```
+Collection guides - Errors (2)
+  [invalid_page_reference] [guides:intro]: Broken link to `guides:setup` at line 5
+  [missing_include] [guides:advanced]: Included page `guides:examples` not found
+```
+
+### Auto-Export Behavior
+
+If you use `!!atlas.scan` or `!!atlas.load` **without** an explicit `!!atlas.export`, Atlas will automatically export to the default location (current directory).
+
+To disable auto-export, include an explicit (empty) export action or simply don't include any scan/load actions.
+
+### Best Practices
+
+1. **Always validate before export**: Use `!!atlas.validate` to catch broken links early
+2. **Save after fixing**: Use `!!atlas.save` after `!!atlas.fix_links` to persist changes
+3. **Use named instances**: When working with multiple documentation sets, use the `name` parameter
+4. **Enable Redis for production**: Use `redis: true` for web deployments to enable fast lookups
+5. **Process includes during export**: Keep `include: true` to embed referenced content in exported files

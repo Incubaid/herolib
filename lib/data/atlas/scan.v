@@ -9,6 +9,7 @@ import os
 pub struct ScanArgs {
 pub mut:
 	path string @[required]
+	save bool = true // save atlas after scan
 }
 
 // Scan a directory for collections

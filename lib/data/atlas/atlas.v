@@ -88,6 +88,11 @@ pub fn (mut a Atlas) add_collection(args AddCollectionArgs) ! {
 pub fn (mut a Atlas) scan(args ScanArgs) ! {
 	mut path := pathlib.get_dir(path: args.path)!
 	a.scan_directory(mut path)!
+	a.validate_links()!
+	a.fix_links()!
+	if args.save {
+		a.save()!
+	}
 }
 
 // Get a collection by name

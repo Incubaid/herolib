@@ -12,12 +12,12 @@ pub fn (c Collection) save() ! {
 		path:   '${c.path.path}/.collection.json'
 		create: true
 	)!
-	
+
 	json_file.write(json_str)!
 }
 
 // Save all collections in atlas to their respective directories
-pub fn (a Atlas) save_all() ! {
+pub fn (a Atlas) save() ! {
 	for _, col in a.collections {
 		col.save()!
 	}
@@ -27,24 +27,24 @@ pub fn (a Atlas) save_all() ! {
 pub fn (mut a Atlas) load_collection(path string) !&Collection {
 	mut json_file := pathlib.get_file(path: '${path}/.collection.json')!
 	json_str := json_file.read()!
-	
+
 	mut col := json.decode(Collection, json_str)!
-	
+
 	// Fix circular references that were skipped during encode
 	col.atlas = &a
-	
+
 	// Rebuild error cache from errors
 	col.error_cache = map[string]bool{}
 	for err in col.errors {
 		col.error_cache[err.hash()] = true
 	}
-	
+
 	// Fix page references to collection
 	for name, mut page in col.pages {
 		page.collection = &col
 		col.pages[name] = page
 	}
-	
+
 	a.collections[col.name] = &col
 	return &col
 }
