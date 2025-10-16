@@ -377,14 +377,256 @@ img_path := redis.hget('atlas:guides', 'logo.png')!
 println('Logo image: ${img_path}')  // Output: img/logo.png
 ```
 
-### Disabling Redis
 
-If you don't need Redis metadata storage:
+## Atlas Save/Load Functionality
+
+This document describes the save/load functionality for Atlas collections, which allows you to persist collection metadata to JSON files and load them in both V and Python.
+
+## Overview
+
+The Atlas module now supports:
+- **Saving collections** to `.collection.json` files
+- **Loading collections** from `.collection.json` files in V
+- **Loading collections** from `.collection.json` files in Python
+
+This enables:
+1. Persistence of collection metadata (pages, images, files, errors)
+2. Cross-language access to Atlas data
+3. Faster loading without re-scanning directories
+
+## V Implementation
+
+### Saving Collections
 
 ```v
-a.export(
-    destination: './output'
-    redis: false  // Skip Redis storage
-)!
+import incubaid.herolib.data.atlas
+
+// Create and scan atlas
+mut a := atlas.new(name: 'my_docs')!
+a.scan(path: './docs')!
+
+// Save all collections (creates .collection.json in each collection dir)
+a.save_all()!
+
+// Or save a single collection
+col := a.get_collection('guides')!
+col.save()!
 ```
+
+### Loading Collections
+
+```v
+import incubaid.herolib.data.atlas
+
+// Load single collection
+mut a := atlas.new(name: 'loaded')!
+mut col := a.load_collection('/path/to/collection')!
+
+println('Pages: ${col.pages.len}')
+
+// Load all collections from directory tree
+mut a2 := atlas.new(name: 'all_docs')!
+a2.load_from_directory('./docs')!
+
+println('Loaded ${a2.collections.len} collections')
+```
+
+### What Gets Saved
+
+The `.collection.json` file contains:
+- Collection name and path
+- All pages (name, path, collection_name)
+- All images (name, ext, path, ftype)
+- All files (name, ext, path, ftype)
+- All errors (category, page_key, message, file)
+
+**Note:** Circular references (`atlas` and `collection` pointers) are automatically skipped using the `[skip]` attribute and reconstructed during load.
+
+## Python Implementation
+
+### Installation
+
+The Python loader is a standalone script with no external dependencies (uses only Python stdlib):
+
+```bash
+# No installation needed - just use the script
+python3 lib/data/atlas/atlas_loader.py
+```
+
+### Loading Collections
+
+```python
+from atlas_loader import Atlas
+
+# Load single collection
+atlas = Atlas.load_collection('/path/to/collection')
+
+# Or load all collections from directory tree
+atlas = Atlas.load_from_directory('/path/to/docs')
+
+# Access collections
+col = atlas.get_collection('guides')
+print(f"Pages: {len(col.pages)}")
+
+# Access pages
+page = atlas.page_get('guides:intro')
+if page:
+    content = page.read_content()
+    print(content)
+
+# Check for errors
+if atlas.has_errors():
+    atlas.print_all_errors()
+```
+
+### Python API
+
+#### Atlas Class
+
+- `Atlas.load_collection(path, name='default')` - Load single collection
+- `Atlas.load_from_directory(path, name='default')` - Load all collections from directory tree
+- `atlas.get_collection(name)` - Get collection by name
+- `atlas.page_get(key)` - Get page using 'collection:page' format
+- `atlas.image_get(key)` - Get image using 'collection:image' format
+- `atlas.file_get(key)` - Get file using 'collection:file' format
+- `atlas.list_collections()` - List all collection names
+- `atlas.list_pages()` - List all pages grouped by collection
+- `atlas.has_errors()` - Check if any collection has errors
+- `atlas.print_all_errors()` - Print errors from all collections
+
+#### Collection Class
+
+- `collection.page_get(name)` - Get page by name
+- `collection.image_get(name)` - Get image by name
+- `collection.file_get(name)` - Get file by name
+- `collection.has_errors()` - Check if collection has errors
+- `collection.error_summary()` - Get error count by category
+- `collection.print_errors()` - Print all errors
+
+#### Page Class
+
+- `page.key()` - Get page key in format 'collection:page'
+- `page.read_content()` - Read page content from file
+
+#### File Class
+
+- `file.file_name` - Get full filename with extension
+- `file.is_image()` - Check if file is an image
+- `file.read()` - Read file content as bytes
+
+## Workflow
+
+### 1. V: Create and Save
+
+```v
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
+
+import incubaid.herolib.data.atlas
+
+// Create atlas and scan
+mut a := atlas.new(name: 'my_docs')!
+a.scan(path: './docs')!
+
+// Validate
+a.validate_links()!
+
+// Save all collections (creates .collection.json in each collection dir)
+a.save_all()!
+
+println('Saved ${a.collections.len} collections')
+```
+
+### 2. V: Load and Use
+
+```v
+#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
+
+import incubaid.herolib.data.atlas
+
+// Load single collection
+mut a := atlas.new(name: 'loaded')!
+mut col := a.load_collection('/path/to/collection')!
+
+println('Pages: ${col.pages.len}')
+
+// Load all from directory
+mut a2 := atlas.new(name: 'all_docs')!
+a2.load_from_directory('./docs')!
+
+println('Loaded ${a2.collections.len} collections')
+```
+
+### 3. Python: Load and Use
+
+```python
+#!/usr/bin/env python3
+
+from atlas_loader import Atlas
+
+# Load single collection
+atlas = Atlas.load_collection('/path/to/collection')
+
+# Or load all collections
+atlas = Atlas.load_from_directory('/path/to/docs')
+
+# Access pages
+page = atlas.page_get('guides:intro')
+if page:
+    content = page.read_content()
+    print(content)
+
+# Check errors
+if atlas.has_errors():
+    atlas.print_all_errors()
+```
+
+## File Structure
+
+After saving, each collection directory will contain:
+
+```
+collection_dir/
+├── .collection          # Original collection config
+├── .collection.json     # Saved collection metadata (NEW)
+├── page1.md
+├── page2.md
+└── img/
+    └── image1.png
+```
+
+## Error Handling
+
+Errors are preserved during save/load:
+
+```v
+// V: Errors are saved
+mut a := atlas.new()!
+a.scan(path: './docs')!
+a.validate_links()!  // May generate errors
+a.save_all()!        // Errors are saved to .collection.json
+
+// V: Errors are loaded
+mut a2 := atlas.new()!
+a2.load_from_directory('./docs')!
+col := a2.get_collection('guides')!
+if col.has_errors() {
+    col.print_errors()
+}
+```
+
+```python
+# Python: Access errors
+atlas = Atlas.load_from_directory('./docs')
+
+if atlas.has_errors():
+    atlas.print_all_errors()
+
+# Get error summary
+col = atlas.get_collection('guides')
+if col.has_errors():
+    summary = col.error_summary()
+    for category, count in summary.items():
+        print(f"{category}: {count}")
+```
+
 

@@ -341,4 +341,108 @@ fn test_cross_collection_links() {
 	
 	fixed := page1.read()!
 	assert fixed.contains('[Link to col2](col2:page2)')  // Unchanged
+fn test_save_and_load() {
+	// Setup
+	col_path := '${test_base}/save_test'
+	os.mkdir_all(col_path)!
+	
+	mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+	cfile.write('name:test_col')!
+	
+	mut page := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
+	page.write('# Page 1\n\nContent here.')!
+	
+	// Create and save
+	mut a := new(name: 'test')!
+	a.add_collection(name: 'test_col', path: col_path)!
+	a.save_all()!
+	
+	assert os.exists('${col_path}/.collection.json')
+	
+	// Load in new atlas
+	mut a2 := new(name: 'loaded')!
+	a2.load_collection(col_path)!
+	
+	assert a2.collections.len == 1
+	col := a2.get_collection('test_col')!
+	assert col.pages.len == 1
+	assert col.page_exists('page1')
+	
+	// Verify page can read content
+	mut page_loaded := col.page_get('page1')!
+	content := page_loaded.read_content()!
+	assert content.contains('# Page 1')
+}
+
+fn test_save_with_errors() {
+	col_path := '${test_base}/error_save_test'
+	os.mkdir_all(col_path)!
+	
+	mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+	cfile.write('name:err_col')!
+	
+	mut a := new(name: 'test')!
+	mut col := a.new_collection(name: 'err_col', path: col_path)!
+	
+	// Add some errors
+	col.error(
+		category: .missing_include
+		page_key: 'err_col:page1'
+		message:  'Test error 1'
+	)
+	
+	col.error(
+		category: .invalid_page_reference
+		page_key: 'err_col:page2'
+		message:  'Test error 2'
+	)
+	
+	a.collections['err_col'] = &col
+	
+	// Save
+	col.save()!
+	
+	// Load
+	mut a2 := new(name: 'loaded')!
+	loaded_col := a2.load_collection(col_path)!
+	
+	// Verify errors persisted
+	assert loaded_col.errors.len == 2
+	assert loaded_col.error_cache.len == 2
+}
+
+fn test_load_from_directory() {
+	// Setup multiple collections
+	col1_path := '${test_base}/load_dir/col1'
+	col2_path := '${test_base}/load_dir/col2'
+	
+	os.mkdir_all(col1_path)!
+	os.mkdir_all(col2_path)!
+	
+	mut cfile1 := pathlib.get_file(path: '${col1_path}/.collection', create: true)!
+	cfile1.write('name:col1')!
+	
+	mut cfile2 := pathlib.get_file(path: '${col2_path}/.collection', create: true)!
+	cfile2.write('name:col2')!
+	
+	mut page1 := pathlib.get_file(path: '${col1_path}/page1.md', create: true)!
+	page1.write('# Page 1')!
+	
+	mut page2 := pathlib.get_file(path: '${col2_path}/page2.md', create: true)!
+	page2.write('# Page 2')!
+	
+	// Create and save
+	mut a := new(name: 'test')!
+	a.add_collection(name: 'col1', path: col1_path)!
+	a.add_collection(name: 'col2', path: col2_path)!
+	a.save_all()!
+	
+	// Load from directory
+	mut a2 := new(name: 'loaded')!
+	a2.load_from_directory('${test_base}/load_dir')!
+	
+	assert a2.collections.len == 2
+	assert a2.get_collection('col1')!.page_exists('page1')
+	assert a2.get_collection('col2')!.page_exists('page2')
+}
 }
