@@ -85,7 +85,7 @@ fn test_export_with_includes() {
     
     // Page 1: includes page 2
     mut page1 := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
-    page1.write('# Page 1\n\n!!include page:\'test_col:page2\'\n\nEnd of page 1')!
+    page1.write('# Page 1\n\n!!include test_col:page2\n\nEnd of page 1')!
     
     // Page 2: standalone content
     mut page2 := pathlib.get_file(path: '${col_path}/page2.md', create: true)!
@@ -112,7 +112,7 @@ fn test_export_without_includes() {
     cfile.write('name:test_col2')!
     
     mut page1 := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
-    page1.write('# Page 1\n\n!!include page:\'test_col2:page2\'\n\nEnd')!
+    page1.write('# Page 1\n\n!!include test_col2:page2\n\nEnd')!
     
     mut a := new()!
     a.add_collection(name: 'test_col2', path: col_path)!
