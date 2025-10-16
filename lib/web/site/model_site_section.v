@@ -10,8 +10,9 @@ pub mut:
 
 pub struct Section {
 pub mut:
-	name    string
-	position int
-	path     string
-	label    string
+	name        string
+	position    int
+	path        string
+	label       string
+	description string
 }

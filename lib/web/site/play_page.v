@@ -45,6 +45,7 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			}
 			section.label = p.get_default('label', texttools.name_fix_snake_to_pascal(section.name))!
 			section.path = p.get_default('path', texttools.name_fix(section.label))!
+			section.description = p.get_default('description', '')!
 
 			site.sections << section
 			action.done = true // Mark the action as done
