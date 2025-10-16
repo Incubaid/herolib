@@ -86,14 +86,18 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 			args.title = page_name
 		}
 	}
-	content << "title: '${args.title}'"
+	// Escape single quotes in YAML by doubling them
+	escaped_title := args.title.replace("'", "''")
+	content << "title: '${escaped_title}'"
 
 	if args.description.len > 0 {
-		content << "description: '${args.description}'"
+		escaped_description := args.description.replace("'", "''")
+		content << "description: '${escaped_description}'"
 	}
 
 	if args.slug.len > 0 {
-		content << "slug: '${args.slug}'"
+		escaped_slug := args.slug.replace("'", "''")
+		content << "slug: '${escaped_slug}'"
 	}
 
 	if args.hide_title {
@@ -118,7 +122,7 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 	}
 
 	// Fix links to account for nested categories
-	page_content = generator.fix_links(page_content)
+	page_content = generator.fix_links(page_content, args.path)
 
 	c += '\n${page_content}\n'
 
@@ -190,9 +194,80 @@ fn strip_numeric_prefix(name string) string {
 	return name
 }
 
+// Calculate relative path from current directory to target directory
+// current_dir: directory of the current page (e.g., '' for root, 'tokens' for tokens/, 'farming/advanced' for nested)
+// target_dir: directory of the target page
+// page_name: name of the target page
+// Returns: relative path (e.g., './page', '../dir/page', '../../page')
+fn calculate_relative_path(current_dir string, target_dir string, page_name string) string {
+	// Both at root level
+	if current_dir == '' && target_dir == '' {
+		return './${page_name}'
+	}
+
+	// Current at root, target in subdirectory
+	if current_dir == '' && target_dir != '' {
+		return './${target_dir}/${page_name}'
+	}
+
+	// Current in subdirectory, target at root
+	if current_dir != '' && target_dir == '' {
+		// Count directory levels to go up
+		levels := current_dir.split('/').len
+		up := '../'.repeat(levels)
+		return '${up}${page_name}'
+	}
+
+	// Both in subdirectories
+	current_parts := current_dir.split('/')
+	target_parts := target_dir.split('/')
+
+	// Find common prefix
+	mut common_len := 0
+	for i := 0; i < current_parts.len && i < target_parts.len; i++ {
+		if current_parts[i] == target_parts[i] {
+			common_len++
+		} else {
+			break
+		}
+	}
+
+	// Calculate how many levels to go up
+	up_levels := current_parts.len - common_len
+	mut path_parts := []string{}
+
+	// Add ../ for each level up
+	for _ in 0 .. up_levels {
+		path_parts << '..'
+	}
+
+	// Add remaining target path parts
+	for i in common_len .. target_parts.len {
+		path_parts << target_parts[i]
+	}
+
+	// Add page name
+	path_parts << page_name
+
+	return path_parts.join('/')
+}
+
 // Fix links to account for nested categories and Docusaurus URL conventions
-fn (generator SiteGenerator) fix_links(content string) string {
+fn (generator SiteGenerator) fix_links(content string, current_page_path string) string {
 	mut result := content
+
+	// Extract current page's directory path
+	mut current_dir := current_page_path.trim('/')
+	if current_dir.contains('/') && !current_dir.ends_with('/') {
+		last_part := current_dir.all_after_last('/')
+		if last_part.contains('.') {
+			current_dir = current_dir.all_before_last('/')
+		}
+	}
+	// If path is just a filename or empty, current_dir should be empty (root level)
+	if !current_dir.contains('/') && current_dir.contains('.') {
+		current_dir = ''
+	}
 
 	// Build maps for link fixing
 	mut collection_paths := map[string]string{} // collection -> directory path (for nested collections)
@@ -275,25 +350,20 @@ fn (generator SiteGenerator) fix_links(content string) string {
 	// STEP 3: Fix same-collection links: ./page -> correct path based on Docusaurus structure
 	for page_name, target_dir in page_to_path {
 		old_link := './${page_name}'
-		if result.contains(old_link) && target_dir != '' {
-			new_link := '../${target_dir}/${page_name}'
+		if result.contains(old_link) {
+			new_link := calculate_relative_path(current_dir, target_dir, page_name)
 			result = result.replace(old_link, new_link)
 		}
 	}
 
 	// STEP 4: Convert collection:page format to proper relative paths
-	// Pattern: collection:page_name -> ../dir/page_name
+	// Calculate relative path from current page to target page
 	for collection_page, target_dir in collection_page_map {
 		old_pattern := collection_page
 		if result.contains(old_pattern) {
 			// Extract just the page name from "collection:page"
 			page_name := collection_page.all_after(':')
-			mut new_link := ''
-			if target_dir != '' {
-				new_link = '../${target_dir}/${page_name}'
-			} else {
-				new_link = './${page_name}'
-			}
+			new_link := calculate_relative_path(current_dir, target_dir, page_name)
 			result = result.replace(old_pattern, new_link)
 		}
 	}
