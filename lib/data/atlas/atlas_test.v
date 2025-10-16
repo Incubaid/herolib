@@ -74,3 +74,53 @@ fn test_export() {
     assert os.exists('${export_path}/col1/test.md')
     assert os.exists('${export_path}/col1/.collection')
 }
+
+fn test_export_with_includes() {
+    // Setup: Create pages with includes
+    col_path := '${test_base}/include_test'
+    os.mkdir_all(col_path)!
+    
+    mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+    cfile.write('name:test_col')!
+    
+    // Page 1: includes page 2
+    mut page1 := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
+    page1.write('# Page 1\n\n!!include page:\'test_col:page2\'\n\nEnd of page 1')!
+    
+    // Page 2: standalone content
+    mut page2 := pathlib.get_file(path: '${col_path}/page2.md', create: true)!
+    page2.write('## Page 2 Content\n\nThis is included.')!
+    
+    mut a := new()!
+    a.add_collection(name: 'test_col', path: col_path)!
+    
+    export_path := '${test_base}/export_include'
+    a.export(destination: export_path, include: true)!
+    
+    // Verify exported page1 has page2 content included
+    exported := os.read_file('${export_path}/test_col/page1.md')!
+    assert exported.contains('Page 2 Content')
+    assert exported.contains('This is included')
+    assert !exported.contains('!!include')
+}
+
+fn test_export_without_includes() {
+    col_path := '${test_base}/no_include_test'
+    os.mkdir_all(col_path)!
+    
+    mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+    cfile.write('name:test_col2')!
+    
+    mut page1 := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
+    page1.write('# Page 1\n\n!!include page:\'test_col2:page2\'\n\nEnd')!
+    
+    mut a := new()!
+    a.add_collection(name: 'test_col2', path: col_path)!
+    
+    export_path := '${test_base}/export_no_include'
+    a.export(destination: export_path, include: false)!
+    
+    // Verify exported page1 still has include action
+    exported := os.read_file('${export_path}/test_col2/page1.md')!
+    assert exported.contains('!!include')
+}

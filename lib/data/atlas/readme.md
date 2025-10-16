@@ -74,34 +74,50 @@ a.export(
 )!
 ```
 
-## Redis Structure
+### Include Processing
 
-When `redis: true` in export:
+Atlas supports simple include processing using `!!include` actions:
 
+```v
+// Export with includes processed (default)
+a.export(
+    destination: './output'
+    include: true  // default
+)!
+
+// Export without processing includes
+a.export(
+    destination: './output'
+    include: false
+)!
 ```
-atlas:path  -> hash of collection names to export paths
-atlas:my_collection -> hash of file names to relative paths
+
+#### Include Syntax
+
+In your markdown files:
+
+```md
+# My Page
+
+!!include page:'collection:page_name'
+
+More content here
 ```
 
-## Key Differences from Doctree
+The `!!include` action will be replaced with the content of the referenced page during export.
 
-- **No Processing**: Files are copied as-is
-- **No Includes**: No `!!wiki.include` processing
-- **No Definitions**: No `!!wiki.def` processing  
-- **No Link Resolution**: Markdown links are not modified
-- **Simpler Structure**: Flat module organization
-- **Faster**: No parsing overhead
+#### Reading Pages with Includes
 
-## When to Use
+```v
+// Read with includes processed (requires atlas reference)
+mut page := a.page_get('col:mypage')!
+mut col := a.get_collection('col')!
+content := page.read_content_with_includes(a)!
 
-Use **Atlas** when you need:
-- Simple document organization
-- Fast file copying without processing
-- Basic metadata tracking
-- Minimal overhead
+// Read raw content without processing includes  
+content := page.read_content()!
+```
 
-Use **Doctree** when you need:
-- Markdown processing and transformations
-- Include/definition resolution
-- Link rewriting
-- Complex document workflows
+#### Circular Include Detection
+
+Atlas automatically detects circular includes and will return an error if detected.
