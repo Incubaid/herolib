@@ -19,6 +19,9 @@ pub fn (mut a Atlas) export(args ExportArgs) ! {
         dest.empty()!
     }
 
+    // Validate links before export
+    a.validate_links()!
+
     for _, mut col in a.collections {
         col.export(
             destination: dest
@@ -27,9 +30,9 @@ pub fn (mut a Atlas) export(args ExportArgs) ! {
             redis:       args.redis
         )!
   
-  // Print errors for this collection if any
-  if col.has_errors() {
-   col.print_errors()
-  }
+        // Print errors for this collection if any
+        if col.has_errors() {
+            col.print_errors()
+        }
     }
 }

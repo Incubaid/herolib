@@ -99,3 +99,17 @@ pub fn (a Atlas) get_collection(name string) !&Collection {
 		}
 	}
 }
+
+// Validate all links in all collections
+pub fn (mut a Atlas) validate_links() ! {
+	for _, mut col in a.collections {
+		col.validate_links()!
+	}
+}
+
+// Fix all links in all collections
+pub fn (mut a Atlas) fix_links() ! {
+	for _, mut col in a.collections {
+		col.fix_links()!
+	}
+}

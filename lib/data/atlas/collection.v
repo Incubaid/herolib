@@ -295,3 +295,26 @@ pub fn (c Collection) print_errors() {
 		console.print_stderr('  ${err.str()}')
 	}
 }
+
+// Validate all links in collection
+pub fn (mut c Collection) validate_links() ! {
+	for _, mut page in c.pages {
+		page.validate_links()!
+	}
+}
+
+// Fix all links in collection (rewrite files)
+pub fn (mut c Collection) fix_links() ! {
+	for _, mut page in c.pages {
+		// Read original content
+		content := page.read_content()!
+		
+		// Fix links
+		fixed_content := page.fix_links(content)!
+		
+		// Write back if changed
+		if fixed_content != content {
+			page.path.write(fixed_content)!
+		}
+	}
+}

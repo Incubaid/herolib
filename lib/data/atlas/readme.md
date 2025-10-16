@@ -214,6 +214,121 @@ content := page.read_content()!
 
 Atlas automatically detects circular includes and reports them as errors without causing infinite loops.
 
+## Links
+
+Atlas supports standard Markdown links with several formats for referencing pages within collections.
+
+### Link Formats
+
+#### 1. Explicit Collection Reference
+Link to a page in a specific collection:
+```md
+[Click here](guides:introduction)
+[Click here](guides:introduction.md)
+```
+
+#### 2. Same Collection Reference
+Link to a page in the same collection (collection name omitted):
+```md
+[Click here](introduction)
+```
+
+#### 3. Path-Based Reference
+Link using a path - **only the filename is used** for matching:
+```md
+[Click here](some/path/introduction)
+[Click here](/absolute/path/introduction)
+[Click here](path/to/introduction.md)
+```
+
+**Important:** Paths are ignored during link resolution. Only the page name (filename) is used to find the target page within the same collection.
+
+### Link Processing
+
+#### Validation
+
+Check all links in your Atlas:
+
+```v
+mut a := atlas.new()!
+a.scan(path: './docs')!
+
+// Validate all links
+a.validate_links()!
+
+// Check for errors
+for _, col in a.collections {
+    if col.has_errors() {
+        col.print_errors()
+    }
+}
+```
+
+#### Fixing Links
+
+Automatically rewrite links with correct relative paths:
+
+```v
+mut a := atlas.new()!
+a.scan(path: './docs')!
+
+// Fix all links in place
+a.fix_links()!
+
+// Or fix links in a specific collection
+mut col := a.get_collection('guides')!
+col.fix_links()!
+```
+
+**What `fix_links()` does:**
+- Finds all local page links
+- Calculates correct relative paths
+- Rewrites links as `[text](relative/path/pagename.md)`
+- Only fixes links within the same collection
+- Preserves `!!include` actions unchanged
+- Writes changes back to files
+
+#### Example
+
+Before fix:
+```md
+# My Page
+
+[Introduction](introduction)
+[Setup](/some/old/path/setup)
+[Guide](guides:advanced)
+```
+
+After fix (assuming pages are in subdirectories):
+```md
+# My Page
+
+[Introduction](../intro/introduction.md)
+[Setup](setup.md)
+[Guide](guides:advanced)  <!-- Cross-collection link unchanged -->
+```
+
+### Link Rules
+
+1. **Name Normalization**: All page names are normalized using `name_fix()` (lowercase, underscores, etc.)
+2. **Same Collection Only**: `fix_links()` only rewrites links within the same collection
+3. **Cross-Collection Links**: Links with explicit collection references (e.g., `guides:page`) are validated but not rewritten
+4. **External Links**: HTTP(S), mailto, and anchor links are ignored
+5. **Error Reporting**: Broken links are reported with file, line number, and link details
+
+### Export with Link Validation
+
+Links are automatically validated during export:
+
+```v
+a.export(
+    destination: './output'
+    include: true
+)!
+
+// Errors are printed for each collection automatically
+```
+
 ## Redis Integration
 
 Atlas uses Redis to store metadata about collections, pages, images, and files for fast lookups and caching.

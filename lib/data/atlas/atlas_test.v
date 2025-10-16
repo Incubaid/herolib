@@ -169,3 +169,176 @@ fn test_error_hash() {
 	
 	assert err1.hash() == err2.hash()
 }
+
+fn test_find_links() {
+	content := '
+# Test Page
+
+[Link 1](page1)
+[Link 2](guides:intro)
+[Link 3](/path/to/page2)
+[External](https://example.com)
+[Anchor](#section)
+'
+	
+	links := find_links(content)
+	
+	// Should find 3 local links
+	local_links := links.filter(it.is_local)
+	assert local_links.len == 3
+	
+	// Check collection:page format
+	link2 := local_links[1]
+	assert link2.collection == 'guides'
+	assert link2.page == 'intro'
+	
+	// Check path-based link (only filename used)
+	link3 := local_links[2]
+	assert link3.page == 'page2'
+	assert link3.collection == ''
+}
+
+fn test_validate_links() {
+	// Setup
+	col_path := '${test_base}/link_test'
+	os.mkdir_all(col_path)!
+	
+	mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+	cfile.write('name:test_col')!
+	
+	// Create page1 with valid link
+	mut page1 := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
+	page1.write('[Link to page2](page2)')!
+	
+	// Create page2 (target exists)
+	mut page2 := pathlib.get_file(path: '${col_path}/page2.md', create: true)!
+	page2.write('# Page 2')!
+	
+	mut a := new()!
+	a.add_collection(name: 'test_col', path: col_path)!
+	
+	// Validate
+	a.validate_links()!
+	
+	// Should have no errors
+	col := a.get_collection('test_col')!
+	assert col.errors.len == 0
+}
+
+fn test_validate_broken_links() {
+	// Setup
+	col_path := '${test_base}/broken_link_test'
+	os.mkdir_all(col_path)!
+	
+	mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+	cfile.write('name:test_col')!
+	
+	// Create page with broken link
+	mut page1 := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
+	page1.write('[Broken link](nonexistent)')!
+	
+	mut a := new()!
+	a.add_collection(name: 'test_col', path: col_path)!
+	
+	// Validate
+	a.validate_links()!
+	
+	// Should have error
+	col := a.get_collection('test_col')!
+	assert col.errors.len == 1
+	assert col.errors[0].category == .invalid_page_reference
+}
+
+fn test_fix_links() {
+	// Setup - all pages in same directory for simpler test
+	col_path := '${test_base}/fix_link_test'
+	os.mkdir_all(col_path)!
+	
+	mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+	cfile.write('name:test_col')!
+	
+	// Create pages in same directory
+	mut page1 := pathlib.get_file(path: '${col_path}/page1.md', create: true)!
+	page1.write('[Link](page2)')!
+	
+	mut page2 := pathlib.get_file(path: '${col_path}/page2.md', create: true)!
+	page2.write('# Page 2')!
+	
+	mut a := new()!
+	a.add_collection(name: 'test_col', path: col_path)!
+	
+	// Get the page and test fix_links directly
+	mut col := a.get_collection('test_col')!
+	mut p := col.page_get('page1')!
+	
+	original := p.read_content()!
+	println('Original: ${original}')
+	
+	fixed := p.fix_links(original)!
+	println('Fixed: ${fixed}')
+	
+	// The fix_links should work on content
+	assert fixed.contains('[Link](page2.md)')
+}
+
+fn test_link_formats() {
+	content := '
+[Same collection](page1)
+[With extension](page2.md)
+[Collection ref](guides:intro)
+[Path based](/some/path/page3)
+[Relative path](../other/page4.md)
+'
+	
+	links := find_links(content)
+	local_links := links.filter(it.is_local)
+	
+	assert local_links.len == 5
+	
+	// Check normalization
+	assert local_links[0].page == 'page1'
+	assert local_links[1].page == 'page2'
+	assert local_links[2].collection == 'guides'
+	assert local_links[2].page == 'intro'
+	assert local_links[3].page == 'page3'  // Path ignored, only filename
+	assert local_links[4].page == 'page4'  // Path ignored, only filename
+}
+
+fn test_cross_collection_links() {
+	// Setup two collections
+	col1_path := '${test_base}/col1_cross'
+	col2_path := '${test_base}/col2_cross'
+	
+	os.mkdir_all(col1_path)!
+	os.mkdir_all(col2_path)!
+	
+	mut cfile1 := pathlib.get_file(path: '${col1_path}/.collection', create: true)!
+	cfile1.write('name:col1')!
+	
+	mut cfile2 := pathlib.get_file(path: '${col2_path}/.collection', create: true)!
+	cfile2.write('name:col2')!
+	
+	// Page in col1 links to col2
+	mut page1 := pathlib.get_file(path: '${col1_path}/page1.md', create: true)!
+	page1.write('[Link to col2](col2:page2)')!
+	
+	// Page in col2
+	mut page2 := pathlib.get_file(path: '${col2_path}/page2.md', create: true)!
+	page2.write('# Page 2')!
+	
+	mut a := new()!
+	a.add_collection(name: 'col1', path: col1_path)!
+	a.add_collection(name: 'col2', path: col2_path)!
+	
+	// Validate - should pass
+	a.validate_links()!
+	
+	col1 := a.get_collection('col1')!
+	assert col1.errors.len == 0
+	
+	// Fix links - cross-collection links should NOT be rewritten
+	a.fix_links()!
+	
+	fixed := page1.read()!
+	assert fixed.contains('[Link to col2](col2:page2)')  // Unchanged
+}
