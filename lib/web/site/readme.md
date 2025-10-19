@@ -5,6 +5,7 @@ The Site module provides a structured way to define website configurations, navi
 ## Purpose
 
 The Site module allows you to:
+
 - Define website structure and configuration in a declarative way using HeroScript
 - Organize pages into sections/categories
 - Configure navigation menus and footers
@@ -101,7 +102,7 @@ println(mysite)
 When you don't need categories, pages are added sequentially. The collection only needs to be specified once, then it's reused for subsequent pages.
 
 ```heroscript
-!!site.page src: "tech:introduction"
+!!site.page src: "mycelium_tech:introduction"
     description: "Introduction to ThreeFold Technology"
     slug: "/"
 
@@ -119,6 +120,7 @@ When you don't need categories, pages are added sequentially. The collection onl
 ```
 
 **Key Points:**
+
 - First page specifies collection as `tech:introduction` (collection:page_name format)
 - Subsequent pages only need the page name (e.g., `vision`) - the `tech` collection is reused
 - If `title` is not specified, it will be extracted from the markdown file itself
@@ -145,6 +147,7 @@ Categories (sections) help organize pages into logical groups with their own nav
 ```
 
 **Key Points:**
+
 - `!!site.page_category` creates a new section/category
 - `name` is the internal identifier (snake_case)
 - `label` is the display name (automatically derived from `name` if not specified)
@@ -160,7 +163,7 @@ Categories (sections) help organize pages into logical groups with their own nav
     label: "System Components"
     position: 100
 
-!!site.page src: "tech:mycelium"
+!!site.page src: "mycelium_tech:mycelium"
     title: "Mycelium Network"
     description: "Peer-to-peer overlay network"
     slug: "mycelium-network"
@@ -175,6 +178,7 @@ Categories (sections) help organize pages into logical groups with their own nav
 ```
 
 **Available Page Parameters:**
+
 - `src`: Source reference as `collection:page_name` (required for first page in collection)
 - `title`: Page title (optional, extracted from markdown if not provided)
 - `description`: Page description for metadata
@@ -321,4 +325,4 @@ pub mut:
 
 See `examples/web/site/site_example.vsh` for a complete working example.
 
-For a real-world example, check: https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech
+For a real-world example, check: <https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech>
