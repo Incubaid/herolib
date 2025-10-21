@@ -15,11 +15,26 @@ pub fn new(config HeroServerConfig) !&HeroServer {
 		return error('Port ${config.port} is already in use')
 	}
 
-	// Initialize crypto client
-	crypto_client := if c := config.crypto_client {
-		c
+	// Initialize crypto client only if authentication is enabled
+	mut crypto_client := ?&herocrypt.HeroCrypt(none)
+	if config.auth_enabled {
+		crypto_client = if c := config.crypto_client {
+			c
+		} else {
+			herocrypt.new_default() or {
+				return error('Failed to initialize HeroCrypt client for HeroServer.
+
+${err}
+
+To resolve this issue, you can either:
+  1. Start HeroDB (see error message above for instructions)
+  2. Set auth_enabled: false to disable authentication
+  3. Provide a custom crypto_client in the configuration')
+			}
+		}
 	} else {
-		herocrypt.new_default()!
+		// Auth is disabled, use provided crypto_client if any
+		crypto_client = config.crypto_client
 	}
 
 	// Create logger with configurable output
