@@ -1,6 +1,7 @@
 module playcmds
 
 import incubaid.herolib.core.playbook
+import incubaid.herolib.apps.biz.erpnext
 import incubaid.herolib.clients.giteaclient
 import incubaid.herolib.clients.ipapi
 import incubaid.herolib.clients.jina
@@ -54,6 +55,7 @@ pub fn run_all(args_ PlayArgs) ! {
 		playbook.new(text: args.heroscript, path: args.heroscript_path)!
 	}
 
+	erpnext.play(mut plbook)!
 	giteaclient.play(mut plbook)!
 	ipapi.play(mut plbook)!
 	jina.play(mut plbook)!
