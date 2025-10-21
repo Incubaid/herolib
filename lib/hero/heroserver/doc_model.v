@@ -6,11 +6,20 @@ import incubaid.herolib.schemas.jsonschema
 // DocSpec is the main object passed to the documentation template.
 pub struct DocSpec {
 pub mut:
-	info      openrpc.Info
-	methods   []DocMethod
-	objects   []DocObject
-	auth_info AuthDocInfo
-	base_url  string // Dynamic base URL for examples
+	info          openrpc.Info
+	methods       []DocMethod
+	objects       []DocObject
+	method_groups []DocMethodGroup // Grouped methods by model/actor prefix
+	auth_info     AuthDocInfo
+	base_url      string // Dynamic base URL for examples
+}
+
+// DocMethodGroup represents a group of methods for the same model/actor
+pub struct DocMethodGroup {
+pub mut:
+	name         string // e.g., "calendar", "calendar_event", "user"
+	display_name string // e.g., "Calendar", "Calendar Event", "User"
+	methods      []DocMethod
 }
 
 // DocObject represents a logical grouping of methods.
@@ -99,6 +108,9 @@ pub fn doc_spec_from_openrpc_with_config(openrpc_spec openrpc.OpenRPC, config Do
 		doc_method := process_method(inflated_method, config)!
 		doc_spec.methods << doc_method
 	}
+
+	// Group methods by their model/actor prefix
+	doc_spec.method_groups = group_methods_by_prefix(doc_spec.methods)
 
 	return doc_spec
 }
@@ -267,4 +279,63 @@ fn create_auth_info() AuthDocInfo {
 			},
 		]
 	}
+}
+
+// group_methods_by_prefix groups methods by their model/actor prefix (the part before the dot)
+// For example: "calendar.get", "calendar.set" -> group "calendar"
+//              "calendar_event.get" -> group "calendar_event"
+fn group_methods_by_prefix(methods []DocMethod) []DocMethodGroup {
+	mut groups_map := map[string][]DocMethod{}
+
+	// Group methods by prefix
+	for method in methods {
+		prefix := extract_method_prefix(method.name)
+		if prefix !in groups_map {
+			groups_map[prefix] = []DocMethod{}
+		}
+		groups_map[prefix] << method
+	}
+
+	// Convert map to array of DocMethodGroup
+	mut groups := []DocMethodGroup{}
+	for prefix, group_methods in groups_map {
+		groups << DocMethodGroup{
+			name:         prefix
+			display_name: format_display_name(prefix)
+			methods:      group_methods
+		}
+	}
+
+	// Sort groups alphabetically by name
+	groups.sort(a.name < b.name)
+
+	return groups
+}
+
+// extract_method_prefix extracts the model/actor prefix from a method name
+// Examples: "calendar.get" -> "calendar"
+//           "calendar_event.set" -> "calendar_event"
+//           "user.delete" -> "user"
+fn extract_method_prefix(method_name string) string {
+	parts := method_name.split('.')
+	if parts.len > 0 {
+		return parts[0]
+	}
+	return method_name
+}
+
+// format_display_name converts a prefix to a human-readable display name
+// Examples: "calendar" -> "Calendar"
+//           "calendar_event" -> "Calendar Event"
+//           "chat_message" -> "Chat Message"
+fn format_display_name(prefix string) string {
+	// Split by underscore and capitalize each word
+	words := prefix.split('_')
+	mut capitalized := []string{}
+	for word in words {
+		if word.len > 0 {
+			capitalized << word[0].ascii_str().to_upper() + word[1..]
+		}
+	}
+	return capitalized.join(' ')
 }

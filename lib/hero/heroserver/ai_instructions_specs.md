@@ -35,4 +35,3 @@ we are in architecture mode
 other requirements
 
 - for encryption/signing primitives use instructions from lib/hero/crypt/readme.md, ONLY USE THESE METHODS NO OTHER VLANG METHODS
-
