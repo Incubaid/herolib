@@ -40,15 +40,28 @@ pub fn (s OpenRPC) inflate_schema(schema_ref SchemaRef) Schema {
 		schema_ref as Schema
 	}
 
-	if items := schema.items {
-		return Schema{
-			...schema
-			items: s.inflate_items(items)
-		}
+	// Inflate properties recursively
+	mut inflated_properties := map[string]SchemaRef{}
+	for prop_name, prop_schema in schema.properties {
+		inflated_properties[prop_name] = SchemaRef(s.inflate_schema(prop_schema))
 	}
-	return Schema{
+
+	// Inflate items if present
+	mut result_schema := Schema{
 		...schema
+		properties: inflated_properties
 	}
+
+	if items := schema.items {
+		result_schema.items = s.inflate_items(items)
+	}
+
+	// Inflate additional_properties if present
+	if additional := schema.additional_properties {
+		result_schema.additional_properties = s.inflate_schema(additional)
+	}
+
+	return result_schema
 }
 
 pub fn (s OpenRPC) inflate_items(items Items) Items {
