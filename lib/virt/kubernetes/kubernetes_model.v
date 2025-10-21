@@ -1,4 +1,4 @@
-module erpnext
+module kubernetes
 
 import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.encoderhero
@@ -10,28 +10,24 @@ const default = true
 
 // THIS THE THE SOURCE OF THE INFORMATION OF THIS FILE, HERE WE HAVE THE CONFIG OBJECT CONFIGURED AND MODELLED
 @[heap]
-pub struct ERPNext {
+pub struct Kubernetes {
 pub mut:
 	name       string = 'default'
+	homedir    string
+	configpath string
 	username   string
 	password   string @[secret]
 	title      string
+	host       string
 	port       int
-	example []ERPNextExample
-}
-
-pub struct ERPNextExample {
-pub mut:
-	field1 string
-	field2 int
 }
 
 // your checking & initialization code if needed
-fn obj_init(mycfg_ ERPNext) !ERPNext {
+fn obj_init(mycfg_ Kubernetes) !Kubernetes {
 	mut mycfg := mycfg_
 	// if mycfg.password == '' && mycfg.secret == '' {
-	// 	return error('password or secret needs to be filled in for ${mycfg.name}')
-	// }
+	//    return error('password or secret needs to be filled in for ${mycfg.name}')
+	//}
 	return mycfg
 }
 
@@ -46,7 +42,7 @@ fn configure() ! {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_loads(heroscript string) !ERPNext {
-	mut obj := encoderhero.decode[ERPNext](heroscript)!
+pub fn heroscript_loads(heroscript string) !Kubernetes {
+	mut obj := encoderhero.decode[Kubernetes](heroscript)!
 	return obj
 }
