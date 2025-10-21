@@ -10,21 +10,123 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
+        /* CSS Variables for Light and Dark Themes */
+        :root {
+            /* Light mode colors */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --text-muted: #6c757d;
+            --border-color: #dee2e6;
+            --border-color-light: #e9ecef;
+            --link-color: #0d6efd;
+            --link-hover-color: #0a58ca;
+            --code-bg: #f8f9fa;
+            --code-text: #212529;
+            --card-bg: #ffffff;
+            --card-header-bg: #f8f9fa;
+            --method-group-bg: #f8f9fa;
+            --method-endpoint-bg: #e3f2fd;
+            --toc-bg: #f8f9fa;
+            --toc-group-bg: #f8f9fa;
+            --alert-info-bg: #cfe2ff;
+            --alert-info-border: #b6d4fe;
+            --alert-info-text: #084298;
+            --badge-bg: #0d6efd;
+            --badge-text: #ffffff;
+        }
+
+        /* Dark mode colors */
+        body.dark-mode {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --bg-tertiary: #3a3a3a;
+            --text-primary: #e9ecef;
+            --text-secondary: #adb5bd;
+            --text-muted: #adb5bd;
+            --border-color: #495057;
+            --border-color-light: #3a3a3a;
+            --link-color: #6ea8fe;
+            --link-hover-color: #9ec5fe;
+            --code-bg: #2d2d2d;
+            --code-text: #e9ecef;
+            --card-bg: #2d2d2d;
+            --card-header-bg: #3a3a3a;
+            --method-group-bg: #2d2d2d;
+            --method-endpoint-bg: #1e3a5f;
+            --toc-bg: #2d2d2d;
+            --toc-group-bg: #3a3a3a;
+            --alert-info-bg: #052c65;
+            --alert-info-border: #084298;
+            --alert-info-text: #6ea8fe;
+            --badge-bg: #0d6efd;
+            --badge-text: #ffffff;
+        }
+
+        /* Smooth transitions for theme changes */
+        body,
+        .card,
+        .card-header,
+        .method-group-section,
+        .toc,
+        .toc-group,
+        .code-block,
+        .alert,
+        pre,
+        .method-endpoint {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
         .method-card {
             margin-bottom: 1.5rem;
+            background-color: var(--card-bg);
+            border-color: var(--border-color);
+        }
+
+        .card-header {
+            background-color: var(--card-header-bg);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
         }
 
         .param-table {
             font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .param-table th,
+        .param-table td {
+            border-color: var(--border-color);
         }
 
         .code-block {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background-color: var(--code-bg);
+            border: 1px solid var(--border-color-light);
             border-radius: 0.375rem;
             padding: 1rem;
             overflow-x: auto;
             font-family: 'Courier New', monospace;
+            color: var(--code-text);
+        }
+
+        .code-block pre {
+            background-color: var(--code-bg);
+            color: var(--code-text);
+            margin: 0;
         }
 
         .object-section {
@@ -32,16 +134,17 @@
         }
 
         .method-endpoint {
-            background-color: #e3f2fd;
+            background-color: var(--method-endpoint-bg);
             padding: 0.5rem;
             border-radius: 0.25rem;
             font-family: monospace;
             font-size: 0.9rem;
+            color: var(--text-primary);
         }
 
         .toc {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background-color: var(--toc-bg);
+            border: 1px solid var(--border-color);
             border-radius: 0.375rem;
             padding: 1rem;
             margin-bottom: 2rem;
@@ -53,22 +156,24 @@
 
         .toc a {
             text-decoration: none;
-            color: #495057;
+            color: var(--link-color);
         }
 
         .toc a:hover {
-            color: #007bff;
+            color: var(--link-hover-color);
         }
 
         pre {
             margin: 0;
             white-space: pre-wrap;
             word-wrap: break-word;
+            background-color: var(--code-bg);
+            color: var(--code-text);
         }
 
         .curl-section {
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 0.375rem;
             padding: 1rem;
             margin-top: 1rem;
@@ -197,8 +302,8 @@
         /* Method group section styles */
         .method-group-section {
             margin-bottom: 2rem;
-            background-color: #f8f9fa;
-            border: 1px solid #dee2e6;
+            background-color: var(--method-group-bg);
+            border: 1px solid var(--border-color);
             border-radius: 0.25rem;
             padding: 1rem;
         }
@@ -224,13 +329,13 @@
             margin: 0;
             font-size: 1.25rem;
             font-weight: 600;
-            color: #495057;
+            color: var(--text-primary);
         }
 
         .method-group-toggle {
             transition: transform 0.3s ease;
             font-size: 1.2rem;
-            color: #6c757d;
+            color: var(--text-secondary);
         }
 
         .method-group-toggle.collapsed {
@@ -242,21 +347,21 @@
         }
 
         .method-group-content .method-card {
-            background-color: #ffffff;
+            background-color: var(--card-bg);
         }
 
         /* TOC group styles */
         .toc-group {
             margin-bottom: 0.75rem;
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
+            background-color: var(--toc-group-bg);
+            border: 1px solid var(--border-color-light);
             border-radius: 0.25rem;
             padding: 0.5rem;
         }
 
         .toc-group-header {
             font-weight: 600;
-            color: #495057;
+            color: var(--text-primary);
             margin-bottom: 0;
             cursor: pointer;
             user-select: none;
@@ -267,13 +372,13 @@
         }
 
         .toc-group-header:hover {
-            color: #212529;
+            color: var(--text-secondary);
         }
 
         .toc-group-toggle {
             transition: transform 0.3s ease;
             font-size: 0.9rem;
-            color: #6c757d;
+            color: var(--text-secondary);
             margin-right: 0.5rem;
         }
 
@@ -290,10 +395,84 @@
         .toc-group-methods li {
             margin-bottom: 0.25rem;
         }
+
+        /* Theme toggle button */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 3rem;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .theme-toggle svg {
+            width: 1.5rem;
+            height: 1.5rem;
+            fill: var(--text-primary);
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            color: var(--text-primary);
+        }
+
+        a {
+            color: var(--link-color);
+        }
+
+        a:hover {
+            color: var(--link-hover-color);
+        }
+
+        footer {
+            background-color: var(--bg-secondary) !important;
+            color: var(--text-primary);
+            border-top: 1px solid var(--border-color);
+        }
+
+        .badge {
+            background-color: var(--badge-bg) !important;
+            color: var(--badge-text) !important;
+        }
     </style>
 </head>
 
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark/light mode">
+        <svg id="theme-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="display: none;">
+            <path
+                d="M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z" />
+        </svg>
+        <svg id="theme-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path
+                d="M10 7C10 10.866 13.134 14 17 14C18.9584 14 20.729 13.1957 21.9995 11.8995C22 11.933 22 11.9665 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C12.0335 2 12.067 2 12.1005 2.00049C10.8043 3.27098 10 5.04157 10 7ZM4 12C4 16.4183 7.58172 20 12 20C15.0583 20 17.7158 18.2839 19.062 15.7621C18.3945 15.9187 17.7035 16 17 16C12.0294 16 8 11.9706 8 7C8 6.29648 8.08133 5.60547 8.2379 4.938C5.71611 6.28423 4 8.9417 4 12Z" />
+        </svg>
+    </button>
+
     <div class="container mt-4">
         <!-- Header -->
         <div class="row">
@@ -656,6 +835,55 @@
 
     <!-- Bootstrap JS Bundle (includes Popper) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Theme Toggle Functionality -->
+    <script>
+        // Theme management
+        function toggleTheme() {
+            const body = document.body;
+            const isDark = body.classList.toggle('dark-mode');
+
+            // Save preference to localStorage
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+
+            // Update icon visibility
+            updateThemeIcon(isDark);
+        }
+
+        function updateThemeIcon(isDark) {
+            const sunIcon = document.getElementById('theme-icon-sun');
+            const moonIcon = document.getElementById('theme-icon-moon');
+
+            if (isDark) {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+        }
+
+        function initializeTheme() {
+            // Check localStorage for saved preference
+            const savedTheme = localStorage.getItem('theme');
+
+            // If no saved preference, check system preference
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            // Apply theme
+            const shouldBeDark = savedTheme === 'dark' || (!savedTheme && prefersDark);
+
+            if (shouldBeDark) {
+                document.body.classList.add('dark-mode');
+            }
+
+            // Update icon
+            updateThemeIcon(shouldBeDark);
+        }
+
+        // Initialize theme on page load
+        initializeTheme();
+    </script>
 
     <!-- Copy to Clipboard Functionality -->
     <script>
