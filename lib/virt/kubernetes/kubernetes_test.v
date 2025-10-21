@@ -6,7 +6,7 @@ import os
 fn test_model_creation() ! {
 	mut deployment := DeploymentSpec{
 		metadata: K8sMetadata{
-			name: 'test-app'
+			name:      'test-app'
 			namespace: 'default'
 		}
 		replicas: 3
@@ -14,21 +14,21 @@ fn test_model_creation() ! {
 			'app': 'test-app'
 		}
 		template: PodSpec{
-			metadata: K8sMetadata{
-				name: 'test-app-pod'
+			metadata:   K8sMetadata{
+				name:      'test-app-pod'
 				namespace: 'default'
 			}
 			containers: [
 				ContainerSpec{
-					name: 'app'
+					name:  'app'
 					image: 'nginx:latest'
 					ports: [
 						ContainerPort{
-							name: 'http'
+							name:           'http'
 							container_port: 80
-						}
+						},
 					]
-				}
+				},
 			]
 		}
 	}
@@ -41,7 +41,8 @@ fn test_model_creation() ! {
 
 fn test_yaml_validation() ! {
 	// Create test YAML file
-	test_yaml := '''
+	test_yaml := ''
+	'
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -60,7 +61,8 @@ spec:
       containers:
       - name: app
         image: nginx:latest
-'''
+'
+	''
 
 	test_file := '/tmp/test-deployment.yaml'
 	os.write_file(test_file, test_yaml)!

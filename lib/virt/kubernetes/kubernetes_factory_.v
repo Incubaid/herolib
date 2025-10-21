@@ -8,7 +8,7 @@ import incubaid.herolib.osal.startupmanager
 import time
 
 __global (
-	kubernetes_global  map[string]&Kubernetes
+	kubernetes_global  map[string]&KubeClient
 	kubernetes_default string
 )
 
@@ -22,15 +22,15 @@ pub mut:
 	create bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&Kubernetes {
-	mut obj := Kubernetes{
+pub fn new(args ArgsGet) !&KubeClient {
+	mut obj := KubeClient{
 		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&Kubernetes {
+pub fn get(args ArgsGet) !&KubeClient {
 	mut context := base.context()!
 	kubernetes_default = args.name
 	if args.fromdb || args.name !in kubernetes_global {
@@ -39,16 +39,16 @@ pub fn get(args ArgsGet) !&Kubernetes {
 			data := r.hget('context:kubernetes', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('Kubernetes with name: kubernetes does not exist, prob bug.')
+				return error('KubeClient with name: kubernetes does not exist, prob bug.')
 			}
-			mut obj := json.decode(Kubernetes, data)!
+			mut obj := json.decode(KubeClient, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("Kubernetes with name 'kubernetes' does not exist")
+				return error("KubeClient with name 'kubernetes' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
@@ -60,7 +60,7 @@ pub fn get(args ArgsGet) !&Kubernetes {
 }
 
 // register the config for the future
-pub fn set(o Kubernetes) ! {
+pub fn set(o KubeClient) ! {
 	mut o2 := set_in_mem(o)!
 	kubernetes_default = o2.name
 	mut context := base.context()!
@@ -88,12 +88,12 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&Kubernetes {
-	mut res := []&Kubernetes{}
+pub fn list(args ArgsList) ![]&KubeClient {
+	mut res := []&KubeClient{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		kubernetes_global = map[string]&Kubernetes{}
+		kubernetes_global = map[string]&KubeClient{}
 		kubernetes_default = ''
 	}
 	if args.fromdb {
@@ -114,7 +114,7 @@ pub fn list(args ArgsList) ![]&Kubernetes {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o Kubernetes) !Kubernetes {
+fn set_in_mem(o KubeClient) !KubeClient {
 	mut o2 := obj_init(o)!
 	kubernetes_global[o2.name] = &o2
 	kubernetes_default = o2.name
@@ -202,12 +202,12 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 }
 
 // load from disk and make sure is properly intialized
-pub fn (mut self Kubernetes) reload() ! {
+pub fn (mut self KubeClient) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
 }
 
-pub fn (mut self Kubernetes) start() ! {
+pub fn (mut self KubeClient) start() ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -244,13 +244,13 @@ pub fn (mut self Kubernetes) start() ! {
 	return error('kubernetes did not install properly.')
 }
 
-pub fn (mut self Kubernetes) install_start(args InstallArgs) ! {
+pub fn (mut self KubeClient) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
 	self.start()!
 }
 
-pub fn (mut self Kubernetes) stop() ! {
+pub fn (mut self KubeClient) stop() ! {
 	switch(self.name)
 	stop_pre()!
 	for zprocess in startupcmd()! {
@@ -260,13 +260,13 @@ pub fn (mut self Kubernetes) stop() ! {
 	stop_post()!
 }
 
-pub fn (mut self Kubernetes) restart() ! {
+pub fn (mut self KubeClient) restart() ! {
 	switch(self.name)
 	self.stop()!
 	self.start()!
 }
 
-pub fn (mut self Kubernetes) running() !bool {
+pub fn (mut self KubeClient) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
@@ -288,19 +288,19 @@ pub mut:
 	reset bool
 }
 
-pub fn (mut self Kubernetes) install(args InstallArgs) ! {
+pub fn (mut self KubeClient) install(args InstallArgs) ! {
 	switch(self.name)
 	if args.reset || (!installed()!) {
 		install()!
 	}
 }
 
-pub fn (mut self Kubernetes) build() ! {
+pub fn (mut self KubeClient) build() ! {
 	switch(self.name)
 	build()!
 }
 
-pub fn (mut self Kubernetes) destroy() ! {
+pub fn (mut self KubeClient) destroy() ! {
 	switch(self.name)
 	self.stop() or {}
 	destroy()!

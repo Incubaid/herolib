@@ -50,21 +50,21 @@ pub fn yaml_validate(yaml_path string) !K8sValidationResult {
 	}
 
 	// Validate kind values
-	valid_kinds := ['Pod', 'Deployment', 'Service', 'ConfigMap', 'Secret', 'StatefulSet',
-		'DaemonSet', 'Job', 'CronJob', 'Ingress', 'PersistentVolume', 'PersistentVolumeClaim']
+	valid_kinds := ['Pod', 'Deployment', 'Service', 'ConfigMap', 'Secret', 'StatefulSet', 'DaemonSet',
+		'Job', 'CronJob', 'Ingress', 'PersistentVolume', 'PersistentVolumeClaim']
 	if kind !in valid_kinds {
-		errors << 'Invalid kind: ${kind}. Valid kinds: ${valid_kinds.join(", ")}'
+		errors << 'Invalid kind: ${kind}. Valid kinds: ${valid_kinds.join(', ')}'
 	}
 
 	return K8sValidationResult{
-		valid: errors.len == 0
-		kind: kind
+		valid:       errors.len == 0
+		kind:        kind
 		api_version: api_version
-		metadata: K8sMetadata{
-			name: metadata_name
+		metadata:    K8sMetadata{
+			name:      metadata_name
 			namespace: metadata_namespace
 		}
-		errors: errors
+		errors:      errors
 	}
 }
 
