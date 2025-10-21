@@ -27,6 +27,18 @@ pub mut:
 
 	build_dest     []BuildDest // Production build destinations (from !!site.build_dest)
 	build_dest_dev []BuildDest // Development build destinations (from !!site.build_dest_dev)
+
+	announcement AnnouncementBar // Announcement bar configuration (from !!site.announcement)
+}
+
+// Announcement bar config structure
+pub struct AnnouncementBar {
+pub mut:
+	id               string @[json: 'id']
+	content          string @[json: 'content']
+	background_color string @[json: 'backgroundColor']
+	text_color       string @[json: 'textColor']
+	is_closeable     bool   @[json: 'isCloseable']
 }
 
 // Footer config structures
@@ -73,7 +85,7 @@ pub mut:
 	ssh_name string
 }
 
-//is to import one docusaurus site into another, can be used to e.g. import static parts from one location into the build one we are building
+// is to import one docusaurus site into another, can be used to e.g. import static parts from one location into the build one we are building
 pub struct ImportItem {
 pub mut:
 	name    string // will normally be empty

@@ -50,6 +50,7 @@ pub fn play(mut plbook PlayBook) ! {
 	play_import(mut plbook, mut config)!
 	play_menu(mut plbook, mut config)!
 	play_footer(mut plbook, mut config)!
+	play_announcement(mut plbook, mut config)!
 	play_publish(mut plbook, mut config)!
 	play_publish_dev(mut plbook, mut config)!
 	play_pages(mut plbook, mut website)!
@@ -175,6 +176,25 @@ fn play_footer(mut plbook PlayBook, mut config SiteConfig) ! {
 			title: title
 			items: items
 		}
+	}
+}
+
+fn play_announcement(mut plbook PlayBook, mut config SiteConfig) ! {
+	mut announcement_actions := plbook.find(filter: 'site.announcement')!
+	if announcement_actions.len > 0 {
+		// Only process the first announcement action
+		mut action := announcement_actions[0]
+		mut p := action.params
+
+		config.announcement = AnnouncementBar{
+			id:               p.get_default('id', 'announcement')!
+			content:          p.get_default('content', '')!
+			background_color: p.get_default('background_color', '#20232a')!
+			text_color:       p.get_default('text_color', '#fff')!
+			is_closeable:     p.get_default_true('is_closeable')
+		}
+
+		action.done = true // Mark the action as done
 	}
 }
 

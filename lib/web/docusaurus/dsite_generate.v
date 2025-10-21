@@ -31,6 +31,9 @@ pub fn (mut docsite DocSite) generate() ! {
 	mut footer_file := pathlib.get_file(path: '${cfg_path}/footer.json', create: true)!
 	footer_file.write(json.encode_pretty(docsite.config.footer))!
 
+	mut announcement_file := pathlib.get_file(path: '${cfg_path}/announcement.json', create: true)!
+	announcement_file.write(json.encode_pretty(docsite.config.announcement))!
+
 	docsite.generate_docs()!
 
 	docsite.import()!

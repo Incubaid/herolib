@@ -45,6 +45,7 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			}
 			section.label = p.get_default('label', texttools.name_fix_snake_to_pascal(section.name))!
 			section.path = p.get_default('path', texttools.name_fix(section.label))!
+			section.description = p.get_default('description', '')!
 
 			site.sections << section
 			action.done = true // Mark the action as done
@@ -119,6 +120,9 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			mypage.slug = p.get_default('slug', '')!
 			mypage.draft = p.get_default_false('draft')
 			mypage.hide_title = p.get_default_false('hide_title')
+			if mypage.title.len > 0 {
+				mypage.hide_title = true
+			}
 			mypage.title_nr = p.get_int_default('title_nr', 0)!
 
 			site.pages << mypage

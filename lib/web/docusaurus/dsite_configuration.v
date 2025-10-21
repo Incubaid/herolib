@@ -6,9 +6,10 @@ import incubaid.herolib.web.site
 
 pub struct Configuration {
 pub mut:
-	main   Main
-	navbar Navbar
-	footer Footer
+	main         Main
+	navbar       Navbar
+	footer       Footer
+	announcement AnnouncementBar
 }
 
 pub struct Main {
@@ -75,6 +76,15 @@ pub mut:
 	to    string @[omitempty]
 }
 
+pub struct AnnouncementBar {
+pub mut:
+	id               string @[json: 'id']
+	content          string @[json: 'content']
+	background_color string @[json: 'backgroundColor']
+	text_color       string @[json: 'textColor']
+	is_closeable     bool   @[json: 'isCloseable']
+}
+
 // ... (struct definitions remain the same) ...
 
 // This function is now a pure transformer: site.SiteConfig -> docusaurus.Configuration
@@ -107,7 +117,7 @@ fn new_configuration(site_cfg site.SiteConfig) !Configuration {
 	}
 
 	cfg := Configuration{
-		main:   Main{
+		main:         Main{
 			title:          site_cfg.title
 			tagline:        site_cfg.tagline
 			favicon:        site_cfg.favicon
@@ -137,7 +147,7 @@ fn new_configuration(site_cfg site.SiteConfig) !Configuration {
 			copyright:      site_cfg.copyright
 			name:           site_cfg.name
 		}
-		navbar: Navbar{
+		navbar:       Navbar{
 			title: site_cfg.menu.title
 			logo:  Logo{
 				alt:      site_cfg.menu.logo_alt
@@ -146,9 +156,16 @@ fn new_configuration(site_cfg site.SiteConfig) !Configuration {
 			}
 			items: nav_items
 		}
-		footer: Footer{
+		footer:       Footer{
 			style: site_cfg.footer.style
 			links: footer_links
+		}
+		announcement: AnnouncementBar{
+			id:               site_cfg.announcement.id
+			content:          site_cfg.announcement.content
+			background_color: site_cfg.announcement.background_color
+			text_color:       site_cfg.announcement.text_color
+			is_closeable:     site_cfg.announcement.is_closeable
 		}
 	}
 	return config_fix(cfg)!
