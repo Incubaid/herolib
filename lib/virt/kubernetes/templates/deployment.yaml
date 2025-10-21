@@ -1,22 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{.Name}}
-  namespace: {{.Namespace}}
+  name: ${metadata.name}
+  namespace: ${metadata.namespace}
   labels:
-    app: {{.AppLabel}}
+    app: ${metadata.name}
 spec:
-  replicas: {{.Replicas}}
+  replicas: ${replicas}
   selector:
     matchLabels:
-      app: {{.AppLabel}}
+      app: ${metadata.name}
   template:
     metadata:
       labels:
-        app: {{.AppLabel}}
+        app: ${metadata.name}
     spec:
       containers:
-      - name: {{.ContainerName}}
-        image: {{.Image}}
+      - name: ${container.name}
+        image: ${container.image}
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: {{.ContainerPort}}
+        - containerPort: ${container.port}
+          name: http

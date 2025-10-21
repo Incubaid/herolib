@@ -1,223 +1,231 @@
 module kubernetes
 
+import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core.httpconnection
-import net.http
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 import json
-import encoding.base64
+import os
 
-@[heap]
-pub struct KubernetesClient {
+// Execute kubectl command with proper error handling
+pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
+	mut cmd := '${k.kubectl_path} '
+
+	if !k.config.namespace.is_empty() {
+		cmd += '--namespace=${k.config.namespace} '
+	}
+
+	if !k.kubeconfig_path.is_empty() {
+		cmd += '--kubeconfig=${k.kubeconfig_path} '
+	}
+
+	if !k.config.context.is_empty() {
+		cmd += '--context=${k.config.context} '
+	}
+
+	cmd += args.command
+
+	console.print_debug("executing: ${cmd}")
+
+	job := osal.exec(
+		cmd: cmd
+		timeout: args.timeout
+		retry: args.retry
+		raise_error: false
+	)!
+
+	return KubectlResult{
+		exit_code: job.exit_code
+		stdout: job.output
+		stderr: job.error
+		success: job.exit_code == 0
+	}
+}
+
+@[params]
+pub struct KubectlExecArgs {
 pub mut:
-	config     KubernetesConfig
-	http_conn  ?&httpconnection.HTTPConnection
-	api_groups map[string]APIGroupVersion
+	command string
+	timeout int = 30
+	retry   int = 0
 }
 
-pub struct APIGroupVersion {
-pub:
-	group_version string
-	resources     []APIResource
+pub struct KubectlResult {
+pub mut:
+	exit_code int
+	stdout    string
+	stderr    string
+	success   bool
 }
 
-pub struct APIResource {
-pub:
-	name       string
-	singularname string
-	namespaced bool
-	kind       string
-	verbs      []string // get, list, create, update, delete, patch, watch, etc.
-}
-
-pub struct APIResponse {
-pub:
-	kind       string
-	api_version string
-	metadata   map[string]interface{}
-	items      []json.Any
-}
-
-// Create new Kubernetes client
-pub fn new(config KubernetesConfig) !&KubernetesClient {
-	mut cfg := config
-	cfg.validate()!
-	
-	mut client := KubernetesClient{
-		config: cfg
+// Test connection to cluster
+pub fn (mut k KubeClient) test_connection() !bool {
+	result := k.kubectl_exec(command: 'cluster-info')!
+	if result.success {
+		k.connected = true
+		return true
 	}
-	client.http_conn = http_connection_create(cfg)!
-	
-	return &client
+	return false
 }
 
-// Create HTTP connection with proper auth
-fn http_connection_create(cfg KubernetesConfig) !&httpconnection.HTTPConnection {
-	mut conn := httpconnection.new(
-		name:  'kubernetes-${cfg.name}'
-		url:   cfg.server
-		retry: 3
-		cache: false
-	)!
-	
-	// Setup authentication
-	if cfg.token.len > 0 {
-		mut header := http.new_header()
-		header.add(.authorization, 'Bearer ${cfg.token}')
-		conn.default_header = header
-	} else if cfg.username.len > 0 && cfg.password.len > 0 {
-		conn.basic_auth(cfg.username, cfg.password)
+// Get cluster info
+pub fn (mut k KubeClient) cluster_info() !ClusterInfo {
+	// Get API server version
+	result := k.kubectl_exec(command: 'version -o json')!
+	if !result.success {
+		return error('Failed to get cluster version: ${result.stderr}')
 	}
-	
-	// TLS configuration
-	if cfg.insecure_skip_verify {
-		// Skip verification (development only)
-	} else if cfg.certificate_authority.len > 0 {
-		// Load CA certificate
-		// TODO: Configure TLS with CA cert
-	}
-	
-	return conn
-}
 
-// Get HTTP connection
-pub fn (mut c KubernetesClient) connection() !&httpconnection.HTTPConnection {
-	if c.http_conn == none {
-		c.http_conn = http_connection_create(c.config)!
-	}
-	return c.http_conn!
-}
+	version_data := json.decode(map[string]interface{}, result.stdout)!
+	server_version := version_data['serverVersion'] or { return error('No serverVersion') }
 
-// ==================== DISCOVERY API ====================
-
-// Get available API groups
-pub fn (mut c KubernetesClient) get_api_groups() ![]APIGroupVersion {
-	conn := c.connection()!
-	response := conn.get_json_generic[map[string]interface{}](
-		prefix: '/apis'
-	)!
-	// Parse and return API groups
-	return []APIGroupVersion{}
-}
-
-// ==================== CORE API METHODS ====================
-
-// Generic GET for any resource
-pub fn (mut c KubernetesClient) get[T](
-	resource_type string
-	name string
-	namespace string = ''
-) !T {
-	mut prefix := build_api_path(resource_type, name, namespace)
-	conn := c.connection()!
-	return conn.get_json_generic[T](prefix: prefix)!
-}
-
-// Generic LIST for any resource
-pub fn (mut c KubernetesClient) list[T](
-	resource_type string
-	namespace string = ''
-	label_selector string = ''
-) ![]T {
-	mut prefix := build_api_list_path(resource_type, namespace)
-	if label_selector.len > 0 {
-		prefix += '?labelSelector=${label_selector}'
-	}
-	conn := c.connection()!
-	response := conn.get_json_generic[map[string]interface{}](prefix: prefix)!
-	// Parse items array
-	return []T{}
-}
-
-// Generic CREATE for any resource
-pub fn (mut c KubernetesClient) create[T](resource T) !T {
-	resource_type := get_resource_type[T]()
-	namespace := get_namespace[T](resource)
-	mut prefix := build_api_path_create(resource_type, namespace)
-	
-	conn := c.connection()!
-	return conn.post_json_generic[T](
-		prefix: prefix
-		params: json.decode_object(json.encode(resource))!
-	)!
-}
-
-// Generic UPDATE (PUT) for any resource
-pub fn (mut c KubernetesClient) update[T](resource T) !T {
-	resource_type := get_resource_type[T]()
-	name := get_resource_name[T](resource)
-	namespace := get_namespace[T](resource)
-	mut prefix := build_api_path(resource_type, name, namespace)
-	
-	conn := c.connection()!
-	return conn.put_json_generic[T](
-		prefix: prefix
-		params: json.decode_object(json.encode(resource))!
-	)!
-}
-
-// Generic PATCH for any resource
-pub fn (mut c KubernetesClient) patch[T](
-	resource_type string
-	name string
-	namespace string
-	patch_data map[string]interface{}
-) !T {
-	mut prefix := build_api_path(resource_type, name, namespace)
-	
-	conn := c.connection()!
-	mut header := http.new_header()
-	header.add(.content_type, 'application/merge-patch+json')
-	
-	return conn.patch_json_generic[T](
-		prefix: prefix
-		params: patch_data
-		header: header
-	)!
-}
-
-// Generic DELETE for any resource
-pub fn (mut c KubernetesClient) delete(
-	resource_type string
-	name string
-	namespace string = ''
-) ! {
-	mut prefix := build_api_path(resource_type, name, namespace)
-	conn := c.connection()!
-	conn.delete(prefix: prefix)!
-}
-
-// Helper functions for building API paths
-fn build_api_path(resource_type string, name string, namespace string) string {
-	if namespace.len > 0 {
-		return '/api/v1/namespaces/${namespace}/${resource_type}/${name}'
+	// Get node count
+	nodes_result := k.kubectl_exec(command: 'get nodes -o json')!
+	nodes_count := if nodes_result.success {
+		nodes_data := json.decode(map[string]interface{}, nodes_result.stdout)!
+		items := nodes_data['items'] or { []interface{}{} }
+		items.len
 	} else {
-		return '/api/v1/${resource_type}/${name}'
+		0
 	}
-}
 
-fn build_api_list_path(resource_type string, namespace string) string {
-	if namespace.len > 0 {
-		return '/api/v1/namespaces/${namespace}/${resource_type}'
+	// Get namespace count
+	ns_result := k.kubectl_exec(command: 'get namespaces -o json')!
+	ns_count := if ns_result.success {
+		ns_data := json.decode(map[string]interface{}, ns_result.stdout)!
+		items := ns_data['items'] or { []interface{}{} }
+		items.len
 	} else {
-		return '/api/v1/${resource_type}'
+		0
+	}
+
+	// Get running pods count
+	pods_result := k.kubectl_exec(command: 'get pods --all-namespaces -o json')!
+	pods_count := if pods_result.success {
+		pods_data := json.decode(map[string]interface{}, pods_result.stdout)!
+		items := pods_data['items'] or { []interface{}{} }
+		items.len
+	} else {
+		0
+	}
+
+	return ClusterInfo{
+		version: 'v1.0.0'
+		nodes: nodes_count
+		namespaces: ns_count
+		running_pods: pods_count
+		api_server: k.config.api_server
 	}
 }
 
-fn build_api_path_create(resource_type string, namespace string) string {
-	return build_api_list_path(resource_type, namespace)
+// Get resources (Pods, Deployments, Services, etc.)
+pub fn (mut k KubeClient) get_pods(namespace string) ![]map[string]interface{} {
+	result := k.kubectl_exec(command: 'get pods -n ${namespace} -o json')!
+	if !result.success {
+		return error('Failed to get pods: ${result.stderr}')
+	}
+
+	data := json.decode(map[string]interface{}, result.stdout)!
+	items := data['items'] or { []interface{}{} }
+	return items as []map[string]interface{}
 }
 
-// Helper functions to extract metadata from generic types
-fn get_resource_type[T]() string {
-	// TODO: Use compile-time reflection to get Kind from T
-	return 'pods'
+pub fn (mut k KubeClient) get_deployments(namespace string) ![]map[string]interface{} {
+	result := k.kubectl_exec(command: 'get deployments -n ${namespace} -o json')!
+	if !result.success {
+		return error('Failed to get deployments: ${result.stderr}')
+	}
+
+	data := json.decode(map[string]interface{}, result.stdout)!
+	items := data['items'] or { []interface{}{} }
+	return items as []map[string]interface{}
 }
 
-fn get_resource_name[T](resource T) string {
-	// TODO: Extract metadata.name from resource
-	return ''
+pub fn (mut k KubeClient) get_services(namespace string) ![]map[string]interface{} {
+	result := k.kubectl_exec(command: 'get services -n ${namespace} -o json')!
+	if !result.success {
+		return error('Failed to get services: ${result.stderr}')
+	}
+
+	data := json.decode(map[string]interface{}, result.stdout)!
+	items := data['items'] or { []interface{}{} }
+	return items as []map[string]interface{}
 }
 
-fn get_namespace[T](resource T) string {
-	// TODO: Extract metadata.namespace from resource
-	return 'default'
+// Apply YAML file
+pub fn (mut k KubeClient) apply_yaml(yaml_path string) !KubectlResult {
+	// Validate before applying
+	validation := yaml_validate(yaml_path)!
+	if !validation.valid {
+		return error('YAML validation failed: ${validation.errors.join(", ")}')
+	}
+
+	result := k.kubectl_exec(command: 'apply -f ${yaml_path}')!
+	if result.success {
+		console.print_green('Applied: ${validation.kind}/${validation.metadata.name}')
+	}
+	return result
+}
+
+// Delete resource
+pub fn (mut k KubeClient) delete_resource(kind string, name string, namespace string) !KubectlResult {
+	result := k.kubectl_exec(command: 'delete ${kind} ${name} -n ${namespace}')!
+	return result
+}
+
+// Describe resource
+pub fn (mut k KubeClient) describe_resource(kind string, name string, namespace string) !string {
+	result := k.kubectl_exec(command: 'describe ${kind} ${name} -n ${namespace}')!
+	if !result.success {
+		return error('Failed to describe resource: ${result.stderr}')
+	}
+	return result.stdout
+}
+
+// Port forward
+pub fn (mut k KubeClient) port_forward(pod_name string, local_port int, remote_port int, namespace string) !string {
+	cmd := 'port-forward ${pod_name} ${local_port}:${remote_port} -n ${namespace}'
+	result := k.kubectl_exec(command: cmd, timeout: 300)!
+	return result.stdout
+}
+
+// Get logs
+pub fn (mut k KubeClient) logs(pod_name string, namespace string, follow bool) !string {
+	mut cmd := 'logs ${pod_name} -n ${namespace}'
+	if follow {
+		cmd += ' -f'
+	}
+	result := k.kubectl_exec(command: cmd, timeout: 300)!
+	if !result.success {
+		return error('Failed to get logs: ${result.stderr}')
+	}
+	return result.stdout
+}
+
+// Exec into container
+pub fn (mut k KubeClient) exec_pod(pod_name string, namespace string, container string, cmd_args []string) !string {
+	cmd := 'exec -it ${pod_name} -n ${namespace}'
+	if !container.is_empty() {
+		cmd += ' -c ${container}'
+	}
+	cmd += ' -- ${cmd_args.join(" ")}'
+
+	result := k.kubectl_exec(command: cmd, timeout: 300)!
+	if !result.success {
+		return error('Exec failed: ${result.stderr}')
+	}
+	return result.stdout
+}
+
+// Create namespace
+pub fn (mut k KubeClient) create_namespace(namespace_name string) !KubectlResult {
+	result := k.kubectl_exec(command: 'create namespace ${namespace_name}')!
+	return result
+}
+
+// Watch resources (returns status)
+pub fn (mut k KubeClient) watch_deployment(name string, namespace string, timeout_seconds int) !bool {
+	cmd := 'rollout status deployment/${name} -n ${namespace} --timeout=${timeout_seconds}s'
+	result := k.kubectl_exec(command: cmd, timeout: timeout_seconds + 10)!
+	return result.success
 }
