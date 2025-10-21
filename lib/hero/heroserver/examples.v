@@ -35,6 +35,43 @@ fn prettify_json(compact_json string) string {
 // Request Example Generation
 // ============================================================================
 
+// generate_curl_example creates a working curl command for a JSON-RPC method.
+// Takes the method name, example request payload (params only), and endpoint URL.
+// Returns a properly formatted curl command with JSON-RPC 2.0 wrapper.
+pub fn generate_curl_example(method_name string, params_json string, endpoint_url string) string {
+	// Build the complete JSON-RPC request
+	mut jsonrpc_request := '{\n'
+	jsonrpc_request += '  "jsonrpc": "2.0",\n'
+	jsonrpc_request += '  "method": "${method_name}",\n'
+	jsonrpc_request += '  "params": '
+
+	// Add the params (already formatted with proper indentation)
+	// Need to indent each line by 2 spaces to align with the "params" key
+	params_lines := params_json.split('\n')
+	for i, line in params_lines {
+		if i == 0 {
+			jsonrpc_request += line
+		} else {
+			jsonrpc_request += '\n  ' + line
+		}
+	}
+
+	// Add comma after params and then id field
+	jsonrpc_request += ',\n'
+	jsonrpc_request += '  "id": 1\n'
+	jsonrpc_request += '}'
+
+	// Escape single quotes for shell
+	escaped_request := jsonrpc_request.replace("'", "'\\''")
+
+	// Build curl command
+	mut curl := "curl -X POST '${endpoint_url}' \\\n"
+	curl += "  -H 'Content-Type: application/json' \\\n"
+	curl += "  -d '${escaped_request}'"
+
+	return curl
+}
+
 fn generate_request_example[T](model T) !string {
 	mut field_parts := []string{} // Build JSON manually to avoid type conflicts
 

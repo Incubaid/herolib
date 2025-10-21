@@ -6,7 +6,7 @@
     },
     "methods": [
         {
-            "name": "calendar_get",
+            "name": "calendar.get",
             "summary": "Get a calendar by ID",
             "description": "Retrieve a calendar by ID. Returns the calendar object.",
             "params": [
@@ -30,7 +30,7 @@
             }
         },
         {
-            "name": "calendar_set",
+            "name": "calendar.set",
             "summary": "Create or update a calendar",
             "description": "Create or update a calendar. Returns the ID of the calendar.",
             "params": [
@@ -97,7 +97,7 @@
             }
         },
         {
-            "name": "calendar_delete",
+            "name": "calendar.delete",
             "summary": "Delete a calendar by ID",
             "description": "Delete a calendar by ID. Returns true if successful.",
             "params": [
@@ -121,7 +121,7 @@
             }
         },
         {
-            "name": "calendar_exist",
+            "name": "calendar.exist",
             "summary": "Check if a calendar exists by ID",
             "description": "Check if a calendar exists by ID. Returns true or false.",
             "params": [
@@ -145,7 +145,7 @@
             }
         },
         {
-            "name": "calendar_list",
+            "name": "calendar.list",
             "summary": "List all calendars",
             "description": "List all calendars. Returns an array of calendar objects.",
             "params": [],
@@ -161,7 +161,7 @@
             }
         },
         {
-            "name": "calendar_event_get",
+            "name": "calendar_event.get",
             "summary": "Get a calendar event by ID",
             "description": "Retrieve a calendar event by ID. Returns the event object.",
             "params": [
@@ -185,7 +185,7 @@
             }
         },
         {
-            "name": "calendar_event_set",
+            "name": "calendar_event.set",
             "summary": "Create or update a calendar event",
             "description": "Create or update a calendar event. Returns the ID of the event.",
             "params": [
@@ -208,7 +208,7 @@
             }
         },
         {
-            "name": "calendar_event_delete",
+            "name": "calendar_event.delete",
             "summary": "Delete a calendar event by ID",
             "description": "Delete a calendar event by ID. Returns true if successful.",
             "params": [
@@ -232,7 +232,7 @@
             }
         },
         {
-            "name": "calendar_event_exist",
+            "name": "calendar_event.exist",
             "summary": "Check if a calendar event exists by ID",
             "description": "Check if a calendar event exists by ID. Returns true or false.",
             "params": [
@@ -256,7 +256,7 @@
             }
         },
         {
-            "name": "calendar_event_list",
+            "name": "calendar_event.list",
             "summary": "List all calendar events",
             "description": "List all calendar events. Returns an array of event objects.",
             "params": [],
@@ -272,7 +272,7 @@
             }
         },
         {
-            "name": "chat_group_get",
+            "name": "chat_group.get",
             "summary": "Get a chat group by ID",
             "description": "Retrieve a chat group by ID. Returns the chat group object.",
             "params": [
@@ -295,7 +295,7 @@
             }
         },
         {
-            "name": "chat_group_set",
+            "name": "chat_group.set",
             "summary": "Create or update a chat group",
             "description": "Create or update a chat group. Returns the ID of the chat group.",
             "params": [
@@ -318,7 +318,7 @@
             }
         },
         {
-            "name": "chat_group_delete",
+            "name": "chat_group.delete",
             "summary": "Delete a chat group by ID",
             "description": "Delete a chat group by ID. Returns true if successful.",
             "params": [
@@ -341,7 +341,7 @@
             }
         },
         {
-            "name": "chat_group_exist",
+            "name": "chat_group.exist",
             "summary": "Check if a chat group exists by ID",
             "description": "Check if a chat group exists by ID. Returns true or false.",
             "params": [
@@ -364,7 +364,7 @@
             }
         },
         {
-            "name": "chat_group_list",
+            "name": "chat_group.list",
             "summary": "List all chat groups",
             "description": "List all chat groups. Returns an array of chat group objects.",
             "params": [],
@@ -380,7 +380,7 @@
             }
         },
         {
-            "name": "chat_message_get",
+            "name": "chat_message.get",
             "summary": "Get a chat message by ID",
             "description": "Retrieve a chat message by ID. Returns the message object.",
             "params": [
@@ -403,7 +403,7 @@
             }
         },
         {
-            "name": "chat_message_set",
+            "name": "chat_message.set",
             "summary": "Create or update a chat message",
             "description": "Create or update a chat message. Returns the ID of the message.",
             "params": [
@@ -426,7 +426,7 @@
             }
         },
         {
-            "name": "chat_message_delete",
+            "name": "chat_message.delete",
             "summary": "Delete a chat message by ID",
             "description": "Delete a chat message by ID. Returns true if successful.",
             "params": [
@@ -449,7 +449,7 @@
             }
         },
         {
-            "name": "chat_message_exist",
+            "name": "chat_message.exist",
             "summary": "Check if a chat message exists by ID",
             "description": "Check if a chat message exists by ID. Returns true or false.",
             "params": [
@@ -472,7 +472,7 @@
             }
         },
         {
-            "name": "chat_message_list",
+            "name": "chat_message.list",
             "summary": "List all chat messages",
             "description": "List all chat messages. Returns an array of message objects.",
             "params": [],
@@ -488,7 +488,7 @@
             }
         },
         {
-            "name": "contact_get",
+            "name": "contact.get",
             "summary": "Get a contact by ID",
             "description": "Retrieve a contact by ID. Returns the contact object.",
             "params": [
@@ -511,7 +511,7 @@
             }
         },
         {
-            "name": "contact_set",
+            "name": "contact.set",
             "summary": "Create or update a contact",
             "description": "Create or update a contact. Returns the ID of the contact.",
             "params": [
@@ -534,7 +534,7 @@
             }
         },
         {
-            "name": "contact_delete",
+            "name": "contact.delete",
             "summary": "Delete a contact by ID",
             "description": "Delete a contact by ID. Returns true if successful.",
             "params": [
@@ -557,7 +557,7 @@
             }
         },
         {
-            "name": "contact_exist",
+            "name": "contact.exist",
             "summary": "Check if a contact exists by ID",
             "description": "Check if a contact exists by ID. Returns true or false.",
             "params": [
@@ -580,7 +580,7 @@
             }
         },
         {
-            "name": "contact_list",
+            "name": "contact.list",
             "summary": "List all contacts",
             "description": "List all contacts. Returns an array of contact objects.",
             "params": [],
@@ -596,7 +596,7 @@
             }
         },
         {
-            "name": "group_get",
+            "name": "group.get",
             "summary": "Get a group by ID",
             "description": "Retrieve a group by ID. Returns the group object.",
             "params": [
@@ -619,7 +619,7 @@
             }
         },
         {
-            "name": "group_set",
+            "name": "group.set",
             "summary": "Create or update a group",
             "description": "Create or update a group. Returns the ID of the group.",
             "params": [
@@ -642,7 +642,7 @@
             }
         },
         {
-            "name": "group_delete",
+            "name": "group.delete",
             "summary": "Delete a group by ID",
             "description": "Delete a group by ID. Returns true if successful.",
             "params": [
@@ -665,7 +665,7 @@
             }
         },
         {
-            "name": "group_exist",
+            "name": "group.exist",
             "summary": "Check if a group exists by ID",
             "description": "Check if a group exists by ID. Returns true or false.",
             "params": [
@@ -688,7 +688,7 @@
             }
         },
         {
-            "name": "group_list",
+            "name": "group.list",
             "summary": "List all groups",
             "description": "List all groups. Returns an array of group objects.",
             "params": [],
@@ -704,7 +704,7 @@
             }
         },
         {
-            "name": "message_get",
+            "name": "message.get",
             "summary": "Get a message by ID",
             "description": "Retrieve a message by ID. Returns the message object.",
             "params": [
@@ -727,7 +727,7 @@
             }
         },
         {
-            "name": "message_set",
+            "name": "message.set",
             "summary": "Create or update a message",
             "description": "Create or update a message. Returns the ID of the message.",
             "params": [
@@ -750,7 +750,7 @@
             }
         },
         {
-            "name": "message_delete",
+            "name": "message.delete",
             "summary": "Delete a message by ID",
             "description": "Delete a message by ID. Returns true if successful.",
             "params": [
@@ -773,7 +773,7 @@
             }
         },
         {
-            "name": "message_exist",
+            "name": "message.exist",
             "summary": "Check if a message exists by ID",
             "description": "Check if a message exists by ID. Returns true or false.",
             "params": [
@@ -796,7 +796,7 @@
             }
         },
         {
-            "name": "message_list",
+            "name": "message.list",
             "summary": "List all messages",
             "description": "List all messages. Returns an array of message objects.",
             "params": [],
@@ -812,7 +812,7 @@
             }
         },
         {
-            "name": "planning_get",
+            "name": "planning.get",
             "summary": "Get a planning by ID",
             "description": "Retrieve a planning by ID. Returns the planning object.",
             "params": [
@@ -835,7 +835,7 @@
             }
         },
         {
-            "name": "planning_set",
+            "name": "planning.set",
             "summary": "Create or update a planning",
             "description": "Create or update a planning. Returns the ID of the planning.",
             "params": [
@@ -858,7 +858,7 @@
             }
         },
         {
-            "name": "planning_delete",
+            "name": "planning.delete",
             "summary": "Delete a planning by ID",
             "description": "Delete a planning by ID. Returns true if successful.",
             "params": [
@@ -881,7 +881,7 @@
             }
         },
         {
-            "name": "planning_exist",
+            "name": "planning.exist",
             "summary": "Check if a planning exists by ID",
             "description": "Check if a planning exists by ID. Returns true or false.",
             "params": [
@@ -904,7 +904,7 @@
             }
         },
         {
-            "name": "planning_list",
+            "name": "planning.list",
             "summary": "List all plannings",
             "description": "List all plannings. Returns an array of planning objects.",
             "params": [],
@@ -920,7 +920,7 @@
             }
         },
         {
-            "name": "profile_get",
+            "name": "profile.get",
             "summary": "Get a profile by ID",
             "description": "Retrieve a profile by ID. Returns the profile object.",
             "params": [
@@ -943,7 +943,7 @@
             }
         },
         {
-            "name": "profile_set",
+            "name": "profile.set",
             "summary": "Create or update a profile",
             "description": "Create or update a profile. Returns the ID of the profile.",
             "params": [
@@ -966,7 +966,7 @@
             }
         },
         {
-            "name": "profile_delete",
+            "name": "profile.delete",
             "summary": "Delete a profile by ID",
             "description": "Delete a profile by ID. Returns true if successful.",
             "params": [
@@ -989,7 +989,7 @@
             }
         },
         {
-            "name": "profile_exist",
+            "name": "profile.exist",
             "summary": "Check if a profile exists by ID",
             "description": "Check if a profile exists by ID. Returns true or false.",
             "params": [
@@ -1012,7 +1012,7 @@
             }
         },
         {
-            "name": "profile_list",
+            "name": "profile.list",
             "summary": "List all profiles",
             "description": "List all profiles. Returns an array of profile objects.",
             "params": [],
@@ -1028,7 +1028,7 @@
             }
         },
         {
-            "name": "project_get",
+            "name": "project.get",
             "summary": "Get a project by ID",
             "description": "Retrieve a project by ID. Returns the project object.",
             "params": [
@@ -1051,7 +1051,7 @@
             }
         },
         {
-            "name": "project_set",
+            "name": "project.set",
             "summary": "Create or update a project",
             "description": "Create or update a project. Returns the ID of the project.",
             "params": [
@@ -1074,7 +1074,7 @@
             }
         },
         {
-            "name": "project_delete",
+            "name": "project.delete",
             "summary": "Delete a project by ID",
             "description": "Delete a project by ID. Returns true if successful.",
             "params": [
@@ -1097,7 +1097,7 @@
             }
         },
         {
-            "name": "project_exist",
+            "name": "project.exist",
             "summary": "Check if a project exists by ID",
             "description": "Check if a project exists by ID. Returns true or false.",
             "params": [
@@ -1120,7 +1120,7 @@
             }
         },
         {
-            "name": "project_list",
+            "name": "project.list",
             "summary": "List all projects",
             "description": "List all projects. Returns an array of project objects.",
             "params": [],
@@ -1136,7 +1136,7 @@
             }
         },
         {
-            "name": "project_issue_get",
+            "name": "project_issue.get",
             "summary": "Get a project issue by ID",
             "description": "Retrieve a project issue by ID. Returns the issue object.",
             "params": [
@@ -1159,7 +1159,7 @@
             }
         },
         {
-            "name": "project_issue_set",
+            "name": "project_issue.set",
             "summary": "Create or update a project issue",
             "description": "Create or update a project issue. Returns the ID of the issue.",
             "params": [
@@ -1182,7 +1182,7 @@
             }
         },
         {
-            "name": "project_issue_delete",
+            "name": "project_issue.delete",
             "summary": "Delete a project issue by ID",
             "description": "Delete a project issue by ID. Returns true if successful.",
             "params": [
@@ -1205,7 +1205,7 @@
             }
         },
         {
-            "name": "project_issue_exist",
+            "name": "project_issue.exist",
             "summary": "Check if a project issue exists by ID",
             "description": "Check if a project issue exists by ID. Returns true or false.",
             "params": [
@@ -1228,7 +1228,7 @@
             }
         },
         {
-            "name": "project_issue_list",
+            "name": "project_issue.list",
             "summary": "List all project issues",
             "description": "List all project issues. Returns an array of issue objects.",
             "params": [],
@@ -1244,7 +1244,7 @@
             }
         },
         {
-            "name": "registration_desk_get",
+            "name": "registration_desk.get",
             "summary": "Get a registration desk by ID",
             "description": "Retrieve a registration desk by ID. Returns the registration desk object.",
             "params": [
@@ -1267,7 +1267,7 @@
             }
         },
         {
-            "name": "registration_desk_set",
+            "name": "registration_desk.set",
             "summary": "Create or update a registration desk",
             "description": "Create or update a registration desk. Returns the ID of the registration desk.",
             "params": [
@@ -1290,7 +1290,7 @@
             }
         },
         {
-            "name": "registration_desk_delete",
+            "name": "registration_desk.delete",
             "summary": "Delete a registration desk by ID",
             "description": "Delete a registration desk by ID. Returns true if successful.",
             "params": [
@@ -1313,7 +1313,7 @@
             }
         },
         {
-            "name": "registration_desk_exist",
+            "name": "registration_desk.exist",
             "summary": "Check if a registration desk exists by ID",
             "description": "Check if a registration desk exists by ID. Returns true or false.",
             "params": [
@@ -1336,7 +1336,7 @@
             }
         },
         {
-            "name": "registration_desk_list",
+            "name": "registration_desk.list",
             "summary": "List all registration desks",
             "description": "List all registration desks. Returns an array of registration desk objects.",
             "params": [],
@@ -1352,7 +1352,7 @@
             }
         },
         {
-            "name": "user_get",
+            "name": "user.get",
             "summary": "Get a user by ID",
             "description": "Retrieve a user by ID. Returns the user object.",
             "params": [
@@ -1375,7 +1375,7 @@
             }
         },
         {
-            "name": "user_set",
+            "name": "user.set",
             "summary": "Create or update a user",
             "description": "Create or update a user. Returns the ID of the user.",
             "params": [
@@ -1398,7 +1398,7 @@
             }
         },
         {
-            "name": "user_delete",
+            "name": "user.delete",
             "summary": "Delete a user by ID",
             "description": "Delete a user by ID. Returns true if successful.",
             "params": [
@@ -1421,7 +1421,7 @@
             }
         },
         {
-            "name": "user_exist",
+            "name": "user.exist",
             "summary": "Check if a user exists by ID",
             "description": "Check if a user exists by ID. Returns true or false.",
             "params": [
@@ -1444,7 +1444,7 @@
             }
         },
         {
-            "name": "user_list",
+            "name": "user.list",
             "summary": "List all users",
             "description": "List all users. Returns an array of user objects.",
             "params": [],
