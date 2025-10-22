@@ -1,0 +1,40 @@
+<!-- Theme Toggle Functionality -->
+<script>
+    function toggleTheme() {
+        const body = document.body;
+        const sunIcon = document.getElementById('theme-icon-sun');
+        const moonIcon = document.getElementById('theme-icon-moon');
+
+        body.classList.toggle('dark-mode');
+
+        if (body.classList.contains('dark-mode')) {
+            // In dark mode, show sun icon (to switch to light)
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+            localStorage.setItem('theme', 'dark');
+        } else {
+            // In light mode, show moon icon (to switch to dark)
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Load saved theme on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        const savedTheme = localStorage.getItem('theme');
+        const sunIcon = document.getElementById('theme-icon-sun');
+        const moonIcon = document.getElementById('theme-icon-moon');
+
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            // In dark mode, show sun icon (to switch to light)
+            sunIcon.style.display = 'block';
+            moonIcon.style.display = 'none';
+        } else {
+            // In light mode, show moon icon (to switch to dark)
+            sunIcon.style.display = 'none';
+            moonIcon.style.display = 'block';
+        }
+    });
+</script>

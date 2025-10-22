@@ -12,7 +12,11 @@ pub fn (s OpenRPC) inflate_method(method Method) Method {
 
 pub fn (s OpenRPC) inflate_content_descriptor(cd_ ContentDescriptorRef) ContentDescriptor {
 	cd := if cd_ is Reference {
-		s.components.content_descriptors[cd_.ref] as ContentDescriptor
+		ref_key := cd_.ref
+		descriptor_ref := s.components.content_descriptors[ref_key] or {
+			panic('Content descriptor not found: ${ref_key}')
+		}
+		descriptor_ref as ContentDescriptor
 	} else {
 		cd_ as ContentDescriptor
 	}
@@ -35,7 +39,9 @@ pub fn (s OpenRPC) inflate_schema(schema_ref SchemaRef) Schema {
 			panic('not implemented')
 		}
 		schema_name := schema_ref.ref.trim_string_left('#/components/schemas/')
-		s.inflate_schema(s.components.schemas[schema_name])
+		s.inflate_schema(s.components.schemas[schema_name] or {
+			panic('Schema not found: ${schema_name}')
+		})
 	} else {
 		schema_ref as Schema
 	}

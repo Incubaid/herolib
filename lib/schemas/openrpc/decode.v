@@ -19,7 +19,7 @@ pub fn decode(data string) !OpenRPC {
 	mut object := json.decode(OpenRPC, data) or {
 		return error('Failed to decode json\n=======\n${data}\n===========\n${err}')
 	}
-	data_map := json2.raw_decode(data)!.as_map()
+	data_map := json2.decode[Any](data)!.as_map()
 	if 'components' in data_map {
 		object.components = decode_components(data_map) or {
 			return error('Failed to decode components\n${err}')
