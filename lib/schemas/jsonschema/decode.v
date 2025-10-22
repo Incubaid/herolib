@@ -7,7 +7,7 @@ import json
 // Handles complex fields like properties, additionalProperties, items, and examples
 // that require custom parsing beyond standard JSON decoding.
 pub fn decode(data string) !Schema {
-	schema_map := json2.raw_decode(data)!.as_map()
+	schema_map := json2.decode[Any](data)!.as_map()
 	mut schema := json.decode(Schema, data)!
 
 	// Process fields that require custom decoding

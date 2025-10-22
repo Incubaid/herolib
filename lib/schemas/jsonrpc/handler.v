@@ -86,13 +86,13 @@ pub fn (mut handler Handler) register_api_handler(groupname string, procedure_gr
 pub struct Procedure[T, U] {
 pub mut:
 	method   string
-	function fn (T) !U
+	function fn (T) !U @[required]
 }
 
 pub struct ProcedureVoid[T] {
 pub mut:
 	method   string
-	function fn (T) !
+	function fn (T) ! @[required]
 }
 
 pub fn (pw Procedure[T, U]) handle(request Request) !Response {

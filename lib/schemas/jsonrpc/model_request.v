@@ -52,10 +52,10 @@ pub fn new_request(method string, params string) Request {
 pub fn decode_request(data string) !Request {
 	mut r2 := json2.decode[json2.Any](data)!
 	mut r3 := r2.as_map()
-	a := r3['jsonrpc'].str()
-	b := r3['method'].str()
-	c := r3['params'].str()
-	d := r3['id'].int()
+	a := (r3['jsonrpc'] or { return error('jsonrpc field not found') }).str()
+	b := (r3['method'] or { return error('method field not found') }).str()
+	c := (r3['params'] or { return error('params field not found') }).str()
+	d := (r3['id'] or { return error('id field not found') }).int()
 	mut r4 := Request{
 		jsonrpc: a
 		method:  b
@@ -70,7 +70,7 @@ pub fn decode_request(data string) !Request {
 // Returns:
 //   - A JSON string representation of the Request
 pub fn (req Request) encode() string {
-	return json2.encode_pretty(req)
+	return json2.encode(req, prettify: true)
 }
 
 // validate checks if the Request object contains all required fields
@@ -133,7 +133,7 @@ pub fn new_request_generic[T](method string, params T) RequestGeneric[T] {
 // Returns:
 //   - The ID as a string, or an error if the ID field is missing
 pub fn decode_request_id(data string) !int {
-	data_any := json2.raw_decode(data)!
+	data_any := json2.decode[json2.Any](data)!
 	data_map := data_any.as_map()
 	id_any := data_map['id'] or { return error('ID field not found') }
 	return id_any.int()
@@ -148,7 +148,7 @@ pub fn decode_request_id(data string) !int {
 // Returns:
 //   - The method name as a string, or an error if the method field is missing
 pub fn decode_request_method(data string) !string {
-	data_any := json2.raw_decode(data)!
+	data_any := json2.decode[json2.Any](data)!
 	data_map := data_any.as_map()
 	method_any := data_map['method'] or { return error('Method field not found') }
 	return method_any.str()

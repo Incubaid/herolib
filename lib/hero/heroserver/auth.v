@@ -39,6 +39,11 @@ pub fn (mut server HeroServer) auth_request(pubkey string) !AuthResponse {
 
 // Submit signed challenge for authentication
 pub fn (mut server HeroServer) auth_submit(pubkey string, signature string) !AuthSubmitResponse {
+	// Ensure crypto client is available
+	mut crypto_client := server.crypto_client or {
+		return error('Authentication is not available: crypto client not initialized. Please ensure auth_enabled is true and HeroDB is running.')
+	}
+
 	// Get stored challenge
 	challenge_data := server.challenges[pubkey] or {
 		return error('No active challenge for this public key')
@@ -53,7 +58,7 @@ pub fn (mut server HeroServer) auth_submit(pubkey string, signature string) !Aut
 	// Verify signature using HeroCrypt
 	// Note: We need the verification key, which should be derived from pubkey
 	// For now, assume pubkey is the verification key in correct format
-	is_valid := server.crypto_client.verify(pubkey, challenge_data.challenge, signature)!
+	is_valid := crypto_client.verify(pubkey, challenge_data.challenge, signature)!
 
 	if !is_valid {
 		return error('Invalid signature')
