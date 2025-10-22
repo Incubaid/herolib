@@ -120,9 +120,6 @@ fn play_pages(mut plbook PlayBook, mut site Site) ! {
 			mypage.slug = p.get_default('slug', '')!
 			mypage.draft = p.get_default_false('draft')
 			mypage.hide_title = p.get_default_false('hide_title')
-			if mypage.title.len > 0 {
-				mypage.hide_title = true
-			}
 			mypage.title_nr = p.get_int_default('title_nr', 0)!
 
 			site.pages << mypage
