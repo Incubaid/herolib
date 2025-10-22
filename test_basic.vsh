@@ -194,6 +194,7 @@ rust_test.v
 rclone/
 qdrant/
 sshagent_test.v
+virt/kubernetes/
 '
 
 if in_github_actions() {
