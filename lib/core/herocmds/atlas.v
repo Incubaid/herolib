@@ -42,6 +42,15 @@ pub fn cmd_atlas(mut cmdroot Command) Command {
 	cmd_run.add_flag(Flag{
 		flag:        .string
 		required:    false
+		name:        'path_meta'
+		abbrev:      'pm'
+		description: 'Path where collection.json... will be saved too.'
+	})
+
+
+	cmd_run.add_flag(Flag{
+		flag:        .string
+		required:    false
 		name:        'name'
 		abbrev:      'n'
 		description: 'Atlas instance name (default: "default").'
@@ -111,6 +120,7 @@ fn cmd_atlas_execute(cmd Command) ! {
 
 	// ---------- PATH LOGIC ----------
 	mut path := cmd.flags.get_string('path') or { '' }
+	mut path_meta := cmd.flags.get_string('path_meta') or { '' }
 	mut url := cmd.flags.get_string('url') or { '' }
 	mut name := cmd.flags.get_string('name') or { 'default' }
 	mut destination := cmd.flags.get_string('destination') or { '' }
@@ -150,7 +160,7 @@ fn cmd_atlas_execute(cmd Command) ! {
 	// Execute operations
 	if scan {
 		console.print_header('Scanning collections...')
-		a.scan(path: atlas_path.path, save: true)!
+		a.scan(path: atlas_path.path, meta_path: path_meta)!
 		console.print_green('✓ Scan complete: ${a.collections.len} collection(s) found')
 	}
 

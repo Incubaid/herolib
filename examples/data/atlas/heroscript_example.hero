@@ -1,0 +1,10 @@
+#!/usr/bin/env hero 
+
+!!atlas.scan
+  path: '~/code/git.ourworld.tf/geomind/extranet_geomind'
+  meta_path: '/tmp/atlas_export_meta'
+
+!!atlas.export
+  destination: '/tmp/atlas_export_test'
+  include: true
+  redis: true

@@ -85,13 +85,21 @@ pub fn (mut a Atlas) add_collection(args AddCollectionArgs) ! {
 }
 
 // Scan a path for collections
+
+@[params]
+pub struct ScanArgs {
+pub mut:
+	path      string @[required]
+	meta_path string // where collection json files will be stored
+}
+
 pub fn (mut a Atlas) scan(args ScanArgs) ! {
 	mut path := pathlib.get_dir(path: args.path)!
 	a.scan_directory(mut path)!
 	a.validate_links()!
 	a.fix_links()!
-	if args.save {
-		a.save()!
+	if args.meta_path.len > 0 {
+		a.save(args.meta_path)!
 	}
 }
 

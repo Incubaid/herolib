@@ -5,13 +5,6 @@ import incubaid.herolib.data.paramsparser
 import incubaid.herolib.core.texttools
 import os
 
-@[params]
-pub struct ScanArgs {
-pub mut:
-	path string @[required]
-	save bool = true // save atlas after scan
-}
-
 // Scan a directory for collections
 fn (mut a Atlas) scan_directory(mut dir pathlib.Path) ! {
 	if !dir.is_dir() {

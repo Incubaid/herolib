@@ -24,7 +24,8 @@ pub fn play(mut plbook PlayBook) ! {
 		}
 
 		path := p.get('path')!
-		atlas_instance.scan(path: path, save: true)!
+		meta_path := p.get_default('meta_path', '')!
+		atlas_instance.scan(path: path, meta_path: meta_path)!
 		action.done = true
 		atlas_set(atlas_instance)
 	}
