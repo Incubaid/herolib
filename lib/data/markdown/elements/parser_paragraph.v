@@ -9,21 +9,14 @@ import incubaid.herolib.core.texttools
 fn (mut paragraph Paragraph) paragraph_parse() ! {
 	mut parser := parser_char_new_text(paragraph.content)
 
-	// SAFETY: Ensure children list is not empty
-	if paragraph.children.len == 0 {
-		paragraph.text_new(mut paragraph.parent_doc(), '')
-	}
+	// mut d := para.doc or { panic('no doc') }
+	paragraph.text_new(mut paragraph.parent_doc(), '') // the initial one
 
 	mut potential_link := false
 	mut link_in_link := false
 
 	for {
-		// Add guard at loop start
-		if paragraph.children.len == 0 {
-			return error('paragraph children list became empty during parsing')
-		}
-
-		mut llast := paragraph.get_last_safe()!
+		mut llast := paragraph.children.last()
 		mut char_ := parser.char_current()
 
 		// console.print_debug("[[[${char_}]]]")
@@ -31,16 +24,12 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 		if mut llast is Def {
 			if (char_ == '' || char_ == ' ' || char_ == '\n') && parser.char_prev() != '*' {
 				if llast.content.len < 3 {
-					saved_content := llast.content
 					paragraph.children.pop()
-					if paragraph.children.len == 0 {
-						paragraph.text_new(mut paragraph.parent_doc(), '')
-					}
-					mut llast2 := paragraph.get_last_safe()!
+					mut llast2 := paragraph.children.last()
 					if mut llast2 is Text {
-						llast2.content += saved_content + char_
+						llast2.content += llast.content + char_
 					} else {
-						paragraph.text_new(mut paragraph.parent_doc(), saved_content + char_)
+						paragraph.text_new(mut paragraph.parent_doc(), llast.content + char_)
 					}
 					parser.next()
 					char_ = ''
@@ -57,19 +46,15 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 			} else if !(texttools.is_upper_text(char_) || char_ == '_') {
 				// this means it wasn't a def, we need to add text
 				// console.print_debug(' -- no def: ${char_}')
-				saved_content := llast.content
 				paragraph.children.pop()
-				if paragraph.children.len == 0 {
-					paragraph.text_new(mut paragraph.parent_doc(), '')
-				}
 				// console.print_debug(' -- no def: ${paragraph.children.last()}')
-				mut llast2 := paragraph.get_last_safe()!
+				mut llast2 := paragraph.children.last()
 				if mut llast2 is Text {
 					llast2_content := llast2.content
-					llast2.content = llast2_content + saved_content + char_
+					llast2.content = llast2_content + llast.content + char_
 					// llast2.content += llast.content + char_
 				} else {
-					paragraph.text_new(mut paragraph.parent_doc(), saved_content + char_)
+					paragraph.text_new(mut paragraph.parent_doc(), llast.content + char_)
 				}
 				parser.next()
 				char_ = ''
@@ -123,10 +108,7 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 					mut c := llast.content
 					paragraph.children.delete_last() // remove the link
 					paragraph.text_new(mut paragraph.parent_doc(), '')
-					if paragraph.children.len == 0 {
-						paragraph.text_new(mut paragraph.parent_doc(), '')
-					}
-					llast = paragraph.get_last_safe()! // fetch last again
+					llast = paragraph.children.last() // fetch last again
 					llast_content := llast.content
 					llast.content = llast_content + c + char_ // need to add current content
 					parser.next()
@@ -157,12 +139,12 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 
 		if mut llast is Text {
 			if char_ != '' {
-				if char_ == '*' {
-					paragraph.def_new(mut paragraph.parent_doc(), '*')
-					parser.next()
-					char_ = ''
-					continue
-				}
+				// if char_ == '*' {
+				// 	paragraph.def_new(mut paragraph.parent_doc(), '*')
+				// 	parser.next()
+				// 	char_ = ''
+				// 	continue
+				// }
 				// check for comments start
 				for totry in ['<!--', '//'] {
 					// TODO: this is a quick fix for now (https:// is being parsed as comment)
@@ -170,7 +152,7 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 					if parser.text_next_is(totry, 0) && !is_url {
 						// we are now in comment
 						paragraph.comment_new(mut paragraph.parent_doc(), '')
-						mut llast2 := paragraph.get_last_safe()!
+						mut llast2 := paragraph.children.last()
 						if totry == '//' {
 							if mut llast2 is Comment {
 								llast2.singleline = true
@@ -197,11 +179,4 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 	}
 	paragraph.remove_empty_children()
 	// console.print_debug("[[[[[DONE]]]]]")
-}
-
-fn (mut paragraph Paragraph) get_last_safe() !Element {
-	if paragraph.children.len == 0 {
-		return error('paragraph has no children')
-	}
-	return paragraph.children.last()
 }
