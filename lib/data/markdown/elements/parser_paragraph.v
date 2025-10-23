@@ -36,7 +36,7 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 					if paragraph.children.len == 0 {
 						paragraph.text_new(mut paragraph.parent_doc(), '')
 					}
-					mut llast2 := paragraph.children.last()
+					mut llast2 := paragraph.get_last_safe()!
 					if mut llast2 is Text {
 						llast2.content += saved_content + char_
 					} else {
@@ -63,7 +63,7 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 					paragraph.text_new(mut paragraph.parent_doc(), '')
 				}
 				// console.print_debug(' -- no def: ${paragraph.children.last()}')
-				mut llast2 := paragraph.children.last()
+				mut llast2 := paragraph.get_last_safe()!
 				if mut llast2 is Text {
 					llast2_content := llast2.content
 					llast2.content = llast2_content + saved_content + char_
@@ -126,7 +126,7 @@ fn (mut paragraph Paragraph) paragraph_parse() ! {
 					if paragraph.children.len == 0 {
 						paragraph.text_new(mut paragraph.parent_doc(), '')
 					}
-					llast = paragraph.children.last() // fetch last again
+					llast = paragraph.get_last_safe()! // fetch last again
 					llast_content := llast.content
 					llast.content = llast_content + c + char_ // need to add current content
 					parser.next()
