@@ -78,11 +78,12 @@ pub fn parse_doc(mut doc elements.Doc) ! {
 		}
 
 		if mut llast is elements.Frontmatter || mut llast is elements.Frontmatter2 {
-			if trimmed_line == '---' || trimmed_line == '+++' {
-				parser.next_start_lf()!
-				parser.frontmatter = true
-				continue
-			}
+			// DON'T PROCESS FRONTMATTER, it has issues with --- which is added by AI often
+			// if trimmed_line == '---' || trimmed_line == '+++' {
+			// 	parser.next_start_lf()!
+			// 	parser.frontmatter = true
+			// 	continue
+			// }
 			llast.content += '${line}\n'
 			parser.next()
 			continue
@@ -110,17 +111,18 @@ pub fn parse_doc(mut doc elements.Doc) ! {
 				continue
 			}
 
-			if line.starts_with('+++') && parser.frontmatter == false {
-				mut e := doc.frontmatter_new(mut &doc, '')
-				parser.next()
-				continue
-			}
+			//  DON\T PROCESS FRONTMATTER, it has issues with --- which is added by AI often
+			// if line.starts_with('+++') && parser.frontmatter == false {
+			// 	mut e := doc.frontmatter_new(mut &doc, '')
+			// 	parser.next()
+			// 	continue
+			// }
 
-			if line.starts_with('---') && parser.frontmatter == false {
-				mut e := doc.frontmatter2_new(mut &doc, '')
-				parser.next()
-				continue
-			}
+			// if line.starts_with('---') && parser.frontmatter == false {
+			// 	mut e := doc.frontmatter2_new(mut &doc, '')
+			// 	parser.next()
+			// 	continue
+			// }
 
 			// process headers (# is 35)
 			if line.len > 0 && line[0] == 35 {
