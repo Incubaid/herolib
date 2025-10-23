@@ -45,6 +45,7 @@ pub fn (mut tree Tree) process_includes() ! {
 			mut include_page := tree.get_page_with_pointer(page_pointer) or { continue }
 
 			page.set_element_content_no_reparse(element.id, include_page.get_markdown()!)!
+			page.set_action_element_to_processed(element.id)!
 		}
 
 		// update indegree
