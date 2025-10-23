@@ -12,7 +12,8 @@ fn (mut p Parser) parse_paragraph() ?&MarkdownElement {
 
 	// Read the first line
 	for p.pos < p.text.len && p.text[p.pos] != `\n` {
-		content += p.text[p.pos].ascii_str()
+		mut currentchar := p.text[p.pos]
+		content += currentchar.ascii_str()
 		p.pos++
 		p.column++
 	}
@@ -36,9 +37,10 @@ fn (mut p Parser) parse_paragraph() ?&MarkdownElement {
 		}
 
 		// Check if the line starts with a block element
-		if p.text[p.pos] == `#` || p.text[p.pos] == `>`
-			|| (p.text[p.pos] == `-` && p.peek(1) == `-` && p.peek(2) == `-`)
-			|| (p.text[p.pos] == `\`` && p.peek(1) == `\`` && p.peek(2) == `\``)
+		mut currentchar := p.text[p.pos]
+		if currentchar == `#` || currentchar == `>`
+			|| (currentchar == `-` && p.peek(1) == `-` && p.peek(2) == `-`)
+			|| (currentchar == `\`` && p.peek(1) == `\`` && p.peek(2) == `\``)
 			|| p.is_list_start() || p.is_table_start() || p.is_footnote_definition() {
 			break
 		}
