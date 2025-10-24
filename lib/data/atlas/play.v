@@ -1,6 +1,7 @@
 module atlas
 
 import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.develop.gittools
 
 // Play function to process HeroScript actions for Atlas
 pub fn play(mut plbook PlayBook) ! {
@@ -23,7 +24,17 @@ pub fn play(mut plbook PlayBook) ! {
 			new_atlas
 		}
 
-		path := p.get('path')!
+		mut path := p.get('path')!
+		
+		// NEW: Support git URL as source
+		mut git_url := p.get_default('git_url', '')!
+		if git_url != '' {
+			// Clone or get the repository using gittools
+			mut gs := gittools.new(coderoot: p.get_default('git_root', '~/code')!)!
+			mut repo := gs.get_repo(url: git_url)!
+			path = repo.path()
+		}
+		
 		meta_path := p.get_default('meta_path', '')!
 		atlas_instance.scan(path: path, meta_path: meta_path)!
 		action.done = true

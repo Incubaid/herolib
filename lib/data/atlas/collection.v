@@ -9,14 +9,16 @@ import os
 @[heap]
 pub struct Collection {
 pub mut:
-	name   string       @[required]
-	path   pathlib.Path @[required]
-	pages  map[string]&Page
-	images map[string]&File
-	files  map[string]&File
-	atlas       &Atlas @[skip; str: skip] // Reference to parent atlas for include resolution
+	name        string       @[required]
+	path        pathlib.Path @[required]
+	pages       map[string]&Page
+	images      map[string]&File
+	files       map[string]&File
+	atlas       &Atlas @[skip; str: skip]
 	errors      []CollectionError
-	error_cache map[string]bool // Track error hashes to avoid duplicates
+	error_cache map[string]bool
+	git_url     string // NEW: URL to the git repository for editing
+	git_branch  string // NEW: Git branch for this collection
 }
 
 @[params]

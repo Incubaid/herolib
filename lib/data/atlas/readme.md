@@ -210,6 +210,48 @@ content := page.content(include: true)!
 content := page.content()!
 ```
 
+
+## Git Integration
+
+Atlas automatically detects the git repository URL for each collection and stores it for reference. This allows users to easily navigate to the source for editing.
+
+### Automatic Detection
+
+When scanning collections, Atlas walks up the directory tree to find the `.git` directory and captures:
+- **git_url**: The remote origin URL
+- **git_branch**: The current branch
+
+### Scanning from Git URL
+
+You can scan collections directly from a git repository:
+
+```heroscript
+!!atlas.scan
+ name: 'my_docs'
+ git_url: 'https://github.com/myorg/docs.git'
+ git_root: '~/code'  // optional, defaults to ~/code
+```
+
+The repository will be automatically cloned if it doesn't exist locally.
+
+### Accessing Edit URLs
+
+```v
+mut page := atlas.page_get('guides:intro')!
+edit_url := page.get_edit_url()!
+println('Edit at: ${edit_url}')
+// Output: Edit at: https://github.com/myorg/docs/edit/main/guides.md
+```
+
+### Export with Source Information
+
+When exporting, the git URL is displayed:
+
+```
+Collection guides source: https://github.com/myorg/docs.git (branch: main)
+```
+
+This allows published documentation to link back to the source repository for contributions.
 ## Links
 
 Atlas supports standard Markdown links with several formats for referencing pages within collections.
