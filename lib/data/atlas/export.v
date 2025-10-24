@@ -1,6 +1,7 @@
 module atlas
 
 import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.gittools
 
 @[params]
 pub struct ExportArgs {
@@ -17,25 +18,26 @@ pub fn (p Page) get_edit_url() !string {
 	if col.git_url == '' {
 		return error('No git URL available for collection ${col.name}')
 	}
-
-	// Remove .git suffix if present
-	mut url := col.git_url
-	if url.ends_with('.git') {
-		url = url[0..url.len - 4]
-	}
+	mut gs := gittools.new()!
+	mut location := gs.gitlocation_from_url(col.git_url)!
+	location.branch_or_tag = col.git_branch
+	location.path = p.path.name()
 
 	// Determine the provider and build appropriate edit URL
-	if url.contains('github.com') {
-		return '${url}/edit/${col.git_branch}/${p.path.name()}'
-	} else if url.contains('gitlab.com') {
-		return '${url}/-/edit/${col.git_branch}/${p.path.name()}'
-	} else if url.contains('gitea') || url.contains('git.') {
-		// Gitea-like interfaces
-		return '${url}/src/branch/${col.git_branch}/${p.path.name()}'
+	provider := location.provider
+	mut url_base := 'https://${provider}.com/${location.account}/${location.name}'
+	if provider.contains('gitea') || provider.contains('git.') {
+		return '${url_base}/src/branch/${location.branch_or_tag}/${location.path}'
+	}
+	if provider == 'github' {
+		return '${url_base}/edit/${location.branch_or_tag}/${location.path}'
+	}
+	if provider == 'gitlab' {
+		return '${url_base}/-/edit/${location.branch_or_tag}/${location.path}'
 	}
 
-	// Fallback: assume similar to GitHub
-	return '${url}/edit/${col.git_branch}/${p.path.name()}'
+	// Fallback for unknown providers
+	return '${url_base}/edit/${location.branch_or_tag}/${location.path}'
 }
 
 // Export all collections
