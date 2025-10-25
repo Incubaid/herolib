@@ -6,12 +6,23 @@ import incubaid.herolib.core.pathlib
 // Save collection to .collection.json in the collection directory
 pub fn (c Collection) save(path string) ! {
 	// json.encode automatically skips fields marked with [skip]
-	json_str := json.encode_pretty(c)
+	json_str := c.encode_json()
 	mut json_file := pathlib.get_file(
 		path:   '${path}/${c.name}.json'
 		create: true
 	)!
 	json_file.write(json_str)!
+}
+
+// encode_json is a custom JSON encoder for the Collection struct.
+// It converts the struct to a map, adds the git_edit_url, and then encodes it to a JSON string.
+pub fn (c Collection) encode_json() string {
+	// First, encode the struct to a JSON string, then decode it back into a map.
+	// This is a common way to convert a struct to a map in V when you need to add dynamic fields.
+	json_str := json.encode(c)
+	mut data := json.decode(map[string]string, json_str) or { return '{}' }
+	data['git_edit_url'] = json.encode(c.git_edit_url)
+	return json.encode_pretty(data)
 }
 
 // Save all collections in atlas to their respective directories

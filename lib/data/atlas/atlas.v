@@ -2,6 +2,7 @@ module atlas
 
 import incubaid.herolib.core.texttools
 import incubaid.herolib.core.pathlib
+import incubaid.herolib.ui.console
 
 __global (
 	atlases shared map[string]&Atlas
@@ -73,11 +74,12 @@ pub mut:
 // Add a collection to the Atlas
 pub fn (mut a Atlas) add_collection(args AddCollectionArgs) ! {
 	name := texttools.name_fix(args.name)
-
+	console.print_item('Known collections: ${a.collections.keys()}')
+	console.print_item("Adding collection '${name}' to Atlas '${a.name}' at path '${args.path}'")
 	if name in a.collections {
 		return error('Collection ${name} already exists in Atlas ${a.name}')
 	}
-
+	$dbg;
 	mut col := a.new_collection(name: name, path: args.path)!
 	col.scan()!
 
@@ -90,12 +92,13 @@ pub fn (mut a Atlas) add_collection(args AddCollectionArgs) ! {
 pub struct ScanArgs {
 pub mut:
 	path      string @[required]
-	meta_path string // where collection json files will be stored
+	meta_path string   // where collection json files will be stored
+	ignore    []string // list of directory names to ignore
 }
 
 pub fn (mut a Atlas) scan(args ScanArgs) ! {
 	mut path := pathlib.get_dir(path: args.path)!
-	a.scan_directory(mut path)!
+	a.scan_directory(mut path, args.ignore)!
 	a.validate_links()!
 	a.fix_links()!
 	if args.meta_path.len > 0 {

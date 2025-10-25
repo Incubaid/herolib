@@ -17,8 +17,9 @@ pub mut:
 	atlas       &Atlas @[skip; str: skip]
 	errors      []CollectionError
 	error_cache map[string]bool
-	git_url     string // NEW: URL to the git repository for editing
-	git_branch  string // NEW: Git branch for this collection
+	git_url      string // NEW: URL to the git repository for editing
+	git_branch   string // NEW: Git branch for this collection
+	git_edit_url string @[skip]
 }
 
 @[params]

@@ -1,8 +1,13 @@
 #!/usr/bin/env hero 
 
 !!atlas.scan
-  path: '~/code/git.ourworld.tf/geomind/extranet_geomind'
+  git_url: 'https://git.ourworld.tf/geomind/atlas_geomind/src/branch/main/content'
   meta_path: '/tmp/atlas_export_meta'
+
+!!atlas.scan
+  git_url: 'https://git.ourworld.tf/tfgrid/atlas_threefold/src/branch/main/content'
+  meta_path: '/tmp/atlas_export_meta'
+  ignore3: 'static,templates,groups'
 
 !!atlas.export
   destination: '/tmp/atlas_export_test'

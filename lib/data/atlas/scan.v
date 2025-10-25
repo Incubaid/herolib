@@ -2,20 +2,26 @@ module atlas
 
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
-import incubaid.herolib.core.base
-import incubaid.herolib.develop.gittools
+import incubaid.herolib.ui.console
+// import incubaid.herolib.core.base
+// import incubaid.herolib.develop.gittools
 import incubaid.herolib.data.paramsparser
 import os
 
 // Scan a directory for collections
-fn (mut a Atlas) scan_directory(mut dir pathlib.Path) ! {
+fn (mut a Atlas) scan_directory(mut dir pathlib.Path, ignore_ []string) ! {
+	console.print_item('Scanning directory: ${dir.path}')
 	if !dir.is_dir() {
 		return error('Path is not a directory: ${dir.path}')
 	}
-
+	mut ignore := ignore_.clone()
+	ignore = ignore.map(it.to_lower())
 	// Check if this directory is a collection
 	if is_collection_dir(dir) {
 		collection_name := get_collection_name(mut dir)!
+		if collection_name.to_lower() in ignore {
+			return
+		}
 		a.add_collection(path: dir.path, name: collection_name)!
 		return
 	}
@@ -28,7 +34,7 @@ fn (mut a Atlas) scan_directory(mut dir pathlib.Path) ! {
 		}
 
 		mut mutable_entry := entry
-		a.scan_directory(mut mutable_entry)!
+		a.scan_directory(mut mutable_entry, ignore)!
 	}
 }
 
@@ -89,10 +95,8 @@ fn should_skip_dir(entry pathlib.Path) bool {
 // Scan collection directory for files
 fn (mut c Collection) scan() ! {
 	c.scan_path(mut c.path)!
-	// Detect git URL after scanning
 	c.detect_git_url() or {
-		// Log but don't fail if git detection fails
-		// console.print_debug('Could not detect git URL for collection ${c.name}: ${err}')
+		console.print_debug('Could not detect git URL for collection ${c.name}: ${err}')
 	}
 }
 
