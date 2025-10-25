@@ -375,3 +375,22 @@ pub fn (c Collection) can_write(session Session) bool {
 
 	return false
 }
+
+// scan_groups scans the collection's directory for .group files and loads them into memory.
+pub fn (mut c Collection) scan_groups() ! {
+	if c.name != 'groups' {
+		return error('scan_groups only works on "groups" collection')
+	}
+
+	mut entries := c.path.list(recursive: false)!
+
+	for mut entry in entries.paths {
+		if entry.extension_lower() == 'group' {
+			filename := entry.name_fix_no_ext()
+			mut visited := map[string]bool{}
+			mut group := parse_group_file(filename, c.path.path, mut visited)!
+
+			c.atlas.group_add(mut group)!
+		}
+	}
+}

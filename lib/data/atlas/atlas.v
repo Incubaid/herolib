@@ -73,7 +73,7 @@ pub mut:
 }
 
 // Add a collection to the Atlas
-pub fn (mut a Atlas) add_collection(args AddCollectionArgs) ! {
+pub fn (mut a Atlas) add_collection(args AddCollectionArgs) !&Collection {
 	name := texttools.name_fix(args.name)
 	console.print_item('Known collections: ${a.collections.keys()}')
 	console.print_item("Adding collection '${name}' to Atlas '${a.name}' at path '${args.path}'")
@@ -85,6 +85,7 @@ pub fn (mut a Atlas) add_collection(args AddCollectionArgs) ! {
 	col.scan()!
 
 	a.collections[name] = &col
+	return &col
 }
 
 // Scan a path for collections

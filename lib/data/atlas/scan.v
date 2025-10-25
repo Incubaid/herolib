@@ -22,7 +22,10 @@ fn (mut a Atlas) scan_directory(mut dir pathlib.Path, ignore_ []string) ! {
 		if collection_name.to_lower() in ignore {
 			return
 		}
-		a.add_collection(path: dir.path, name: collection_name)!
+		mut col := a.add_collection(path: dir.path, name: collection_name)!
+		if collection_name == 'groups' {
+			col.scan_groups()!
+		}
 		return
 	}
 
