@@ -13,6 +13,7 @@ pub struct Atlas {
 pub mut:
 	name        string
 	collections map[string]&Collection
+	groups      map[string]&Group // name -> Group mapping
 }
 
 @[params]
@@ -128,4 +129,33 @@ pub fn (mut a Atlas) fix_links() ! {
 	for _, mut col in a.collections {
 		col.fix_links()!
 	}
+}
+
+// Add a group to the atlas
+pub fn (mut a Atlas) group_add(mut group Group) ! {
+	if group.name in a.groups {
+		return error('Group ${group.name} already exists')
+	}
+	a.groups[group.name] = &group
+}
+
+// Get a group by name
+pub fn (a Atlas) group_get(name string) !&Group {
+	name_lower := texttools.name_fix(name)
+	return a.groups[name_lower] or { return error('Group ${name} not found') }
+}
+
+// Get all groups matching a session's email
+pub fn (a Atlas) groups_get(session Session) []&Group {
+	mut matching := []&Group{}
+
+	email_lower := session.email.to_lower()
+
+	for _, group in a.groups {
+		if group.matches(email_lower) {
+			matching << group
+		}
+	}
+
+	return matching
 }

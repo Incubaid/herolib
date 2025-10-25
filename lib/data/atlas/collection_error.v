@@ -11,6 +11,7 @@ pub enum CollectionErrorCategory {
 	file_not_found
 	invalid_collection
 	general_error
+	acl_denied // NEW: Access denied by ACL
 }
 
 pub struct CollectionError {
@@ -57,5 +58,6 @@ pub fn (e CollectionError) category_str() string {
 		.file_not_found { 'File Not Found' }
 		.invalid_collection { 'Invalid Collection' }
 		.general_error { 'General Error' }
+		.acl_denied { 'ACL Access Denied' }
 	}
 }

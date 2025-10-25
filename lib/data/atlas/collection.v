@@ -3,23 +3,33 @@ module atlas
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
 import incubaid.herolib.core.base
+import incubaid.herolib.data.paramsparser { Params }
 import incubaid.herolib.ui.console
 import os
+
+pub struct Session {
+pub mut:
+	user   string // username
+	email  string // user's email (lowercase internally)
+	params Params // additional context from request/webserver
+}
 
 @[heap]
 pub struct Collection {
 pub mut:
-	name        string       @[required]
-	path        pathlib.Path @[required]
-	pages       map[string]&Page
-	images      map[string]&File
-	files       map[string]&File
-	atlas       &Atlas @[skip; str: skip]
-	errors      []CollectionError
-	error_cache map[string]bool
+	name         string       @[required]
+	path         pathlib.Path @[required]
+	pages        map[string]&Page
+	images       map[string]&File
+	files        map[string]&File
+	atlas        &Atlas @[skip; str: skip]
+	errors       []CollectionError
+	error_cache  map[string]bool
 	git_url      string // NEW: URL to the git repository for editing
 	git_branch   string // NEW: Git branch for this collection
 	git_edit_url string @[skip]
+	acl_read     []string // Group names allowed to read (lowercase)
+	acl_write    []string // Group names allowed to write (lowercase)
 }
 
 @[params]
@@ -235,23 +245,23 @@ pub fn (mut c Collection) error(args CollectionErrorArgs) {
 		message:  args.message
 		file:     args.file
 	}
-	
+
 	// Calculate hash for deduplication
 	hash := err.hash()
-	
+
 	// Check if this error was already reported
 	if hash in c.error_cache {
-		return // Skip duplicate
+		return
 	}
-	
+
 	// Mark this error as reported
 	c.error_cache[hash] = true
-	
+
 	// Log to errors array if requested
 	if args.log_error {
 		c.errors << err
 	}
-	
+
 	// Show in console if requested
 	if args.show_console {
 		console.print_stderr('[${c.name}] ${err.str()}')
@@ -277,11 +287,11 @@ pub fn (mut c Collection) clear_errors() {
 // Get error summary by category
 pub fn (c Collection) error_summary() map[CollectionErrorCategory]int {
 	mut summary := map[CollectionErrorCategory]int{}
-	
+
 	for err in c.errors {
 		summary[err.category] = summary[err.category] + 1
 	}
-	
+
 	return summary
 }
 
@@ -291,9 +301,9 @@ pub fn (c Collection) print_errors() {
 		console.print_green('Collection ${c.name}: No errors')
 		return
 	}
-	
+
 	console.print_header('Collection ${c.name} - Errors (${c.errors.len})')
-	
+
 	for err in c.errors {
 		console.print_stderr('  ${err.str()}')
 	}
@@ -311,13 +321,57 @@ pub fn (mut c Collection) fix_links() ! {
 	for _, mut page in c.pages {
 		// Read original content
 		content := page.read_content()!
-		
+
 		// Fix links
 		fixed_content := page.fix_links(content)!
-		
+
 		// Write back if changed
 		if fixed_content != content {
 			page.path.write(fixed_content)!
 		}
 	}
+}
+
+// Check if session can read this collection
+pub fn (c Collection) can_read(session Session) bool {
+	// If no ACL set, everyone can read
+	if c.acl_read.len == 0 {
+		return true
+	}
+
+	// Get user's groups
+	mut atlas := c.atlas
+	groups := atlas.groups_get(session)
+	group_names := groups.map(it.name)
+
+	// Check if any of user's groups are in read ACL
+	for acl_group in c.acl_read {
+		if acl_group in group_names {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Check if session can write this collection
+pub fn (c Collection) can_write(session Session) bool {
+	// If no ACL set, no one can write
+	if c.acl_write.len == 0 {
+		return false
+	}
+
+	// Get user's groups
+	mut atlas := c.atlas
+	groups := atlas.groups_get(session)
+	group_names := groups.map(it.name)
+
+	// Check if any of user's groups are in write ACL
+	for acl_group in c.acl_write {
+		if acl_group in group_names {
+			return true
+		}
+	}
+
+	return false
 }

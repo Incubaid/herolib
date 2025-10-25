@@ -95,6 +95,7 @@ fn should_skip_dir(entry pathlib.Path) bool {
 // Scan collection directory for files
 fn (mut c Collection) scan() ! {
 	c.scan_path(mut c.path)!
+	c.scan_acl()! // NEW: scan ACL files
 	c.detect_git_url() or {
 		console.print_debug('Could not detect git URL for collection ${c.name}: ${err}')
 	}
@@ -131,5 +132,30 @@ fn (mut c Collection) scan_path(mut dir pathlib.Path) ! {
 				c.add_file(mut mutable_entry)!
 			}
 		}
+	}
+}
+
+// Scan for ACL files
+fn (mut c Collection) scan_acl() ! {
+	// Look for read.acl in collection directory
+	read_acl_path := '${c.path.path}/read.acl'
+	if os.exists(read_acl_path) {
+		content := os.read_file(read_acl_path)!
+		// Split by newlines and normalize
+		c.acl_read = content.split('\n')
+			.map(it.trim_space())
+			.filter(it.len > 0)
+			.map(it.to_lower())
+	}
+
+	// Look for write.acl in collection directory
+	write_acl_path := '${c.path.path}/write.acl'
+	if os.exists(write_acl_path) {
+		content := os.read_file(write_acl_path)!
+		// Split by newlines and normalize
+		c.acl_write = content.split('\n')
+			.map(it.trim_space())
+			.filter(it.len > 0)
+			.map(it.to_lower())
 	}
 }
