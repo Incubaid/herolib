@@ -157,21 +157,20 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 	}
 
 	// Write .collection file
-	mut cfile := pathlib.get_file(
-		path:   '${col_dir.path}/.collection'
-		create: true
-	)!
+	mut cfile := pathlib.get_file(path: '${col_dir.path}/.collection', create: true)!
 	cfile.write("name:${c.name} src:'${c.path.path}'")!
 
-	// Export pages (process includes if requested)
+	// Export pages with cross-collection link handling
 	for _, mut page in c.pages {
 		content := page.content(include: args.include)!
-		mut dest_file := pathlib.get_file(
-			path:   '${col_dir.path}/${page.name}.md'
-			create: true
-		)!
-		dest_file.write(content)!
 
+		// NEW: Process cross-collection links
+		processed_content := process_cross_collection_links(content, c, mut col_dir, c.atlas)!
+
+		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
+		dest_file.write(processed_content)!
+
+		// Redis operations...
 		if args.redis {
 			mut context := base.context()!
 			mut redis := context.redis()!

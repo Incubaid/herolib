@@ -40,9 +40,9 @@ pub fn play(mut plbook PlayBook) ! {
 		if path == '' {
 			return error('Either "path" or "git_url" must be provided for atlas.scan action.')
 		}
-		meta_path := p.get_default('meta_path', '')!
-		atlas_instance.scan(path: path, meta_path: meta_path, ignore: ignore)!
+		atlas_instance.scan(path: path, ignore: ignore)!
 		action.done = true
+
 		atlas_set(atlas_instance)
 	}
 
@@ -54,19 +54,21 @@ pub fn play(mut plbook PlayBook) ! {
 		mut p := action.params
 		name := p.get_default('name', 'main')!
 		destination := p.get('destination')!
+		destination_meta := p.get_default('destination_meta', '')! // NEW
 		reset := p.get_default_true('reset')
 		include := p.get_default_true('include')
 		redis := p.get_default_true('redis')
 
 		mut atlas_instance := atlases[name] or {
-			return error("Atlas '${name}' not found. Use !!atlas.scan or !!atlas.load first.")
+			return error("Atlas '${name}' not found. Use !!atlas.scan first.")
 		}
 
 		atlas_instance.export(
-			destination: destination
-			reset:       reset
-			include:     include
-			redis:       redis
+			destination:      destination
+			destination_meta: destination_meta // NEW
+			reset:            reset
+			include:          include
+			redis:            redis
 		)!
 		action.done = true
 	}

@@ -103,9 +103,6 @@ pub fn (mut a Atlas) scan(args ScanArgs) ! {
 	a.scan_directory(mut path, args.ignore)!
 	a.validate_links()!
 	a.fix_links()!
-	if args.meta_path.len > 0 {
-		a.save(args.meta_path)!
-	}
 }
 
 // Get a collection by name

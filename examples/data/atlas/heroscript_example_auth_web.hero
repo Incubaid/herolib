@@ -1,0 +1,13 @@
+#!/usr/bin/env hero 
+
+!!atlas.scan
+  git_url: 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/mycelium_economics'
+
+!!atlas.scan
+  git_url: 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/authentic_web'
+
+!!atlas.export
+  destination: '/tmp/atlas_export_test'
+  destination_meta: '/tmp/atlas_export_meta'
+  include: true
+  redis: true

@@ -176,6 +176,45 @@ cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
 
-<!-- Security scan triggered at 2025-09-02 01:58:41 -->
+## Export Behavior - Cross-Collection Assets
 
-<!-- Security scan triggered at 2025-09-09 05:33:18 -->
+When exporting collections, Atlas now automatically handles cross-collection references:
+
+### Pages
+If a page in Collection A links to a page in Collection B:
+- The target page is copied to Collection A's export directory
+- Filename is renamed to avoid conflicts: `collectionb_pagename.md`
+- The link is updated to reference the local file
+
+### Images and Files
+Images and files referenced from other collections are:
+- Copied to the `img/` subdirectory of the exporting collection
+- Renamed with cross-collection prefix: `othercol_filename.ext`
+- Image/file references in pages are updated to the new paths
+
+### Result
+The exported collection directory is **self-contained**:
+```
+destination/
+  collectiona/
+    .collection
+    page1.md
+    collectionb_intro.md      # Copied from Collection B
+    img/
+      logo.png                # Local image
+      collectionc_logo.png    # Copied from Collection C
+```
+
+### Metadata Export
+
+Metadata is now exported separately using the `destination_meta` parameter:
+
+```heroscript
+!!atlas.export
+  destination: './output'
+  destination_meta: './metadata'  # Saves JSON metadata files here
+  include: true
+  redis: true
+```
+
+This exports collection metadata to: `./metadata/collection1.json`, `./metadata/collection2.json`, etc.

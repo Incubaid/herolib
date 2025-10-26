@@ -6,10 +6,11 @@ import incubaid.herolib.develop.gittools
 @[params]
 pub struct ExportArgs {
 pub mut:
-    destination string
-    reset       bool = true
-    include     bool = true  // process includes during export
-    redis       bool = true
+	destination      string @[required]
+	destination_meta string // NEW: where to save collection metadata
+	reset            bool = true
+	include          bool = true
+	redis            bool = true
 }
 
 // Generate edit URL for a page in the repository
@@ -42,30 +43,35 @@ pub fn (p Page) get_edit_url() !string {
 
 // Export all collections
 pub fn (mut a Atlas) export(args ExportArgs) ! {
-    mut dest := pathlib.get_dir(path: args.destination, create: true)!
+	mut dest := pathlib.get_dir(path: args.destination, create: true)!
 
-    if args.reset {
-        dest.empty()!
-    }
+	// NEW: Save metadata if destination_meta is provided
+	if args.destination_meta.len > 0 {
+		a.save(args.destination_meta)!
+	}
 
-    // Validate links before export
-    a.validate_links()!
+	if args.reset {
+		dest.empty()!
+	}
 
-    for _, mut col in a.collections {
-        col.export(
-            destination: dest
-            reset:       args.reset
-            include:     args.include
-            redis:       args.redis
-        )!
+	// Validate links before export
+	a.validate_links()!
 
-        // Print collection info including git URL
-        if col.has_errors() {
-            col.print_errors()
-        }
-        
-        if col.git_url != '' {
-            println('Collection ${col.name} source: ${col.git_url} (branch: ${col.git_branch})')
-        }
-    }
+	for _, mut col in a.collections {
+		col.export(
+			destination: dest
+			reset:       args.reset
+			include:     args.include
+			redis:       args.redis
+		)!
+
+		// Print collection info including git URL
+		if col.has_errors() {
+			col.print_errors()
+		}
+
+		if col.git_url != '' {
+			println('Collection ${col.name} source: ${col.git_url} (branch: ${col.git_branch})')
+		}
+	}
 }

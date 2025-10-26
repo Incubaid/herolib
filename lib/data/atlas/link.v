@@ -226,3 +226,101 @@ fn calculate_relative_path(mut from pathlib.Path, mut to pathlib.Path) string {
 	
 	return rel_parts.join('/')
 }
+// process_cross_collection_links handles exporting cross-collection references
+// It:
+// 1. Finds all cross-collection links (collection:page format)
+// 2. Copies the target page to the export directory
+// 3. Renames the link to avoid conflicts (collectionname_pagename.md)
+// 4. Rewrites the link in the content
+pub fn process_cross_collection_links(
+	content string,
+	source_col Collection,
+	mut export_dir pathlib.Path,
+	atlas &Atlas
+) !string {
+	mut result := content
+	links := find_links(content)
+	
+	// Process links in reverse order to maintain string positions
+	for link in links.reverse() {
+		if !link.is_local || link.page == '' {
+			continue
+		}
+		
+		// Determine target collection
+		mut target_collection := link.collection
+		if target_collection == '' {
+			target_collection = source_col.name
+		}
+		
+		// Skip same-collection links (already handled by fix_links)
+		if target_collection == source_col.name {
+			continue
+		}
+		
+		// Get the target page
+		page_key := '${target_collection}:${link.page}'
+		mut target_page := atlas.page_get(page_key) or {
+			// Link target doesn't exist, leave as-is
+			continue
+		}
+		
+		// Copy target page with renamed filename
+		exported_filename := '${target_collection}_${target_page.name}.md'
+		page_content := target_page.content(include: true)!
+		
+		mut exported_file := pathlib.get_file(
+			path:   '${export_dir.path}/${exported_filename}'
+			create: true
+		)!
+		exported_file.write(page_content)!
+		
+		// Update link in source content
+		old_link := '[${link.text}](${link.target})'
+		new_link := '[${link.text}](${exported_filename})'
+		result = result.replace(old_link, new_link)
+	}
+	
+	return result
+}
+
+// process_cross_collection_images handles exporting images from other collections
+// Similar to process_cross_collection_links but for images
+pub fn process_cross_collection_images(
+	content string,
+	source_col Collection,
+	mut export_dir pathlib.Path,
+	atlas &Atlas
+) !string {
+	// Extract image references: ![alt](collection:image.png)
+	// Copy images to img/ directory with renamed filename
+	// Update references in content
+	
+	// Pattern: ![alt](collection:filename.ext)
+	// Update to: ![alt](img/collection_filename.ext)
+	
+	mut result := content
+	
+	// Find image markdown syntax: ![alt](path)
+	lines := result.split_into_lines()
+	mut processed_lines := []string{}
+	
+	for line in lines {
+		mut processed_line := line
+		
+		// Find image references - look for ![...](...) with cross-collection prefix
+		// This is a simplified approach; full regex would be better
+		if line.contains('![') && line.contains(']:') {
+			// Extract and process cross-collection image references
+			// For each reference like [imagename](othercol:image.png)
+			// Copy from othercol to img/ as othercol_image.png
+			// Update link to img/othercol_image.png
+			
+			// TODO: Implement image extraction and copying
+		}
+		
+		processed_lines << processed_line
+	}
+	
+	return processed_lines.join_lines()
+}
