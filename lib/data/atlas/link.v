@@ -21,6 +21,8 @@ pub enum LinkStatus {
 	external
 	page_found
 	page_not_found
+	file_found
+	file_not_found
 	anchor
 	error
 }
