@@ -80,7 +80,6 @@ pub fn (mut a Atlas) add_collection(args AddCollectionArgs) !&Collection {
 	if name in a.collections {
 		return error('Collection ${name} already exists in Atlas ${a.name}')
 	}
-	$dbg;
 	mut col := a.new_collection(name: name, path: args.path)!
 	col.scan()!
 
