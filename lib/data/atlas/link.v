@@ -15,6 +15,7 @@ pub mut:
 	target_item_name       string
 	status                 LinkStatus
 	is_file_link           bool // is the link pointing to a file
+	is_image_link          bool // is the link pointing to an image
 	page                   &Page @[skip; str: skip] // Reference to page where this link is found
 }
 
@@ -62,9 +63,10 @@ fn (mut p Page) find_links(content string) ![]Link {
 	mut lines := content.split_into_lines()
 
 	for line_idx, line in lines {
+		// println('Processing line ${line_idx + 1}: ${line}')
 		mut pos := 0
 		for {
-			mut image_open := line.index_after('!', pos) or { break }
+			mut image_open := line.index_after('!', pos) or { -1 }
 
 			// Find next [
 			open_bracket := line.index_after('[', pos) or { break }
@@ -75,6 +77,7 @@ fn (mut p Page) find_links(content string) ![]Link {
 			// Check for (
 			if close_bracket + 1 >= line.len || line[close_bracket + 1] != `(` {
 				pos = close_bracket + 1
+				// println('no ( after ]: skipping, ${line}')
 				continue
 			}
 
@@ -90,18 +93,32 @@ fn (mut p Page) find_links(content string) ![]Link {
 			text := line[open_bracket + 1..close_bracket]
 			target := line[open_paren + 1..close_paren]
 
-			islink_file_link := (image_open != -1)
+			mut is_image_link := (image_open != -1)
+
+			mut is_file_link := false
+
+			//if no . in file then it means it's a page link (binaries with . are not supported in other words)
+			if target.contains(".") && (! target.trim_space().to_lower().ends_with(".md"))  {
+				is_file_link = true
+				is_image_link = false //means it's a file link, not an image link
+			}
 
 			mut link := Link{
 				src:          line[open_bracket..close_paren + 1]
 				text:         text
 				target:       target.trim_space()
 				line:         line_idx + 1
-				is_file_link: islink_file_link
+				is_file_link: is_file_link
+				is_image_link: is_image_link
 				page:         &p
 			}
 
 			p.parse_link_target(mut link)
+			if link.status == .external {
+				link.is_file_link = false
+				link.is_image_link = false
+			}
+			println(link)
 			links << link
 
 			pos = close_paren + 1
@@ -112,7 +129,7 @@ fn (mut p Page) find_links(content string) ![]Link {
 
 // Parse link target to extract collection and page
 fn (mut p Page) parse_link_target(mut link Link) {
-	mut target := link.target
+	mut target := link.target.to_lower().trim_space()
 
 	// Skip external links
 	if target.starts_with('http://') || target.starts_with('https://')
@@ -207,13 +224,14 @@ fn (mut p Page) content_with_fixed_links() !string {
 // 2. Copies the target page to the export directory
 // 3. Renames the link to avoid conflicts (collectionname_pagename.md)
 // 4. Rewrites the link in the content
-fn (mut p Page) process_cross_collection_links(mut export_dir pathlib.Path) !string {
+fn (mut p Page) process_links(mut export_dir pathlib.Path) !string {
 	mut c := p.content(include: true)!
 
 	mut links := p.find_links(c)!
 
 	// Process links in reverse order to	 maintain string positions
 	for mut link in links.reverse() {
+		println(link)
 		if link.status != .found {
 			continue
 		}
@@ -222,9 +240,9 @@ fn (mut p Page) process_cross_collection_links(mut export_dir pathlib.Path) !str
 			mut target_file := link.target_file()!
 			mut target_path := target_file.path()!
 			// Copy target page with renamed filename
-			exported_filename = '${target_file.collection.name}_${target_file.name}'
-			os.mkdir_all('${export_dir.path}/img')!
-			os.cp(target_path.path, '${export_dir.path}/img/${exported_filename}')!
+			exported_filename = 'files/${target_file.collection.name}_${target_file.name}'
+			os.mkdir_all('${export_dir.path}/files')!
+			os.cp(target_path.path, '${export_dir.path}/${exported_filename}')!
 		} else {
 			mut target_page := link.target_page()!
 			mut target_path := target_page.path()!
@@ -243,22 +261,12 @@ fn (mut p Page) process_cross_collection_links(mut export_dir pathlib.Path) !str
 		mut pre := ''
 		if link.is_file_link {
 			pre = '!'
-			// println('File link found: ${link}')
-			// if true {
-			// 	panic('file link export not implemented yet')
-			// }
 		}
 
 		// Update link in source content
 		new_link := '${pre}[${link.text}](${exported_filename})'
 		c = c.replace(link.src, new_link)
 	}
-
-	// for mut link in links.reverse() {
-	// 	if link.status != . {
-	// 		continue
-	// 	}
-	// }
 
 	return c
 }

@@ -51,25 +51,27 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		path:   '${args.destination.path}/content/${c.name}'
 		create: true
 	)!
-	mut col_dir_meta := pathlib.get_dir(
-		path:   '${args.destination.path}/meta/${c.name}'
+	mut dir_meta := pathlib.get_dir(
+		path:   '${args.destination.path}/meta/'
 		create: true
 	)!
-
-	if args.reset {
-		col_dir.empty()!
-		col_dir_meta.empty()!
-	}
 
 	if c.has_errors() {
 		c.print_errors()
 	}
 
+	meta := json.encode_pretty(c)
+	mut json_file := pathlib.get_file(
+		path:   '${dir_meta.path}/${c.name}.json'
+		create: true
+	)!
+	json_file.write(meta)!	
+
 	for _, mut page in c.pages {
 		content := page.content(include: args.include)!
 
 		// NEW: Process cross-collection links
-		processed_content := page.process_cross_collection_links(mut col_dir)!
+		processed_content := page.process_links(mut col_dir)!
 
 		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
 		dest_file.write(processed_content)!
@@ -81,31 +83,26 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 			redis.hset('atlas:${c.name}', page.name, page.path)!
 		}
 
-		meta := json.encode_pretty(page)
-		mut json_file := pathlib.get_file(
-			path:   '${col_dir_meta.path}/${page.name}.json'
-			create: true
-		)!
-		json_file.write(meta)!
+
 	}
 
-	// Export files
-	if c.files.len > 0 {
-		files_dir := pathlib.get_dir(
-			path:   '${col_dir.path}/files'
-			create: true
-		)!
+	// // Export files
+	// if c.files.len > 0 {
+	// 	files_dir := pathlib.get_dir(
+	// 		path:   '${col_dir.path}/files'
+	// 		create: true
+	// 	)!
 
-		for _, mut file in c.files {
-			dest_path := '${files_dir.path}/${file.file_name()}'
-			mut p2 := file.path()!
-			p2.copy(dest: col_dir.path)!
+	// 	for _, mut file in c.files {
+	// 		dest_path := '${files_dir.path}/${file.file_name()}'
+	// 		mut p2 := file.path()!
+	// 		p2.copy(dest: col_dir.path)!
 
-			if args.redis {
-				mut context := base.context()!
-				mut redis := context.redis()!
-				redis.hset('atlas:${c.name}', file.file_name(), file.path()!.path)!
-			}
-		}
-	}
+	// 		if args.redis {
+	// 			mut context := base.context()!
+	// 			mut redis := context.redis()!
+	// 			redis.hset('atlas:${c.name}', file.file_name(), file.path()!.path)!
+	// 		}
+	// 	}
+	// }
 }
