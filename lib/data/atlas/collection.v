@@ -1,7 +1,7 @@
 module atlas
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.core.texttools
+// import incubaid.herolib.core.texttools
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.data.paramsparser { Params }
 import incubaid.herolib.ui.console
@@ -34,11 +34,17 @@ pub fn (mut c Collection) path() !pathlib.Path {
 	return pathlib.get_dir(path: c.path, create: false)!
 }
 
-fn (mut c Collection) init() ! {
+fn (mut c Collection) init_pre() ! {
 	mut p := mut c.path()!
 	c.scan(mut p)!
 	c.scan_acl()!
 }
+
+fn (mut c Collection) init_post() ! {
+	c.validate_links()!
+	c.init_git_info()!
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -62,7 +68,7 @@ fn (mut c Collection) add_page(mut path pathlib.Path) ! {
 
 // Add an image to the collection
 fn (mut c Collection) add_file(mut p pathlib.Path) ! {
-	name := p.name_fix_no_ext()
+	name := p.name_fix_keepext()
 	if name in c.files {
 		return error('Page ${name} already exists in collection ${c.name}')
 	}
@@ -115,6 +121,15 @@ pub fn (c Collection) file_get(name string) !&File {
 	return f
 }
 
+pub fn (c Collection) file_or_image_get(name string) !&File {
+	mut f := c.files[name] or { return FileNotFound{
+		collection: c.name
+		file:       name
+	} }
+	return f
+}
+
+
 // Check if page exists
 pub fn (c Collection) page_exists(name string) bool {
 	return name in c.pages
@@ -131,6 +146,14 @@ pub fn (c Collection) file_exists(name string) bool {
 	f := c.files[name] or { return false }
 	return f.ftype == .file
 }
+
+pub fn (c Collection) file_or_image_exists(name string) bool {
+	f := c.files[name] or { return false }
+	return true
+}
+
+
+
 
 @[params]
 pub struct CollectionErrorArgs {
@@ -220,7 +243,7 @@ pub fn (c Collection) print_errors() {
 pub fn (mut c Collection) validate_links() ! {
 	for _, mut page in c.pages {
 		content := page.content(include: true)!
-		page.find_links(content)! // will walk over links see if errors and add errors
+		page.links=page.find_links(content)! // will walk over links see if errors and add errors
 	}
 }
 

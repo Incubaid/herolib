@@ -23,7 +23,7 @@ pub fn (mut a Atlas) export(args ExportArgs) ! {
 	}
 
 	// Validate links before export
-	a.validate_links()!
+	// a.validate_links()!
 
 	for _, mut col in a.collections {
 		col.export(
@@ -61,7 +61,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		col_dir_meta.empty()!
 	}
 
-	c.init_git_info()!
+	
 
 	if c.has_errors() {
 		c.print_errors()

@@ -1,9 +1,12 @@
 #!/usr/bin/env hero 
 
-!!atlas.scan
-  git_url: 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/mycelium_economics'
+!!atlas.scan 
+    git_url: 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/mycelium_economics'
 
-!!atlas.scan
-  git_url: 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/authentic_web'
+!!atlas.scan 
+    git_url: 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/authentic_web'
+
+// !!atlas.scan 
+//     git_url: 'https://git.ourworld.tf/geomind/docs_geomind/src/branch/main/collections/usecases'
 
 !!atlas.export destination: '/tmp/atlas_export'

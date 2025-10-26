@@ -12,11 +12,13 @@ pub fn play(mut plbook PlayBook) ! {
 
 	mut atlases := map[string]&Atlas{}
 
+	mut name := ""
+
 	// Process scan actions - scan directories for collections
 	mut scan_actions := plbook.find(filter: 'atlas.scan')!
 	for mut action in scan_actions {
 		mut p := action.params
-		name := p.get_default('name', 'main')!
+		name = p.get_default('name', 'main')!
 		ignore := p.get_list_default('ignore', [])!
 		console.print_item("Scanning Atlas '${name}' with ignore patterns: ${ignore}\n${p}")
 		// Get or create atlas
@@ -48,13 +50,22 @@ pub fn play(mut plbook PlayBook) ! {
 		set(atlas_instance)
 	}
 
+	mut atlas_instance_post := atlases[name] or {
+		return error("Atlas '${name}' not found. Use !!atlas.scan first.")
+		}
+
+	
+	atlas_instance_post.init_post()!
+
+	println(atlas_instance_post)
+
 	// Process export actions - export collections to destination
 	mut export_actions := plbook.find(filter: 'atlas.export')!
 
 	// Process explicit export actions
 	for mut action in export_actions {
 		mut p := action.params
-		name := p.get_default('name', 'main')!
+		name = p.get_default('name', 'main')!
 		destination := p.get('destination')!
 		reset := p.get_default_true('reset')
 		include := p.get_default_true('include')

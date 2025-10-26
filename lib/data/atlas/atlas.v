@@ -38,7 +38,7 @@ fn (mut self Atlas) add_collection(mut path pathlib.Path) !Collection {
 		error_cache: map[string]bool{}
 	}
 
-	c.init()!
+	c.init_pre()!
 
 	self.collections[name] = &c
 
@@ -56,16 +56,9 @@ pub fn (a Atlas) get_collection(name string) !&Collection {
 }
 
 // Validate all links in all collections
-pub fn (mut a Atlas) validate_links() ! {
+pub fn (mut a Atlas) init_post() ! {
 	for _, mut col in a.collections {
-		col.validate_links()!
-	}
-}
-
-// Fix all links in all collections
-pub fn (mut a Atlas) fix_links() ! {
-	for _, mut col in a.collections {
-		col.fix_links()!
+		col.init_post()!
 	}
 }
 
@@ -97,12 +90,6 @@ pub fn (a Atlas) groups_get(session Session) []&Group {
 
 	return matching
 }
-
-pub fn (mut a Atlas) validate() ! {
-	a.validate_links()!
-	a.fix_links()!
-}
-
 //////////////////SCAN
 
 // Scan a path for collections
