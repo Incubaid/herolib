@@ -18,8 +18,8 @@ pub mut:
 
 // Read content without processing includes
 pub fn (mut f File) path() !pathlib.Path {
-	panic('todo')
-	return pathlib.get_file(path: f.path, create: false)!
+	mut mypath := '${f.collection.path()!.path}/${f.path}'
+	return pathlib.get_file(path: mypath, create: false)!
 }
 
 pub fn (f File) file_name() string {

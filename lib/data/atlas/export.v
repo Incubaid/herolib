@@ -61,8 +61,6 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		col_dir_meta.empty()!
 	}
 
-	
-
 	if c.has_errors() {
 		c.print_errors()
 	}

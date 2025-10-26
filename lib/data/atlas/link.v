@@ -2,6 +2,7 @@ module atlas
 
 import incubaid.herolib.core.texttools
 import incubaid.herolib.core.pathlib
+import os
 
 // Link represents a markdown link found in content
 pub struct Link {
@@ -45,6 +46,13 @@ pub fn (mut self Link) target_page() !&Page {
 		return error('External links do not have a target page')
 	}
 	return self.page.collection.atlas.page_get(self.key())
+}
+
+pub fn (mut self Link) target_file() !&File {
+	if self.status == .external {
+		return error('External links do not have a target file')
+	}
+	return self.page.collection.atlas.file_or_image_get(self.key())
 }
 
 // Find all markdown links in content
@@ -209,24 +217,41 @@ fn (mut p Page) process_cross_collection_links(mut export_dir pathlib.Path) !str
 		if link.status != .found {
 			continue
 		}
-		mut target_page := link.target_page()!
-		mut target_path := target_page.path()!
+		mut exported_filename := ''
+		if link.is_file_link {
+			mut target_file := link.target_file()!
+			mut target_path := target_file.path()!
+			// Copy target page with renamed filename
+			exported_filename = '${target_file.collection.name}_${target_file.name}'
+			os.mkdir_all('${export_dir.path}/img')!
+			os.cp(target_path.path, '${export_dir.path}/img/${exported_filename}')!
+		} else {
+			mut target_page := link.target_page()!
+			mut target_path := target_page.path()!
 
-		// Copy target page with renamed filename
-		exported_filename := '${target_page.collection.name}_${target_page.name}.md'
-		page_content := target_page.content(include: true)!
+			// Copy target page with renamed filename
+			exported_filename = '${target_page.collection.name}_${target_page.name}.md'
+			page_content := target_page.content(include: true)!
 
-		mut exported_file := pathlib.get_file(
-			path:   '${export_dir.path}/${exported_filename}'
-			create: true
-		)!
-		exported_file.write(page_content)!
+			mut exported_file := pathlib.get_file(
+				path:   '${export_dir.path}/${exported_filename}'
+				create: true
+			)!
+			exported_file.write(page_content)!
+		}
+
+		mut pre := ''
+		if link.is_file_link {
+			pre = '!'
+			// println('File link found: ${link}')
+			// if true {
+			// 	panic('file link export not implemented yet')
+			// }
+		}
 
 		// Update link in source content
-		new_link := '[${link.text}](${exported_filename})'
+		new_link := '${pre}[${link.text}](${exported_filename})'
 		c = c.replace(link.src, new_link)
-
-		panic('need to do for files too')
 	}
 
 	// for mut link in links.reverse() {
