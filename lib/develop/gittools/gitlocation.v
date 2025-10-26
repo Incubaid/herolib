@@ -145,3 +145,25 @@ fn normalize_url(url string) string {
 	}
 	return url.replace(':', '/').replace('//', '/').trim('/')
 }
+
+pub fn (self GitLocation) web_url() !string {
+	println(self)
+	mut provider := self.provider
+	if provider == 'github' {
+		provider = 'github.com'
+	}
+	mut url_base := 'https://${provider}/${self.account}/${self.name}'
+	mut url := '${url_base}/src/branch/${self.branch_or_tag}/${self.path}'
+	// if provider.contains('gitea') || provider.contains('git.') {
+	// 	url = '${url_base}/src/branch/${self.branch_or_tag}/${self.path}'
+	// }
+	// if provider == 'github' {
+	// 	return '${url_base}/edit/${self.branch_or_tag}/${self.path}'
+	// }
+	// if provider == 'gitlab' {
+	// 	return '${url_base}/-/edit/${self.branch_or_tag}/${self.path}'
+	// }
+	println(url)
+	$dbg;
+	return url
+}

@@ -2,7 +2,7 @@ module atlas
 
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
-import incubaid.herolib.core.base
+import incubaid.herolib.develop.gittools
 import incubaid.herolib.data.paramsparser { Params }
 import incubaid.herolib.ui.console
 import os
@@ -17,83 +17,70 @@ pub mut:
 @[heap]
 pub struct Collection {
 pub mut:
-	name         string       @[required]
-	path         pathlib.Path @[required]
-	pages        map[string]&Page
-	images       map[string]&File
-	files        map[string]&File
-	atlas        &Atlas @[skip; str: skip]
-	errors       []CollectionError
-	error_cache  map[string]bool
-	git_url      string // NEW: URL to the git repository for editing
-	git_branch   string // NEW: Git branch for this collection
-	git_edit_url string @[skip]
-	acl_read     []string // Group names allowed to read (lowercase)
-	acl_write    []string // Group names allowed to write (lowercase)
+	name        string
+	path        string // absolute path
+	pages       map[string]&Page
+	files       map[string]&File
+	atlas       &Atlas @[skip; str: skip]
+	errors      []CollectionError
+	error_cache map[string]bool
+	git_url     string
+	acl_read    []string // Group names allowed to read (lowercase)
+	acl_write   []string // Group names allowed to write (lowercase)
 }
 
-@[params]
-pub struct CollectionNewArgs {
-pub mut:
-	name string @[required]
-	path string @[required]
+// Read content without processing includes
+pub fn (mut c Collection) path() !pathlib.Path {
+	return pathlib.get_dir(path: c.path, create: false)!
 }
 
-// Create a new collection
-fn (mut self Atlas) new_collection(args CollectionNewArgs) !Collection {
-	mut name := texttools.name_fix(args.name)
-	mut path := pathlib.get_dir(path: args.path)!
-
-	mut col := Collection{
-		name:        name
-		path:        path
-		atlas:       &self // Set atlas reference
-		error_cache: map[string]bool{}
-	}
-
-	return col
+fn (mut c Collection) init() ! {
+	mut p := mut c.path()!
+	c.scan(mut p)!
+	c.scan_acl()!
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Add a page to the collection
-fn (mut c Collection) add_page(mut p pathlib.Path) ! {
-	name := p.name_fix_no_ext()
-
+fn (mut c Collection) add_page(mut path pathlib.Path) ! {
+	name := path.name_fix_no_ext()
 	if name in c.pages {
 		return error('Page ${name} already exists in collection ${c.name}')
 	}
+	relativepath := path.path_relative(c.path()!.path)!
 
-	p_new := new_page(
+	mut p_new := Page{
 		name:            name
-		path:            p
+		path:            relativepath
 		collection_name: c.name
 		collection:      &c
-	)!
+	}
 
 	c.pages[name] = &p_new
 }
 
 // Add an image to the collection
-fn (mut c Collection) add_image(mut p pathlib.Path) ! {
-	name := p.name_fix_no_ext()
-
-	if name in c.images {
-		return error('Image ${name} already exists in collection ${c.name}')
-	}
-
-	mut img := new_file(path: p)!
-	c.images[name] = &img
-}
-
-// Add a file to the collection
 fn (mut c Collection) add_file(mut p pathlib.Path) ! {
 	name := p.name_fix_no_ext()
-
 	if name in c.files {
-		return error('File ${name} already exists in collection ${c.name}')
+		return error('Page ${name} already exists in collection ${c.name}')
+	}
+	relativepath := p.path_relative(c.path()!.path)!
+
+	mut file_new := File{
+		name:       name
+		ext:        p.extension_lower()
+		path:       relativepath // relative path of file in the collection
+		collection: &c
 	}
 
-	mut file := new_file(path: p)!
-	c.files[name] = &file
+	if p.is_image() {
+		file_new.ftype = .image
+	} else {
+		file_new.ftype = .file
+	}
+	c.files[name] = &file_new
 }
 
 // Get a page by name
@@ -106,18 +93,26 @@ pub fn (c Collection) page_get(name string) !&Page {
 
 // Get an image by name
 pub fn (c Collection) image_get(name string) !&File {
-	return c.images[name] or { return FileNotFound{
+	mut img := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
 	} }
+	if img.ftype != .image {
+		return error('File `${name}` in collection ${c.name} is not an image')
+	}
+	return img
 }
 
 // Get a file by name
 pub fn (c Collection) file_get(name string) !&File {
-	return c.files[name] or { return FileNotFound{
+	mut f := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
 	} }
+	if f.ftype != .file {
+		return error('File `${name}` in collection ${c.name} is not a file')
+	}
+	return f
 }
 
 // Check if page exists
@@ -127,101 +122,14 @@ pub fn (c Collection) page_exists(name string) bool {
 
 // Check if image exists
 pub fn (c Collection) image_exists(name string) bool {
-	return name in c.images
+	f := c.files[name] or { return false }
+	return f.ftype == .image
 }
 
 // Check if file exists
 pub fn (c Collection) file_exists(name string) bool {
-	return name in c.files
-}
-
-@[params]
-pub struct CollectionExportArgs {
-pub mut:
-	destination pathlib.Path @[required]
-	reset       bool = true
-	include     bool = true // process includes during export
-	redis       bool = true
-}
-
-// Export a single collection
-pub fn (mut c Collection) export(args CollectionExportArgs) ! {
-	// Create collection directory
-	mut col_dir := pathlib.get_dir(
-		path:   '${args.destination.path}/${c.name}'
-		create: true
-	)!
-
-	if args.reset {
-		col_dir.empty()!
-	}
-
-	// Write .collection file
-	mut cfile := pathlib.get_file(path: '${col_dir.path}/.collection', create: true)!
-	cfile.write("name:${c.name} src:'${c.path.path}'")!
-
-	// Export pages with cross-collection link handling
-	for _, mut page in c.pages {
-		content := page.content(include: args.include)!
-
-		// NEW: Process cross-collection links
-		processed_content := process_cross_collection_links(content, c, mut col_dir, c.atlas)!
-
-		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
-		dest_file.write(processed_content)!
-
-		// Redis operations...
-		if args.redis {
-			mut context := base.context()!
-			mut redis := context.redis()!
-			redis.hset('atlas:${c.name}', page.name, '${page.name}.md')!
-		}
-	}
-
-	// Export images
-	if c.images.len > 0 {
-		img_dir := pathlib.get_dir(
-			path:   '${col_dir.path}/img'
-			create: true
-		)!
-
-		for _, mut img in c.images {
-			dest_path := '${img_dir.path}/${img.file_name()}'
-			img.path.copy(dest: dest_path)!
-
-			if args.redis {
-				mut context := base.context()!
-				mut redis := context.redis()!
-				redis.hset('atlas:${c.name}', img.file_name(), 'img/${img.file_name()}')!
-			}
-		}
-	}
-
-	// Export files
-	if c.files.len > 0 {
-		files_dir := pathlib.get_dir(
-			path:   '${col_dir.path}/files'
-			create: true
-		)!
-
-		for _, mut file in c.files {
-			dest_path := '${files_dir.path}/${file.file_name()}'
-			file.path.copy(dest: dest_path)!
-
-			if args.redis {
-				mut context := base.context()!
-				mut redis := context.redis()!
-				redis.hset('atlas:${c.name}', file.file_name(), 'files/${file.file_name()}')!
-			}
-		}
-	}
-
-	// Store collection metadata in Redis
-	if args.redis {
-		mut context := base.context()!
-		mut redis := context.redis()!
-		redis.hset('atlas:path', c.name, col_dir.path)!
-	}
+	f := c.files[name] or { return false }
+	return f.ftype == .file
 }
 
 @[params]
@@ -311,7 +219,8 @@ pub fn (c Collection) print_errors() {
 // Validate all links in collection
 pub fn (mut c Collection) validate_links() ! {
 	for _, mut page in c.pages {
-		page.validate_links()!
+		content := page.content(include: true)!
+		page.find_links(content)! // will walk over links see if errors and add errors
 	}
 }
 
@@ -319,14 +228,15 @@ pub fn (mut c Collection) validate_links() ! {
 pub fn (mut c Collection) fix_links() ! {
 	for _, mut page in c.pages {
 		// Read original content
-		content := page.read_content()!
+		content := page.content()!
 
 		// Fix links
-		fixed_content := page.fix_links(content)!
+		fixed_content := page.content_with_fixed_links()!
 
 		// Write back if changed
 		if fixed_content != content {
-			page.path.write(fixed_content)!
+			mut p := page.path()!
+			p.write(fixed_content)!
 		}
 	}
 }
@@ -375,19 +285,96 @@ pub fn (c Collection) can_write(session Session) bool {
 	return false
 }
 
+// Detect git repository URL for a collection
+fn (mut c Collection) init_git_info() ! {
+	mut current_path := c.path()!
+
+	// Walk up directory tree to find .git
+	mut git_repo := current_path.parent_find('.git') or {
+		// No git repo found
+		return
+	}
+
+	if git_repo.path == '' {
+		panic('Unexpected empty git repo path')
+	}
+
+	mut gs := gittools.new()!
+	mut p := c.path()!
+	mut location := gs.gitlocation_from_path(p.path)!
+	c.git_url = location.web_url()!
+}
+
+////////////SCANNING FUNCTIONS ?//////////////////////////////////////////////////////
+
+fn (mut c Collection) scan(mut dir pathlib.Path) ! {
+	mut entries := dir.list(recursive: false)!
+
+	for mut entry in entries.paths {
+		// Skip hidden files/dirs
+		if entry.name().starts_with('.') || entry.name().starts_with('_') {
+			continue
+		}
+
+		if entry.is_dir() {
+			// Recursively scan subdirectories
+			mut mutable_entry := entry
+			c.scan(mut mutable_entry)!
+			continue
+		}
+
+		// Process files based on extension
+		match entry.extension_lower() {
+			'md' {
+				mut mutable_entry := entry
+				c.add_page(mut mutable_entry)!
+			}
+			else {
+				mut mutable_entry := entry
+				c.add_file(mut mutable_entry)!
+			}
+		}
+	}
+}
+
+// Scan for ACL files
+fn (mut c Collection) scan_acl() ! {
+	// Look for read.acl in collection directory
+	read_acl_path := '${c.path()!.path}/read.acl'
+	if os.exists(read_acl_path) {
+		content := os.read_file(read_acl_path)!
+		// Split by newlines and normalize
+		c.acl_read = content.split('\n')
+			.map(it.trim_space())
+			.filter(it.len > 0)
+			.map(it.to_lower())
+	}
+
+	// Look for write.acl in collection directory
+	write_acl_path := '${c.path()!.path}/write.acl'
+	if os.exists(write_acl_path) {
+		content := os.read_file(write_acl_path)!
+		// Split by newlines and normalize
+		c.acl_write = content.split('\n')
+			.map(it.trim_space())
+			.filter(it.len > 0)
+			.map(it.to_lower())
+	}
+}
+
 // scan_groups scans the collection's directory for .group files and loads them into memory.
 pub fn (mut c Collection) scan_groups() ! {
 	if c.name != 'groups' {
 		return error('scan_groups only works on "groups" collection')
 	}
-
-	mut entries := c.path.list(recursive: false)!
+	mut p := c.path()!
+	mut entries := p.list(recursive: false)!
 
 	for mut entry in entries.paths {
 		if entry.extension_lower() == 'group' {
 			filename := entry.name_fix_no_ext()
 			mut visited := map[string]bool{}
-			mut group := parse_group_file(filename, c.path.path, mut visited)!
+			mut group := parse_group_file(filename, c.path()!.path, mut visited)!
 
 			c.atlas.group_add(mut group)!
 		}

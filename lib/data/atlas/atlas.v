@@ -3,10 +3,7 @@ module atlas
 import incubaid.herolib.core.texttools
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.ui.console
-
-__global (
-	atlases shared map[string]&Atlas
-)
+import incubaid.herolib.data.paramsparser
 
 @[heap]
 pub struct Atlas {
@@ -16,92 +13,36 @@ pub mut:
 	groups      map[string]&Group // name -> Group mapping
 }
 
-@[params]
-pub struct AtlasNewArgs {
-pub mut:
-	name string = 'default'
-}
-
-// Create a new Atlas
-pub fn new(args AtlasNewArgs) !&Atlas {
-	mut name := texttools.name_fix(args.name)
-
-	mut a := Atlas{
-		name: name
-	}
-
-	atlas_set(a)
-	return &a
-}
-
-// Get Atlas from global map
-pub fn atlas_get(name string) !&Atlas {
-	rlock atlases {
-		if name in atlases {
-			return atlases[name] or { return error('Atlas ${name} not found') }
+// Create a new collection
+fn (mut self Atlas) add_collection(mut path pathlib.Path) !Collection {
+	mut name := path.name_fix_no_ext()
+	mut filepath := path.file_get('.collection')!
+	content := filepath.read()!
+	if content.trim_space() != '' {
+		mut params := paramsparser.parse(content)!
+		if params.exists('name') {
+			name = params.get('name')!
 		}
 	}
-	return error("Atlas '${name}' not found")
-}
+	name = texttools.name_fix(name)
+	console.print_item("Adding collection '${name}' to Atlas '${self.name}' at path '${path.path}'")
 
-// Check if Atlas exists
-pub fn atlas_exists(name string) bool {
-	rlock atlases {
-		return name in atlases
+	if name in self.collections {
+		return error('Collection ${name} already exists in Atlas ${self.name}')
 	}
-}
 
-// List all Atlas names
-pub fn atlas_list() []string {
-	rlock atlases {
-		return atlases.keys()
+	mut c := Collection{
+		name:        name
+		path:        path.path // absolute path
+		atlas:       &self     // Set atlas reference
+		error_cache: map[string]bool{}
 	}
-}
 
-// Store Atlas in global map
-fn atlas_set(atlas Atlas) {
-	lock atlases {
-		atlases[atlas.name] = &atlas
-	}
-}
+	c.init()!
 
-@[params]
-pub struct AddCollectionArgs {
-pub mut:
-	name string @[required]
-	path string @[required]
-}
+	self.collections[name] = &c
 
-// Add a collection to the Atlas
-pub fn (mut a Atlas) add_collection(args AddCollectionArgs) !&Collection {
-	name := texttools.name_fix(args.name)
-	console.print_item('Known collections: ${a.collections.keys()}')
-	console.print_item("Adding collection '${name}' to Atlas '${a.name}' at path '${args.path}'")
-	if name in a.collections {
-		return error('Collection ${name} already exists in Atlas ${a.name}')
-	}
-	mut col := a.new_collection(name: name, path: args.path)!
-	col.scan()!
-
-	a.collections[name] = &col
-	return &col
-}
-
-// Scan a path for collections
-
-@[params]
-pub struct ScanArgs {
-pub mut:
-	path      string @[required]
-	meta_path string   // where collection json files will be stored
-	ignore    []string // list of directory names to ignore
-}
-
-pub fn (mut a Atlas) scan(args ScanArgs) ! {
-	mut path := pathlib.get_dir(path: args.path)!
-	a.scan_directory(mut path, args.ignore)!
-	a.validate_links()!
-	a.fix_links()!
+	return c
 }
 
 // Get a collection by name
@@ -155,4 +96,65 @@ pub fn (a Atlas) groups_get(session Session) []&Group {
 	}
 
 	return matching
+}
+
+pub fn (mut a Atlas) validate() ! {
+	a.validate_links()!
+	a.fix_links()!
+}
+
+//////////////////SCAN
+
+// Scan a path for collections
+
+@[params]
+pub struct ScanArgs {
+pub mut:
+	path   string @[required]
+	ignore []string // list of directory names to ignore
+}
+
+fn (mut a Atlas) scan(args ScanArgs) ! {
+	mut path := pathlib.get_dir(path: args.path)!
+	mut ignore := args.ignore.clone()
+	ignore = ignore.map(it.to_lower())
+	a.scan_(mut path, ignore)!
+}
+
+// Scan a directory for collections
+fn (mut a Atlas) scan_(mut dir pathlib.Path, ignore_ []string) ! {
+	console.print_item('Scanning directory: ${dir.path}')
+	if !dir.is_dir() {
+		return error('Path is not a directory: ${dir.path}')
+	}
+
+	// Check if this directory is a collection
+	if dir.file_exists('.collection') {
+		collname := dir.name_fix_no_ext()
+		if collname.to_lower() in ignore_ {
+			return
+		}
+		mut col := a.add_collection(mut dir)!
+		if collname == 'groups' {
+			col.scan_groups()!
+		}
+		return
+	}
+
+	// Scan subdirectories
+	mut entries := dir.list(recursive: false)!
+	for mut entry in entries.paths {
+		if !entry.is_dir() || should_skip_dir(entry) {
+			continue
+		}
+
+		mut mutable_entry := entry
+		a.scan_(mut mutable_entry, ignore_)!
+	}
+}
+
+// Check if directory should be skipped
+fn should_skip_dir(entry pathlib.Path) bool {
+	name := entry.name()
+	return name.starts_with('.') || name.starts_with('_')
 }

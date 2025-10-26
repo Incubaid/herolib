@@ -1,7 +1,8 @@
 module atlas
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.base
+import json
 
 @[params]
 pub struct ExportArgs {
@@ -13,42 +14,9 @@ pub mut:
 	redis            bool = true
 }
 
-// Generate edit URL for a page in the repository
-pub fn (p Page) get_edit_url() !string {
-	col := p.collection
-	if col.git_url == '' {
-		return error('No git URL available for collection ${col.name}')
-	}
-	mut gs := gittools.new()!
-	mut location := gs.gitlocation_from_url(col.git_url)!
-	location.branch_or_tag = col.git_branch
-	location.path = p.path.name()
-
-	// Determine the provider and build appropriate edit URL
-	provider := location.provider
-	mut url_base := 'https://${provider}.com/${location.account}/${location.name}'
-	if provider.contains('gitea') || provider.contains('git.') {
-		return '${url_base}/src/branch/${location.branch_or_tag}/${location.path}'
-	}
-	if provider == 'github' {
-		return '${url_base}/edit/${location.branch_or_tag}/${location.path}'
-	}
-	if provider == 'gitlab' {
-		return '${url_base}/-/edit/${location.branch_or_tag}/${location.path}'
-	}
-
-	// Fallback for unknown providers
-	return '${url_base}/edit/${location.branch_or_tag}/${location.path}'
-}
-
 // Export all collections
 pub fn (mut a Atlas) export(args ExportArgs) ! {
 	mut dest := pathlib.get_dir(path: args.destination, create: true)!
-
-	// NEW: Save metadata if destination_meta is provided
-	if args.destination_meta.len > 0 {
-		a.save(args.destination_meta)!
-	}
 
 	if args.reset {
 		dest.empty()!
@@ -64,14 +32,100 @@ pub fn (mut a Atlas) export(args ExportArgs) ! {
 			include:     args.include
 			redis:       args.redis
 		)!
+	}
+}
 
-		// Print collection info including git URL
-		if col.has_errors() {
-			col.print_errors()
+@[params]
+pub struct CollectionExportArgs {
+pub mut:
+	destination pathlib.Path @[required]
+	reset       bool = true
+	include     bool = true // process includes during export
+	redis       bool = true
+}
+
+// Export a single collection
+pub fn (mut c Collection) export(args CollectionExportArgs) ! {
+	// Create collection directory
+	mut col_dir := pathlib.get_dir(
+		path:   '${args.destination.path}/content/${c.name}'
+		create: true
+	)!
+	mut col_dir_meta := pathlib.get_dir(
+		path:   '${args.destination.path}/meta/${c.name}'
+		create: true
+	)!
+
+	if args.reset {
+		col_dir.empty()!
+		col_dir_meta.empty()!
+	}
+
+	c.init_git_info()!
+
+	if c.has_errors() {
+		c.print_errors()
+	}
+
+	for _, mut page in c.pages {
+		content := page.content(include: args.include)!
+
+		// NEW: Process cross-collection links
+		processed_content := process_cross_collection_links(content, c, mut col_dir, c.atlas)!
+
+		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
+		dest_file.write(processed_content)!
+
+		// Redis operations...
+		if args.redis {
+			mut context := base.context()!
+			mut redis := context.redis()!
+			redis.hset('atlas:${c.name}', page.name, page.path)!
 		}
 
-		if col.git_url != '' {
-			println('Collection ${col.name} source: ${col.git_url} (branch: ${col.git_branch})')
+		meta := json.encode_pretty(page)
+		mut json_file := pathlib.get_file(
+			path:   '${col_dir_meta.path}/${page.name}.json'
+			create: true
+		)!
+		json_file.write(meta)!
+	}
+
+	// Export images
+	if c.images.len > 0 {
+		img_dir := pathlib.get_dir(
+			path:   '${col_dir.path}/img'
+			create: true
+		)!
+
+		for _, mut img in c.images {
+			dest_path := '${img_dir.path}/${img.file_name()}'
+			img.path.copy(dest: dest_path)!
+
+			if args.redis {
+				mut context := base.context()!
+				mut redis := context.redis()!
+				redis.hset('atlas:${c.name}', img.file_name(), img.path.path)!
+			}
+		}
+	}
+
+	// Export files
+	if c.files.len > 0 {
+		files_dir := pathlib.get_dir(
+			path:   '${col_dir.path}/files'
+			create: true
+		)!
+
+		for _, mut file in c.files {
+			dest_path := '${files_dir.path}/${file.file_name()}'
+			file.path.copy(dest: dest_path)!
+
+			if args.redis {
+				mut context := base.context()!
+				mut redis := context.redis()!
+				redis.hset('atlas:${c.name}', file.file_name(), file.path.path)!
+			}
 		}
 	}
 }

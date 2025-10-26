@@ -31,11 +31,13 @@ pub fn play(mut plbook PlayBook) ! {
 
 		// NEW: Support git URL as source
 		mut git_url := p.get_default('git_url', '')!
+		mut git_pull := p.get_default_false('git_pull')
 		if git_url != '' {
 			// Clone or get the repository using gittools
-			mut gs := gittools.new(coderoot: p.get_default('git_root', '~/code')!)!
-			mut repo := gs.get_repo(url: git_url)!
-			path = repo.path()
+			path = gittools.path(
+				git_pull: git_pull
+				git_url:  git_url
+			)!.path
 		}
 		if path == '' {
 			return error('Either "path" or "git_url" must be provided for atlas.scan action.')
@@ -54,7 +56,6 @@ pub fn play(mut plbook PlayBook) ! {
 		mut p := action.params
 		name := p.get_default('name', 'main')!
 		destination := p.get('destination')!
-		destination_meta := p.get_default('destination_meta', '')! // NEW
 		reset := p.get_default_true('reset')
 		include := p.get_default_true('include')
 		redis := p.get_default_true('redis')
@@ -64,11 +65,10 @@ pub fn play(mut plbook PlayBook) ! {
 		}
 
 		atlas_instance.export(
-			destination:      destination
-			destination_meta: destination_meta // NEW
-			reset:            reset
-			include:          include
-			redis:            redis
+			destination: destination
+			reset:       reset
+			include:     include
+			redis:       redis
 		)!
 		action.done = true
 	}

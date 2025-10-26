@@ -7,47 +7,42 @@ import incubaid.herolib.core.texttools
 pub struct Page {
 pub mut:
 	name            string
-	path            pathlib.Path
+	path            string // in collection
 	collection_name string
-	collection      &Collection @[skip; str: skip] // Reference to parent collection
+	links           []Link
+	// macros          []Macro
+	collection &Collection @[skip; str: skip] // Reference to parent collection
 }
 
 @[params]
 pub struct NewPageArgs {
 pub:
-	name            string       @[required]
-	path            pathlib.Path @[required]
-	collection_name string       @[required]
-	collection      &Collection  @[required]
-}
-
-pub fn new_page(args NewPageArgs) !Page {
-	return Page{
-		name:            args.name
-		path:            args.path
-		collection_name: args.collection_name
-		collection:      args.collection
-	}
+	name            string      @[required]
+	path            string      @[required]
+	collection_name string      @[required]
+	collection      &Collection @[required]
 }
 
 // Read content without processing includes
-pub fn (mut p Page) read_content() !string {
-	return p.path.read()!
+pub fn (mut p Page) path() !pathlib.Path {
+	curpath := p.collection.path()!
+	return pathlib.get_file(path: '${curpath.path}/${p.path}', create: false)! // should be relative to collection
 }
 
 // Read content with includes processed (default behavior)
 @[params]
 pub struct ReadContentArgs {
 pub mut:
-	include bool = true
+	include bool
 }
 
+// Read content without processing includes
 pub fn (mut p Page) content(args ReadContentArgs) !string {
-	mut content := p.path.read()!
-
+	mut mypath := p.path()!
+	mut content := mypath.read()!
 	if args.include {
 		mut v := map[string]bool{}
-		return p.process_includes(content, mut v)!
+		content = p.process_includes(content, mut v)!
 	}
 	return content
 }
@@ -124,7 +119,7 @@ fn (mut p Page) process_includes(content string, mut visited map[string]bool) !s
 			}
 
 			// Recursively process the included page
-			include_content := include_page.process_includes(include_page.read_content()!, mut
+			include_content := include_page.process_includes(include_page.content()!, mut
 				visited)!
 
 			processed_lines << include_content
