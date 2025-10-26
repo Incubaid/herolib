@@ -71,7 +71,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		content := page.content(include: args.include)!
 
 		// NEW: Process cross-collection links
-		processed_content := process_cross_collection_links(content, c, mut col_dir, c.atlas)!
+		processed_content := page.process_cross_collection_links(mut col_dir)!
 
 		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
 		dest_file.write(processed_content)!
@@ -91,25 +91,6 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		json_file.write(meta)!
 	}
 
-	// Export images
-	if c.images.len > 0 {
-		img_dir := pathlib.get_dir(
-			path:   '${col_dir.path}/img'
-			create: true
-		)!
-
-		for _, mut img in c.images {
-			dest_path := '${img_dir.path}/${img.file_name()}'
-			img.path.copy(dest: dest_path)!
-
-			if args.redis {
-				mut context := base.context()!
-				mut redis := context.redis()!
-				redis.hset('atlas:${c.name}', img.file_name(), img.path.path)!
-			}
-		}
-	}
-
 	// Export files
 	if c.files.len > 0 {
 		files_dir := pathlib.get_dir(
@@ -119,12 +100,13 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 
 		for _, mut file in c.files {
 			dest_path := '${files_dir.path}/${file.file_name()}'
-			file.path.copy(dest: dest_path)!
+			mut p2 := file.path()!
+			p2.copy(dest: col_dir.path)!
 
 			if args.redis {
 				mut context := base.context()!
 				mut redis := context.redis()!
-				redis.hset('atlas:${c.name}', file.file_name(), file.path.path)!
+				redis.hset('atlas:${c.name}', file.file_name(), file.path()!.path)!
 			}
 		}
 	}

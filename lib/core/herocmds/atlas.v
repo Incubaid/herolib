@@ -47,7 +47,6 @@ pub fn cmd_atlas(mut cmdroot Command) Command {
 		description: 'Path where collection.json... will be saved too.'
 	})
 
-
 	cmd_run.add_flag(Flag{
 		flag:        .string
 		required:    false
@@ -111,7 +110,7 @@ fn cmd_atlas_execute(cmd Command) ! {
 	mut update := cmd.flags.get_bool('update') or { false }
 	mut scan := cmd.flags.get_bool('scan') or { false }
 	mut export := cmd.flags.get_bool('export') or { false }
-	
+
 	// Include and redis default to true unless explicitly disabled
 	mut no_include := cmd.flags.get_bool('no-include') or { false }
 	mut no_redis := cmd.flags.get_bool('no-redis') or { false }
@@ -145,8 +144,8 @@ fn cmd_atlas_execute(cmd Command) ! {
 	)!
 
 	// Create or get atlas instance
-	mut a := if atlas.atlas_exists(name) {
-		atlas.atlas_get(name)!
+	mut a := if atlas.exists(name) {
+		atlas.get(name)!
 	} else {
 		atlas.new(name: name)!
 	}
@@ -160,7 +159,7 @@ fn cmd_atlas_execute(cmd Command) ! {
 	// Execute operations
 	if scan {
 		console.print_header('Scanning collections...')
-		a.scan(path: atlas_path.path, meta_path: path_meta)!
+		a.scan(path: atlas_path.path)!
 		console.print_green('✓ Scan complete: ${a.collections.len} collection(s) found')
 	}
 
@@ -168,20 +167,20 @@ fn cmd_atlas_execute(cmd Command) ! {
 		if destination == '' {
 			destination = '${atlas_path.path}/output'
 		}
-		
+
 		console.print_header('Exporting collections to: ${destination}')
 		console.print_item('Include processing: ${include}')
 		console.print_item('Redis metadata: ${redis}')
-		
+
 		a.export(
 			destination: destination
 			reset:       reset
 			include:     include
 			redis:       redis
 		)!
-		
+
 		console.print_green('✓ Export complete to ${destination}')
-		
+
 		// Print any errors encountered during export
 		for _, col in a.collections {
 			if col.has_errors() {

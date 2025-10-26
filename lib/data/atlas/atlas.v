@@ -114,7 +114,7 @@ pub mut:
 	ignore []string // list of directory names to ignore
 }
 
-fn (mut a Atlas) scan(args ScanArgs) ! {
+pub fn (mut a Atlas) scan(args ScanArgs) ! {
 	mut path := pathlib.get_dir(path: args.path)!
 	mut ignore := args.ignore.clone()
 	ignore = ignore.map(it.to_lower())

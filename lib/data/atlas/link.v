@@ -204,6 +204,12 @@ fn (mut p Page) process_cross_collection_links(mut export_dir pathlib.Path) !str
 		panic('need to do for files too')
 	}
 
+	for mut link in links.reverse() {
+		if link.status != . {
+			continue
+		}
+	}
+
 	return c
 }
 

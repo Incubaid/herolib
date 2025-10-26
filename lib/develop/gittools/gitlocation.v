@@ -146,12 +146,20 @@ fn normalize_url(url string) string {
 	return url.replace(':', '/').replace('//', '/').trim('/')
 }
 
+// path is needed to get the
 pub fn (self GitLocation) web_url() !string {
-	println(self)
+	// println(self)
 	mut provider := self.provider
 	if provider == 'github' {
 		provider = 'github.com'
 	}
+
+	if self.branch_or_tag == '' {
+		return error('git: cannot build web_url without branch_or_tag in GitLocation: ${self}')
+	}
+
+	// execute_opt("cd ${self.path} && git branch --show-current") !Result
+
 	mut url_base := 'https://${provider}/${self.account}/${self.name}'
 	mut url := '${url_base}/src/branch/${self.branch_or_tag}/${self.path}'
 	// if provider.contains('gitea') || provider.contains('git.') {
@@ -163,7 +171,5 @@ pub fn (self GitLocation) web_url() !string {
 	// if provider == 'gitlab' {
 	// 	return '${url_base}/-/edit/${self.branch_or_tag}/${self.path}'
 	// }
-	println(url)
-	$dbg;
 	return url
 }

@@ -45,7 +45,7 @@ pub fn play(mut plbook PlayBook) ! {
 		atlas_instance.scan(path: path, ignore: ignore)!
 		action.done = true
 
-		atlas_set(atlas_instance)
+		set(atlas_instance)
 	}
 
 	// Process export actions - export collections to destination

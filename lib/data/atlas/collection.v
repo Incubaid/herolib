@@ -302,6 +302,11 @@ fn (mut c Collection) init_git_info() ! {
 	mut gs := gittools.new()!
 	mut p := c.path()!
 	mut location := gs.gitlocation_from_path(p.path)!
+
+	r := os.execute_opt('cd ${p.path} && git branch --show-current')!
+
+	location.branch_or_tag = r.output.trim_space()
+
 	c.git_url = location.web_url()!
 }
 
