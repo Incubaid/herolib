@@ -9,7 +9,7 @@ import log
 const database_path = os.join_path(os.dir(@FILE), 'database')
 
 mut metadata_db := ourdb.new(path: os.join_path(database_path, 'metadata'), reset: true)!
-mut data_db := ourdb.new(path: os.join_path(database_path, 'data', reset: true))!
+mut data_db := ourdb.new(path: os.join_path(database_path, 'data'))!
 mut vfs := vfs_db.new(mut metadata_db, mut data_db)!
 mut server := webdav.new_server(
 	vfs:     vfs

@@ -35,6 +35,7 @@ zdb-index
 dump.rdb
 output/
 *.db
+database/
 .stellar
 data.ms/
 test_basic

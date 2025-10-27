@@ -3,6 +3,7 @@ module webdav
 import time
 import incubaid.herolib.core.texttools
 import incubaid.herolib.ui.console
+import incubaid.herolib.vfs.vfs_db
 import encoding.xml
 import net.urllib
 import net
@@ -134,7 +135,6 @@ pub fn (mut server Server) unlock(mut ctx Context, path string) veb.Result {
 
 @['/:path...'; get]
 pub fn (mut server Server) get_file(mut ctx Context, path string) veb.Result {
-	log.info('[WebDAV] Getting file ${path}')
 	file_data := server.vfs.file_read(path) or {
 		log.error('[WebDAV] ${err.msg()}')
 		return ctx.server_error(err.msg())
@@ -240,7 +240,10 @@ pub fn (mut server Server) copy(mut ctx Context, path string) veb.Result {
 
 @['/:path...'; move]
 pub fn (mut server Server) move(mut ctx Context, path string) veb.Result {
-	if !server.vfs.exists(path) {
+	// Normalize the source path (remove leading slash since VFS will add it back)
+	src_path := path.trim_left('/')
+
+	if !server.vfs.exists(src_path) {
 		return ctx.not_found()
 	}
 
@@ -251,13 +254,13 @@ pub fn (mut server Server) move(mut ctx Context, path string) veb.Result {
 		ctx.res.set_status(.bad_request)
 		return ctx.text('Invalid Destination ${destination}: ${err}')
 	}
-	destination_path_str := destination_url.path
+	// Normalize the destination path (remove leading slash since VFS will add it back)
+	destination_path_str := destination_url.path.trim_left('/')
 
 	// Check if destination exists
 	destination_exists := server.vfs.exists(destination_path_str)
 
-	log.info('[WebDAV] ${@FN} from ${path} to ${destination_path_str}')
-	server.vfs.move(path, destination_path_str) or {
+	server.vfs.move(src_path, destination_path_str) or {
 		log.error('Failed to move: ${err}')
 		return ctx.server_error(err.msg())
 	}
@@ -280,10 +283,17 @@ pub fn (mut server Server) mkcol(mut ctx Context, path string) veb.Result {
 		return ctx.text('Another collection exists at ${path}')
 	}
 
-	log.info('[WebDAV] Make Collection ${path}')
 	server.vfs.dir_create(path) or {
 		console.print_stderr('failed to create directory ${path}: ${err}')
 		return ctx.server_error(err.msg())
+	}
+
+	// Save the VFS if it's a DatabaseVFS to persist the new directory
+	if mut server.vfs is vfs_db.DatabaseVFS {
+		server.vfs.save() or {
+			log.error('[WebDAV] Failed to save VFS after MKCOL: ${err}')
+			return ctx.server_error('Failed to persist collection: ${err}')
+		}
 	}
 
 	// Add WsgiDAV-like headers
@@ -299,15 +309,13 @@ pub fn (mut server Server) mkcol(mut ctx Context, path string) veb.Result {
 }
 
 @['/:path...'; put]
-fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result {
+pub fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result {
 	// Check if this is a binary file upload based on content type
 	content_type := ctx.req.header.get(.content_type) or { '' }
 	is_binary := is_binary_content_type(content_type)
 
 	// Handle binary uploads directly
 	if is_binary {
-		log.info('[WebDAV] Processing binary upload for ${path} (${content_type})')
-
 		// Handle the binary upload directly
 		ctx.takeover_conn()
 
@@ -324,7 +332,6 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 	parent_path := path.all_before_last('/')
 	if parent_path != '' && !server.vfs.exists(parent_path) {
 		// For testing compatibility, create parent directories instead of returning conflict
-		log.info('[WebDAV] Creating parent directory ${parent_path} for ${path}')
 		server.vfs.dir_create(parent_path) or {
 			log.error('[WebDAV] Failed to create parent directory ${parent_path}: ${err.msg()}')
 			ctx.res.set_status(.conflict)
@@ -334,12 +341,9 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 
 	mut is_update := server.vfs.exists(path)
 	if is_update {
-		log.debug('[WebDAV] ${path} exists, updating')
 		if fs_entry := server.vfs.get(path) {
-			log.debug('[WebDAV] Got FSEntry ${fs_entry}')
 			// For test compatibility - if the path is a directory, delete it and create a file instead
 			if fs_entry.is_dir() {
-				log.info('[WebDAV] Path ${path} exists as a directory, deleting it to create a file')
 				server.vfs.delete(path) or {
 					log.error('[WebDAV] Failed to delete directory ${path}: ${err.msg()}')
 					ctx.res.set_status(.conflict)
@@ -360,27 +364,19 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 			return ctx.server_error('Failed to get FS Entry ${path}: ${err.msg()}')
 		}
 	} else {
-		log.debug('[WebDAV] ${path} does not exist, creating')
 		server.vfs.file_create(path) or {
 			log.error('[WebDAV] Failed to create file ${path}: ${err.msg()}')
 			return ctx.server_error('Failed to create file: ${err.msg()}')
 		}
 	}
 
-	// Process Content-Type if provided - reuse the existing content_type variable
-	if content_type != '' {
-		log.debug('[WebDAV] Content-Type provided: ${content_type}')
-	}
-
 	// Check if we have a Content-Length header
 	content_length_str := ctx.req.header.get(.content_length) or { '0' }
 	content_length := content_length_str.int()
-	log.debug('[WebDAV] Content-Length: ${content_length}')
 
 	// Check for chunked transfer encoding
 	transfer_encoding := ctx.req.header.get_custom('Transfer-Encoding') or { '' }
 	is_chunked := transfer_encoding.to_lower().contains('chunked')
-	log.debug('[WebDAV] Transfer-Encoding: ${transfer_encoding}, is_chunked: ${is_chunked}')
 
 	// Handle the file upload based on the request type
 	if is_chunked || content_length > 0 {
@@ -396,13 +392,11 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 		if ctx.req.data.len > 0 {
 			all_data << ctx.req.data.bytes()
 			total_bytes += ctx.req.data.len
-			log.debug('[WebDAV] Added ${ctx.req.data.len} initial bytes from request data')
 		}
 
 		// Read data in chunks from the connection
 		if is_chunked {
 			// For chunked encoding, we need to read until we get a zero-length chunk
-			log.info('[WebDAV] Reading chunked data for ${path}')
 
 			// Write initial data to the file
 			if all_data.len > 0 {
@@ -424,7 +418,6 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 				// Read a chunk from the connection
 				n := ctx.conn.read(mut buffer) or {
 					if err.code() == net.err_timed_out_code {
-						log.info('[WebDAV] Connection timed out, finished reading')
 						break
 					}
 					log.error('[WebDAV] Error reading from connection: ${err}')
@@ -432,7 +425,6 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 				}
 
 				if n <= 0 {
-					log.info('[WebDAV] Reached end of data stream')
 					break
 				}
 
@@ -442,7 +434,6 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 
 				// Try to decode the chunk if it looks like a valid chunked format
 				if chunk_str.contains('\r\n') {
-					log.debug('[WebDAV] Attempting to decode chunked data')
 					decoded := chunked.decode(chunk_str) or {
 						log.error('[WebDAV] Failed to decode chunked data: ${err}')
 						// If decoding fails, just use the raw chunk
@@ -462,7 +453,6 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 
 					// If decoding succeeds, write the decoded data
 					if decoded.len > 0 {
-						log.debug('[WebDAV] Successfully decoded chunked data: ${decoded.len} bytes')
 						server.vfs.file_concatenate(path, decoded.bytes()) or {
 							log.error('[WebDAV] Failed to append decoded chunk to ${path}: ${err.msg()}')
 							// Send error response
@@ -491,11 +481,9 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 				}
 
 				total_bytes += n
-				log.debug('[WebDAV] Read ${n} bytes, total: ${total_bytes}')
 			}
 		} else if content_length > 0 {
 			// For Content-Length uploads, read exactly that many bytes
-			log.info('[WebDAV] Reading ${content_length} bytes for ${path}')
 			mut remaining := content_length - all_data.len
 
 			// Write initial data to the file
@@ -521,7 +509,6 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 				// Read a chunk from the connection
 				n := ctx.conn.read(mut buffer[..read_size]) or {
 					if err.code() == net.err_timed_out_code {
-						log.info('[WebDAV] Connection timed out, finished reading')
 						break
 					}
 					log.error('[WebDAV] Error reading from connection: ${err}')
@@ -529,7 +516,6 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 				}
 
 				if n <= 0 {
-					log.info('[WebDAV] Reached end of data stream')
 					break
 				}
 
@@ -548,11 +534,24 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 
 				total_bytes += n
 				remaining -= n
-				log.debug('[WebDAV] Read ${n} bytes, remaining: ${remaining}')
 			}
 		}
 
-		log.info('[WebDAV] Successfully wrote ${total_bytes} bytes to ${path}')
+		// Save the VFS to persist the file
+		if mut server.vfs is vfs_db.DatabaseVFS {
+			server.vfs.save() or {
+				log.error('[WebDAV] Failed to save VFS after PUT: ${err}')
+				// Send error response
+				ctx.res.set_status(.internal_server_error)
+				ctx.res.header.set(.content_type, 'text/plain')
+				error_msg := 'Failed to persist file: ${err}'
+				ctx.res.header.set(.content_length, '${error_msg.len}')
+				ctx.conn.write(ctx.res.bytestr().bytes()) or {}
+				ctx.conn.write(error_msg.bytes()) or {}
+				ctx.conn.close() or {}
+				return veb.no_result()
+			}
+		}
 
 		// Send success response
 		ctx.res.header.set(.content_type, 'text/html; charset=utf-8')
@@ -579,7 +578,14 @@ fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Result
 			log.error('[WebDAV] Failed to write empty data to ${path}: ${err.msg()}')
 			return ctx.server_error('Failed to write file: ${err.msg()}')
 		}
-		log.info('[WebDAV] Created empty file at ${path}')
+
+		// Save the VFS to persist the file
+		if mut server.vfs is vfs_db.DatabaseVFS {
+			server.vfs.save() or {
+				log.error('[WebDAV] Failed to save VFS after PUT: ${err}')
+				return ctx.server_error('Failed to persist file: ${err}')
+			}
+		}
 
 		// Add WsgiDAV-like headers
 		ctx.set_header(.content_type, 'text/html; charset=utf-8')

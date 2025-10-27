@@ -12,7 +12,7 @@ import net.http
 import veb
 
 @['/:path...'; propfind]
-fn (mut server Server) propfind(mut ctx Context, path string) veb.Result {
+pub fn (mut server Server) propfind(mut ctx Context, path string) veb.Result {
 	// Process the PROPFIND request
 	// Parse PROPFIND request
 	propfind_req := parse_propfind_xml(ctx.req) or {

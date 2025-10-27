@@ -1,0 +1,100 @@
+/* Editor styles */
+.editor-header {
+    padding: 10px;
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-shrink: 0;
+    /* Prevent header from shrinking */
+}
+
+.editor-header input {
+    flex: 1;
+    padding: 6px 12px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.editor-container {
+    flex: 1;
+    /* Take remaining space */
+    overflow: hidden;
+    /* Prevent container overflow, CodeMirror handles its own scrolling */
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    /* Important: allows flex child to shrink below content size */
+    position: relative;
+}
+
+#editor {
+    flex: 1;
+    /* Take all available space */
+    min-height: 0;
+    /* Allow shrinking */
+    overflow: hidden;
+    /* CodeMirror will handle scrolling */
+}
+
+/* CodeMirror customization */
+.CodeMirror {
+    height: 100% !important;
+    /* Force full height */
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.CodeMirror-scroll {
+    overflow-y: auto !important;
+    /* Ensure vertical scrolling is enabled */
+    overflow-x: auto !important;
+    /* Ensure horizontal scrolling is enabled */
+}
+
+body.dark-mode .CodeMirror {
+    background-color: #1c2128;
+    color: #e6edf3;
+}
+
+.CodeMirror-gutters {
+    background-color: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+}
+
+body.dark-mode .CodeMirror-gutters {
+    background-color: #161b22;
+    border-right-color: #30363d;
+}
+
+.CodeMirror-linenumber {
+    color: var(--text-secondary);
+}
+
+.CodeMirror-cursor {
+    border-left-color: var(--text-primary);
+}
+
+/* Drag and drop overlay */
+.editor-container.drag-over::after {
+    content: 'Drop images here';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(9, 105, 218, 0.1);
+    border: 2px dashed var(--info-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: var(--info-color);
+    pointer-events: none;
+    z-index: 1000;
+}

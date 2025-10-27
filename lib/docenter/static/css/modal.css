@@ -1,0 +1,3 @@
+.modal-header .btn-close {
+    filter: var(--bs-btn-close-white-filter);
+}

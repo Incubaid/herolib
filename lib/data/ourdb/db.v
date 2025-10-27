@@ -102,20 +102,26 @@ pub fn (mut db OurDB) get_next_id() !u32 {
 
 // close closes the database file
 fn (mut db OurDB) lookup_dump_path() string {
-	return '${db.path}/lookup_dump.db'
+	return '${db.path}/lookup_dump'
 }
 
 // load metadata i exists
 fn (mut db OurDB) load() ! {
-	if os.exists(db.lookup_dump_path()) {
-		db.lookup.import_sparse(db.lookup_dump_path())!
+	lookup_path := db.lookup_dump_path()
+	if os.exists(lookup_path) {
+		db.lookup.import_sparse(lookup_path)!
 	}
 }
 
 // make sure we have the metata stored on disk
 fn (mut db OurDB) save() ! {
 	// make sure we remember the data
-	db.lookup.export_sparse(db.lookup_dump_path())!
+	lookup_path := db.lookup_dump_path()
+	// Create the directory if it doesn't exist
+	if !os.exists(lookup_path) {
+		os.mkdir_all(lookup_path)!
+	}
+	db.lookup.export_sparse(lookup_path)!
 }
 
 // close closes the database file

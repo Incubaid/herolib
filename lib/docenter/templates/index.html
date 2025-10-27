@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docenter</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.20/theme/monokai.min.css">
+
+    <!-- Prism CSS for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+
+    <!-- Modular CSS -->
+    <link rel="stylesheet" href="/static/css/variables.css">
+    <link rel="stylesheet" href="/static/css/layout.css">
+    <link rel="stylesheet" href="/static/css/file-tree.css">
+    <link rel="stylesheet" href="/static/css/editor.css">
+    <link rel="stylesheet" href="/static/css/components.css">
+    <link rel="stylesheet" href="/static/css/modal.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <!-- Left: Sidebar Toggle + Logo and Title -->
+            <div class="d-flex align-items-center gap-2">
+                <!-- Sidebar Toggle Button -->
+                <button id="sidebarToggleBtn" class="btn-flat btn-flat-secondary" title="Toggle Sidebar">
+                    <i class="bi bi-layout-sidebar"></i>
+                </button>
+
+                <!-- Logo and Title (Clickable) -->
+                <a href="/" class="navbar-brand mb-0" id="navbarBrand" style="cursor: pointer; text-decoration: none;">
+                    <i class="bi bi-markdown"></i> Docenter
+                </a>
+            </div>
+
+            <!-- Right: All Buttons -->
+            <div class="ms-auto d-flex gap-2 align-items-center">
+                <!-- View Mode Button -->
+                <button id="editModeBtn" class="btn-flat btn-flat" style="display: none;">
+                    <i class="bi bi-pencil-square"></i> Enter Edit Mode
+                </button>
+
+                <!-- Edit Mode Buttons -->
+                <button id="newBtn" class="btn-flat btn-flat-success">
+                    <i class="bi bi-file-plus"></i> New
+                </button>
+                <button id="saveBtn" class="btn-flat btn-flat-primary">
+                    <i class="bi bi-save"></i> Save
+                </button>
+                <button id="deleteBtn" class="btn-flat btn-flat-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+                <button id="exitEditModeBtn" class="btn-flat btn-flat-secondary">
+                    <i class="bi bi-eye"></i> Exit Edit Mode
+                </button>
+
+                <!-- Divider -->
+                <div class="vr" style="height: 40px;"></div>
+
+                <!-- Dark Mode Toggle -->
+                <button id="darkModeBtn" class="btn-flat btn-flat-secondary">
+                    <i class="bi bi-moon-fill"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="row h-100">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar" id="sidebarPane">
+                <!-- Collection Selector -->
+                <div class="collection-selector">
+                    <label class="form-label small">Collection:</label>
+                    <div class="d-flex gap-1">
+                        <select id="collectionSelect" class="form-select form-select-sm flex-grow-1"></select>
+                        <button id="newCollectionBtn" class="btn btn-sm new-collection-btn"
+                            title="Create New Collection">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                <!-- File Tree -->
+                <div id="fileTree" class="file-tree"></div>
+            </div>
+
+            <!-- Resizer between sidebar and editor -->
+            <div class="column-resizer" id="resizer1"></div>
+
+            <!-- Editor Pane -->
+            <div class="col editor-pane" id="editorPane">
+                <div class="editor-header">
+                    <input type="text" id="filenameInput" placeholder="filename.md"
+                        class="form-control form-control-sm">
+                </div>
+                <div class="editor-container">
+                    <div id="editor"></div>
+                </div>
+            </div>
+
+            <!-- Resizer between editor and preview -->
+            <div class="column-resizer" id="resizer2"></div>
+
+            <!-- Preview Pane -->
+            <div class="col preview-pane" id="previewPane">
+                <div id="preview">
+                    <p class="text-muted">Start typing in the editor to see the preview</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="context-menu">
+        <div class="context-menu-item" data-action="open">
+            <i class="bi bi-folder2-open"></i> Open
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="new-file">
+            <i class="bi bi-file-plus"></i> New File
+        </div>
+        <div class="context-menu-item" data-action="new-folder">
+            <i class="bi bi-folder-plus"></i> New Folder
+        </div>
+        <div class="context-menu-item" data-action="upload">
+            <i class="bi bi-upload"></i> Upload File
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="download">
+            <i class="bi bi-download"></i> Download
+        </div>
+        <div class="context-menu-item" data-action="rename">
+            <i class="bi bi-pencil"></i> Rename
+        </div>
+        <div class="context-menu-item" data-action="copy">
+            <i class="bi bi-files"></i> Copy
+        </div>
+        <div class="context-menu-item" data-action="cut">
+            <i class="bi bi-scissors"></i> Cut
+        </div>
+        <div class="context-menu-item" id="pasteMenuItem" data-action="paste" style="display: none;">
+            <i class="bi bi-clipboard"></i> Paste
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" data-action="copy-to-collection">
+            <i class="bi bi-box-arrow-right"></i> Copy to Collection...
+        </div>
+        <div class="context-menu-item" data-action="move-to-collection">
+            <i class="bi bi-arrow-right-square"></i> Move to Collection...
+        </div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item text-danger" data-action="delete">
+            <i class="bi bi-trash"></i> Delete
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirmation</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmationMessage"></p>
+                    <input type="text" id="confirmationInput" class="form-control" style="display: none;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-flat btn-flat-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="button" class="btn-flat btn-flat-primary" id="confirmButton">
+                        <i class="bi bi-check-circle"></i> OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JSZip for folder downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- CodeMirror JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/yaml/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/toml/toml.min.js"></script>
+
+    <!-- Marked.js for markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-toml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-go.min.js"></script>
+
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <!-- Application Configuration (must load first) -->
+    <script src="/static/js/config.js"></script>
+    <script src="/static/js/logger.js"></script>
+    <script src="/static/js/event-bus.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/notification-service.js"></script>
+
+    <!-- UI Components -->
+    <script src="/static/js/ui-utils.js" defer></script>
+    <script src="/static/js/context-menu.js" defer></script>
+    <script src="/static/js/file-upload.js" defer></script>
+    <script src="/static/js/dark-mode.js" defer></script>
+    <script src="/static/js/sidebar-toggle.js" defer></script>
+    <script src="/static/js/collection-selector.js" defer></script>
+    <script src="/static/js/editor-drop-handler.js" defer></script>
+    <script src="/static/js/loading-spinner.js" defer></script>
+
+    <!-- Core Application Modules -->
+    <script src="/static/js/webdav-client.js" defer></script>
+    <script src="/static/js/file-tree.js" defer></script>
+    <script src="/static/js/editor.js" defer></script>
+    <script src="/static/js/confirmation.js" defer></script>
+    <script src="/static/js/file-tree-actions.js" defer></script>
+    <script src="/static/js/column-resizer.js" defer></script>
+    <script src="/static/js/app.js" defer></script>
+    <script src="/static/js/macro-parser.js" defer></script>
+    <script src="/static/js/macro-processor.js" defer></script>
+</body>
+
+</html>

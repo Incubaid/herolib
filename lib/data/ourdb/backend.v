@@ -110,8 +110,8 @@ pub fn (mut db OurDB) set_(x u32, old_location Location, data []u8) ! {
 	// Update lookup table with new position
 	db.lookup.set(x, new_location)!
 
-	// Ensure lookup table is synced
-	// db.save()!
+	// Note: lookup table is saved on close() or explicit save() call
+	// Calling save() after every write would be too expensive
 }
 
 // get retrieves data at specified location

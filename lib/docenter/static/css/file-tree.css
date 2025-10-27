@@ -1,0 +1,253 @@
+/* Bootstrap-styled File Tree */
+.file-tree {
+    font-size: 13px;
+    user-select: none;
+    padding: 8px 0;
+}
+
+.tree-node-wrapper {
+    margin: 0;
+}
+
+.tree-node {
+    padding: 6px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 4px;
+    margin: 1px 4px;
+    color: var(--text-primary);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: ellipsis;
+    min-height: 28px;
+}
+
+.tree-node:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.tree-node.active {
+    color: var(--link-color);
+    font-weight: 500;
+}
+
+.tree-node.active:hover {
+    filter: brightness(1.2);
+}
+
+.tree-node.active .tree-node-icon {
+    color: var(--link-color);
+}
+
+/* Toggle arrow */
+.tree-node-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+    cursor: pointer;
+}
+
+.tree-node-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.tree-node-toggle:hover {
+    color: var(--link-color);
+}
+
+/* Icon styling */
+.tree-node-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+/* Content wrapper */
+.tree-node-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.tree-node-name {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+
+.file-size-badge {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin-left: auto;
+    flex-shrink: 0;
+    padding: 2px 6px;
+    background-color: var(--bg-tertiary);
+    border-radius: 3px;
+}
+
+/* Children container */
+.tree-children {
+    margin-left: 8px;
+    border-left: 1px solid var(--border-light);
+    padding-left: 4px;
+    max-height: 100%;
+    overflow: visible;
+}
+
+.tree-children.collapsed {
+    display: none;
+}
+
+/* Drag and drop */
+/* Default cursor is pointer, not grab (only show grab after long-press) */
+.tree-node {
+    cursor: pointer;
+}
+
+/* Show grab cursor only when drag is ready (after long-press) */
+.tree-node.drag-ready {
+    cursor: grab !important;
+}
+
+.tree-node.drag-ready:active {
+    cursor: grabbing !important;
+}
+
+.tree-node.dragging {
+    opacity: 0.4;
+    background-color: var(--bg-tertiary);
+    cursor: grabbing !important;
+}
+
+.tree-node.drag-over {
+    background-color: rgba(13, 110, 253, 0.15) !important;
+    border: 2px dashed var(--link-color) !important;
+    box-shadow: 0 0 8px rgba(13, 110, 253, 0.3);
+}
+
+/* Root-level drop target highlighting */
+.file-tree.drag-over-root {
+    background-color: rgba(13, 110, 253, 0.08);
+    border: 2px dashed var(--link-color);
+    border-radius: 6px;
+    box-shadow: inset 0 0 12px rgba(13, 110, 253, 0.2);
+    margin: 4px;
+    padding: 4px;
+}
+
+/* Only show drag cursor on directories when dragging */
+body.dragging-active .tree-node[data-isdir="true"] {
+    cursor: copy;
+}
+
+body.dragging-active .tree-node[data-isdir="false"] {
+    cursor: no-drop;
+}
+
+/* Show move cursor when hovering over root-level empty space */
+body.dragging-active .file-tree.drag-over-root {
+    cursor: move;
+}
+
+/* Collection selector - Bootstrap styled */
+.collection-selector {
+    margin: 12px 8px;
+    padding: 8px 12px;
+    background-color: var(--bg-tertiary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.collection-selector .form-label {
+    margin-bottom: 6px;
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.collection-selector .form-select-sm {
+    padding: 4px 8px;
+    font-size: 13px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.collection-selector .form-select-sm:focus {
+    border-color: var(--link-color);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Dark mode adjustments */
+body.dark-mode .tree-node:hover {
+    background-color: var(--bg-tertiary);
+}
+
+body.dark-mode .tree-node.active {
+    color: var(--link-color);
+}
+
+body.dark-mode .tree-node.active .tree-node-icon {
+    color: var(--link-color);
+}
+
+body.dark-mode .tree-node.active .tree-node-icon .tree-node-toggle {
+    color: var(--link-color);
+}
+
+body.dark-mode .tree-children {
+    border-left-color: var(--border-color);
+}
+
+/* Empty directory message */
+.tree-empty-message {
+    padding: 8px 12px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-style: italic;
+    user-select: none;
+}
+
+body.dark-mode .tree-empty-message {
+    color: var(--text-secondary);
+}
+
+/* Scrollbar in sidebar */
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-secondary);
+}
+
+.new-collection-btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+}
