@@ -2,8 +2,7 @@ module docenter
 
 import incubaid.herolib.dav.webdav
 import incubaid.herolib.vfs
-import incubaid.herolib.vfs.vfs_db
-import incubaid.herolib.data.ourdb
+import incubaid.herolib.vfs.vfs_local
 import incubaid.herolib.core.texttools
 import veb
 import os
@@ -27,8 +26,8 @@ pub mut:
 
 pub struct ServerConfig {
 pub mut:
-	user_db       map[string]string @[required]
-	database_path string = './database' // Path to store the database files
+	user_db  map[string]string @[required]
+	data_dir string = './data' // Path to store the VFS data files
 }
 
 // Create a new docenter server
@@ -36,22 +35,12 @@ pub fn new_server(mut config ServerConfig) !&DocenterServer {
 	// Set log level
 	log.set_level(.info)
 
-	// Initialize database-backed VFS
-	os.mkdir_all(config.database_path) or {
-		return error('Failed to create database directory: ${err}')
-	}
+	// Initialize local VFS
+	os.mkdir_all(config.data_dir) or { return error('Failed to create data directory: ${err}') }
 
-	mut metadata_db := ourdb.new(
-		path:  os.join_path(config.database_path, 'metadata')
-		reset: false
-	)!
-	mut data_db := ourdb.new(
-		path:  os.join_path(config.database_path, 'data')
-		reset: false
-	)!
-	mut vfs_ := vfs_db.new(mut metadata_db, mut data_db)!
+	mut vfs_ := vfs_local.new_local_vfs(config.data_dir)!
 
-	log.info('[Docenter] Database loaded from ${config.database_path}')
+	log.info('[Docenter] VFS initialized at ${config.data_dir}')
 
 	// Determine the docenter library directory
 	// This assumes the server.v file is in lib/docenter/
@@ -70,8 +59,6 @@ pub fn new_server(mut config ServerConfig) !&DocenterServer {
 	// Ensure /fs directory exists (root for all collections)
 	if !vfs_.exists('fs') {
 		vfs_.dir_create('fs')!
-		// Save the VFS to persist the /fs directory
-		vfs_.save()!
 	}
 
 	// Create base WebDAV server

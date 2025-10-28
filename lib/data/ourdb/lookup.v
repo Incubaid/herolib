@@ -294,36 +294,24 @@ fn (lut LookupTable) export_data(path string) ! {
 }
 
 // Method to export the table in a sparse format
-// PERFORMANCE OPTIMIZATION: This method only scans up to the incremental value (next empty slot)
-// instead of scanning the entire lookup table. This provides a massive performance improvement
-// when the table is mostly empty (e.g., 10 entries out of 16 million possible entries).
-// For example, with 10 entries, this scans 10 positions instead of 16 million positions,
-// resulting in a ~1.6 million times speedup (from 14+ seconds to <1ms).
-fn (mut lut LookupTable) export_sparse(path string) ! {
+fn (lut LookupTable) export_sparse(path string) ! {
 	mut output := []u8{}
 	entry_size := int(lut.keysize)
-
-	// Determine the maximum position to scan
-	// If incremental mode is enabled, only scan up to the incremental value (next empty slot)
-	// This is the key optimization: we only scan positions that could possibly have data
-	// Otherwise, scan the entire table (for non-incremental mode)
-	max_pos := if incremental := lut.incremental {
-		incremental
-	} else {
-		// For non-incremental mode, find the last non-zero entry
-		lut.find_last_entry()! + 1 // +1 to include the last entry
-	}
 
 	if lut.lookuppath.len > 0 {
 		// For disk-based lookup, read the file in chunks
 		mut file := os.open(lut.get_data_file_path()!)!
 		defer { file.close() }
 
+		file_size := os.file_size(lut.get_data_file_path()!)
 		mut buffer := []u8{len: entry_size}
 		mut pos := u32(0)
 
-		// Only scan up to max_pos instead of the entire file
-		for pos < max_pos {
+		for {
+			if i64(pos) * i64(entry_size) >= file_size {
+				break
+			}
+
 			bytes_read := file.read(mut buffer)!
 			if bytes_read == 0 {
 				break
@@ -346,8 +334,7 @@ fn (mut lut LookupTable) export_sparse(path string) ! {
 			pos++
 		}
 	} else {
-		// For memory-based lookup, only scan up to max_pos
-		for i := u32(0); i < max_pos; i++ {
+		for i := u32(0); i < u32(lut.data.len / entry_size); i++ {
 			location := lut.get(i) or { continue }
 			if location.position != 0 || location.file_nr != 0 {
 				// Write position (4 bytes)
