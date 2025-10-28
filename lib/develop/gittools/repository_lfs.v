@@ -1,6 +1,5 @@
 module gittools
 
-import time
 import incubaid.herolib.ui.console
 import incubaid.herolib.core.texttools
 import incubaid.herolib.core
