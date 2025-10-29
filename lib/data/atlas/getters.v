@@ -33,6 +33,16 @@ pub fn (a Atlas) file_get(key string) !&File {
 	return col.file_get(parts[1])!
 }
 
+// Get a file (can be image) from any collection using format "collection:file"
+pub fn (a Atlas) file_or_image_get(key string) !&File {
+	parts := key.split(':')
+	if parts.len != 2 {
+		return error('Invalid file key format. Use "collection:file"')
+	}
+	col := a.get_collection(parts[0])!
+	return col.file_or_image_get(parts[1])!
+}
+
 // Check if page exists
 pub fn (a Atlas) page_exists(key string) bool {
 	parts := key.split(':')
@@ -65,6 +75,16 @@ pub fn (a Atlas) file_exists(key string) bool {
 	col := a.get_collection(parts[0]) or { return false }
 	return col.file_exists(parts[1])
 }
+
+pub fn (a Atlas) file_or_image_exists(key string) bool {
+	parts := key.split(':')
+	if parts.len != 2 {
+		return false
+	}
+	col := a.get_collection(parts[0]) or { return false }
+	return col.file_or_image_exists(parts[1])
+}
+
 
 // List all pages in Atlas
 pub fn (a Atlas) list_pages() map[string][]string {

@@ -91,7 +91,7 @@ import incubaid.herolib.develop.gittools
 //  git_pull  bool
 //  currentdir bool // can use currentdir, if true, will use current directory as base path if not giturl or path specified
 mydocs_path:=gittools.path(
-    pull:true,
+    git_pull:true,
     git_url:'https://git.threefold.info/tfgrid/info_docs_depin/src/branch/main/docs'
 )!
 

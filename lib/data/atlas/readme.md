@@ -210,6 +210,48 @@ content := page.content(include: true)!
 content := page.content()!
 ```
 
+
+## Git Integration
+
+Atlas automatically detects the git repository URL for each collection and stores it for reference. This allows users to easily navigate to the source for editing.
+
+### Automatic Detection
+
+When scanning collections, Atlas walks up the directory tree to find the `.git` directory and captures:
+- **git_url**: The remote origin URL
+- **git_branch**: The current branch
+
+### Scanning from Git URL
+
+You can scan collections directly from a git repository:
+
+```heroscript
+!!atlas.scan
+ name: 'my_docs'
+ git_url: 'https://github.com/myorg/docs.git'
+ git_root: '~/code'  // optional, defaults to ~/code
+```
+
+The repository will be automatically cloned if it doesn't exist locally.
+
+### Accessing Edit URLs
+
+```v
+mut page := atlas.page_get('guides:intro')!
+edit_url := page.get_edit_url()!
+println('Edit at: ${edit_url}')
+// Output: Edit at: https://github.com/myorg/docs/edit/main/guides.md
+```
+
+### Export with Source Information
+
+When exporting, the git URL is displayed:
+
+```
+Collection guides source: https://github.com/myorg/docs.git (branch: main)
+```
+
+This allows published documentation to link back to the source repository for contributions.
 ## Links
 
 Atlas supports standard Markdown links with several formats for referencing pages within collections.
@@ -374,266 +416,59 @@ println('Logo image: ${img_path}')  // Output: img/logo.png
 ```
 
 
-## Atlas Save/Load Functionality
 
-This document describes the save/load functionality for Atlas collections, which allows you to persist collection metadata to JSON files and load them in both V and Python.
 
-## Overview
 
-The Atlas module now supports:
-- **Saving collections** to `.collection.json` files
-- **Loading collections** from `.collection.json` files in V
-- **Loading collections** from `.collection.json` files in Python
+## Saving Collections (Beta)
 
-This enables:
-1. Persistence of collection metadata (pages, images, files, errors)
-2. Cross-language access to Atlas data
-3. Faster loading without re-scanning directories
+**Status:** Basic save functionality is implemented. Load functionality is work-in-progress.
 
-## V Implementation
+### Saving to JSON
 
-### Saving Collections
+Save collection metadata to JSON files for archival or cross-tool compatibility:
 
 ```v
 import incubaid.herolib.data.atlas
 
-// Create and scan atlas
 mut a := atlas.new(name: 'my_docs')!
 a.scan(path: './docs')!
 
-// Save all collections (creates .collection.json in each collection dir)
-a.save_all()!
-
-// Or save a single collection
-col := a.get_collection('guides')!
-col.save()!
-```
-
-### Loading Collections
-
-```v
-import incubaid.herolib.data.atlas
-
-// Load single collection
-mut a := atlas.new(name: 'loaded')!
-mut col := a.load_collection('/path/to/collection')!
-
-println('Pages: ${col.pages.len}')
-
-// Load all collections from directory tree
-mut a2 := atlas.new(name: 'all_docs')!
-a2.load_from_directory('./docs')!
-
-println('Loaded ${a2.collections.len} collections')
+// Save all collections to a specified directory
+// Creates: ${save_path}/${collection_name}.json
+a.save('./metadata')!
 ```
 
 ### What Gets Saved
 
-The `.collection.json` file contains:
-- Collection name and path
-- All pages (name, path, collection_name)
-- All images (name, ext, path, ftype)
-- All files (name, ext, path, ftype)
+Each `.json` file contains:
+- Collection metadata (name, path, git URL, git branch)
+- All pages (with paths and collection references)
+- All images and files (with paths and types)
 - All errors (category, page_key, message, file)
 
-**Note:** Circular references (`atlas` and `collection` pointers) are automatically skipped using the `[skip]` attribute and reconstructed during load.
-
-## Python Implementation
-
-### Installation
-
-The Python loader is a standalone script with no external dependencies (uses only Python stdlib):
-
-```bash
-# No installation needed - just use the script
-python3 lib/data/atlas/atlas_loader.py
-```
-
-### Loading Collections
-
-```python
-from atlas_loader import Atlas
-
-# Load single collection
-atlas = Atlas.load_collection('/path/to/collection')
-
-# Or load all collections from directory tree
-atlas = Atlas.load_from_directory('/path/to/docs')
-
-# Access collections
-col = atlas.get_collection('guides')
-print(f"Pages: {len(col.pages)}")
-
-# Access pages
-page = atlas.page_get('guides:intro')
-if page:
-    content = page.content()
-    print(content)
-
-# Check for errors
-if atlas.has_errors():
-    atlas.print_all_errors()
-```
-
-### Python API
-
-#### Atlas Class
-
-- `Atlas.load_collection(path, name='default')` - Load single collection
-- `Atlas.load_from_directory(path, name='default')` - Load all collections from directory tree
-- `atlas.get_collection(name)` - Get collection by name
-- `atlas.page_get(key)` - Get page using 'collection:page' format
-- `atlas.image_get(key)` - Get image using 'collection:image' format
-- `atlas.file_get(key)` - Get file using 'collection:file' format
-- `atlas.list_collections()` - List all collection names
-- `atlas.list_pages()` - List all pages grouped by collection
-- `atlas.has_errors()` - Check if any collection has errors
-- `atlas.print_all_errors()` - Print errors from all collections
-
-#### Collection Class
-
-- `collection.page_get(name)` - Get page by name
-- `collection.image_get(name)` - Get image by name
-- `collection.file_get(name)` - Get file by name
-- `collection.has_errors()` - Check if collection has errors
-- `collection.error_summary()` - Get error count by category
-- `collection.print_errors()` - Print all errors
-
-#### Page Class
-
-- `page.key()` - Get page key in format 'collection:page'
-- `page.content()` - Read page content from file
-
-#### File Class
-
-- `file.file_name` - Get full filename with extension
-- `file.is_image()` - Check if file is an image
-- `file.read()` - Read file content as bytes
-
-## Workflow
-
-### 1. V: Create and Save
-
-```v
-#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
-
-import incubaid.herolib.data.atlas
-
-// Create atlas and scan
-mut a := atlas.new(name: 'my_docs')!
-a.scan(path: './docs')!
-
-// Validate
-a.validate_links()!
-
-// Save all collections (creates .collection.json in each collection dir)
-a.save_all()!
-
-println('Saved ${a.collections.len} collections')
-```
-
-### 2. V: Load and Use
-
-```v
-#!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
-
-import incubaid.herolib.data.atlas
-
-// Load single collection
-mut a := atlas.new(name: 'loaded')!
-mut col := a.load_collection('/path/to/collection')!
-
-println('Pages: ${col.pages.len}')
-
-// Load all from directory
-mut a2 := atlas.new(name: 'all_docs')!
-a2.load_from_directory('./docs')!
-
-println('Loaded ${a2.collections.len} collections')
-```
-
-### 3. Python: Load and Use
-
-```python
-#!/usr/bin/env python3
-
-from atlas_loader import Atlas
-
-# Load single collection
-atlas = Atlas.load_collection('/path/to/collection')
-
-# Or load all collections
-atlas = Atlas.load_from_directory('/path/to/docs')
-
-# Access pages
-page = atlas.page_get('guides:intro')
-if page:
-    content = page.content()
-    print(content)
-
-# Check errors
-if atlas.has_errors():
-    atlas.print_all_errors()
-```
-
-## File Structure
-
-After saving, each collection directory will contain:
+### Storage Location
 
 ```
-collection_dir/
-├── .collection          # Original collection config
-├── .collection.json     # Saved collection metadata (NEW)
-├── page1.md
-├── page2.md
-└── img/
-    └── image1.png
+save_path/
+├── collection1.json
+├── collection2.json
+└── collection3.json
 ```
 
-## Error Handling
+**Note:** Not in the collection directories themselves - saved to a separate location you specify.
 
-Errors are preserved during save/load:
+### Limitations
 
-```v
-// V: Errors are saved
-mut a := atlas.new()!
-a.scan(path: './docs')!
-a.validate_links()!  // May generate errors
-a.save_all()!        // Errors are saved to .collection.json
-
-// V: Errors are loaded
-mut a2 := atlas.new()!
-a2.load_from_directory('./docs')!
-col := a2.get_collection('guides')!
-if col.has_errors() {
-    col.print_errors()
-}
-```
-
-```python
-# Python: Access errors
-atlas = Atlas.load_from_directory('./docs')
-
-if atlas.has_errors():
-    atlas.print_all_errors()
-
-# Get error summary
-col = atlas.get_collection('guides')
-if col.has_errors():
-    summary = col.error_summary()
-    for category, count in summary.items():
-        print(f"{category}: {count}")
-```
-
-
-
+- Load-from-JSON functionality is not yet implemented
+- Python loader is planned but not yet available
+- Currently, collections must be rescanned from source files
 ## HeroScript Integration
 
 Atlas integrates with HeroScript, allowing you to define Atlas operations in `.vsh` or playbook files.
 
 ### Available Actions
 
-#### 1. `atlas.scan` - Scan Directory for Collections
+#### `atlas.scan` - Scan Directory for Collections
 
 Scan a directory tree to find and load collections marked with `.collection` files.
 
@@ -641,163 +476,31 @@ Scan a directory tree to find and load collections marked with `.collection` fil
 !!atlas.scan
  name: 'main'
  path: './docs'
+ git_url: 'https://github.com/org/repo.git'  # optional
+ git_root: '~/code'                          # optional, default: ~/code
+ meta_path: './metadata'                     # optional, saves metadata here
+ ignore: ['private', 'draft']                # optional, directories to skip
 ```
 
 **Parameters:**
 - `name` (optional, default: 'main') - Atlas instance name
-- `path` (required) - Directory path to scan
+- `path` (required when git_url not provided) - Directory path to scan
+- `git_url` (alternative to path) - Git repository URL to clone/checkout
+- `git_root` (optional when using git_url, default: ~/code) - Base directory for cloning
+- `meta_path` (optional) - Directory to save collection metadata JSON
+- `ignore` (optional) - List of directory names to skip during scan
 
-#### 2. `atlas.load` - Load from Saved Collections
-
-Load collections from `.collection.json` files (previously saved with `atlas.save`).
-
-```heroscript
-!!atlas.load
- name: 'main'
- path: './docs'
-```
-
-**Parameters:**
-- `name` (optional, default: 'main') - Atlas instance name
-- `path` (required) - Directory path containing `.collection.json` files
-
-#### 3. `atlas.validate` - Validate All Links
-
-Validate all markdown links in all collections.
+### Real Workflow Example: Scan and Export
 
 ```heroscript
-!!atlas.validate
- name: 'main'
-```
-
-**Parameters:**
-- `name` (optional, default: 'main') - Atlas instance name
-
-#### 4. `atlas.fix_links` - Fix All Links
-
-Automatically rewrite all local links with correct relative paths.
-
-```heroscript
-!!atlas.fix_links
- name: 'main'
-```
-
-**Parameters:**
-- `name` (optional, default: 'main') - Atlas instance name
-
-#### 5. `atlas.save` - Save Collections
-
-Save all collections to `.collection.json` files in their respective directories.
-
-```heroscript
-!!atlas.save
- name: 'main'
-```
-
-**Parameters:**
-- `name` (optional, default: 'main') - Atlas instance name
-
-#### 6. `atlas.export` - Export Collections
-
-Export collections to a destination directory.
-
-```heroscript
-!!atlas.export
- name: 'main'
- destination: './output'
- reset: true
- include: true
- redis: true
-```
-
-**Parameters:**
-- `name` (optional, default: 'main') - Atlas instance name
-- `destination` (required) - Export destination path
-- `reset` (optional, default: true) - Clear destination before export
-- `include` (optional, default: true) - Process `!!include` actions
-- `redis` (optional, default: true) - Store metadata in Redis
-
-### Complete Workflow Examples
-
-#### Example 1: Scan, Validate, and Export
-
-```heroscript
-# Scan for collections
 !!atlas.scan
  path: '~/docs/myproject'
+ meta_path: '~/docs/metadata'
 
-# Validate all links
-!!atlas.validate
-
-# Export to output directory
 !!atlas.export
  destination: '~/docs/output'
  include: true
-```
-
-#### Example 2: Load, Fix Links, and Export
-
-```heroscript
-# Load from saved collections
-!!atlas.load
- path: '~/docs/myproject'
-
-# Fix all broken links
-!!atlas.fix_links
-
-# Save updated collections
-!!atlas.save
-
-# Export
-!!atlas.export
- destination: '~/docs/output'
-```
-
-#### Example 3: Multiple Atlas Instances
-
-```heroscript
-# Main documentation
-!!atlas.scan
- name: 'docs'
- path: '~/docs'
-
-# API reference
-!!atlas.scan
- name: 'api'
- path: '~/api-docs'
-
-# Export docs
-!!atlas.export
- name: 'docs'
- destination: '~/output/docs'
-
-# Export API
-!!atlas.export
- name: 'api'
- destination: '~/output/api'
-```
-
-#### Example 4: Development Workflow
-
-```heroscript
-# Scan collections
-!!atlas.scan
- path: './docs'
-
-# Validate links (errors will be reported)
-!!atlas.validate
-
-# Fix links automatically
-!!atlas.fix_links
-
-# Save updated collections
-!!atlas.save
-
-# Export final version
-!!atlas.export
- destination: './public'
- include: true
- redis: true
+ redis: false
 ```
 
 ### Using in V Scripts
@@ -814,8 +517,6 @@ import incubaid.herolib.data.atlas
 heroscript := "
 !!atlas.scan
  path: './docs'
-
-!!atlas.validate
 
 !!atlas.export
  destination: './output'
@@ -839,12 +540,6 @@ Create a `docs.play` file:
 !!atlas.scan
  name: 'main'
  path: '~/code/docs'
-
-!!atlas.validate
-
-!!atlas.fix_links
-
-!!atlas.save
 
 !!atlas.export
  destination: '~/code/output'
@@ -880,8 +575,6 @@ Errors are automatically collected and reported:
 !!atlas.scan
  path: './docs'
 
-!!atlas.validate
-
 # Errors will be printed during export
 !!atlas.export
  destination: './output'
@@ -897,14 +590,23 @@ Collection guides - Errors (2)
 
 ### Auto-Export Behavior
 
-If you use `!!atlas.scan` or `!!atlas.load` **without** an explicit `!!atlas.export`, Atlas will automatically export to the default location (current directory).
+If you use `!!atlas.scan` **without** an explicit `!!atlas.export`, Atlas will automatically export to the default location (current directory).
 
-To disable auto-export, include an explicit (empty) export action or simply don't include any scan/load actions.
+To disable auto-export, include an explicit (empty) export action or simply don't include any scan actions.
 
 ### Best Practices
 
 1. **Always validate before export**: Use `!!atlas.validate` to catch broken links early
-2. **Save after fixing**: Use `!!atlas.save` after `!!atlas.fix_links` to persist changes
-3. **Use named instances**: When working with multiple documentation sets, use the `name` parameter
-4. **Enable Redis for production**: Use `redis: true` for web deployments to enable fast lookups
-5. **Process includes during export**: Keep `include: true` to embed referenced content in exported files
+2. **Use named instances**: When working with multiple documentation sets, use the `name` parameter
+3. **Enable Redis for production**: Use `redis: true` for web deployments to enable fast lookups
+4. **Process includes during export**: Keep `include: true` to embed referenced content in exported files
+## Roadmap - Not Yet Implemented
+
+The following features are planned but not yet available:
+
+- [ ] Load collections from `.collection.json` files
+- [ ] Python API for reading collections
+- [ ] `atlas.validate` playbook action
+- [ ] `atlas.fix_links` playbook action  
+- [ ] Auto-save on collection modifications
+- [ ] Collection version control

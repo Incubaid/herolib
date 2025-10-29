@@ -35,7 +35,7 @@ fn test_save_and_load_basic() {
 	assert a.collections.len == 1
 
 	// Save all collections
-	a.save()!
+	a.save(destination_meta: '/tmp/atlas_meta')!
 	assert os.exists('${col_path}/.collection.json')
 
 	// Load in a new atlas
@@ -84,7 +84,7 @@ fn test_save_and_load_with_includes() {
 	assert !col.has_errors()
 
 	// Save
-	a.save()!
+	a.save(destination_meta: '/tmp/atlas_meta')!
 
 	// Load
 	mut a2 := new(name: 'loaded')!
@@ -118,7 +118,7 @@ fn test_save_and_load_with_errors() {
 	initial_error_count := col.errors.len
 
 	// Save with errors
-	a.save()!
+	a.save(destination_meta: '/tmp/atlas_meta')!
 
 	// Load
 	mut a2 := new(name: 'loaded')!
@@ -156,7 +156,7 @@ fn test_save_and_load_multiple_collections() {
 
 	assert a.collections.len == 2
 
-	a.save()!
+	a.save(destination_meta: '/tmp/atlas_meta')!
 
 	// Load from directory
 	mut a2 := new(name: 'loaded')!
@@ -191,7 +191,7 @@ fn test_save_and_load_with_images() {
 	assert col.image_exists('test')
 
 	// Save
-	a.save()!
+	a.save(destination_meta: '/tmp/atlas_meta')!
 
 	// Load
 	mut a2 := new(name: 'loaded')!

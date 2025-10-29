@@ -8,9 +8,11 @@ pub enum CollectionErrorCategory {
 	missing_include
 	include_syntax_error
 	invalid_page_reference
+	invalid_file_reference
 	file_not_found
 	invalid_collection
 	general_error
+	acl_denied // NEW: Access denied by ACL
 }
 
 pub struct CollectionError {
@@ -25,13 +27,13 @@ pub mut:
 // Hash is based on category + page_key (or file if page_key is empty)
 pub fn (e CollectionError) hash() string {
 	mut hash_input := '${e.category}'
-	
+
 	if e.page_key != '' {
 		hash_input += ':${e.page_key}'
 	} else if e.file != '' {
 		hash_input += ':${e.file}'
 	}
-	
+
 	return md5.hexhash(hash_input)
 }
 
@@ -43,7 +45,7 @@ pub fn (e CollectionError) str() string {
 	} else if e.file != '' {
 		location = ' [${e.file}]'
 	}
-	
+
 	return '[${e.category}]${location}: ${e.message}'
 }
 
@@ -54,8 +56,10 @@ pub fn (e CollectionError) category_str() string {
 		.missing_include { 'Missing Include' }
 		.include_syntax_error { 'Include Syntax Error' }
 		.invalid_page_reference { 'Invalid Page Reference' }
+		.invalid_file_reference { 'Invalid File Reference' }
 		.file_not_found { 'File Not Found' }
 		.invalid_collection { 'Invalid Collection' }
 		.general_error { 'General Error' }
+		.acl_denied { 'ACL Access Denied' }
 	}
 }
