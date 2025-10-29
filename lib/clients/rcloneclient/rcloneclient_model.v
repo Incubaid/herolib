@@ -1,4 +1,4 @@
-module rclone
+module rcloneclient
 
 import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.encoderhero

@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&MeilisearchInstaller {
 			data := r.hget('context:meilisearch_installer', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('MeilisearchInstaller with name: ${args.name} does not exist, prob bug.')
+				return error('MeilisearchInstaller with name: meilisearch_installer does not exist, prob bug.')
 			}
 			mut obj := json.decode(MeilisearchInstaller, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&MeilisearchInstaller {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("MeilisearchInstaller with name '${args.name}' does not exist")
+				return error("MeilisearchInstaller with name 'meilisearch_installer' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return meilisearch_installer_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for meilisearch_installer with name:${args.name}')
+		return error('could not get config for meilisearch_installer with name:meilisearch_installer')
 	}
 }
 

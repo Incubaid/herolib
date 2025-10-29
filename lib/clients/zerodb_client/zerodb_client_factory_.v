@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&ZeroDBClient {
 			data := r.hget('context:zerodb_client', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('ZeroDBClient with name: ${args.name} does not exist, prob bug.')
+				return error('ZeroDBClient with name: zerodb_client does not exist, prob bug.')
 			}
 			mut obj := json.decode(ZeroDBClient, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&ZeroDBClient {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("ZeroDBClient with name '${args.name}' does not exist")
+				return error("ZeroDBClient with name 'zerodb_client' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return zerodb_client_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for zerodb_client with name:${args.name}')
+		return error('could not get config for zerodb_client with name:zerodb_client')
 	}
 }
 

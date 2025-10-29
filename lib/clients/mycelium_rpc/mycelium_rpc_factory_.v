@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&MyceliumRPC {
 			data := r.hget('context:mycelium_rpc', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('MyceliumRPC with name: ${args.name} does not exist, prob bug.')
+				return error('MyceliumRPC with name: mycelium_rpc does not exist, prob bug.')
 			}
 			mut obj := json.decode(MyceliumRPC, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&MyceliumRPC {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("MyceliumRPC with name '${args.name}' does not exist")
+				return error("MyceliumRPC with name 'mycelium_rpc' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return mycelium_rpc_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for mycelium_rpc with name:${args.name}')
+		return error('could not get config for mycelium_rpc with name:mycelium_rpc')
 	}
 }
 

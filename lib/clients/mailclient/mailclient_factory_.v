@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&MailClient {
 			data := r.hget('context:mailclient', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('MailClient with name: ${args.name} does not exist, prob bug.')
+				return error('MailClient with name: mailclient does not exist, prob bug.')
 			}
 			mut obj := json.decode(MailClient, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&MailClient {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("MailClient with name '${args.name}' does not exist")
+				return error("MailClient with name 'mailclient' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return mailclient_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for mailclient with name:${args.name}')
+		return error('could not get config for mailclient with name:mailclient')
 	}
 }
 

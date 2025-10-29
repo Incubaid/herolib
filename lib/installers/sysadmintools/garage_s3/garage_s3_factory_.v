@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&GarageS3 {
 			data := r.hget('context:garage_s3', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('GarageS3 with name: ${args.name} does not exist, prob bug.')
+				return error('GarageS3 with name: garage_s3 does not exist, prob bug.')
 			}
 			mut obj := json.decode(GarageS3, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&GarageS3 {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("GarageS3 with name '${args.name}' does not exist")
+				return error("GarageS3 with name 'garage_s3' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return garage_s3_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for garage_s3 with name:${args.name}')
+		return error('could not get config for garage_s3 with name:garage_s3')
 	}
 }
 

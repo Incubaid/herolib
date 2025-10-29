@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&ZinitRPC {
 			data := r.hget('context:zinit', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('ZinitRPC with name: ${args.name} does not exist, prob bug.')
+				return error('ZinitRPC with name: zinit does not exist, prob bug.')
 			}
 			mut obj := json.decode(ZinitRPC, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&ZinitRPC {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("ZinitRPC with name '${args.name}' does not exist")
+				return error("ZinitRPC with name 'zinit' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return zinit_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for zinit with name:${args.name}')
+		return error('could not get config for zinit with name:zinit')
 	}
 }
 

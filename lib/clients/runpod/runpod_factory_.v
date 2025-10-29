@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&RunPod {
 			data := r.hget('context:runpod', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('RunPod with name: ${args.name} does not exist, prob bug.')
+				return error('RunPod with name: runpod does not exist, prob bug.')
 			}
 			mut obj := json.decode(RunPod, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&RunPod {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("RunPod with name '${args.name}' does not exist")
+				return error("RunPod with name 'runpod' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return runpod_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for runpod with name:${args.name}')
+		return error('could not get config for runpod with name:runpod')
 	}
 }
 

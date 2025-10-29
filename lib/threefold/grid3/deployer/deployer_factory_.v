@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&TFGridDeployer {
 			data := r.hget('context:deployer', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('TFGridDeployer with name: ${args.name} does not exist, prob bug.')
+				return error('TFGridDeployer with name: deployer does not exist, prob bug.')
 			}
 			mut obj := json.decode(TFGridDeployer, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&TFGridDeployer {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("TFGridDeployer with name '${args.name}' does not exist")
+				return error("TFGridDeployer with name 'deployer' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return deployer_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for deployer with name:${args.name}')
+		return error('could not get config for deployer with name:deployer')
 	}
 }
 

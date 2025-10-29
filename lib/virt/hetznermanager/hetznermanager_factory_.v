@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&HetznerManager {
 			data := r.hget('context:hetznermanager', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('HetznerManager with name: ${args.name} does not exist, prob bug.')
+				return error('HetznerManager with name: hetznermanager does not exist, prob bug.')
 			}
 			mut obj := json.decode(HetznerManager, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&HetznerManager {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("HetznerManager with name '${args.name}' does not exist")
+				return error("HetznerManager with name 'hetznermanager' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return hetznermanager_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for hetznermanager with name:${args.name}')
+		return error('could not get config for hetznermanager with name:hetznermanager')
 	}
 }
 

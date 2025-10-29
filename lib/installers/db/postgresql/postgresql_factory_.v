@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&Postgresql {
 			data := r.hget('context:postgresql', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('Postgresql with name: ${args.name} does not exist, prob bug.')
+				return error('Postgresql with name: postgresql does not exist, prob bug.')
 			}
 			mut obj := json.decode(Postgresql, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&Postgresql {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("Postgresql with name '${args.name}' does not exist")
+				return error("Postgresql with name 'postgresql' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return postgresql_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for postgresql with name:${args.name}')
+		return error('could not get config for postgresql with name:postgresql')
 	}
 }
 

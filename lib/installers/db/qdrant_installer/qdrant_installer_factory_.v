@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&QDrant {
 			data := r.hget('context:qdrant_installer', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('QDrant with name: ${args.name} does not exist, prob bug.')
+				return error('QDrant with name: qdrant_installer does not exist, prob bug.')
 			}
 			mut obj := json.decode(QDrant, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&QDrant {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("QDrant with name '${args.name}' does not exist")
+				return error("QDrant with name 'qdrant_installer' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return qdrant_installer_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for qdrant_installer with name:${args.name}')
+		return error('could not get config for qdrant_installer with name:qdrant_installer')
 	}
 }
 

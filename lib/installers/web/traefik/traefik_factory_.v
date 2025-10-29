@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&TraefikServer {
 			data := r.hget('context:traefik', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('TraefikServer with name: ${args.name} does not exist, prob bug.')
+				return error('TraefikServer with name: traefik does not exist, prob bug.')
 			}
 			mut obj := json.decode(TraefikServer, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&TraefikServer {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("TraefikServer with name '${args.name}' does not exist")
+				return error("TraefikServer with name 'traefik' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return traefik_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for traefik with name:${args.name}')
+		return error('could not get config for traefik with name:traefik')
 	}
 }
 

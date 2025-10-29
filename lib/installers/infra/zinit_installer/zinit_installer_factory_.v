@@ -33,7 +33,7 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'zinit_installer.configure')!
 	if install_actions.len > 0 {
-		return error("can't configure zinit_installer:${args.name}, because no configuration allowed for this installer.")
+		return error("can't configure zinit_installer, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'zinit_installer.')!
 	for mut other_action in other_actions {

@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&Jina {
 			data := r.hget('context:jina', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('Jina with name: ${args.name} does not exist, prob bug.')
+				return error('Jina with name: jina does not exist, prob bug.')
 			}
 			mut obj := json.decode(Jina, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&Jina {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("Jina with name '${args.name}' does not exist")
+				return error("Jina with name 'jina' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return jina_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for jina with name:${args.name}')
+		return error('could not get config for jina with name:jina')
 	}
 }
 

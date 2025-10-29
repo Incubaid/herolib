@@ -13,7 +13,7 @@ import incubaid.herolib.clients.openai
 import incubaid.herolib.clients.openrouter
 import incubaid.herolib.clients.postgresql_client
 import incubaid.herolib.clients.qdrant
-import incubaid.herolib.clients.rclone
+import incubaid.herolib.clients.rcloneclient
 import incubaid.herolib.clients.runpod
 import incubaid.herolib.clients.sendgrid
 import incubaid.herolib.clients.vastai
@@ -69,7 +69,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	openrouter.play(mut plbook)!
 	postgresql_client.play(mut plbook)!
 	qdrant.play(mut plbook)!
-	rclone.play(mut plbook)!
+	rcloneclient.play(mut plbook)!
 	runpod.play(mut plbook)!
 	sendgrid.play(mut plbook)!
 	vastai.play(mut plbook)!

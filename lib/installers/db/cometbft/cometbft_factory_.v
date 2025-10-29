@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&CometBFT {
 			data := r.hget('context:cometbft', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('CometBFT with name: ${args.name} does not exist, prob bug.')
+				return error('CometBFT with name: cometbft does not exist, prob bug.')
 			}
 			mut obj := json.decode(CometBFT, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&CometBFT {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("CometBFT with name '${args.name}' does not exist")
+				return error("CometBFT with name 'cometbft' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return cometbft_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for cometbft with name:${args.name}')
+		return error('could not get config for cometbft with name:cometbft')
 	}
 }
 
