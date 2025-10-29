@@ -1,6 +1,6 @@
 #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 
-import incubaid.herolib.clients.openrouter
+import incubaid.herolib.clients.openai
 import incubaid.herolib.core.playcmds
 
 // Sample code file to be improved
@@ -19,23 +19,41 @@ def find_max(lst):
     return max
 '
 
-mut modifier := openrouter.get(name: 'modifier', create: true) or {
-	panic('Failed to get modifier client: ${err}')
-}
+// Configure two OpenAI client instances to use OpenRouter with different models
+// Model A: Enhancement model (Qwen Coder)
+playcmds.run(
+	heroscript: '
+		!!openai.configure
+			name: "enhancer"
+			url: "https://openrouter.ai/api/v1"
+			model_default: "qwen/qwen-2.5-coder-32b-instruct"
+	'
+)!
 
-mut enhancer := openrouter.get(name: 'enhancer', create: true) or {
-	panic('Failed to get enhancer client: ${err}')
-}
+// Model B: Modification model (Llama 3.3 70B)
+playcmds.run(
+	heroscript: '
+		!!openai.configure
+			name: "modifier"
+			url: "https://openrouter.ai/api/v1"
+			model_default: "meta-llama/llama-3.3-70b-instruct"
+	'
+)!
+
+mut enhancer := openai.get(name: 'enhancer') or { panic('Failed to get enhancer client: ${err}') }
+
+mut modifier := openai.get(name: 'modifier') or { panic('Failed to get modifier client: ${err}') }
 
 println('═'.repeat(70))
 println('🔧 Two-Model Code Enhancement Pipeline - Proof of Concept')
+println('🔧 Using OpenAI client configured for OpenRouter')
 println('═'.repeat(70))
 println('')
 
-// Step 1: Get enhancement suggestions from Model A (Qwen3 Coder 480B)
+// Step 1: Get enhancement suggestions from Model A (Qwen Coder)
 println('📝 STEP 1: Code Enhancement Analysis')
 println('─'.repeat(70))
-println('Model: Qwen3 Coder 480B A35B')
+println('Model: qwen/qwen-2.5-coder-32b-instruct')
 println('Task: Analyze code and suggest improvements\n')
 
 enhancement_prompt := 'You are a code enhancement agent.
@@ -68,10 +86,10 @@ println(enhancement_result.result)
 println('─'.repeat(70))
 println('Tokens used: ${enhancement_result.usage.total_tokens}\n')
 
-// Step 2: Apply edits using Model B (morph-v3-fast)
+// Step 2: Apply edits using Model B (Llama 3.3 70B)
 println('\n📝 STEP 2: Apply Code Modifications')
 println('─'.repeat(70))
-println('Model: morph-v3-fast')
+println('Model: meta-llama/llama-3.3-70b-instruct')
 println('Task: Apply the suggested edits to produce updated code\n')
 
 modification_prompt := 'You are a file editing agent.
@@ -106,9 +124,9 @@ println('Tokens used: ${modification_result.usage.total_tokens}\n')
 println('\n📊 PIPELINE SUMMARY')
 println('═'.repeat(70))
 println('Original code length: ${sample_code.len} chars')
-println('Enhancement model: qwen/qwq-32b-preview (Qwen3 Coder 480B A35B)')
+println('Enhancement model: qwen/qwen-2.5-coder-32b-instruct')
 println('Enhancement tokens: ${enhancement_result.usage.total_tokens}')
-println('Modification model: neversleep/llama-3.3-70b-instruct (morph-v3-fast)')
+println('Modification model: meta-llama/llama-3.3-70b-instruct')
 println('Modification tokens: ${modification_result.usage.total_tokens}')
 println('Total tokens: ${enhancement_result.usage.total_tokens +
 	modification_result.usage.total_tokens}')

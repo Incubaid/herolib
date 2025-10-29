@@ -3,7 +3,7 @@
 import incubaid.herolib.clients.openai
 import incubaid.herolib.core.playcmds
 
-//to set the API key, either set it here, or set the OPENAI_API_KEY environment variable
+// to set the API key, either set it here, or set the OPENAI_API_KEY environment variable
 
 playcmds.run(
 	heroscript: '
@@ -20,3 +20,5 @@ mut r := client.chat_completion(
 	temperature:           0.3
 	max_completion_tokens: 1024
 )!
+
+println(r.result)

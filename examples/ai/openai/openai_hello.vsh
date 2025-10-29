@@ -1,10 +1,20 @@
 #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 
-import incubaid.herolib.clients.openrouter
+import incubaid.herolib.clients.openai
 import incubaid.herolib.core.playcmds
 
+// Configure OpenAI client to use OpenRouter
+playcmds.run(
+	heroscript: '
+		!!openai.configure
+			name: "default"
+			url: "https://openrouter.ai/api/v1"
+			model_default: "qwen/qwen-2.5-coder-32b-instruct"
+	'
+)!
+
 // Get the client instance
-mut client := openrouter.get() or {
+mut client := openai.get() or {
 	eprintln('Failed to get client: ${err}')
 	return
 }

@@ -1,12 +1,22 @@
 #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 
-import incubaid.herolib.clients.openrouter
+import incubaid.herolib.clients.openai
 import incubaid.herolib.core.playcmds
 
-// Get the client instance
-mut client := openrouter.get()!
+// Configure OpenAI client to use OpenRouter
+playcmds.run(
+	heroscript: '
+		!!openai.configure
+			name: "default"
+			url: "https://openrouter.ai/api/v1"
+			model_default: "qwen/qwen-2.5-coder-32b-instruct"
+	'
+)!
 
-println('🤖 OpenRouter Client Example')
+// Get the client instance
+mut client := openai.get()!
+
+println('🤖 OpenRouter Client Example (using OpenAI client)')
 println('═'.repeat(50))
 println('')
 
@@ -29,11 +39,11 @@ println('─'.repeat(50))
 r = client.chat_completion(
 	model:                 'qwen/qwen-2.5-coder-32b-instruct'
 	messages:              [
-		openrouter.Message{
+		openai.Message{
 			role:    .system
 			content: 'You are a helpful coding assistant who speaks concisely.'
 		},
-		openrouter.Message{
+		openai.Message{
 			role:    .user
 			content: 'What is V programming language?'
 		},
