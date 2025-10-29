@@ -54,6 +54,6 @@ fn destroy() ! {
 	// No cleanup needed for kubectl wrapper
 }
 
-fn configure() ! {
-	console.print_debug('Kubernetes client configured')
-}
+// fn configure() ! {
+// 	console.print_debug('Kubernetes client configured')
+// }

@@ -1,13 +1,7 @@
 module kubernetes
 
-import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.encoderhero
-import incubaid.herolib.data.ourjson
 import os
-
-pub const version = '1.0.0'
-const singleton = false
-const default = true
 
 // K8s API Version and Kind tracking
 @[params]
@@ -166,7 +160,6 @@ pub mut:
 	insecure_skip_tls_verify bool
 }
 
-
 // Validation result for YAML files
 pub struct K8sValidationResult {
 pub mut:
@@ -185,32 +178,4 @@ pub mut:
 	namespaces   int
 	running_pods int
 	api_server   string
-}
-
-// Initialization
-fn obj_init(mut cfg KubeClient) !KubeClient {
-	// Resolve kubeconfig path
-	if cfg.kubeconfig_path.is_empty() {
-		home := os.home_dir()
-		cfg.kubeconfig_path = '${home}/.kube/config'
-	}
-
-	// Ensure kubeconfig exists
-	if !os.path_exists(cfg.kubeconfig_path) {
-		return error('kubeconfig not found at ${cfg.kubeconfig_path}')
-	}
-
-	cfg.config.kubeconfig_path = cfg.kubeconfig_path
-
-	return cfg
-}
-
-fn configure() ! {
-	// Configure any defaults or environment-specific settings
-}
-
-pub fn heroscript_loads(heroscript string) !KubeClient {
-	// TODO: this will have to be redone, because its much more complicated now, need to define a nice play processors
-	mut obj := encoderhero.decode[KubeClient](heroscript)!
-	return obj_init(obj)!
 }

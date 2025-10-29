@@ -2,7 +2,7 @@
 
 ## Overview
 
-This folder contains **three example scripts** demonstrating the usage of the OpenRouter V client (`herolib.clients.openrouter`).
+This folder contains **example scripts** demonstrating the usage of the OpenRouter V client (`herolib.clients.openrouter`).
 
 * **Goal:** Show how to send messages to OpenRouter models, run a **two-model pipeline** for code enhancement, and illustrate multi-model usage.
 

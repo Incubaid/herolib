@@ -9,36 +9,36 @@ import os
 
 // Execute kubectl command with proper error handling
 pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
-	mut cmd := '${k.kubectl_path} '
+	mut cmd := 'kubectl'
 
-	if !k.config.namespace.is_empty() {
+	if k.config.namespace.len > 0 {
 		cmd += '--namespace=${k.config.namespace} '
 	}
 
-	if !k.kubeconfig_path.is_empty() {
+	if k.kubeconfig_path.len > 0 {
 		cmd += '--kubeconfig=${k.kubeconfig_path} '
 	}
 
-	if !k.config.context.is_empty() {
+	if k.config.context.len > 0 {
 		cmd += '--context=${k.config.context} '
 	}
 
 	cmd += args.command
 
-	console.print_debug("executing: ${cmd}")
+	console.print_debug('executing: ${cmd}')
 
 	job := osal.exec(
-		cmd: cmd
-		timeout: args.timeout
-		retry: args.retry
+		cmd:         cmd
+		timeout:     args.timeout
+		retry:       args.retry
 		raise_error: false
 	)!
 
 	return KubectlResult{
 		exit_code: job.exit_code
-		stdout: job.output
-		stderr: job.error
-		success: job.exit_code == 0
+		stdout:    job.output
+		stderr:    job.error
+		success:   job.exit_code == 0
 	}
 }
 
@@ -76,80 +76,90 @@ pub fn (mut k KubeClient) cluster_info() !ClusterInfo {
 		return error('Failed to get cluster version: ${result.stderr}')
 	}
 
-	version_data := json.decode(map[string]interface{}, result.stdout)!
-	server_version := version_data['serverVersion'] or { return error('No serverVersion') }
+	println(result.stdout)
 
-	// Get node count
-	nodes_result := k.kubectl_exec(command: 'get nodes -o json')!
-	nodes_count := if nodes_result.success {
-		nodes_data := json.decode(map[string]interface{}, nodes_result.stdout)!
-		items := nodes_data['items'] or { []interface{}{} }
-		items.len
-	} else {
-		0
-	}
+	$dbg;
+	// version_data := json.decode(map[string]interface{}, result.stdout)!
+	// server_version := version_data['serverVersion'] or { return error('No serverVersion') }
 
-	// Get namespace count
-	ns_result := k.kubectl_exec(command: 'get namespaces -o json')!
-	ns_count := if ns_result.success {
-		ns_data := json.decode(map[string]interface{}, ns_result.stdout)!
-		items := ns_data['items'] or { []interface{}{} }
-		items.len
-	} else {
-		0
-	}
+	// // Get node count
+	// nodes_result := k.kubectl_exec(command: 'get nodes -o json')!
+	// nodes_count := if nodes_result.success {
+	// 	nodes_data := json.decode(map[string]interface{}, nodes_result.stdout)!
+	// 	items := nodes_data['items'] or { []interface{}{} }
+	// 	items.len
+	// } else {
+	// 	0
+	// }
 
-	// Get running pods count
-	pods_result := k.kubectl_exec(command: 'get pods --all-namespaces -o json')!
-	pods_count := if pods_result.success {
-		pods_data := json.decode(map[string]interface{}, pods_result.stdout)!
-		items := pods_data['items'] or { []interface{}{} }
-		items.len
-	} else {
-		0
-	}
+	// // Get namespace count
+	// ns_result := k.kubectl_exec(command: 'get namespaces -o json')!
+	// ns_count := if ns_result.success {
+	// 	ns_data := json.decode(map[string]interface{}, ns_result.stdout)!
+	// 	items := ns_data['items'] or { []interface{}{} }
+	// 	items.len
+	// } else {
+	// 	0
+	// }
 
-	return ClusterInfo{
-		version: 'v1.0.0'
-		nodes: nodes_count
-		namespaces: ns_count
-		running_pods: pods_count
-		api_server: k.config.api_server
-	}
+	// // Get running pods count
+	// pods_result := k.kubectl_exec(command: 'get pods --all-namespaces -o json')!
+	// pods_count := if pods_result.success {
+	// 	pods_data := json.decode(map[string]interface{}, pods_result.stdout)!
+	// 	items := pods_data['items'] or { []interface{}{} }
+	// 	items.len
+	// } else {
+	// 	0
+	// }
+
+	// return ClusterInfo{
+	// 	version: 'v1.0.0'
+	// 	nodes: nodes_count
+	// 	namespaces: ns_count
+	// 	running_pods: pods_count
+	// 	api_server: k.config.api_server
+	// }
+	return ClusterInfo{}
 }
 
 // Get resources (Pods, Deployments, Services, etc.)
-pub fn (mut k KubeClient) get_pods(namespace string) ![]map[string]interface{} {
+pub fn (mut k KubeClient) get_pods(namespace string) ! {
 	result := k.kubectl_exec(command: 'get pods -n ${namespace} -o json')!
 	if !result.success {
 		return error('Failed to get pods: ${result.stderr}')
 	}
 
-	data := json.decode(map[string]interface{}, result.stdout)!
-	items := data['items'] or { []interface{}{} }
-	return items as []map[string]interface{}
+	println(result.stdout)
+	$dbg;
+	// data := json.decode(map[string]interface{}, result.stdout)!
+	// items := data['items'] or { []interface{}{} }
+	// return items as []map[string]interface{}
+
+	panic('Not implemented')
 }
 
-pub fn (mut k KubeClient) get_deployments(namespace string) ![]map[string]interface{} {
+pub fn (mut k KubeClient) get_deployments(namespace string) ! {
 	result := k.kubectl_exec(command: 'get deployments -n ${namespace} -o json')!
 	if !result.success {
 		return error('Failed to get deployments: ${result.stderr}')
 	}
 
-	data := json.decode(map[string]interface{}, result.stdout)!
-	items := data['items'] or { []interface{}{} }
-	return items as []map[string]interface{}
+	// data := json.decode(map[string]interface{}, result.stdout)!
+	// items := data['items'] or { []interface{}{} }
+	// return items as []map[string]interface{}
+	panic('Not implemented')
 }
 
-pub fn (mut k KubeClient) get_services(namespace string) ![]map[string]interface{} {
+pub fn (mut k KubeClient) get_services(namespace string) ! {
 	result := k.kubectl_exec(command: 'get services -n ${namespace} -o json')!
 	if !result.success {
 		return error('Failed to get services: ${result.stderr}')
 	}
 
-	data := json.decode(map[string]interface{}, result.stdout)!
-	items := data['items'] or { []interface{}{} }
-	return items as []map[string]interface{}
+	// data := json.decode(map[string]interface{}, result.stdout)!
+	// items := data['items'] or { []interface{}{} }
+	// return items as []map[string]interface{}
+	panic('Not implemented')
 }
 
 // Apply YAML file
@@ -157,7 +167,7 @@ pub fn (mut k KubeClient) apply_yaml(yaml_path string) !KubectlResult {
 	// Validate before applying
 	validation := yaml_validate(yaml_path)!
 	if !validation.valid {
-		return error('YAML validation failed: ${validation.errors.join(", ")}')
+		return error('YAML validation failed: ${validation.errors.join(', ')}')
 	}
 
 	result := k.kubectl_exec(command: 'apply -f ${yaml_path}')!
@@ -204,11 +214,11 @@ pub fn (mut k KubeClient) logs(pod_name string, namespace string, follow bool) !
 
 // Exec into container
 pub fn (mut k KubeClient) exec_pod(pod_name string, namespace string, container string, cmd_args []string) !string {
-	cmd := 'exec -it ${pod_name} -n ${namespace}'
-	if !container.is_empty() {
+	mut cmd := 'exec -it ${pod_name} -n ${namespace}'
+	if container.len > 0 {
 		cmd += ' -c ${container}'
 	}
-	cmd += ' -- ${cmd_args.join(" ")}'
+	cmd += ' -- ${cmd_args.join(' ')}'
 
 	result := k.kubectl_exec(command: cmd, timeout: 300)!
 	if !result.success {

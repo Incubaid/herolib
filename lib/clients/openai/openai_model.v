@@ -46,6 +46,9 @@ fn obj_init(mycfg_ OpenAI) !OpenAI {
 			}
 		}
 	}
+	if mycfg.api_key == '' {
+		return error('OpenAI client "${mycfg.name}" missing api_key')
+	}
 	return mycfg
 }
 

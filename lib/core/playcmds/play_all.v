@@ -10,6 +10,7 @@ import incubaid.herolib.clients.meilisearch
 import incubaid.herolib.clients.mycelium
 import incubaid.herolib.clients.mycelium_rpc
 import incubaid.herolib.clients.openai
+import incubaid.herolib.clients.openrouter
 import incubaid.herolib.clients.postgresql_client
 import incubaid.herolib.clients.qdrant
 import incubaid.herolib.clients.rclone
@@ -47,6 +48,7 @@ import incubaid.herolib.installers.web.tailwind4
 import incubaid.herolib.installers.web.traefik
 import incubaid.herolib.installers.web.zola
 import incubaid.herolib.virt.hetznermanager
+import incubaid.herolib.virt.kubernetes
 
 pub fn run_all(args_ PlayArgs) ! {
 	mut args := args_
@@ -64,6 +66,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	mycelium.play(mut plbook)!
 	mycelium_rpc.play(mut plbook)!
 	openai.play(mut plbook)!
+	openrouter.play(mut plbook)!
 	postgresql_client.play(mut plbook)!
 	qdrant.play(mut plbook)!
 	rclone.play(mut plbook)!
@@ -101,4 +104,5 @@ pub fn run_all(args_ PlayArgs) ! {
 	traefik.play(mut plbook)!
 	zola.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
+	kubernetes.play(mut plbook)!
 }
