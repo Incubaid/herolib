@@ -251,3 +251,13 @@ body.dark-mode .tree-empty-message {
     border: 1px solid var(--border-color);
     background-color: transparent;
 }
+
+.delete-collection-btn {
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    color: var(--danger-color);
+    border: 1px solid var(--border-color);
+    background-color: transparent;
+}

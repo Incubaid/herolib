@@ -89,6 +89,10 @@
                             title="Create New Collection">
                             <i class="bi bi-plus-lg"></i>
                         </button>
+                        <button id="deleteCollectionBtn" class="btn btn-sm delete-collection-btn"
+                            title="Delete Current Collection">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </div>
                 </div>
                 <!-- File Tree -->
@@ -100,10 +104,6 @@
 
             <!-- Editor Pane -->
             <div class="col editor-pane" id="editorPane">
-                <div class="editor-header">
-                    <input type="text" id="filenameInput" placeholder="filename.md"
-                        class="form-control form-control-sm">
-                </div>
                 <div class="editor-container">
                     <div id="editor"></div>
                 </div>
@@ -118,6 +118,16 @@
                     <p class="text-muted">Start typing in the editor to see the preview</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- New Item Menu -->
+    <div id="newItemMenu" class="context-menu" style="display: none;">
+        <div class="context-menu-item" data-action="new-file">
+            <i class="bi bi-file-plus"></i> New File
+        </div>
+        <div class="context-menu-item" data-action="new-folder">
+            <i class="bi bi-folder-plus"></i> New Folder
         </div>
     </div>
 

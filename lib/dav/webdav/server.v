@@ -3,7 +3,6 @@ module webdav
 import time
 import incubaid.herolib.core.texttools
 import incubaid.herolib.ui.console
-import incubaid.herolib.vfs.vfs_db
 import encoding.xml
 import net.urllib
 import net
@@ -288,14 +287,6 @@ pub fn (mut server Server) mkcol(mut ctx Context, path string) veb.Result {
 		return ctx.server_error(err.msg())
 	}
 
-	// Save the VFS if it's a DatabaseVFS to persist the new directory
-	if mut server.vfs is vfs_db.DatabaseVFS {
-		server.vfs.save() or {
-			log.error('[WebDAV] Failed to save VFS after MKCOL: ${err}')
-			return ctx.server_error('Failed to persist collection: ${err}')
-		}
-	}
-
 	// Add WsgiDAV-like headers
 	ctx.set_header(.content_type, 'text/html; charset=utf-8')
 	ctx.set_header(.content_length, '0')
@@ -537,22 +528,6 @@ pub fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Re
 			}
 		}
 
-		// Save the VFS to persist the file
-		if mut server.vfs is vfs_db.DatabaseVFS {
-			server.vfs.save() or {
-				log.error('[WebDAV] Failed to save VFS after PUT: ${err}')
-				// Send error response
-				ctx.res.set_status(.internal_server_error)
-				ctx.res.header.set(.content_type, 'text/plain')
-				error_msg := 'Failed to persist file: ${err}'
-				ctx.res.header.set(.content_length, '${error_msg.len}')
-				ctx.conn.write(ctx.res.bytestr().bytes()) or {}
-				ctx.conn.write(error_msg.bytes()) or {}
-				ctx.conn.close() or {}
-				return veb.no_result()
-			}
-		}
-
 		// Send success response
 		ctx.res.header.set(.content_type, 'text/html; charset=utf-8')
 		ctx.res.header.set(.content_length, '0')
@@ -577,14 +552,6 @@ pub fn (mut server Server) create_or_update(mut ctx Context, path string) veb.Re
 		server.vfs.file_write(path, content_bytes) or {
 			log.error('[WebDAV] Failed to write empty data to ${path}: ${err.msg()}')
 			return ctx.server_error('Failed to write file: ${err.msg()}')
-		}
-
-		// Save the VFS to persist the file
-		if mut server.vfs is vfs_db.DatabaseVFS {
-			server.vfs.save() or {
-				log.error('[WebDAV] Failed to save VFS after PUT: ${err}')
-				return ctx.server_error('Failed to persist file: ${err}')
-			}
 		}
 
 		// Add WsgiDAV-like headers

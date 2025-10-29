@@ -24,7 +24,6 @@ mut:
 	get(id u32) ![]u8
 	set(ourdb.OurDBSetArgs) !u32
 	delete(id u32) !
-	save() !
 }
 
 // Get the next ID, it should be some kind of auto-incrementing ID

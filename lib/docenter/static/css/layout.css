@@ -19,7 +19,8 @@ body {
 
 /* Column Resizer */
 .column-resizer {
-    width: 1px;
+    width: 4px;
+    /* Wider for easier grabbing */
     background-color: var(--border-color);
     cursor: col-resize;
     transition: background-color 0.2s ease, width 0.2s ease, box-shadow 0.2s ease;
@@ -37,18 +38,15 @@ body {
 
 .column-resizer:hover {
     background-color: var(--link-color);
-    width: 1px;
+    width: 4px;
     box-shadow: 0 0 6px rgba(13, 110, 253, 0.3);
-    /* Visual feedback instead of width change */
+    /* Visual feedback */
 }
 
 .column-resizer.dragging {
     background-color: var(--link-color);
+    width: 4px;
     box-shadow: 0 0 8px rgba(13, 110, 253, 0.5);
-}
-
-.column-resizer.dragging {
-    background-color: var(--link-color);
 }
 
 /* Navbar */
@@ -119,7 +117,8 @@ body {
 #sidebarPane {
     flex: 0 0 20%;
     min-width: 150px;
-    max-width: 20%;
+    max-width: 40%;
+    /* Allow resizing up to 40% of container width */
     padding: 0;
     height: 100%;
     overflow: hidden;
@@ -186,7 +185,8 @@ body {
 #editorPane {
     flex: 1 1 40%;
     min-width: 250px;
-    max-width: 70%;
+    max-width: 80%;
+    /* Allow resizing up to 80% of container width */
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -260,7 +260,8 @@ body {
 /* Preview Pane Styling */
 #previewPane {
     min-width: 250px;
-    max-width: 70%;
+    max-width: 80%;
+    /* Allow resizing up to 80% of container width */
     padding: 0;
     background-color: var(--bg-primary);
     border-left: 1px solid var(--border-color);
@@ -335,7 +336,8 @@ body.edit-mode #resizer2 {
 }
 
 body.edit-mode #previewPane {
-    max-width: 70%;
+    max-width: 80%;
+    /* Allow resizing up to 80% of container width */
 }
 
 body.edit-mode #sidebarPane {
