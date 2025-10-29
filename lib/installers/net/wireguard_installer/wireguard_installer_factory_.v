@@ -32,7 +32,7 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'wireguard_installer.configure')!
 	if install_actions.len > 0 {
-		return error("can't configure wireguard_installer, because no configuration allowed for this installer.")
+		return error("can't configure wireguard_installer:${args.name}, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'wireguard_installer.')!
 	for mut other_action in other_actions {

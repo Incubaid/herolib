@@ -2,6 +2,7 @@ module ipapi
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 import json
 
 __global (
@@ -36,7 +37,7 @@ pub fn get(args ArgsGet) !&IPApi {
 			data := r.hget('context:ipapi', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('IPApi with name: ipapi does not exist, prob bug.')
+				return error('IPApi with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(IPApi, data)!
 			set_in_mem(obj)!
@@ -45,14 +46,14 @@ pub fn get(args ArgsGet) !&IPApi {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("IPApi with name 'ipapi' does not exist")
+				return error("IPApi with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return ipapi_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for ipapi with name:ipapi')
+		return error('could not get config for ipapi with name:${args.name}')
 	}
 }
 

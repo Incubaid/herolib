@@ -2,6 +2,7 @@ module openrouter
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
 import json
 
 __global (
@@ -36,7 +37,7 @@ pub fn get(args ArgsGet) !&OpenRouter {
 			data := r.hget('context:openrouter', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('OpenRouter with name: openrouter does not exist, prob bug.')
+				return error('OpenRouter with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(OpenRouter, data)!
 			set_in_mem(obj)!
@@ -45,14 +46,14 @@ pub fn get(args ArgsGet) !&OpenRouter {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("OpenRouter with name 'openrouter' does not exist")
+				return error("OpenRouter with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return openrouter_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for openrouter with name:openrouter')
+		return error('could not get config for openrouter with name:${args.name}')
 	}
 }
 

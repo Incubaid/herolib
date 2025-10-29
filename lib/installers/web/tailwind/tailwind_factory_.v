@@ -32,7 +32,7 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'tailwind.configure')!
 	if install_actions.len > 0 {
-		return error("can't configure tailwind, because no configuration allowed for this installer.")
+		return error("can't configure tailwind:${args.name}, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'tailwind.')!
 	for mut other_action in other_actions {

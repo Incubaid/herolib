@@ -55,7 +55,7 @@ pub fn get(args ArgsGet) !&${args.classname} {
 			data := r.hget('context:${args.name}', args.name)!
 			if data.len == 0 {
                 print_backtrace()
-				return error('${args.classname} with name: ${args.name} does not exist, prob bug.')
+				return error('${args.classname} with name: ??{args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(${args.classname},data)!
 			set_in_mem(obj)!
@@ -64,14 +64,14 @@ pub fn get(args ArgsGet) !&${args.classname} {
 				new(args)!
 			}else{
                 print_backtrace()
-				return error("${args.classname} with name '${args.name}' does not exist")
+				return error("${args.classname} with name '??{args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! //no longer from db nor create
 	}
 	return ${args.name}_global[args.name] or {
         print_backtrace()
-		return error('could not get config for ${args.name} with name:${args.name}')
+		return error('could not get config for ${args.name} with name:??{args.name}')
 	}
 }
 
@@ -163,7 +163,7 @@ pub fn play(mut plbook PlayBook) ! {
             install_action.done = true
 		}           
         @else
-        return error("can't configure ${args.name}, because no configuration allowed for this installer.")
+        return error("can't configure ${args.name}:??{args.name}, because no configuration allowed for this installer.")
         @end
 	}
     @if args.cat == .installer

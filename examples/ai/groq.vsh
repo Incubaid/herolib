@@ -4,68 +4,25 @@ module main
 
 import incubaid.herolib.clients.openai
 import os
+import incubaid.herolib.core.playcmds
 
-fn test1(mut client openai.OpenAI) ! {
-	instruction := '
-	You are a template language converter. You convert Pug templates to Jet templates.
 
-	The target template language, Jet, is defined as follows:
-	'
+playcmds.run(
+	heroscript: '
+        !!openai.configure name:"qroq" 
+            url:"https://api.groq.com/openai/v1" 
+            model_default:"gpt-oss-120b"
+    '
+	reset:      true
+)!
 
-	// Create a chat completion request
-	res := client.chat_completion(
-		msgs: openai.Messages{
-			messages: [
-				openai.Message{
-					role:    .user
-					content: 'What are the key differences between Groq and other AI inference providers?'
-				},
-			]
-		}
-	)!
+mut client := openai.get(name: 'groq')!
 
-	// Print the response
-	println('\nGroq AI Response:')
-	println('==================')
-	println(res.choices[0].message.content)
-	println('\nUsage Statistics:')
-	println('Prompt tokens: ${res.usage.prompt_tokens}')
-	println('Completion tokens: ${res.usage.completion_tokens}')
-	println('Total tokens: ${res.usage.total_tokens}')
-}
+response := client.chat_completion(
+	message:               'Explain quantum computing in simple terms'
+	temperature:           0.5
+	max_completion_tokens: 1024
+)!
 
-fn test2(mut client openai.OpenAI) ! {
-	// Create a chat completion request
-	res := client.chat_completion(
-		model: 'deepseek-r1-distill-llama-70b'
-		msgs:  openai.Messages{
-			messages: [
-				openai.Message{
-					role:    .user
-					content: 'A story of 10 lines?'
-				},
-			]
-		}
-	)!
+println(response.result)
 
-	println('\nGroq AI Response:')
-	println('==================')
-	println(res.choices[0].message.content)
-	println('\nUsage Statistics:')
-	println('Prompt tokens: ${res.usage.prompt_tokens}')
-	println('Completion tokens: ${res.usage.completion_tokens}')
-	println('Total tokens: ${res.usage.total_tokens}')
-}
-
-println("
-TO USE:
-export AIKEY='gsk_...'
-export AIURL='https://api.groq.com/openai/v1'
-export AIMODEL='llama-3.3-70b-versatile'
-")
-
-mut client := openai.get(name: 'test')!
-println(client)
-
-// test1(mut client)!
-test2(mut client)!

@@ -12,12 +12,12 @@ const default = true
 @[heap]
 pub struct ERPNext {
 pub mut:
-	name       string = 'default'
-	username   string
-	password   string @[secret]
-	title      string
-	port       int
-	example []ERPNextExample
+	name     string = 'default'
+	username string
+	password string @[secret]
+	title    string
+	port     int
+	example  []ERPNextExample
 }
 
 pub struct ERPNextExample {

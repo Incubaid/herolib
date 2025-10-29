@@ -95,4 +95,3 @@ pub fn (mut f OpenRouter) chat_completion(args_ CompletionArgs) !ChatCompletion 
 	}
 	return chat_completion_result
 }
-

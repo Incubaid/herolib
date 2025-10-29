@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&RCloneClient {
 			data := r.hget('context:rclone', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('RCloneClient with name: rclone does not exist, prob bug.')
+				return error('RCloneClient with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(RCloneClient, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&RCloneClient {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("RCloneClient with name 'rclone' does not exist")
+				return error("RCloneClient with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return rclone_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for rclone with name:rclone')
+		return error('could not get config for rclone with name:${args.name}')
 	}
 }
 

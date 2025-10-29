@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&VastAI {
 			data := r.hget('context:vastai', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('VastAI with name: vastai does not exist, prob bug.')
+				return error('VastAI with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(VastAI, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&VastAI {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("VastAI with name 'vastai' does not exist")
+				return error("VastAI with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return vastai_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for vastai with name:vastai')
+		return error('could not get config for vastai with name:${args.name}')
 	}
 }
 
