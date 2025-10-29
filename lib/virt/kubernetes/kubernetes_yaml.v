@@ -1,9 +1,6 @@
 module kubernetes
 
-import json
-import incubaid.herolib.data.markdown
 import incubaid.herolib.core.pathlib
-import os
 
 // Parse YAML file and return validation result
 pub fn yaml_validate(yaml_path string) !K8sValidationResult {

@@ -1,19 +1,15 @@
 module kubernetes
 
 import incubaid.herolib.osal.core as osal
-import incubaid.herolib.core.httpconnection
-import incubaid.herolib.core.pathlib
 import incubaid.herolib.ui.console
 import json
-import os
-
 
 @[params]
 pub struct KubectlExecArgs {
 pub mut:
 	command string
 	timeout int = 30
-	retry   int = 0
+	retry   int
 }
 
 pub struct KubectlResult {
@@ -29,18 +25,18 @@ pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
 	mut cmd := 'kubectl'
 
 	if k.config.namespace.len > 0 {
-		cmd += '--namespace=${k.config.namespace} '
+		cmd += ' --namespace=${k.config.namespace}'
 	}
 
 	if k.kubeconfig_path.len > 0 {
-		cmd += '--kubeconfig=${k.kubeconfig_path} '
+		cmd += ' --kubeconfig=${k.kubeconfig_path}'
 	}
 
 	if k.config.context.len > 0 {
-		cmd += '--context=${k.config.context} '
+		cmd += ' --context=${k.config.context}'
 	}
 
-	cmd += args.command
+	cmd += ' ${args.command}'
 
 	console.print_debug('executing: ${cmd}')
 
@@ -58,7 +54,6 @@ pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
 		success:   job.exit_code == 0
 	}
 }
-
 
 // Test connection to cluster
 pub fn (mut k KubeClient) test_connection() !bool {
@@ -78,90 +73,175 @@ pub fn (mut k KubeClient) cluster_info() !ClusterInfo {
 		return error('Failed to get cluster version: ${result.stderr}')
 	}
 
-	println(result.stdout)
+	// Parse version JSON using struct-based decoding
+	mut version_str := 'unknown'
+	version_response := json.decode(KubectlVersionResponse, result.stdout) or {
+		console.print_debug('Failed to parse version JSON: ${err}')
+		KubectlVersionResponse{}
+	}
+	if version_response.server_version.git_version.len > 0 {
+		version_str = version_response.server_version.git_version
+	}
 
-	$dbg;
-	// version_data := json.decode(map[string]interface{}, result.stdout)!
-	// server_version := version_data['serverVersion'] or { return error('No serverVersion') }
+	// Get node count
+	nodes_result := k.kubectl_exec(command: 'get nodes -o json')!
+	mut nodes_count := 0
+	if nodes_result.success {
+		nodes_list := json.decode(KubectlListResponse, nodes_result.stdout) or {
+			console.print_debug('Failed to parse nodes JSON: ${err}')
+			KubectlListResponse{}
+		}
+		nodes_count = nodes_list.items.len
+	}
 
-	// // Get node count
-	// nodes_result := k.kubectl_exec(command: 'get nodes -o json')!
-	// nodes_count := if nodes_result.success {
-	// 	nodes_data := json.decode(map[string]interface{}, nodes_result.stdout)!
-	// 	items := nodes_data['items'] or { []interface{}{} }
-	// 	items.len
-	// } else {
-	// 	0
-	// }
+	// Get namespace count
+	ns_result := k.kubectl_exec(command: 'get namespaces -o json')!
+	mut ns_count := 0
+	if ns_result.success {
+		ns_list := json.decode(KubectlListResponse, ns_result.stdout) or {
+			console.print_debug('Failed to parse namespaces JSON: ${err}')
+			KubectlListResponse{}
+		}
+		ns_count = ns_list.items.len
+	}
 
-	// // Get namespace count
-	// ns_result := k.kubectl_exec(command: 'get namespaces -o json')!
-	// ns_count := if ns_result.success {
-	// 	ns_data := json.decode(map[string]interface{}, ns_result.stdout)!
-	// 	items := ns_data['items'] or { []interface{}{} }
-	// 	items.len
-	// } else {
-	// 	0
-	// }
+	// Get running pods count
+	pods_result := k.kubectl_exec(command: 'get pods --all-namespaces -o json')!
+	mut pods_count := 0
+	if pods_result.success {
+		pods_list := json.decode(KubectlListResponse, pods_result.stdout) or {
+			console.print_debug('Failed to parse pods JSON: ${err}')
+			KubectlListResponse{}
+		}
+		pods_count = pods_list.items.len
+	}
 
-	// // Get running pods count
-	// pods_result := k.kubectl_exec(command: 'get pods --all-namespaces -o json')!
-	// pods_count := if pods_result.success {
-	// 	pods_data := json.decode(map[string]interface{}, pods_result.stdout)!
-	// 	items := pods_data['items'] or { []interface{}{} }
-	// 	items.len
-	// } else {
-	// 	0
-	// }
-
-	// return ClusterInfo{
-	// 	version: 'v1.0.0'
-	// 	nodes: nodes_count
-	// 	namespaces: ns_count
-	// 	running_pods: pods_count
-	// 	api_server: k.config.api_server
-	// }
-	return ClusterInfo{}
+	return ClusterInfo{
+		version:      version_str
+		nodes:        nodes_count
+		namespaces:   ns_count
+		running_pods: pods_count
+		api_server:   k.config.api_server
+	}
 }
 
 // Get resources (Pods, Deployments, Services, etc.)
-pub fn (mut k KubeClient) get_pods(namespace string) ! {
+pub fn (mut k KubeClient) get_pods(namespace string) ![]Pod {
 	result := k.kubectl_exec(command: 'get pods -n ${namespace} -o json')!
 	if !result.success {
 		return error('Failed to get pods: ${result.stderr}')
 	}
 
-	println(result.stdout)
-	$dbg;
-	// data := json.decode(map[string]interface{}, result.stdout)!
-	// items := data['items'] or { []interface{}{} }
-	// return items as []map[string]interface{}
+	// Parse JSON response using struct-based decoding
+	pod_list := json.decode(KubectlPodListResponse, result.stdout) or {
+		return error('Failed to parse pods JSON: ${err}')
+	}
 
-	panic('Not implemented')
+	mut pods := []Pod{}
+
+	for item in pod_list.items {
+		// Extract container names
+		mut container_names := []string{}
+		for container in item.spec.containers {
+			container_names << container.name
+		}
+
+		// Create Pod struct from kubectl response
+		pod := Pod{
+			name:       item.metadata.name
+			namespace:  item.metadata.namespace
+			status:     item.status.phase
+			node:       item.spec.node_name
+			ip:         item.status.pod_ip
+			containers: container_names
+			labels:     item.metadata.labels
+			created_at: item.metadata.creation_timestamp
+		}
+
+		pods << pod
+	}
+
+	return pods
 }
 
-pub fn (mut k KubeClient) get_deployments(namespace string) ! {
+pub fn (mut k KubeClient) get_deployments(namespace string) ![]Deployment {
 	result := k.kubectl_exec(command: 'get deployments -n ${namespace} -o json')!
 	if !result.success {
 		return error('Failed to get deployments: ${result.stderr}')
 	}
 
-	// data := json.decode(map[string]interface{}, result.stdout)!
-	// items := data['items'] or { []interface{}{} }
-	// return items as []map[string]interface{}
-	panic('Not implemented')
+	// Parse JSON response using struct-based decoding
+	deployment_list := json.decode(KubectlDeploymentListResponse, result.stdout) or {
+		return error('Failed to parse deployments JSON: ${err}')
+	}
+
+	mut deployments := []Deployment{}
+
+	for item in deployment_list.items {
+		// Create Deployment struct from kubectl response
+		deployment := Deployment{
+			name:               item.metadata.name
+			namespace:          item.metadata.namespace
+			replicas:           item.spec.replicas
+			ready_replicas:     item.status.ready_replicas
+			available_replicas: item.status.available_replicas
+			updated_replicas:   item.status.updated_replicas
+			labels:             item.metadata.labels
+			created_at:         item.metadata.creation_timestamp
+		}
+
+		deployments << deployment
+	}
+
+	return deployments
 }
 
-pub fn (mut k KubeClient) get_services(namespace string) ! {
+pub fn (mut k KubeClient) get_services(namespace string) ![]Service {
 	result := k.kubectl_exec(command: 'get services -n ${namespace} -o json')!
 	if !result.success {
 		return error('Failed to get services: ${result.stderr}')
 	}
 
-	// data := json.decode(map[string]interface{}, result.stdout)!
-	// items := data['items'] or { []interface{}{} }
-	// return items as []map[string]interface{}
-	panic('Not implemented')
+	// Parse JSON response using struct-based decoding
+	service_list := json.decode(KubectlServiceListResponse, result.stdout) or {
+		return error('Failed to parse services JSON: ${err}')
+	}
+
+	mut services := []Service{}
+
+	for item in service_list.items {
+		// Build port strings (e.g., "80/TCP", "443/TCP")
+		mut port_strings := []string{}
+		for port in item.spec.ports {
+			port_strings << '${port.port}/${port.protocol}'
+		}
+
+		// Get external IP from LoadBalancer status if available
+		mut external_ip := ''
+		if item.status.load_balancer.ingress.len > 0 {
+			external_ip = item.status.load_balancer.ingress[0].ip
+		}
+		// Also check spec.external_ips
+		if external_ip.len == 0 && item.spec.external_ips.len > 0 {
+			external_ip = item.spec.external_ips[0]
+		}
+
+		// Create Service struct from kubectl response
+		service := Service{
+			name:         item.metadata.name
+			namespace:    item.metadata.namespace
+			service_type: item.spec.service_type
+			cluster_ip:   item.spec.cluster_ip
+			external_ip:  external_ip
+			ports:        port_strings
+			labels:       item.metadata.labels
+			created_at:   item.metadata.creation_timestamp
+		}
+
+		services << service
+	}
+
+	return services
 }
 
 // Apply YAML file

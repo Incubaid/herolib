@@ -1,7 +1,5 @@
 module elements
 
-import toml
-
 // Frontmatter2 struct
 @[heap]
 pub struct Frontmatter2 {
