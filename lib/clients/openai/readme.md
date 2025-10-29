@@ -363,31 +363,6 @@ fn main() ! {
 }
 ```
 
-## Configuration Details
-
-Refer to `openai_model.v` for implementation details:
-
-- **API Key Fallback Chain**: `api_key` → `AIKEY` → `OPENROUTER_API_KEY` / `GROQKEY`
-- **URL Fallback**: Defaults to OpenRouter if not specified
-- **Model Fallback**: Uses `AIMODEL` environment variable if not set
-- **Validation**: Ensures API key is present before returning client
-
-## Error Handling
-
-```v
-mut client := openai.get() or {
-    eprintln('Failed to initialize client: ${err}')
-    return
-}
-
-response := client.chat_completion(
-    message: 'Hello'
-) or {
-    eprintln('API request failed: ${err}')
-    return
-}
-```
-
 ## Supported Providers
 
 - **OpenAI** - `https://api.openai.com/v1`

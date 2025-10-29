@@ -6,12 +6,13 @@ import incubaid.herolib.clients.openai
 import os
 import incubaid.herolib.core.playcmds
 
+// models see https://console.groq.com/docs/models
 
 playcmds.run(
 	heroscript: '
-        !!openai.configure name:"qroq" 
+        !!openai.configure name:"groq" 
             url:"https://api.groq.com/openai/v1" 
-            model_default:"gpt-oss-120b"
+            model_default:"openai/gpt-oss-120b"
     '
 	reset:      true
 )!
@@ -25,4 +26,3 @@ response := client.chat_completion(
 )!
 
 println(response.result)
-
