@@ -163,7 +163,7 @@ pub fn play(mut plbook PlayBook) ! {
             install_action.done = true
 		}           
         @else
-        return error("can't configure ${args.name}:??{args.name}, because no configuration allowed for this installer.")
+        return error("can't configure ${args.name}, because no configuration allowed for this installer.")
         @end
 	}
     @if args.cat == .installer
