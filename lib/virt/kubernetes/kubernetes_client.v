@@ -7,6 +7,23 @@ import incubaid.herolib.ui.console
 import json
 import os
 
+
+@[params]
+pub struct KubectlExecArgs {
+pub mut:
+	command string
+	timeout int = 30
+	retry   int = 0
+}
+
+pub struct KubectlResult {
+pub mut:
+	exit_code int
+	stdout    string
+	stderr    string
+	success   bool
+}
+
 // Execute kubectl command with proper error handling
 pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
 	mut cmd := 'kubectl'
@@ -42,21 +59,6 @@ pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
 	}
 }
 
-@[params]
-pub struct KubectlExecArgs {
-pub mut:
-	command string
-	timeout int = 30
-	retry   int = 0
-}
-
-pub struct KubectlResult {
-pub mut:
-	exit_code int
-	stdout    string
-	stderr    string
-	success   bool
-}
 
 // Test connection to cluster
 pub fn (mut k KubeClient) test_connection() !bool {
