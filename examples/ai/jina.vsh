@@ -2,7 +2,7 @@
 
 import incubaid.herolib.clients.jina
 
-mut jina_client := jina.get()!
+mut jina_client := jina.new()!
 health := jina_client.health()!
 println('Server health: ${health}')
 
@@ -34,7 +34,7 @@ train_result := jina_client.train(
 			label: 'positive'
 		},
 		jina.TrainingExample{
-			image: 'https://letsenhance.io/static/73136da51c245e80edc6ccfe44888a99/1015f/MainBefore.jpg'
+			image: 'https://picsum.photos/id/11/367/267'
 			label: 'negative'
 		},
 	]
@@ -50,7 +50,7 @@ classify_result := jina_client.classify(
 			text: 'A photo of a cat'
 		},
 		jina.ClassificationInput{
-			image: 'https://letsenhance.io/static/73136da51c245e80edc6ccfe44888a99/1015f/MainBefore.jpg'
+			image: 'https://picsum.photos/id/11/367/267'
 		},
 	]
 	labels: ['cat', 'dog']

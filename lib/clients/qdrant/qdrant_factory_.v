@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&QDrantClient {
 			data := r.hget('context:qdrant', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('QDrantClient with name: qdrant does not exist, prob bug.')
+				return error('QDrantClient with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(QDrantClient, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&QDrantClient {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("QDrantClient with name 'qdrant' does not exist")
+				return error("QDrantClient with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return qdrant_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for qdrant with name:qdrant')
+		return error('could not get config for qdrant with name:${args.name}')
 	}
 }
 

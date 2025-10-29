@@ -1,4 +1,4 @@
-module rclone
+module openrouter
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
@@ -6,8 +6,8 @@ import incubaid.herolib.ui.console
 import json
 
 __global (
-	rclone_global  map[string]&RCloneClient
-	rclone_default string
+	openrouter_global  map[string]&OpenRouter
+	openrouter_default string
 )
 
 /////////FACTORY
@@ -20,63 +20,63 @@ pub mut:
 	create bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&RCloneClient {
-	mut obj := RCloneClient{
+pub fn new(args ArgsGet) !&OpenRouter {
+	mut obj := OpenRouter{
 		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&RCloneClient {
+pub fn get(args ArgsGet) !&OpenRouter {
 	mut context := base.context()!
-	rclone_default = args.name
-	if args.fromdb || args.name !in rclone_global {
+	openrouter_default = args.name
+	if args.fromdb || args.name !in openrouter_global {
 		mut r := context.redis()!
-		if r.hexists('context:rclone', args.name)! {
-			data := r.hget('context:rclone', args.name)!
+		if r.hexists('context:openrouter', args.name)! {
+			data := r.hget('context:openrouter', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('RCloneClient with name: rclone does not exist, prob bug.')
+				return error('OpenRouter with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(RCloneClient, data)!
+			mut obj := json.decode(OpenRouter, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("RCloneClient with name 'rclone' does not exist")
+				return error("OpenRouter with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
-	return rclone_global[args.name] or {
+	return openrouter_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for rclone with name:rclone')
+		return error('could not get config for openrouter with name:${args.name}')
 	}
 }
 
 // register the config for the future
-pub fn set(o RCloneClient) ! {
+pub fn set(o OpenRouter) ! {
 	mut o2 := set_in_mem(o)!
-	rclone_default = o2.name
+	openrouter_default = o2.name
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hset('context:rclone', o2.name, json.encode(o2))!
+	r.hset('context:openrouter', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
 pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
 	mut r := context.redis()!
-	return r.hexists('context:rclone', args.name)!
+	return r.hexists('context:openrouter', args.name)!
 }
 
 pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hdel('context:rclone', args.name)!
+	r.hdel('context:openrouter', args.name)!
 }
 
 @[params]
@@ -86,17 +86,17 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&RCloneClient {
-	mut res := []&RCloneClient{}
+pub fn list(args ArgsList) ![]&OpenRouter {
+	mut res := []&OpenRouter{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		rclone_global = map[string]&RCloneClient{}
-		rclone_default = ''
+		openrouter_global = map[string]&OpenRouter{}
+		openrouter_default = ''
 	}
 	if args.fromdb {
 		mut r := context.redis()!
-		mut l := r.hkeys('context:rclone')!
+		mut l := r.hkeys('context:openrouter')!
 
 		for name in l {
 			res << get(name: name, fromdb: true)!
@@ -104,7 +104,7 @@ pub fn list(args ArgsList) ![]&RCloneClient {
 		return res
 	} else {
 		// load from memory
-		for _, client in rclone_global {
+		for _, client in openrouter_global {
 			res << client
 		}
 	}
@@ -112,18 +112,18 @@ pub fn list(args ArgsList) ![]&RCloneClient {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o RCloneClient) !RCloneClient {
+fn set_in_mem(o OpenRouter) !OpenRouter {
 	mut o2 := obj_init(o)!
-	rclone_global[o2.name] = &o2
-	rclone_default = o2.name
+	openrouter_global[o2.name] = &o2
+	openrouter_default = o2.name
 	return o2
 }
 
 pub fn play(mut plbook PlayBook) ! {
-	if !plbook.exists(filter: 'rclone.') {
+	if !plbook.exists(filter: 'openrouter.') {
 		return
 	}
-	mut install_actions := plbook.find(filter: 'rclone.configure')!
+	mut install_actions := plbook.find(filter: 'openrouter.configure')!
 	if install_actions.len > 0 {
 		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
@@ -134,6 +134,7 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 }
 
-// switch instance to be used for rclone
+// switch instance to be used for openrouter
 pub fn switch(name string) {
+	openrouter_default = name
 }

@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&LivekitServer {
 			data := r.hget('context:livekit', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('LivekitServer with name: livekit does not exist, prob bug.')
+				return error('LivekitServer with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(LivekitServer, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&LivekitServer {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("LivekitServer with name 'livekit' does not exist")
+				return error("LivekitServer with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return livekit_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for livekit with name:livekit')
+		return error('could not get config for livekit with name:${args.name}')
 	}
 }
 

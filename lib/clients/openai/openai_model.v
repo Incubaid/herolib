@@ -45,6 +45,15 @@ fn obj_init(mycfg_ OpenAI) !OpenAI {
 				mycfg.api_key = k2
 			}
 		}
+		if mycfg.url.contains('groq') {
+			k2 := os.getenv('GROQKEY')
+			if k2 != '' {
+				mycfg.api_key = k2
+			}
+		}
+	}
+	if mycfg.api_key == '' {
+		return error('OpenAI client "${mycfg.name}" missing api_key')
 	}
 	return mycfg
 }

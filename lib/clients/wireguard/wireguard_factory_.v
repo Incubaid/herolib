@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&WireGuard {
 			data := r.hget('context:wireguard', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('WireGuard with name: wireguard does not exist, prob bug.')
+				return error('WireGuard with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(WireGuard, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&WireGuard {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("WireGuard with name 'wireguard' does not exist")
+				return error("WireGuard with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return wireguard_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for wireguard with name:wireguard')
+		return error('could not get config for wireguard with name:${args.name}')
 	}
 }
 
