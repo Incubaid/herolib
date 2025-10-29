@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&Workspace {
 			data := r.hget('context:heroprompt', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('Workspace with name: heroprompt does not exist, prob bug.')
+				return error('Workspace with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(Workspace, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&Workspace {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("Workspace with name 'heroprompt' does not exist")
+				return error("Workspace with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return heroprompt_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for heroprompt with name:heroprompt')
+		return error('could not get config for heroprompt with name:${args.name}')
 	}
 }
 

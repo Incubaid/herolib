@@ -12,8 +12,8 @@ pub mut:
 	max_completion_tokens int = 32000
 }
 
-struct Message {
-mut:
+pub struct Message {
+pub mut:
 	role    RoleType
 	content string
 }
@@ -42,15 +42,15 @@ fn roletype_str(x RoleType) string {
 	}
 }
 
-struct Usage {
-mut:
+pub struct Usage {
+pub mut:
 	prompt_tokens     int
 	completion_tokens int
 	total_tokens      int
 }
 
-struct ChatCompletion {
-mut:
+pub struct ChatCompletion {
+pub mut:
 	id      string
 	created u32
 	result  string

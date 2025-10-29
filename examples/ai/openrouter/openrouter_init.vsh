@@ -3,6 +3,8 @@
 import incubaid.herolib.clients.openai
 import incubaid.herolib.core.playcmds
 
+//to set the API key, either set it here, or set the OPENAI_API_KEY environment variable
+
 playcmds.run(
 	heroscript: '
 		!!openai.configure name: "default" key: "" url: "https://openrouter.ai/api/v1" model_default: "gpt-oss-120b"

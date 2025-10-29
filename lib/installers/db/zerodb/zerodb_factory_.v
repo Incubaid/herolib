@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&ZeroDB {
 			data := r.hget('context:zerodb', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('ZeroDB with name: zerodb does not exist, prob bug.')
+				return error('ZeroDB with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(ZeroDB, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&ZeroDB {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("ZeroDB with name 'zerodb' does not exist")
+				return error("ZeroDB with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return zerodb_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for zerodb with name:zerodb')
+		return error('could not get config for zerodb with name:${args.name}')
 	}
 }
 

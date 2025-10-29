@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&KubeClient {
 			data := r.hget('context:kubernetes', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('KubeClient with name: kubernetes does not exist, prob bug.')
+				return error('KubeClient with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(KubeClient, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&KubeClient {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("KubeClient with name 'kubernetes' does not exist")
+				return error("KubeClient with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return kubernetes_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for kubernetes with name:kubernetes')
+		return error('could not get config for kubernetes with name:${args.name}')
 	}
 }
 

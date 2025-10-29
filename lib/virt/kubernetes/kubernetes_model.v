@@ -11,16 +11,13 @@ const default = true
 @[heap]
 pub struct KubeClient {
 pub mut:
-	name       string = 'default'
 	name              string = 'default'
 	kubeconfig_path   string
 	config            KubeConfig
 	connected         bool
 	api_version       string = 'v1'
-	kubectl_path      string = 'kubectl'
-	cache_enabled     bool = true
-	cache_ttl_seconds int = 300
-
+	cache_enabled     bool   = true
+	cache_ttl_seconds int    = 300
 }
 
 // your checking & initialization code if needed
@@ -41,7 +38,7 @@ fn configure() ! {
 /////////////NORMALLY NO NEED TO TOUCH
 
 pub fn heroscript_loads(heroscript string) !KubeClient {
-	//TODO: will have to be implemented manual
+	// TODO: will have to be implemented manual
 	mut obj := encoderhero.decode[KubeClient](heroscript)!
 	return obj
 }

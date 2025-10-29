@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&LimaInstaller {
 			data := r.hget('context:lima', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('LimaInstaller with name: lima does not exist, prob bug.')
+				return error('LimaInstaller with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(LimaInstaller, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&LimaInstaller {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("LimaInstaller with name 'lima' does not exist")
+				return error("LimaInstaller with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return lima_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for lima with name:lima')
+		return error('could not get config for lima with name:${args.name}')
 	}
 }
 

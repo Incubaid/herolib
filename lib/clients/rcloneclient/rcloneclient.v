@@ -1,4 +1,4 @@
-module rclone
+module rcloneclient
 
 import os
 
