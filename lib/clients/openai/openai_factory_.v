@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&OpenAI {
 			data := r.hget('context:openai', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('OpenAI with name: openai does not exist, prob bug.')
+				return error('OpenAI with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(OpenAI, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&OpenAI {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("OpenAI with name 'openai' does not exist")
+				return error("OpenAI with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return openai_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for openai with name:openai')
+		return error('could not get config for openai with name:${args.name}')
 	}
 }
 

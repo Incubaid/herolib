@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&PostgresqlClient {
 			data := r.hget('context:postgresql_client', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('PostgresqlClient with name: postgresql_client does not exist, prob bug.')
+				return error('PostgresqlClient with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(PostgresqlClient, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&PostgresqlClient {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("PostgresqlClient with name 'postgresql_client' does not exist")
+				return error("PostgresqlClient with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return postgresql_client_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for postgresql_client with name:postgresql_client')
+		return error('could not get config for postgresql_client with name:${args.name}')
 	}
 }
 
