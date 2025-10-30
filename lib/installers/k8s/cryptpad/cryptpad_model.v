@@ -1,10 +1,7 @@
 module cryptpad
 
-import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.encoderhero
-import os
 import incubaid.herolib.ui.console
-import incubaid.herolib.core.pathlib
 
 pub const version = '1.0.0'
 const singleton = true

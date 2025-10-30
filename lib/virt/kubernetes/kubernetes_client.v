@@ -12,6 +12,15 @@ pub mut:
 	retry   int
 }
 
+// Args for describing a resource
+@[params]
+pub struct DescribeResourceArgs {
+pub mut:
+	resource      string // Resource type: pod, node, service, deployment, tfgw, etc.
+	resource_name string // Name of the specific resource instance
+	namespace     string // Namespace (empty string for cluster-scoped resources)
+}
+
 pub struct KubectlResult {
 pub mut:
 	exit_code int
@@ -40,18 +49,52 @@ pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
 
 	console.print_debug('executing: ${cmd}')
 
-	job := osal.exec(
-		cmd:         cmd
-		timeout:     args.timeout
-		retry:       args.retry
-		raise_error: false
-	)!
+	// Check if this is a command that might produce large output
+	is_large_output := args.command.contains('get nodes') || args.command.contains('get pods')
+		|| args.command.contains('get deployments') || args.command.contains('get services')
 
-	return KubectlResult{
-		exit_code: job.exit_code
-		stdout:    job.output
-		stderr:    job.error
-		success:   job.exit_code == 0
+	if is_large_output {
+		// Use exec_fast for large outputs (avoids 8KB buffer limit in osal.exec)
+		// exec_fast uses os.execute which doesn't have the pipe buffer limitation
+		result_output := osal.exec_fast(
+			cmd:          cmd
+			ignore_error: true
+		) or { return error('Failed to execute kubectl command: ${err}') }
+
+		// Check if command succeeded by looking for error messages
+		if result_output.contains('Error from server') || result_output.contains('error:')
+			|| result_output.contains('Unable to connect') {
+			return KubectlResult{
+				exit_code: 1
+				stdout:    result_output
+				stderr:    result_output
+				success:   false
+			}
+		}
+
+		return KubectlResult{
+			exit_code: 0
+			stdout:    result_output
+			stderr:    ''
+			success:   result_output.len > 0
+		}
+	} else {
+		// Use regular exec for normal commands (supports timeout and proper error handling)
+		// Note: stdout must be true to prevent process from hanging when output buffer fills
+		job := osal.exec(
+			cmd:         cmd
+			timeout:     args.timeout
+			retry:       args.retry
+			raise_error: false
+			stdout:      true
+		)!
+
+		return KubectlResult{
+			exit_code: job.exit_code
+			stdout:    job.output
+			stderr:    job.error
+			success:   job.exit_code == 0
+		}
 	}
 }
 
@@ -244,6 +287,100 @@ pub fn (mut k KubeClient) get_services(namespace string) ![]Service {
 	return services
 }
 
+// Get nodes from cluster
+pub fn (mut k KubeClient) get_nodes() ![]Node {
+	result := k.kubectl_exec(command: 'get nodes -o json')!
+	if !result.success {
+		return error('Failed to get nodes: ${result.stderr}')
+	}
+
+	// Parse JSON response using struct-based decoding
+	node_list := json.decode(KubectlNodeListResponse, result.stdout) or {
+		// Log error details for debugging
+		console.print_stderr('Failed to parse nodes JSON response')
+		console.print_stderr('Error: ${err}')
+		console.print_stderr('Response length: ${result.stdout.len} bytes')
+		if result.stdout.len > 0 {
+			console.print_stderr('First 200 chars: ${result.stdout[..if result.stdout.len < 200 {
+				result.stdout.len
+			} else {
+				200
+			}]}')
+		}
+		return error('Failed to parse nodes JSON: ${err}')
+	}
+
+	mut nodes := []Node{}
+
+	for item in node_list.items {
+		// Extract IP addresses (handle dual-stack: multiple IPs of same type)
+		mut internal_ips := []string{}
+		mut external_ips := []string{}
+		mut hostname := ''
+
+		for addr in item.status.addresses {
+			match addr.address_type {
+				'InternalIP' {
+					internal_ips << addr.address
+				}
+				'ExternalIP' {
+					external_ips << addr.address
+				}
+				'Hostname' {
+					hostname = addr.address
+				}
+				else {}
+			}
+		}
+
+		// For backward compatibility, use first internal/external IP
+		internal_ip := if internal_ips.len > 0 { internal_ips[0] } else { '' }
+		external_ip := if external_ips.len > 0 { external_ips[0] } else { '' }
+
+		// Determine node status from conditions
+		mut node_status := 'Unknown'
+		for condition in item.status.conditions {
+			if condition.condition_type == 'Ready' {
+				node_status = if condition.status == 'True' { 'Ready' } else { 'NotReady' }
+				break
+			}
+		}
+
+		// Extract roles from labels
+		mut roles := []string{}
+		for label_key, _ in item.metadata.labels {
+			if label_key.starts_with('node-role.kubernetes.io/') {
+				role := label_key.all_after('node-role.kubernetes.io/')
+				if role.len > 0 {
+					roles << role
+				}
+			}
+		}
+
+		// Create Node struct from kubectl response
+		node := Node{
+			name:              item.metadata.name
+			internal_ip:       internal_ip
+			external_ip:       external_ip
+			internal_ips:      internal_ips
+			external_ips:      external_ips
+			hostname:          hostname
+			status:            node_status
+			roles:             roles
+			kubelet_version:   item.status.node_info.kubelet_version
+			os_image:          item.status.node_info.os_image
+			kernel_version:    item.status.node_info.kernel_version
+			container_runtime: item.status.node_info.container_runtime_version
+			labels:            item.metadata.labels
+			created_at:        item.metadata.creation_timestamp
+		}
+
+		nodes << node
+	}
+
+	return nodes
+}
+
 // Apply YAML file
 pub fn (mut k KubeClient) apply_yaml(yaml_path string) !KubectlResult {
 	// Validate before applying
@@ -252,7 +389,10 @@ pub fn (mut k KubeClient) apply_yaml(yaml_path string) !KubectlResult {
 		return error('YAML validation failed: ${validation.errors.join(', ')}')
 	}
 
+	console.print_debug('Applying YAML file: ${yaml_path}')
 	result := k.kubectl_exec(command: 'apply -f ${yaml_path}')!
+	console.print_debug('Apply completed with exit code: ${result.exit_code}')
+
 	if result.success {
 		console.print_green('Applied: ${validation.kind}/${validation.metadata.name}')
 	}
@@ -265,13 +405,19 @@ pub fn (mut k KubeClient) delete_resource(kind string, name string, namespace st
 	return result
 }
 
-// Describe resource
-pub fn (mut k KubeClient) describe_resource(kind string, name string, namespace string) !string {
-	result := k.kubectl_exec(command: 'describe ${kind} ${name} -n ${namespace}')!
-	if !result.success {
-		return error('Failed to describe resource: ${result.stderr}')
+// Describe resource - provides detailed information about a specific resource
+pub fn (mut k KubeClient) describe_resource(args DescribeResourceArgs) !KubectlResult {
+	// Build the describe command
+	mut cmd := 'describe ${args.resource} ${args.resource_name}'
+
+	// Only add namespace flag if namespace is not empty (for namespaced resources)
+	if args.namespace.len > 0 {
+		cmd += ' -n ${args.namespace}'
 	}
-	return result.stdout
+
+	// Execute the command
+	result := k.kubectl_exec(command: cmd)!
+	return result
 }
 
 // Port forward

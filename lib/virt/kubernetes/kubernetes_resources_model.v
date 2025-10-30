@@ -309,6 +309,52 @@ struct KubectlLoadBalancerIngress {
 	ip string
 }
 
+// Node list response from 'kubectl get nodes -o json'
+struct KubectlNodeListResponse {
+	items []KubectlNodeItem
+}
+
+struct KubectlNodeItem {
+	metadata KubectlNodeMetadata
+	spec     KubectlNodeSpec
+	status   KubectlNodeStatus
+}
+
+struct KubectlNodeMetadata {
+	name               string
+	labels             map[string]string
+	creation_timestamp string @[json: creationTimestamp]
+}
+
+struct KubectlNodeSpec {
+	pod_cidr string @[json: podCIDR]
+}
+
+struct KubectlNodeStatus {
+	addresses  []KubectlNodeAddress
+	conditions []KubectlNodeCondition
+	node_info  KubectlNodeSystemInfo @[json: nodeInfo]
+}
+
+struct KubectlNodeAddress {
+	address      string @[json: address]
+	address_type string @[json: type]
+}
+
+struct KubectlNodeCondition {
+	condition_type string @[json: type]
+	status         string
+}
+
+struct KubectlNodeSystemInfo {
+	architecture              string
+	kernel_version            string @[json: kernelVersion]
+	os_image                  string @[json: osImage]
+	operating_system          string @[json: operatingSystem]
+	kubelet_version           string @[json: kubeletVersion]
+	container_runtime_version string @[json: containerRuntimeVersion]
+}
+
 // ============================================================================
 // Runtime resource structs (returned from kubectl get commands)
 // ============================================================================
@@ -350,6 +396,25 @@ pub mut:
 	ports        []string
 	labels       map[string]string
 	created_at   string
+}
+
+// Node runtime information
+pub struct Node {
+pub mut:
+	name              string
+	internal_ip       string   // Primary internal IP (first in list)
+	external_ip       string   // Primary external IP (first in list)
+	internal_ips      []string // All internal IPs (for dual-stack support)
+	external_ips      []string // All external IPs (for dual-stack support)
+	hostname          string
+	status            string // Ready, NotReady, Unknown
+	roles             []string
+	kubelet_version   string
+	os_image          string
+	kernel_version    string
+	container_runtime string
+	labels            map[string]string
+	created_at        string
 }
 
 // Version information from kubectl version command

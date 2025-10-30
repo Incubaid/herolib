@@ -2,10 +2,9 @@ module cryptpad
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
-import incubaid.herolib.core.texttools
-import incubaid.herolib.core
 import incubaid.herolib.osal.startupmanager
 import incubaid.herolib.installers.ulist
+import incubaid.herolib.virt.kubernetes
 import os
 import strings
 import time
@@ -17,23 +16,36 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 }
 
 fn kubectl_installed() ! {
+	// Check if kubectl command exists
 	if !osal.cmd_exists('kubectl') {
 		return error('kubectl is not installed. Please install it to continue.')
 	}
+
 	// Check if kubectl is configured to connect to a cluster
-	res := osal.exec(cmd: 'kubectl cluster-info', ignore_error: true)!
-	if res.exit_code != 0 {
+	mut k8s := kubernetes.get()!
+	if !k8s.test_connection()! {
 		return error('kubectl is not configured to connect to a Kubernetes cluster. Please check your kubeconfig.')
 	}
 }
 
 fn running() !bool {
 	installer := get()!
-	res := osal.exec(
-		cmd:          'kubectl get deployment cryptpad -n ${installer.namespace}'
-		ignore_error: true
-	)!
-	return res.exit_code == 0
+	mut k8s := kubernetes.get()!
+
+	// Try to get the cryptpad deployment
+	deployments := k8s.get_deployments(installer.namespace) or {
+		// If we can't get deployments, it's not running
+		return false
+	}
+
+	// Check if cryptpad deployment exists
+	for deployment in deployments {
+		if deployment.name == 'cryptpad' {
+			return true
+		}
+	}
+
+	return false
 }
 
 fn start_pre() ! {
@@ -66,17 +78,21 @@ fn upload() ! {
 
 fn get_master_node_ips() ![]string {
 	mut master_ips := []string{}
-	res := osal.exec(
-		cmd: 'kubectl get nodes -o jsonpath="{.items[*].status.addresses[?(@.type==\'InternalIP\')].address}" | tr \' \' \'\\n\' | grep \':\''
-	)!
-	if res.exit_code != 0 {
-		return error('Failed to get master node IPs: ${res.output}')
-	}
-	for ip in res.output.split('\n') {
-		if ip.len > 0 {
-			master_ips << ip
+	mut k8s := kubernetes.get()!
+
+	// Get all nodes using the kubernetes client
+	nodes := k8s.get_nodes()!
+
+	// Extract IPv6 internal IPs from all nodes (dual-stack support)
+	for node in nodes {
+		// Check all internal IPs (not just the first one) for IPv6 addresses
+		for ip in node.internal_ips {
+			if ip.len > 0 && ip.contains(':') {
+				master_ips << ip
+			}
 		}
 	}
+
 	return master_ips
 }
 
@@ -90,6 +106,16 @@ pub mut:
 fn install() ! {
 	console.print_header('Installing CryptPad...')
 
+	// Get installer config to access namespace
+	installer := get()!
+	if installer.hostname == '' {
+		return error('hostname is empty')
+	}
+
+	// Configure kubernetes client with the correct namespace
+	mut k8s := kubernetes.get()!
+	k8s.config.namespace = installer.namespace
+
 	// 1. Check for dependencies.
 	console.print_info('Checking for kubectl...')
 	kubectl_installed()!
@@ -102,10 +128,6 @@ fn install() ! {
 
 	// 3. Generate YAML files from templates.
 	console.print_info('Generating YAML files from templates...')
-	installer := get()!
-	if installer.hostname == '' {
-		return error('hostname is empty')
-	}
 
 	mut backends_str_builder := strings.new_builder(100)
 	for ip in master_ips {
@@ -126,11 +148,11 @@ fn install() ! {
 	os.write_file('/tmp/cryptpad.yaml', temp2)!
 	console.print_info('YAML files generated successfully.')
 
-	// 4. Apply the YAML files using `kubectl`.
+	// 4. Apply the YAML files using kubernetes client
 	console.print_info('Applying Gateway YAML file to the cluster...')
-	res1 := osal.exec(cmd: 'kubectl apply -f /tmp/tfgw-cryptpad.yaml')!
-	if res1.exit_code != 0 {
-		return error('Failed to apply tfgw-cryptpad.yaml: ${res1.output}')
+	res1 := k8s.apply_yaml('/tmp/tfgw-cryptpad.yaml')!
+	if !res1.success {
+		return error('Failed to apply tfgw-cryptpad.yaml: ${res1.stderr}')
 	}
 	console.print_info('Gateway YAML file applied successfully.')
 
@@ -140,9 +162,9 @@ fn install() ! {
 
 	// 6. Apply Cryptpad YAML
 	console.print_info('Applying Cryptpad YAML file to the cluster...')
-	res2 := osal.exec(cmd: 'kubectl apply -f /tmp/cryptpad.yaml')!
-	if res2.exit_code != 0 {
-		return error('Failed to apply cryptpad.yaml: ${res2.output}')
+	res2 := k8s.apply_yaml('/tmp/cryptpad.yaml')!
+	if !res2.success {
+		return error('Failed to apply cryptpad.yaml: ${res2.stderr}')
 	}
 	console.print_info('Cryptpad YAML file applied successfully.')
 
@@ -177,27 +199,36 @@ pub mut:
 //  Function for verifying the generating of of the FQDN using tfgw crd
 fn verify_tfgw_deployment(args VerifyTfgwDeployment) ! {
 	console.print_info('Verifying TFGW deployment for ${args.tfgw_name}...')
+	mut k8s := kubernetes.get()!
 	mut is_fqdn_generated := false
-	for i in 0 .. 30 {
-		res := osal.exec(
-			cmd:          'kubectl get tfgw ${args.tfgw_name} -n ${args.namespace} -o jsonpath="{.status.fqdn}"'
-			ignore_error: true
-		)!
-		if res.exit_code == 0 && res.output != '' {
+
+	for i in 0 .. args.retry {
+		// Use kubectl_exec for custom resource (TFGW) with jsonpath
+		result := k8s.kubectl_exec(
+			command: 'get tfgw ${args.tfgw_name} -n ${args.namespace} -o jsonpath="{.status.fqdn}"'
+		) or {
+			console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
+			time.sleep(2 * time.second)
+			continue
+		}
+
+		if result.success && result.stdout != '' {
 			is_fqdn_generated = true
 			break
 		}
-		console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/30)')
+		console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
 		time.sleep(2 * time.second)
 	}
 
 	if !is_fqdn_generated {
 		console.print_stderr('Failed to get FQDN for ${args.tfgw_name}.')
-		res := osal.exec(
-			cmd:          'kubectl describe tfgw ${args.tfgw_name} -n ${args.namespace}'
-			ignore_error: true
-		)!
-		console.print_stderr(res.output)
+		// Use describe_resource to get detailed information about the TFGW resource
+		result := k8s.describe_resource(
+			resource:      'tfgw'
+			resource_name: args.tfgw_name
+			namespace:     args.namespace
+		) or { return error('TFGW deployment failed for ${args.tfgw_name}.') }
+		console.print_stderr(result.stdout)
 		return error('TFGW deployment failed for ${args.tfgw_name}.')
 	}
 	console.print_info('TFGW deployment for ${args.tfgw_name} verified successfully.')
@@ -206,9 +237,16 @@ fn verify_tfgw_deployment(args VerifyTfgwDeployment) ! {
 fn destroy() ! {
 	console.print_header('Destroying CryptPad...')
 	installer := get()!
-	res := osal.exec(cmd: 'kubectl delete ns ${installer.namespace}', ignore_error: true)!
-	if res.exit_code != 0 {
-		console.print_stderr('Failed to delete namespace ${installer.namespace}: ${res.output}')
+	mut k8s := kubernetes.get()!
+
+	// Delete the namespace using kubernetes client
+	result := k8s.delete_resource('namespace', installer.namespace, '') or {
+		console.print_stderr('Failed to delete namespace ${installer.namespace}: ${err}')
+		return
+	}
+
+	if !result.success {
+		console.print_stderr('Failed to delete namespace ${installer.namespace}: ${result.stderr}')
 	} else {
 		console.print_info('Namespace ${installer.namespace} deleted.')
 	}

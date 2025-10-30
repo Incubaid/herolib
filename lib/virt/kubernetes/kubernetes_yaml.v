@@ -46,11 +46,20 @@ pub fn yaml_validate(yaml_path string) !K8sValidationResult {
 		errors << 'Missing metadata.name field'
 	}
 
-	// Validate kind values
-	valid_kinds := ['Pod', 'Deployment', 'Service', 'ConfigMap', 'Secret', 'StatefulSet', 'DaemonSet',
-		'Job', 'CronJob', 'Ingress', 'PersistentVolume', 'PersistentVolumeClaim']
-	if kind !in valid_kinds {
-		errors << 'Invalid kind: ${kind}. Valid kinds: ${valid_kinds.join(', ')}'
+	// Validate kind values for standard Kubernetes resources
+	// Allow custom resources (CRDs) which typically have non-standard apiVersions
+	standard_kinds := ['Pod', 'Deployment', 'Service', 'ConfigMap', 'Secret', 'StatefulSet',
+		'DaemonSet', 'Job', 'CronJob', 'Ingress', 'PersistentVolume', 'PersistentVolumeClaim',
+		'Namespace', 'ServiceAccount', 'Role', 'RoleBinding', 'ClusterRole', 'ClusterRoleBinding']
+
+	// Check if it's a standard Kubernetes resource or a custom resource
+	is_standard_api := api_version.starts_with('v1') || api_version.starts_with('apps/')
+		|| api_version.starts_with('batch/') || api_version.starts_with('networking.k8s.io/')
+		|| api_version.starts_with('rbac.authorization.k8s.io/')
+
+	// Only validate kind for standard Kubernetes resources
+	if is_standard_api && kind !in standard_kinds {
+		errors << 'Invalid kind: ${kind}. Valid kinds for standard resources: ${standard_kinds.join(', ')}'
 	}
 
 	return K8sValidationResult{
