@@ -9,6 +9,9 @@ import os
 import strings
 import time
 
+const max_deployment_retries = 30
+const deployment_check_interval_seconds = 2
+
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	// We don't have a long-running process to manage with startupmanager for this installer,
 	// but we'll keep the function for consistency.
@@ -157,8 +160,8 @@ fn install() ! {
 	console.print_info('Gateway YAML file applied successfully.')
 
 	// 5. Verify TFGW deployments
-	verify_tfgw_deployment(tfgw_name: 'cryptpad-main', namespace: installer.namespace, retry: 30)!
-	verify_tfgw_deployment(tfgw_name: 'cryptpad-sandbox', namespace: installer.namespace, retry: 30)!
+	verify_tfgw_deployment(tfgw_name: 'cryptpad-main', namespace: installer.namespace)!
+	verify_tfgw_deployment(tfgw_name: 'cryptpad-sandbox', namespace: installer.namespace)!
 
 	// 6. Apply Cryptpad YAML
 	console.print_info('Applying Cryptpad YAML file to the cluster...')
@@ -171,13 +174,13 @@ fn install() ! {
 	// 7. Verify deployment status
 	console.print_info('Verifying deployment status...')
 	mut is_running := false
-	for i in 0 .. 30 {
+	for i in 0 .. max_deployment_retries {
 		if running()! {
 			is_running = true
 			break
 		}
-		console.print_info('Waiting for CryptPad deployment to be ready... (${i + 1}/30)')
-		time.sleep(2 * time.second)
+		console.print_info('Waiting for CryptPad deployment to be ready... (${i + 1}/${max_deployment_retries})')
+		time.sleep(deployment_check_interval_seconds * time.second)
 	}
 
 	if is_running {
@@ -193,7 +196,7 @@ struct VerifyTfgwDeployment {
 pub mut:
 	tfgw_name string // tfgw serivce generating the FQDN
 	namespace string // namespace name for cryptpad deployments/services
-	retry     int    // number of retries
+	retry     int = 30
 }
 
 //  Function for verifying the generating of of the FQDN using tfgw crd
