@@ -8,7 +8,7 @@ import incubaid.herolib.installers.k8s.element_chat
 //    Replace 'matrixchattest' and 'elementchattest' with your desired hostnames.
 //    Note: Use only alphanumeric characters (no underscores or dashes).
 mut installer := element_chat.get(
-	name:   'myelementchat'
+	name:   'kristof'
 	create: true
 )!
 
