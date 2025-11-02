@@ -6,14 +6,18 @@ import incubaid.herolib.installers.k8s.cryptpad
 
 // 1. Create a new installer instance with a specific hostname.
 //    Replace 'mycryptpad' with your desired hostname.
-mut installer := cryptpad.new(hostname: 'omda')!
+mut installer := cryptpad.get(
+	name:   'kristof'
+	create: true
+)!
 
 // 2. Install CryptPad.
 //    This will generate the necessary Kubernetes YAML files and apply them to your cluster.
-installer.install()!
+// installer.install()!
+// cryptpad.delete()!
 
-println('CryptPad installation started.')
-println('You can access it at https://${installer.hostname}.gent01.grid.tf')
+// println('CryptPad installation started.')
+// println('You can access it at https://${installer.hostname}.gent01.grid.tf')
 
 // 3. To destroy the deployment, you can run the following:
-// installer.destroy()!
+installer.destroy()!

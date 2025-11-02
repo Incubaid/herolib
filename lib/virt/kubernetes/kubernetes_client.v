@@ -3,6 +3,7 @@ module kubernetes
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 import json
+import os
 
 @[params]
 pub struct KubectlExecArgs {
@@ -46,55 +47,13 @@ pub fn (mut k KubeClient) kubectl_exec(args KubectlExecArgs) !KubectlResult {
 	}
 
 	cmd += ' ${args.command}'
+	result := os.execute(cmd)
 
-	console.print_debug('executing: ${cmd}')
-
-	// Check if this is a command that might produce large output
-	is_large_output := args.command.contains('get nodes') || args.command.contains('get pods')
-		|| args.command.contains('get deployments') || args.command.contains('get services')
-
-	if is_large_output {
-		// Use exec_fast for large outputs (avoids 8KB buffer limit in osal.exec)
-		// exec_fast uses os.execute which doesn't have the pipe buffer limitation
-		result_output := osal.exec_fast(
-			cmd:          cmd
-			ignore_error: true
-		) or { return error('Failed to execute kubectl command: ${err}') }
-
-		// Check if command succeeded by looking for error messages
-		if result_output.contains('Error from server') || result_output.contains('error:')
-			|| result_output.contains('Unable to connect') {
-			return KubectlResult{
-				exit_code: 1
-				stdout:    result_output
-				stderr:    result_output
-				success:   false
-			}
-		}
-
-		return KubectlResult{
-			exit_code: 0
-			stdout:    result_output
-			stderr:    ''
-			success:   result_output.len > 0
-		}
-	} else {
-		// Use regular exec for normal commands (supports timeout and proper error handling)
-		// Note: stdout must be true to prevent process from hanging when output buffer fills
-		job := osal.exec(
-			cmd:         cmd
-			timeout:     args.timeout
-			retry:       args.retry
-			raise_error: false
-			stdout:      true
-		)!
-
-		return KubectlResult{
-			exit_code: job.exit_code
-			stdout:    job.output
-			stderr:    job.error
-			success:   job.exit_code == 0
-		}
+	return KubectlResult{
+		exit_code: result.exit_code
+		stdout:    result.output
+		stderr:    result.output // os.execute combines stdout and stderr
+		success:   result.exit_code == 0
 	}
 }
 
@@ -401,7 +360,8 @@ pub fn (mut k KubeClient) apply_yaml(yaml_path string) !KubectlResult {
 
 // Delete resource
 pub fn (mut k KubeClient) delete_resource(kind string, name string, namespace string) !KubectlResult {
-	result := k.kubectl_exec(command: 'delete ${kind} ${name} -n ${namespace}')!
+	mut cmd := 'delete ${kind} ${name}'
+	result := k.kubectl_exec(command: cmd)!
 	return result
 }
 
