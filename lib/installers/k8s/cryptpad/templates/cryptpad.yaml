@@ -1,20 +1,20 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: collab
+  name: @{config_values.namespace}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: cryptpad-config
-  namespace: collab
+  namespace: @{config_values.namespace}
 data:
   config.js: |
     module.exports = {
-      httpUnsafeOrigin: 'https://cryptpadp2.gent01.grid.tf',
-      httpSafeOrigin:   'https://cryptpads2.gent01.grid.tf',
+      httpUnsafeOrigin: 'https://@{config_values.hostname}.gent01.grid.tf',
+      httpSafeOrigin:   'https://@{config_values.hostname}sb.gent01.grid.tf',
       httpAddress: '0.0.0.0',
-      httpPort: 3000,
+      httpPort: 80,
 
       websocketPort: 3003,
       websocketPath: '/cryptpad_websocket',
@@ -31,7 +31,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cryptpad
-  namespace: collab
+  namespace: @{config_values.namespace}
 spec:
   replicas: 1
   selector:
@@ -58,15 +58,15 @@ spec:
         - name: cryptpad
           image: cryptpad/cryptpad:latest
           ports:
-            - { name: http, containerPort: 3000 }
+            - { name: http, containerPort: 80 }
             - { name: ws,   containerPort: 3003 }
           env:
             - { name: CPAD_CONF, value: "/cryptpad/config/config.js" }
-            - { name: CPAD_MAIN_DOMAIN,     value: "https://cryptpadp2.gent01.grid.tf" }
-            - { name: CPAD_SANDBOX_DOMAIN,  value: "https://cryptpads2.gent01.grid.tf" }
+            - { name: CPAD_MAIN_DOMAIN,     value: "https://@{config_values.hostname}.gent01.grid.tf" }
+            - { name: CPAD_SANDBOX_DOMAIN,  value: "https://@{config_values.hostname}sb.gent01.grid.tf" }
             - { name: CPAD_INSTALL_ONLYOFFICE, value: "no" }
           readinessProbe:
-            httpGet: { path: /, port: 3000 }
+            httpGet: { path: /, port: 80 }
             initialDelaySeconds: 20
             periodSeconds: 10
           volumeMounts:
@@ -91,37 +91,37 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cryptpad
-  namespace: collab
+  namespace: @{config_values.namespace}
 spec:
   selector: { app: cryptpad }
   ports:
-    - { name: http, port: 3000, targetPort: 3000 }
+    - { name: http, port: 80, targetPort: 80 }
     - { name: ws,   port: 3003, targetPort: 3003 }
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cryptpad
-  namespace: collab
+  namespace: @{config_values.namespace}
   annotations:
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io.ingress.class: traefik
 spec:
   rules:
-    - host: cryptpadp2.gent01.grid.tf
+    - host: @{config_values.hostname}.gent01.grid.tf
       http:
         paths:
           - path: /
             pathType: Prefix
-            backend: { service: { name: cryptpad, port: { number: 3000 } } }
+            backend: { service: { name: cryptpad, port: { number: 80 } } }
           - path: /cryptpad_websocket
             pathType: Prefix
             backend: { service: { name: cryptpad, port: { number: 3003 } } }
-    - host: cryptpads2.gent01.grid.tf
+    - host: @{config_values.hostname}sb.gent01.grid.tf
       http:
         paths:
           - path: /
             pathType: Prefix
-            backend: { service: { name: cryptpad, port: { number: 3000 } } }
+            backend: { service: { name: cryptpad, port: { number: 80 } } }
           - path: /cryptpad_websocket
             pathType: Prefix
             backend: { service: { name: cryptpad, port: { number: 3003 } } }

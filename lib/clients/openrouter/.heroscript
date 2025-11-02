@@ -1,7 +1,0 @@
-!!hero_code.generate_client
-    name:'openrouter'
-    classname:'OpenRouter'
-    singleton:0
-    default:1
-    hasconfig:1
-    reset:0
