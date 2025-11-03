@@ -1,0 +1,127 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: @{config_values.namespace}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cryptpad-config
+  namespace: @{config_values.namespace}
+data:
+  config.js: |
+    module.exports = {
+      httpUnsafeOrigin: 'https://@{config_values.hostname}.gent01.grid.tf',
+      httpSafeOrigin:   'https://@{config_values.hostname}sb.gent01.grid.tf',
+      httpAddress: '0.0.0.0',
+      httpPort: 80,
+
+      websocketPort: 3003,
+      websocketPath: '/cryptpad_websocket',
+
+      blockPath: './block',
+      blobPath: './blob',
+      dataPath: './data',
+      filePath: './datastore',
+      logToStdout: true,
+      logLevel: 'info',
+    };
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cryptpad
+  namespace: @{config_values.namespace}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: cryptpad }
+  template:
+    metadata:
+      labels: { app: cryptpad }
+    spec:
+      initContainers:
+        - name: fix-perms
+          image: busybox:1.36
+          command: ["/bin/sh","-lc"]
+          args:
+            - >
+              chown -R 4001:4001
+              /cryptpad/blob /cryptpad/block /cryptpad/data /cryptpad/datastore /cryptpad/customize || true
+          volumeMounts:
+            - { name: blob,      mountPath: /cryptpad/blob }
+            - { name: block,     mountPath: /cryptpad/block }
+            - { name: data,      mountPath: /cryptpad/data }
+            - { name: files,     mountPath: /cryptpad/datastore }
+            - { name: customize, mountPath: /cryptpad/customize }
+      containers:
+        - name: cryptpad
+          image: cryptpad/cryptpad:latest
+          ports:
+            - { name: http, containerPort: 80 }
+            - { name: ws,   containerPort: 3003 }
+          env:
+            - { name: CPAD_CONF, value: "/cryptpad/config/config.js" }
+            - { name: CPAD_MAIN_DOMAIN,     value: "https://@{config_values.hostname}.gent01.grid.tf" }
+            - { name: CPAD_SANDBOX_DOMAIN,  value: "https://@{config_values.hostname}sb.gent01.grid.tf" }
+            - { name: CPAD_INSTALL_ONLYOFFICE, value: "no" }
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          volumeMounts:
+            - { name: cfg,       mountPath: /cryptpad/config/config.js, subPath: config.js, readOnly: true }
+            - { name: blob,      mountPath: /cryptpad/blob }
+            - { name: block,     mountPath: /cryptpad/block }
+            - { name: data,      mountPath: /cryptpad/data }
+            - { name: files,     mountPath: /cryptpad/datastore }
+            - { name: customize, mountPath: /cryptpad/customize }
+      volumes:
+        - name: cfg
+          configMap:
+            name: cryptpad-config
+            items: [{ key: config.js, path: config.js }]
+        - { name: blob,      emptyDir: {} }
+        - { name: block,     emptyDir: {} }
+        - { name: data,      emptyDir: {} }
+        - { name: files,     emptyDir: {} }
+        - { name: customize, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cryptpad
+  namespace: @{config_values.namespace}
+spec:
+  selector: { app: cryptpad }
+  ports:
+    - { name: http, port: 80, targetPort: 80 }
+    - { name: ws,   port: 3003, targetPort: 3003 }
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cryptpad
+  namespace: @{config_values.namespace}
+  annotations:
+    kubernetes.io.ingress.class: traefik
+spec:
+  rules:
+    - host: @{config_values.hostname}.gent01.grid.tf
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: cryptpad, port: { number: 80 } } }
+          - path: /cryptpad_websocket
+            pathType: Prefix
+            backend: { service: { name: cryptpad, port: { number: 3003 } } }
+    - host: @{config_values.hostname}sb.gent01.grid.tf
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: cryptpad, port: { number: 80 } } }
+          - path: /cryptpad_websocket
+            pathType: Prefix
+            backend: { service: { name: cryptpad, port: { number: 3003 } } }

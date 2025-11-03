@@ -10,7 +10,6 @@ import incubaid.herolib.clients.meilisearch
 import incubaid.herolib.clients.mycelium
 import incubaid.herolib.clients.mycelium_rpc
 import incubaid.herolib.clients.openai
-import incubaid.herolib.clients.openrouter
 import incubaid.herolib.clients.postgresql_client
 import incubaid.herolib.clients.qdrant
 import incubaid.herolib.clients.rcloneclient
@@ -66,7 +65,6 @@ pub fn run_all(args_ PlayArgs) ! {
 	mycelium.play(mut plbook)!
 	mycelium_rpc.play(mut plbook)!
 	openai.play(mut plbook)!
-	openrouter.play(mut plbook)!
 	postgresql_client.play(mut plbook)!
 	qdrant.play(mut plbook)!
 	rcloneclient.play(mut plbook)!

@@ -1,8 +1,6 @@
 module zinit
 
 import incubaid.herolib.data.encoderhero
-import incubaid.herolib.schemas.jsonrpc
-import os
 
 pub const version = '0.0.0'
 const singleton = true

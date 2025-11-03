@@ -1,5 +1,5 @@
 
-!!hero_code.generate_installer
+!!hero_code.generate_client
     name:''
     classname:'KubeClient'
     singleton:0

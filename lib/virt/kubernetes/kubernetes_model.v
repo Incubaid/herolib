@@ -1,8 +1,6 @@
 module kubernetes
 
-import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.encoderhero
-import os
 
 pub const version = '0.0.0'
 const singleton = false
@@ -12,9 +10,9 @@ const default = true
 pub struct KubeClient {
 pub mut:
 	name              string = 'default'
-	kubeconfig_path   string
-	config            KubeConfig
-	connected         bool
+	kubeconfig_path   string     // Path to kubeconfig file
+	config            KubeConfig // Kubernetes configuration
+	connected         bool       // Connection status
 	api_version       string = 'v1'
 	cache_enabled     bool   = true
 	cache_ttl_seconds int    = 300

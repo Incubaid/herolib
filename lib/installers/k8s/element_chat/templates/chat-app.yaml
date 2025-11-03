@@ -1,0 +1,139 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: @{config_values.namespace}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: conduit-config
+  namespace: @{config_values.namespace}
+data:
+  conduit.toml: |
+@{config_values.conduit_toml}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: conduit
+  namespace: @{config_values.namespace}
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: conduit } }
+  template:
+    metadata: { labels: { app: conduit } }
+    spec:
+      enableServiceLinks: false               
+      containers:
+      - name: conduit
+        image: matrixconduit/matrix-conduit:latest
+        env:
+        - name: CONDUIT_CONFIG
+          value: /etc/conduit/conduit.toml
+        ports: [{ name: http, containerPort: @{config_values.conduit_port} }]
+        volumeMounts:
+        - { name: cfg,  mountPath: /etc/conduit, readOnly: true }
+        - { name: data, mountPath: /var/lib/matrix-conduit }
+        readinessProbe:
+          httpGet: { path: /_matrix/client/versions, port: @{config_values.conduit_port} }
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: cfg
+        configMap: { name: conduit-config }
+      - name: data
+        emptyDir: {}                            
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matrix-hs
+  namespace: @{config_values.namespace}
+spec:
+  selector: { app: conduit }
+  ports:
+  - { name: http, port: @{config_values.conduit_port}, targetPort: @{config_values.conduit_port} }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: element-config
+  namespace: @{config_values.namespace}
+data:
+  config.json: |
+@{config_values.element_json}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: element-web
+  namespace: @{config_values.namespace}
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: element-web } }
+  template:
+    metadata: { labels: { app: element-web } }
+    spec:
+      enableServiceLinks: false               
+      containers:
+      - name: element
+        image: vectorim/element-web:latest
+        env:
+        - { name: PORT, value: "80" }         
+        ports: [{ name: http, containerPort: 80 }]
+        volumeMounts:
+        - name: element-config
+          mountPath: /app/config.json
+          subPath: config.json
+          readOnly: true
+      volumes:
+      - name: element-config
+        configMap: { name: element-config }
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: element-web
+  namespace: @{config_values.namespace}
+spec:
+  selector: { app: element-web }
+  ports:
+  - { name: http, port: 80, targetPort: 80 }
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: matrix
+  namespace: @{config_values.namespace}
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: @{config_values.matrix_hostname}.gent01.grid.tf
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend: { service: { name: matrix-hs, port: { number: @{config_values.conduit_port} } } }
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: element
+  namespace: @{config_values.namespace}
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: @{config_values.element_hostname}.gent01.grid.tf
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend: { service: { name: element-web, port: { number: 80 } } }
+

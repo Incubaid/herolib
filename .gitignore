@@ -59,3 +59,4 @@ tmux_logger
 release
 install_herolib
 doc
+priv_key.bin
