@@ -19,9 +19,19 @@ mut installer := gitea.get(
 // // Gitea server configuration
 // installer.http_port = 3000                // Default: 3000
 // installer.disable_registration = false    // Default: false (allow new user registration)
-// installer.db_type = 'sqlite3'             // Default: 'sqlite3' (can be 'postgres', 'mysql')
+
+// // Database configuration - Option 1: SQLite (default)
+// installer.db_type = 'sqlite3'             // Default: 'sqlite3'
 // installer.db_path = '/data/gitea/gitea.db' // Default: '/data/gitea/gitea.db'
-// installer.storage_size = '5Gi'            // Default: '5Gi' (PVC storage size)
+
+// // Database configuration - Option 2: PostgreSQL
+// // When using postgres, a PostgreSQL pod will be automatically deployed
+installer.db_type = 'postgres' // Use PostgreSQL instead of SQLite
+installer.db_host = 'postgres' // Default: 'postgres' (PostgreSQL service name)
+installer.db_name = 'gitea' // Default: 'gitea' (database name)
+installer.db_user = 'gitea' // Default: 'gitea' (database user)
+installer.db_password = 'gitea' // Default: 'gitea' (database password)
+installer.storage_size = '5Gi' // Default: '5Gi' (PVC storage size)
 
 // 3. Install Gitea.
 //    This will generate the necessary Kubernetes YAML files and apply them to your cluster.

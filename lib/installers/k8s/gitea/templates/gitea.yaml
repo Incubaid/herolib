@@ -47,8 +47,20 @@ spec:
               value: "false"
             - name: GITEA__database__DB_TYPE
               value: "@{config_values.db_type}"
+@if config_values.db_type == 'sqlite3'
             - name: GITEA__database__PATH
               value: "@{config_values.db_path}"
+@end
+@if config_values.db_type == 'postgres'
+            - name: GITEA__database__HOST
+              value: "@{config_values.db_host}"
+            - name: GITEA__database__NAME
+              value: "@{config_values.db_name}"
+            - name: GITEA__database__USER
+              value: "@{config_values.db_user}"
+            - name: GITEA__database__PASSWD
+              value: "@{config_values.db_password}"
+@end
             - name: GITEA__service__DISABLE_REGISTRATION
               value: "@{config_values.disable_registration}"
           volumeMounts:

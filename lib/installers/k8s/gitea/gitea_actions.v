@@ -69,7 +69,20 @@ fn install() ! {
 	// 3. Verify TFGW deployment
 	verify_tfgw_deployment(tfgw_name: 'gitea', namespace: installer.namespace)!
 
-	// 4. Apply Gitea App YAML
+	// 4. Apply PostgreSQL YAML if postgres is selected
+	if installer.db_type == 'postgres' {
+		console.print_info('Applying PostgreSQL YAML file to the cluster...')
+		res_postgres := k8s.apply_yaml('/tmp/gitea/postgres.yaml')!
+		if !res_postgres.success {
+			return error('Failed to apply postgres.yaml: ${res_postgres.stderr}')
+		}
+		console.print_info('PostgreSQL YAML file applied successfully.')
+
+		// Verify PostgreSQL pod is ready
+		verify_postgres_pod(namespace: installer.namespace)!
+	}
+
+	// 5. Apply Gitea App YAML
 	console.print_info('Applying Gitea App YAML file to the cluster...')
 	res2 := k8s.apply_yaml('/tmp/gitea/gitea.yaml')!
 	if !res2.success {
@@ -77,7 +90,7 @@ fn install() ! {
 	}
 	console.print_info('Gitea App YAML file applied successfully.')
 
-	// 5. Verify deployment status
+	// 6. Verify deployment status
 	console.print_info('Verifying deployment status...')
 	mut is_running := false
 	for i in 0 .. max_deployment_retries {
@@ -103,6 +116,45 @@ struct VerifyTfgwDeployment {
 pub mut:
 	tfgw_name string // tfgw serivce generating the FQDN
 	namespace string // namespace name for gitea deployments/services
+}
+
+// params for verifying postgres pod is ready
+@[params]
+struct VerifyPostgresPod {
+pub mut:
+	namespace string // namespace name for postgres pod
+}
+
+// Function for verifying postgres pod is ready
+fn verify_postgres_pod(args VerifyPostgresPod) ! {
+	console.print_info('Verifying PostgreSQL pod is ready...')
+	installer := get()!
+	mut k8s := installer.kube_client
+	mut is_ready := false
+
+	for i in 0 .. max_deployment_retries {
+		// Check if postgres pod exists and is running
+		result := k8s.kubectl_exec(
+			command: 'get pod ${installer.db_host} -n ${args.namespace} -o jsonpath="{.status.phase}"'
+		) or {
+			console.print_info('Waiting for PostgreSQL pod to be created... (${i + 1}/${max_deployment_retries})')
+			time.sleep(deployment_check_interval_seconds * time.second)
+			continue
+		}
+
+		if result.success && result.stdout == 'Running' {
+			is_ready = true
+			break
+		}
+		console.print_info('Waiting for PostgreSQL pod to be ready... (${i + 1}/${max_deployment_retries})')
+		time.sleep(deployment_check_interval_seconds * time.second)
+	}
+
+	if !is_ready {
+		console.print_stderr('PostgreSQL pod failed to become ready.')
+		return error('PostgreSQL pod failed to become ready.')
+	}
+	console.print_info('PostgreSQL pod is ready.')
 }
 
 // Function for verifying the generating of of the FQDN using tfgw crd

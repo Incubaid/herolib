@@ -22,6 +22,11 @@ pub mut:
 	db_type              string // Database type (sqlite3, postgres, mysql)
 	db_path              string // Database path for SQLite
 	storage_size         string // PVC storage size
+	// Postgres-specific settings
+	db_host     string // Database host (for postgres)
+	db_name     string // Database name (for postgres)
+	db_user     string // Database user (for postgres)
+	db_password string // Database password (for postgres)
 }
 
 @[heap]
@@ -38,9 +43,15 @@ pub mut:
 	db_type              string = 'sqlite3'
 	db_path              string = '/data/gitea/gitea.db'
 	storage_size         string = '5Gi'
+	// PostgreSQL configuration (only used when db_type = 'postgres')
+	db_host     string = 'postgres' // PostgreSQL host (service name)
+	db_name     string = 'gitea'    // PostgreSQL database name
+	db_user     string = 'gitea'    // PostgreSQL user
+	db_password string = 'gitea'    // PostgreSQL password
 	// Internal paths
 	gitea_app_path string = '/tmp/gitea/gitea.yaml'
 	tfgw_path      string = '/tmp/gitea/tfgw-gitea.yaml'
+	postgres_path  string = '/tmp/gitea/postgres.yaml'
 	kube_client    kubernetes.KubeClient @[skip]
 }
 
@@ -58,7 +69,7 @@ fn obj_init(mycfg_ GiteaK8SInstaller) !GiteaK8SInstaller {
 	mycfg.name = mycfg.name.replace('.', '')
 
 	if mycfg.namespace == '' {
-		mycfg.namespace = '${mycfg.name}gitea-namespace'
+		mycfg.namespace = '${mycfg.name}-gitea-namespace'
 	}
 
 	if mycfg.namespace.contains('_') || mycfg.namespace.contains('.') {
@@ -68,6 +79,12 @@ fn obj_init(mycfg_ GiteaK8SInstaller) !GiteaK8SInstaller {
 
 	if mycfg.hostname == '' {
 		mycfg.hostname = '${mycfg.name}giteaapp'
+	}
+
+	// Validate database type
+	if mycfg.db_type !in ['sqlite3', 'postgres'] {
+		console.print_stderr('Only sqlite3 and postgres databases are supported. Got: ${mycfg.db_type}')
+		return error('Unsupported database type: ${mycfg.db_type}. Only sqlite3 and postgres are supported.')
 	}
 
 	mycfg.kube_client = kubernetes.get(create: true)!
@@ -104,6 +121,11 @@ fn configure() ! {
 		db_type:              installer.db_type
 		db_path:              installer.db_path
 		storage_size:         installer.storage_size
+		// Postgres connection details (use full DNS name for service)
+		db_host:     '${installer.db_host}.${installer.namespace}.svc.cluster.local'
+		db_name:     installer.db_name
+		db_user:     installer.db_user
+		db_password: installer.db_password
 	}
 
 	// Ensure the output directory exists
@@ -122,6 +144,14 @@ fn configure() ! {
 	gitea_app_yaml := $tmpl('./templates/gitea.yaml')
 	mut gitea_app_path := pathlib.get_file(path: installer.gitea_app_path, create: true)!
 	gitea_app_path.write(gitea_app_yaml)!
+
+	// Generate postgres YAML if postgres is selected
+	if installer.db_type == 'postgres' {
+		postgres_yaml := $tmpl('./templates/postgres.yaml')
+		mut postgres_path := pathlib.get_file(path: installer.postgres_path, create: true)!
+		postgres_path.write(postgres_yaml)!
+		console.print_info('PostgreSQL configuration file generated.')
+	}
 
 	console.print_info('Configuration files generated successfully.')
 }
