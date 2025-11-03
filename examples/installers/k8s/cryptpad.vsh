@@ -11,13 +11,16 @@ mut installer := cryptpad.get(
 	create: true
 )!
 
-// 2. Install CryptPad.
+// 2. Configure the installer (all settings are optional with sensible defaults)
+installer.hostname = 'mycryptpad'
+installer.namespace = 'cryptpad'
+
+// 3. Install CryptPad.
 //    This will generate the necessary Kubernetes YAML files and apply them to your cluster.
-// installer.install()!
-// cryptpad.delete()!
+installer.install()!
 
 // println('CryptPad installation started.')
 // println('You can access it at https://${installer.hostname}.gent01.grid.tf')
 
-// 3. To destroy the deployment, you can run the following:
-installer.destroy()!
+// 4. To destroy the deployment, you can run the following:
+// installer.destroy()!
