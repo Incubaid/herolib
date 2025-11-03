@@ -30,7 +30,7 @@ pub mut:
 @[heap]
 pub struct ElementChat {
 pub mut:
-	name             string = 'element_chat'
+	name             string = 'elementchat'
 	matrix_hostname  string
 	element_hostname string
 	namespace        string
@@ -55,8 +55,22 @@ pub mut:
 fn obj_init(mycfg_ ElementChat) !ElementChat {
 	mut mycfg := mycfg_
 
+	if mycfg.name == '' {
+		mycfg.name = 'elementchat'
+	}
+
+	// Replace the dashes, dots, and underscores with nothing
+	mycfg.name = mycfg.name.replace('_', '')
+	mycfg.name = mycfg.name.replace('-', '')
+	mycfg.name = mycfg.name.replace('.', '')
+
 	if mycfg.namespace == '' {
-		mycfg.namespace = 'chat'
+		mycfg.namespace = '${mycfg.name}-element-chat-namespace'
+	}
+
+	if mycfg.namespace.contains('_') || mycfg.namespace.contains('.') {
+		console.print_stderr('namespace cannot contain _, was: ${mycfg.namespace}, use dashes instead.')
+		return error('namespace cannot contain _, was: ${mycfg.namespace}')
 	}
 
 	if mycfg.matrix_hostname == '' {

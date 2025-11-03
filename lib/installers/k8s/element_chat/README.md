@@ -5,6 +5,7 @@ A Kubernetes installer for Element Chat (Matrix Conduit + Element Web) with TFGr
 ## Overview
 
 This installer deploys a complete Matrix chat solution consisting of:
+
 - **Conduit**: A lightweight Matrix homeserver implementation
 - **Element Web**: A modern web client for Matrix
 - **TFGW (ThreeFold Gateway)**: Provides public FQDNs with TLS termination
@@ -30,9 +31,9 @@ All configuration options are optional and have sensible defaults:
 ### Hostnames and Namespace
 
 ```v
-installer.matrix_hostname = 'matrixchat'    // Default: 'matrixchat'
-installer.element_hostname = 'elementchat'  // Default: 'elementchat'
-installer.namespace = 'chat'                // Default: 'chat'
+installer.matrix_hostname = 'matrixchat'    // Default: '${installer.name}matrix'
+installer.element_hostname = 'elementchat'  // Default: '${installer.name}element'
+installer.namespace = 'chat-namespace'                // Default: '${installer.name}-element-chat-namespace'
 ```
 
 **Note**: Use only alphanumeric characters in hostnames (no underscores or dashes).

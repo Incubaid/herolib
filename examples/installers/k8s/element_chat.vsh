@@ -12,7 +12,7 @@ mut installer := element_chat.get(
 	create: true
 )!
 
-element_chat.delete()!
+// element_chat.delete()!
 
 // 2. Configure the installer (all settings are optional with sensible defaults)
 // installer.matrix_hostname = 'matrixchattest'
