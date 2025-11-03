@@ -169,7 +169,7 @@ lib/lang
 lib/clients
 lib/core
 lib/develop
-// lib/hero 
+lib/hero/heromodels
 // lib/vfs The vfs folder is not exists on the development branch, so we need to uncomment it after merging this PR https://github.com/incubaid/herolib/pull/68
 // lib/crypt
 '
@@ -194,6 +194,7 @@ rust_test.v
 rclone/
 qdrant/
 sshagent_test.v
+virt/kubernetes/
 '
 
 if in_github_actions() {
