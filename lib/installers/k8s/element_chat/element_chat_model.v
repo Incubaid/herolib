@@ -60,11 +60,11 @@ fn obj_init(mycfg_ ElementChat) !ElementChat {
 	}
 
 	if mycfg.matrix_hostname == '' {
-		mycfg.matrix_hostname = 'matrixchat'
+		mycfg.matrix_hostname = '${mycfg.name}matrix'
 	}
 
 	if mycfg.element_hostname == '' {
-		mycfg.element_hostname = 'elementchat'
+		mycfg.element_hostname = '${mycfg.name}element'
 	}
 
 	mycfg.kube_client = kubernetes.get(create: true)!
