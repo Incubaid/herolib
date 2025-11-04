@@ -118,7 +118,6 @@ fn (mut p Page) find_links(content string) ![]Link {
 				link.is_file_link = false
 				link.is_image_link = false
 			}
-			println(link)
 			links << link
 
 			pos = close_paren + 1
@@ -232,7 +231,6 @@ fn (mut p Page) process_links(mut export_dir pathlib.Path) !string {
 
 	// Process links in reverse order to	 maintain string positions
 	for mut link in links.reverse() {
-		println(link)
 		if link.status != .found {
 			continue
 		}

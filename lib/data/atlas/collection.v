@@ -148,7 +148,7 @@ pub fn (c Collection) file_exists(name string) bool {
 }
 
 pub fn (c Collection) file_or_image_exists(name string) bool {
-	f := c.files[name] or { return false }
+	_ := c.files[name] or { return false }
 	return true
 }
 
