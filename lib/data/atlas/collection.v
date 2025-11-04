@@ -45,12 +45,13 @@ fn (mut c Collection) init_post() ! {
 	c.init_git_info()!
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Add a page to the collection
 fn (mut c Collection) add_page(mut path pathlib.Path) ! {
-	name := path.name_fix_no_ext()
+	// Use name_fix_no_underscore_no_ext to ensure consistent naming
+	// This ensures token_system.md and tokensystem.md both become 'tokensystem'
+	name := path.name_fix_no_underscore_no_ext()
 	if name in c.pages {
 		return error('Page ${name} already exists in collection ${c.name}')
 	}
@@ -129,7 +130,6 @@ pub fn (c Collection) file_or_image_get(name string) !&File {
 	return f
 }
 
-
 // Check if page exists
 pub fn (c Collection) page_exists(name string) bool {
 	return name in c.pages
@@ -151,9 +151,6 @@ pub fn (c Collection) file_or_image_exists(name string) bool {
 	f := c.files[name] or { return false }
 	return true
 }
-
-
-
 
 @[params]
 pub struct CollectionErrorArgs {
@@ -243,7 +240,7 @@ pub fn (c Collection) print_errors() {
 pub fn (mut c Collection) validate_links() ! {
 	for _, mut page in c.pages {
 		content := page.content(include: true)!
-		page.links=page.find_links(content)! // will walk over links see if errors and add errors
+		page.links = page.find_links(content)! // will walk over links see if errors and add errors
 	}
 }
 

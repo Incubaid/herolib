@@ -97,20 +97,20 @@ fn (mut p Page) find_links(content string) ![]Link {
 
 			mut is_file_link := false
 
-			//if no . in file then it means it's a page link (binaries with . are not supported in other words)
-			if target.contains(".") && (! target.trim_space().to_lower().ends_with(".md"))  {
+			// if no . in file then it means it's a page link (binaries with . are not supported in other words)
+			if target.contains('.') && (!target.trim_space().to_lower().ends_with('.md')) {
 				is_file_link = true
-				is_image_link = false //means it's a file link, not an image link
+				is_image_link = false // means it's a file link, not an image link
 			}
 
 			mut link := Link{
-				src:          line[open_bracket..close_paren + 1]
-				text:         text
-				target:       target.trim_space()
-				line:         line_idx + 1
-				is_file_link: is_file_link
+				src:           line[open_bracket..close_paren + 1]
+				text:          text
+				target:        target.trim_space()
+				line:          line_idx + 1
+				is_file_link:  is_file_link
 				is_image_link: is_image_link
-				page:         &p
+				page:          &p
 			}
 
 			p.parse_link_target(mut link)
@@ -155,7 +155,8 @@ fn (mut p Page) parse_link_target(mut link Link) {
 	if target.contains(':') {
 		parts := target.split(':')
 		if parts.len >= 2 {
-			link.target_collection_name = texttools.name_fix(parts[0])
+			// Normalize collection name to remove underscores
+			link.target_collection_name = texttools.name_fix_no_underscore_no_ext(parts[0])
 			link.target_item_name = normalize_page_name(parts[1])
 		}
 	} else {
@@ -273,11 +274,14 @@ fn (mut p Page) process_links(mut export_dir pathlib.Path) !string {
 
 /////////////TOOLS//////////////////////////////////
 
-// Normalize page name (remove .md, apply name_fix)
+// Normalize page name (remove .md, underscores, and apply name_fix)
+// This ensures consistent naming: token_system, token-system, TokenSystem all become tokensystem
 fn normalize_page_name(name string) string {
 	mut clean := name
 	if clean.ends_with('.md') {
 		clean = clean[0..clean.len - 3]
 	}
-	return texttools.name_fix(clean)
+	// Use name_fix_no_underscore_no_ext to remove underscores and normalize
+	// This ensures token_system and tokensystem both become tokensystem
+	return texttools.name_fix_no_underscore_no_ext(clean)
 }

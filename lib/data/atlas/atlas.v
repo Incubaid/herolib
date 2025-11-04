@@ -15,7 +15,7 @@ pub mut:
 
 // Create a new collection
 fn (mut self Atlas) add_collection(mut path pathlib.Path) !Collection {
-	mut name := path.name_fix_no_ext()
+	mut name := path.name_fix_no_underscore_no_ext()
 	mut filepath := path.file_get('.collection')!
 	content := filepath.read()!
 	if content.trim_space() != '' {
@@ -24,7 +24,9 @@ fn (mut self Atlas) add_collection(mut path pathlib.Path) !Collection {
 			name = params.get('name')!
 		}
 	}
-	name = texttools.name_fix(name)
+	// Normalize collection name to remove underscores and special chars
+	// This ensures collection_a and collectiona both become 'collectiona'
+	name = texttools.name_fix_no_underscore_no_ext(name)
 	console.print_item("Adding collection '${name}' to Atlas '${self.name}' at path '${path.path}'")
 
 	if name in self.collections {
@@ -90,6 +92,7 @@ pub fn (a Atlas) groups_get(session Session) []&Group {
 
 	return matching
 }
+
 //////////////////SCAN
 
 // Scan a path for collections
@@ -117,7 +120,7 @@ fn (mut a Atlas) scan_(mut dir pathlib.Path, ignore_ []string) ! {
 
 	// Check if this directory is a collection
 	if dir.file_exists('.collection') {
-		collname := dir.name_fix_no_ext()
+		collname := dir.name_fix_no_underscore_no_ext()
 		if collname.to_lower() in ignore_ {
 			return
 		}
