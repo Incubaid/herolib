@@ -34,12 +34,26 @@ pub mut:
 fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
 	mut mycfg := mycfg_
 
+	if mycfg.name == '' {
+		mycfg.name = 'cryptpad'
+	}
+
+	// Replace the dashes, dots, and underscores with nothing
+	mycfg.name = mycfg.name.replace('_', '')
+	mycfg.name = mycfg.name.replace('-', '')
+	mycfg.name = mycfg.name.replace('.', '')
+
 	if mycfg.namespace == '' {
-		mycfg.namespace = mycfg.name
+		mycfg.namespace = '${mycfg.name}-cryptpad-namespace'
+	}
+
+	if mycfg.namespace.contains('_') || mycfg.namespace.contains('.') {
+		console.print_stderr('namespace cannot contain _, was: ${mycfg.namespace}, use dashes instead.')
+		return error('namespace cannot contain _, was: ${mycfg.namespace}')
 	}
 
 	if mycfg.hostname == '' {
-		mycfg.hostname = mycfg.name
+		mycfg.hostname = '${mycfg.name}cryptpad'
 	}
 
 	mycfg.kube_client = kubernetes.get(create: true)!

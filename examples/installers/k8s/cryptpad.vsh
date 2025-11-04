@@ -11,9 +11,10 @@ mut installer := cryptpad.get(
 	create: true
 )!
 
+// cryptpad.delete()!
 // 2. Configure the installer (all settings are optional with sensible defaults)
-installer.hostname = 'mycryptpad'
-installer.namespace = 'cryptpad'
+// installer.hostname = 'mycryptpad'
+// installer.namespace = 'cryptpad'
 
 // 3. Install CryptPad.
 //    This will generate the necessary Kubernetes YAML files and apply them to your cluster.
