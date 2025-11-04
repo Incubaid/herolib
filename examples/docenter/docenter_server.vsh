@@ -6,20 +6,11 @@ import os
 // Configuration
 const server_port = 8004
 
-
-// Get the directory where this script is located
-// We use the script directory for the database path to ensure data persistence
-// regardless of where the script is run from (e.g., ./docenter_server.vsh vs /path/to/docenter_server.vsh)
-script_dir := os.dir(os.real_path(@FILE))
-database_path := os.join_path(script_dir, 'database')
-
 // Create docenter server
 mut config := docenter.ServerConfig{
 	user_db: {
 		'admin': '123'
 	}
-	database_path: database_path
 }
 mut server := docenter.new_server(mut config)!
 server.run(server_port)
-
