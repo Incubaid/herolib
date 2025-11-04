@@ -65,7 +65,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		path:   '${dir_meta.path}/${c.name}.json'
 		create: true
 	)!
-	json_file.write(meta)!	
+	json_file.write(meta)!
 
 	for _, mut page in c.pages {
 		content := page.content(include: args.include)!
@@ -82,8 +82,6 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 			mut redis := context.redis()!
 			redis.hset('atlas:${c.name}', page.name, page.path)!
 		}
-
-
 	}
 
 	// // Export files

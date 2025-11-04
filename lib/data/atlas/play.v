@@ -12,7 +12,7 @@ pub fn play(mut plbook PlayBook) ! {
 
 	mut atlases := map[string]&Atlas{}
 
-	mut name := ""
+	mut name := ''
 
 	// Process scan actions - scan directories for collections
 	mut scan_actions := plbook.find(filter: 'atlas.scan')!
@@ -52,12 +52,9 @@ pub fn play(mut plbook PlayBook) ! {
 
 	mut atlas_instance_post := atlases[name] or {
 		return error("Atlas '${name}' not found. Use !!atlas.scan first.")
-		}
+	}
 
-	
 	atlas_instance_post.init_post()!
-
-	println(atlas_instance_post)
 
 	// Process export actions - export collections to destination
 	mut export_actions := plbook.find(filter: 'atlas.export')!

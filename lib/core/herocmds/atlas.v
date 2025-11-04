@@ -4,6 +4,7 @@ import incubaid.herolib.ui.console
 import incubaid.herolib.data.atlas
 import incubaid.herolib.core.playcmds
 import incubaid.herolib.develop.gittools
+import incubaid.herolib.web.docusaurus
 import os
 import cli { Command, Flag }
 
@@ -59,7 +60,6 @@ pub fn cmd_atlas(mut cmdroot Command) Command {
 		flag:        .string
 		required:    false
 		name:        'destination'
-		abbrev:      'd'
 		description: 'Export destination path.'
 	})
 
@@ -69,6 +69,14 @@ pub fn cmd_atlas(mut cmdroot Command) Command {
 		name:        'scan'
 		abbrev:      's'
 		description: 'Scan directories for collections.'
+	})
+
+	cmd_run.add_flag(Flag{
+		flag:        .bool
+		required:    false
+		name:        'dev'
+		abbrev:      'd'
+		description: 'Run development server after export.'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -110,6 +118,7 @@ fn cmd_atlas_execute(cmd Command) ! {
 	mut update := cmd.flags.get_bool('update') or { false }
 	mut scan := cmd.flags.get_bool('scan') or { false }
 	mut export := cmd.flags.get_bool('export') or { false }
+	mut dev := cmd.flags.get_bool('dev') or { false }
 
 	// Include and redis default to true unless explicitly disabled
 	mut no_include := cmd.flags.get_bool('no-include') or { false }
@@ -138,9 +147,12 @@ fn cmd_atlas_execute(cmd Command) ! {
 	console.print_header('Running Atlas for: ${atlas_path.path}')
 
 	// Run HeroScript if exists
+	// Note: emptycheck is false because !!include actions in markdown files
+	// are processed internally by atlas during export, not through the playbook system
 	playcmds.run(
 		heroscript_path: atlas_path.path
 		reset:           false
+		emptycheck:      false
 	)!
 
 	// Create or get atlas instance
@@ -151,7 +163,14 @@ fn cmd_atlas_execute(cmd Command) ! {
 	}
 
 	// Default behavior: scan and export if no flags specified
+	// Also enable scan and export if dev is requested
 	if !scan && !export {
+		scan = true
+		export = true
+	}
+
+	// If dev server is requested, ensure we scan and export first
+	if dev {
 		scan = true
 		export = true
 	}
@@ -172,12 +191,13 @@ fn cmd_atlas_execute(cmd Command) ! {
 		console.print_item('Include processing: ${include}')
 		console.print_item('Redis metadata: ${redis}')
 
+		// Export even if there are errors - we want to export what we can
 		a.export(
 			destination: destination
 			reset:       reset
 			include:     include
 			redis:       redis
-		)!
+		) or { console.print_item('Export completed with errors: ${err}') }
 
 		console.print_green('✓ Export complete to ${destination}')
 
@@ -187,5 +207,31 @@ fn cmd_atlas_execute(cmd Command) ! {
 				col.print_errors()
 			}
 		}
+	}
+
+	// Run development server if requested - always run even if there were export errors
+	if dev {
+		if destination == '' {
+			return error('Cannot run dev server: no destination specified. Use -destination flag.')
+		}
+
+		console.print_header('Starting Docusaurus development server')
+		console.print_item('Atlas content exported to: ${destination}')
+
+		// Get the docusaurus site that was configured via heroscript
+		// The heroscript should have been processed by playcmds.run() above
+		mut dsite := docusaurus.dsite_get('') or {
+			console.print_item('Warning: No Docusaurus site configured')
+			console.print_item('Make sure your atlas source directory contains a heroscript file with Docusaurus configuration')
+			return error('Cannot start dev server: ${err}')
+		}
+
+		// Run the docusaurus dev server - this will block until Ctrl+C
+		dsite.dev(
+			host:          'localhost'
+			port:          3000
+			open:          true
+			watch_changes: false
+		)!
 	}
 }
