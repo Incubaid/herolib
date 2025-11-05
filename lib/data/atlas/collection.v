@@ -49,9 +49,8 @@ fn (mut c Collection) init_post() ! {
 
 // Add a page to the collection
 fn (mut c Collection) add_page(mut path pathlib.Path) ! {
-	// Use name_fix_no_underscore_no_ext to ensure consistent naming
-	// This ensures token_system.md and tokensystem.md both become 'tokensystem'
-	name := path.name_fix_no_underscore_no_ext()
+	// Use name_fix_no_ext to normalize the name
+	name := path.name_fix_no_ext()
 	if name in c.pages {
 		return error('Page ${name} already exists in collection ${c.name}')
 	}

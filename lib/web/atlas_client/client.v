@@ -56,9 +56,9 @@ pub mut:
 // get_page_path returns the path for a page in a collection
 // Pages are stored in {export_dir}/content/{collection}/{page}.md
 pub fn (mut c AtlasClient) get_page_path(collection_name string, page_name string) !string {
-	// Apply name normalization (atlas uses name_fix_no_underscore_no_ext)
-	fixed_collection_name := texttools.name_fix_no_underscore_no_ext(collection_name)
-	fixed_page_name := texttools.name_fix_no_underscore_no_ext(page_name)
+	// Apply name normalization
+	fixed_collection_name := texttools.name_fix(collection_name)
+	fixed_page_name := texttools.name_fix(page_name)
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
@@ -83,7 +83,7 @@ pub fn (mut c AtlasClient) get_page_path(collection_name string, page_name strin
 // Files are stored in {export_dir}/content/{collection}/{filename}
 pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name string) !string {
 	// Apply name normalization
-	fixed_collection_name := texttools.name_fix_no_underscore_no_ext(collection_name)
+	fixed_collection_name := texttools.name_fix(collection_name)
 	// Files keep their original names with extensions
 	fixed_file_name := texttools.name_fix_keepext(file_name)
 
@@ -213,7 +213,7 @@ pub fn (mut c AtlasClient) list_pages(collection_name string) ![]string {
 // list_files returns a list of all file names in a collection (excluding pages and images)
 pub fn (mut c AtlasClient) list_files(collection_name string) ![]string {
 	// Apply name normalization
-	fixed_collection_name := texttools.name_fix_no_underscore_no_ext(collection_name)
+	fixed_collection_name := texttools.name_fix(collection_name)
 
 	collection_dir := os.join_path(c.export_dir, 'content', fixed_collection_name)
 
@@ -260,7 +260,7 @@ pub fn (mut c AtlasClient) list_files(collection_name string) ![]string {
 // list_images returns a list of all image names in a collection
 pub fn (mut c AtlasClient) list_images(collection_name string) ![]string {
 	// Apply name normalization
-	fixed_collection_name := texttools.name_fix_no_underscore_no_ext(collection_name)
+	fixed_collection_name := texttools.name_fix(collection_name)
 
 	collection_dir := os.join_path(c.export_dir, 'content', fixed_collection_name)
 

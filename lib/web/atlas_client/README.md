@@ -77,11 +77,12 @@ export_dir/
 
 ## Naming Convention
 
-Names are normalized using `name_fix_no_underscore_no_ext()`:
+Names are normalized using `name_fix()`:
 
-- `My_Page-Name.md` → `mypagename`
-- Removes: underscores, dashes, special chars, extensions
+- `My_Page-Name.md` → `my_page_name`
+- Removes: dashes, special chars
 - Converts to lowercase
+- Preserves underscores
 
 ## Example
 

@@ -154,8 +154,8 @@ fn (mut p Page) parse_link_target(mut link Link) {
 	if target.contains(':') {
 		parts := target.split(':')
 		if parts.len >= 2 {
-			// Normalize collection name to remove underscores
-			link.target_collection_name = texttools.name_fix_no_underscore_no_ext(parts[0])
+			// Normalize collection name
+			link.target_collection_name = texttools.name_fix(parts[0])
 			link.target_item_name = normalize_page_name(parts[1])
 		}
 	} else {
@@ -272,14 +272,12 @@ fn (mut p Page) process_links(mut export_dir pathlib.Path) !string {
 
 /////////////TOOLS//////////////////////////////////
 
-// Normalize page name (remove .md, underscores, and apply name_fix)
-// This ensures consistent naming: token_system, token-system, TokenSystem all become tokensystem
+// Normalize page name (remove .md and apply name_fix)
 fn normalize_page_name(name string) string {
 	mut clean := name
 	if clean.ends_with('.md') {
 		clean = clean[0..clean.len - 3]
 	}
-	// Use name_fix_no_underscore_no_ext to remove underscores and normalize
-	// This ensures token_system and tokensystem both become tokensystem
-	return texttools.name_fix_no_underscore_no_ext(clean)
+	// Use name_fix to normalize
+	return texttools.name_fix(clean)
 }

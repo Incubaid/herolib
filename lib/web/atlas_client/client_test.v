@@ -624,7 +624,7 @@ fn test_naming_normalization_underscores() {
 	defer { cleanup_test_export(test_dir) }
 
 	// Create page with underscores
-	normalized := name_fix_no_underscore_no_ext('test_page_name')
+	normalized := texttools.name_fix('test_page_name')
 	os.write_file(os.join_path(test_dir, 'content', 'testcollection', '${normalized}.md'),
 		'# Test') or { panic(err) }
 
@@ -641,7 +641,7 @@ fn test_naming_normalization_dashes() {
 	defer { cleanup_test_export(test_dir) }
 
 	// Create page with dashes
-	normalized := name_fix_no_underscore_no_ext('test-page-name')
+	normalized := texttools.name_fix('test-page-name')
 	os.write_file(os.join_path(test_dir, 'content', 'testcollection', '${normalized}.md'),
 		'# Test') or { panic(err) }
 
@@ -658,7 +658,7 @@ fn test_naming_normalization_case() {
 	defer { cleanup_test_export(test_dir) }
 
 	// Create page with mixed case
-	normalized := name_fix_no_underscore_no_ext('TestPageName')
+	normalized := texttools.name_fix('TestPageName')
 	os.write_file(os.join_path(test_dir, 'content', 'testcollection', '${normalized}.md'),
 		'# Test') or { panic(err) }
 
