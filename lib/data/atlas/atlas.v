@@ -24,7 +24,7 @@ fn (mut self Atlas) add_collection(mut path pathlib.Path) !Collection {
 			name = params.get('name')!
 		}
 	}
-	// Normalize collection name
+
 	name = texttools.name_fix(name)
 	console.print_item("Adding collection '${name}' to Atlas '${self.name}' at path '${path.path}'")
 

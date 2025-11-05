@@ -147,8 +147,6 @@ fn cmd_atlas_execute(cmd Command) ! {
 	console.print_header('Running Atlas for: ${atlas_path.path}')
 
 	// Run HeroScript if exists
-	// Note: emptycheck is false because !!include actions in markdown files
-	// are processed internally by atlas during export, not through the playbook system
 	playcmds.run(
 		heroscript_path: atlas_path.path
 		reset:           false
@@ -163,7 +161,6 @@ fn cmd_atlas_execute(cmd Command) ! {
 	}
 
 	// Default behavior: scan and export if no flags specified
-	// Also enable scan and export if dev is requested
 	if !scan && !export {
 		scan = true
 		export = true
