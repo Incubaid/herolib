@@ -68,13 +68,15 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 	json_file.write(meta)!
 
 	for _, mut page in c.pages {
-		content := page.content(include: args.include)!
-
-		// NEW: Process cross-collection links
-		processed_content := page.process_links(mut col_dir)!
+		// Get content with includes processed and links transformed for export
+		content := page.content_with_fixed_links(
+			include:          args.include
+			cross_collection: true
+			export_mode:      true
+		)!
 
 		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
-		dest_file.write(processed_content)!
+		dest_file.write(content)!
 
 		// Redis operations...
 		if args.redis {

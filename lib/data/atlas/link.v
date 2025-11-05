@@ -1,8 +1,6 @@
 module atlas
 
 import incubaid.herolib.core.texttools
-import incubaid.herolib.core.pathlib
-import os
 
 // Link represents a markdown link found in content
 pub struct Link {
@@ -10,7 +8,8 @@ pub mut:
 	src                    string // Source content where link was found (what to replace)
 	text                   string // Link text [text]
 	target                 string // Original link target (the source text)
-	line                   int    // Line number where link was found
+	line                   int    // Line number where link was found (1-based)
+	pos                    int    // Character position in line where link starts (0-based)
 	target_collection_name string
 	target_item_name       string
 	status                 LinkStatus
@@ -103,11 +102,15 @@ fn (mut p Page) find_links(content string) ![]Link {
 				is_image_link = false // means it's a file link, not an image link
 			}
 
+			// Store position - use image_open if it's an image, otherwise open_bracket
+			link_start_pos := if is_image_link { image_open } else { open_bracket }
+
 			mut link := Link{
 				src:           line[open_bracket..close_paren + 1]
 				text:          text
 				target:        target.trim_space()
 				line:          line_idx + 1
+				pos:           link_start_pos
 				is_file_link:  is_file_link
 				is_image_link: is_image_link
 				page:          &p
@@ -185,88 +188,96 @@ fn (mut p Page) parse_link_target(mut link Link) {
 
 ////////////////FIX PAGES FOR THE LINKS///////////////////////
 
+@[params]
+pub struct FixLinksArgs {
+	include          bool // Process includes before fixing links
+	cross_collection bool // Process cross-collection links (for export)
+	export_mode      bool // Use export-style simple paths instead of filesystem paths
+}
+
 // Fix links in page content - rewrites links with proper relative paths
-fn (mut p Page) content_with_fixed_links() !string {
-	mut content := p.content(include: false)!
-	if p.links.len == 0 {
-		return content
+fn (mut p Page) content_with_fixed_links(args FixLinksArgs) !string {
+	mut content := p.content(include: args.include)!
+
+	// Get links - either re-find them (if includes processed) or use cached
+	mut links := if args.include {
+		p.find_links(content)! // Re-find links in processed content
+	} else {
+		p.links // Use cached links from validation
 	}
 
-	// Process links in reverse order to maintain positions
-	for mut link in p.links.reverse() {
-		// if page not existing no point in fixing
+	// Filter and transform links
+	for mut link in links {
+		// Skip invalid links
 		if link.status != .found {
 			continue
 		}
-		// if not local then no point in fixing
-		if !link.is_local_in_collection() {
+
+		// Skip cross-collection links unless enabled
+		if !args.cross_collection && !link.is_local_in_collection() {
 			continue
 		}
-		// Get target page
-		mut target_page := link.target_page()!
-		mut target_path := target_page.path()!
 
-		relative_path := target_path.path_relative(p.path()!.path)!
+		// Calculate new link path
+		new_link := p.calculate_link_path(mut link, args) or { continue }
 
-		new_link := '[${link.text}](${relative_path})'
+		// Build the complete link markdown
+		prefix := if link.is_file_link { '!' } else { '' }
+		new_link_md := '${prefix}[${link.text}](${new_link})'
 
 		// Replace in content
-		content = content.replace(link.src, new_link)
+		content = content.replace(link.src, new_link_md)
 	}
 
 	return content
 }
 
-// process_cross_collection_links handles exporting cross-collection references
-// It:
-// 1. Finds all cross-collection links (collection:page format)
-// 2. Copies the target page to the export directory
-// 3. Renames the link to avoid conflicts (collectionname_pagename.md)
-// 4. Rewrites the link in the content
-fn (mut p Page) process_links(mut export_dir pathlib.Path) !string {
-	mut c := p.content(include: true)!
+// calculate_link_path returns the relative path for a link
+fn (mut p Page) calculate_link_path(mut link Link, args FixLinksArgs) !string {
+	if args.export_mode {
+		// Export mode: simple flat structure
+		return p.export_link_path(mut link)!
+	}
+	// Fix mode: filesystem paths
+	return p.filesystem_link_path(mut link)!
+}
 
-	mut links := p.find_links(c)!
+// export_link_path calculates path for export (flat structure: collection/file.md)
+fn (mut p Page) export_link_path(mut link Link) !string {
+	mut target_collection := ''
+	mut target_filename := ''
 
-	// Process links in reverse order to	 maintain string positions
-	for mut link in links.reverse() {
-		if link.status != .found {
-			continue
-		}
-		mut exported_filename := ''
-		if link.is_file_link {
-			mut target_file := link.target_file()!
-			mut target_path := target_file.path()!
-			// Copy target page with renamed filename
-			exported_filename = 'files/${target_file.collection.name}_${target_file.name}'
-			os.mkdir_all('${export_dir.path}/files')!
-			os.cp(target_path.path, '${export_dir.path}/${exported_filename}')!
-		} else {
-			mut target_page := link.target_page()!
-			mut target_path := target_page.path()!
-
-			// Copy target page with renamed filename
-			exported_filename = '${target_page.collection.name}_${target_page.name}.md'
-			page_content := target_page.content(include: true)!
-
-			mut exported_file := pathlib.get_file(
-				path:   '${export_dir.path}/${exported_filename}'
-				create: true
-			)!
-			exported_file.write(page_content)!
-		}
-
-		mut pre := ''
-		if link.is_file_link {
-			pre = '!'
-		}
-
-		// Update link in source content
-		new_link := '${pre}[${link.text}](${exported_filename})'
-		c = c.replace(link.src, new_link)
+	if link.is_file_link {
+		mut tf := link.target_file()!
+		target_collection = tf.collection.name
+		target_filename = tf.name
+	} else {
+		mut tp := link.target_page()!
+		target_collection = tp.collection.name
+		target_filename = '${tp.name}.md'
 	}
 
-	return c
+	// Same collection: just filename, different collection: ../collection/filename
+	return if link.is_local_in_collection() {
+		target_filename
+	} else {
+		'../${target_collection}/${target_filename}'
+	}
+}
+
+// filesystem_link_path calculates path using actual filesystem paths
+fn (mut p Page) filesystem_link_path(mut link Link) !string {
+	source_path := p.path()!
+
+	mut target_path := if link.is_file_link {
+		mut tf := link.target_file()!
+		tf.path()!
+	} else {
+		mut tp := link.target_page()!
+		tp.path()!
+	}
+
+	return target_path.path_relative(source_path.path)!
 }
 
 /////////////TOOLS//////////////////////////////////

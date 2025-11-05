@@ -10,7 +10,8 @@ pub fn play(mut plbook PlayBook) ! {
 		return
 	}
 
-	mut atlases := map[string]&Atlas{}
+	// Track which atlases we've processed in this playbook
+	mut processed_atlases := map[string]bool{}
 
 	mut name := ''
 
@@ -20,14 +21,15 @@ pub fn play(mut plbook PlayBook) ! {
 		mut p := action.params
 		name = p.get_default('name', 'main')!
 		ignore := p.get_list_default('ignore', [])!
-		console.print_item("Scanning Atlas '${name}' with ignore patterns: ${ignore}\n${p}")
-		// Get or create atlas
-		mut atlas_instance := atlases[name] or {
+		console.print_item("Scanning Atlas '${name}' with ignore patterns: ${ignore}")
+		// Get or create atlas from global map
+		mut atlas_instance := if exists(name) {
+			get(name)!
+		} else {
 			console.print_debug('Atlas not found, creating a new one')
-			mut new_atlas := new(name: name)!
-			atlases[name] = new_atlas
-			new_atlas
+			new(name: name)!
 		}
+		processed_atlases[name] = true
 
 		mut path := p.get_default('path', '')!
 
@@ -47,14 +49,15 @@ pub fn play(mut plbook PlayBook) ! {
 		atlas_instance.scan(path: path, ignore: ignore)!
 		action.done = true
 
-		set(atlas_instance)
+		// No need to call set() again - atlas is already in global map from new()
+		// and we're modifying it by reference
 	}
 
-	mut atlas_instance_post := atlases[name] or {
-		return error("Atlas '${name}' not found. Use !!atlas.scan first.")
+	// Run init_post on all processed atlases
+	for atlas_name, _ in processed_atlases {
+		mut atlas_instance_post := get(atlas_name)!
+		atlas_instance_post.init_post()!
 	}
-
-	atlas_instance_post.init_post()!
 
 	// Process export actions - export collections to destination
 	mut export_actions := plbook.find(filter: 'atlas.export')!
@@ -68,7 +71,7 @@ pub fn play(mut plbook PlayBook) ! {
 		include := p.get_default_true('include')
 		redis := p.get_default_true('redis')
 
-		mut atlas_instance := atlases[name] or {
+		mut atlas_instance := get(name) or {
 			return error("Atlas '${name}' not found. Use !!atlas.scan first.")
 		}
 

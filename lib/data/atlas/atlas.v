@@ -63,6 +63,20 @@ pub fn (mut a Atlas) init_post() ! {
 	}
 }
 
+// Validate all links in all collections
+pub fn (mut a Atlas) validate_links() ! {
+	for _, mut col in a.collections {
+		col.validate_links()!
+	}
+}
+
+// Fix all links in all collections (rewrite source files)
+pub fn (mut a Atlas) fix_links() ! {
+	for _, mut col in a.collections {
+		col.fix_links()!
+	}
+}
+
 // Add a group to the atlas
 pub fn (mut a Atlas) group_add(mut group Group) ! {
 	if group.name in a.groups {
