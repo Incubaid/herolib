@@ -53,7 +53,10 @@ fn (mut c Collection) add_page(mut path pathlib.Path) ! {
 	if name in c.pages {
 		return error('Page ${name} already exists in collection ${c.name}')
 	}
-	relativepath := path.path_relative(c.path()!.path)!
+	// Use absolute paths for path_relative to work correctly
+	mut col_path := pathlib.get(c.path)
+	mut page_abs_path := pathlib.get(path.absolute())
+	relativepath := page_abs_path.path_relative(col_path.absolute())!
 
 	mut p_new := Page{
 		name:            name
@@ -71,7 +74,10 @@ fn (mut c Collection) add_file(mut p pathlib.Path) ! {
 	if name in c.files {
 		return error('Page ${name} already exists in collection ${c.name}')
 	}
-	relativepath := p.path_relative(c.path()!.path)!
+	// Use absolute paths for path_relative to work correctly
+	mut col_path := pathlib.get(c.path)
+	mut file_abs_path := pathlib.get(p.absolute())
+	relativepath := file_abs_path.path_relative(col_path.absolute())!
 
 	mut file_new := File{
 		name:       name

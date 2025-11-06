@@ -242,27 +242,20 @@ fn (mut p Page) calculate_link_path(mut link Link, args FixLinksArgs) !string {
 	return p.filesystem_link_path(mut link)!
 }
 
-// export_link_path calculates path for export (flat structure: collection/file.md)
+// export_link_path calculates path for export (self-contained: all references are local)
 fn (mut p Page) export_link_path(mut link Link) !string {
-	mut target_collection := ''
 	mut target_filename := ''
 
 	if link.is_file_link {
 		mut tf := link.target_file()!
-		target_collection = tf.collection.name
 		target_filename = tf.name
 	} else {
 		mut tp := link.target_page()!
-		target_collection = tp.collection.name
 		target_filename = '${tp.name}.md'
 	}
 
-	// Same collection: just filename, different collection: ../collection/filename
-	return if link.is_local_in_collection() {
-		target_filename
-	} else {
-		'../${target_collection}/${target_filename}'
-	}
+	// For self-contained exports, all links are local (cross-collection pages are copied)
+	return target_filename
 }
 
 // filesystem_link_path calculates path using actual filesystem paths
