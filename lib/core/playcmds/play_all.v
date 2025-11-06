@@ -25,6 +25,8 @@ import incubaid.herolib.installers.infra.coredns
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.installers.infra.livekit
 import incubaid.herolib.installers.infra.zinit_installer
+import incubaid.herolib.installers.k8s.cryptpad
+import incubaid.herolib.installers.k8s.element_chat
 import incubaid.herolib.installers.lang.golang
 import incubaid.herolib.installers.lang.nodejs
 import incubaid.herolib.installers.lang.python
@@ -37,6 +39,7 @@ import incubaid.herolib.installers.threefold.griddriver
 import incubaid.herolib.installers.virt.cloudhypervisor
 import incubaid.herolib.installers.virt.docker
 import incubaid.herolib.installers.virt.herorunner
+import incubaid.herolib.installers.virt.kubernetes_installer
 import incubaid.herolib.installers.virt.lima
 import incubaid.herolib.installers.virt.pacman
 import incubaid.herolib.installers.virt.podman
@@ -80,6 +83,8 @@ pub fn run_all(args_ PlayArgs) ! {
 	gitea.play(mut plbook)!
 	livekit.play(mut plbook)!
 	zinit_installer.play(mut plbook)!
+	cryptpad.play(mut plbook)!
+	element_chat.play(mut plbook)!
 	golang.play(mut plbook)!
 	nodejs.play(mut plbook)!
 	python.play(mut plbook)!
@@ -92,6 +97,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	cloudhypervisor.play(mut plbook)!
 	docker.play(mut plbook)!
 	herorunner.play(mut plbook)!
+	kubernetes_installer.play(mut plbook)!
 	lima.play(mut plbook)!
 	pacman.play(mut plbook)!
 	podman.play(mut plbook)!
