@@ -27,20 +27,12 @@ pub enum LinkStatus {
 	error
 }
 
+// Get the collection:item key for this link
 fn (mut self Link) key() string {
 	return '${self.target_collection_name}:${self.target_item_name}'
 }
 
-// is the link in the same collection as the page containing the link
-fn (mut self Link) is_local_in_collection() bool {
-	return self.target_collection_name == self.page.collection.name
-}
-
-// is the link pointing to an external resource e.g. http, git, mailto, ftp
-pub fn (mut self Link) is_external() bool {
-	return self.status == .external
-}
-
+// Get the target page this link points to
 pub fn (mut self Link) target_page() !&Page {
 	if self.status == .external {
 		return error('External links do not have a target page')
@@ -48,6 +40,7 @@ pub fn (mut self Link) target_page() !&Page {
 	return self.page.collection.atlas.page_get(self.key())
 }
 
+// Get the target file this link points to
 pub fn (mut self Link) target_file() !&File {
 	if self.status == .external {
 		return error('External links do not have a target file')
@@ -92,21 +85,23 @@ fn (mut p Page) find_links(content string) ![]Link {
 			text := line[open_bracket + 1..close_bracket]
 			target := line[open_paren + 1..close_paren]
 
-			mut is_image_link := (image_open != -1)
-
-			mut is_file_link := false
-
-			// if no . in file then it means it's a page link (binaries with . are not supported in other words)
-			if target.contains('.') && (!target.trim_space().to_lower().ends_with('.md')) {
-				is_file_link = true
-				is_image_link = false // means it's a file link, not an image link
-			}
+			// Determine link type
+			// File links have extensions (but not .md), image links start with ![
+			is_file_link := target.contains('.') && !target.trim_space().to_lower().ends_with('.md')
+			is_image_link := image_open != -1 && !is_file_link
 
 			// Store position - use image_open if it's an image, otherwise open_bracket
 			link_start_pos := if is_image_link { image_open } else { open_bracket }
 
+			// For image links, src should include the ! prefix
+			link_src := if is_image_link {
+				line[image_open..close_paren + 1]
+			} else {
+				line[open_bracket..close_paren + 1]
+			}
+
 			mut link := Link{
-				src:           line[open_bracket..close_paren + 1]
+				src:           link_src
 				text:          text
 				target:        target.trim_space()
 				line:          line_idx + 1
@@ -133,23 +128,24 @@ fn (mut p Page) find_links(content string) ![]Link {
 fn (mut p Page) parse_link_target(mut link Link) {
 	mut target := link.target.to_lower().trim_space()
 
-	// Skip external links
+	// Check for external links (http, https, mailto, ftp)
 	if target.starts_with('http://') || target.starts_with('https://')
 		|| target.starts_with('mailto:') || target.starts_with('ftp://') {
 		link.status = .external
 		return
 	}
 
-	// Skip anchors
+	// Check for anchor links
 	if target.starts_with('#') {
 		link.status = .anchor
 		return
 	}
 
+	// Handle relative paths - extract the last part after /
 	if target.contains('/') {
-		parts9 := target.split('/')
-		if parts9.len >= 1 {
-			target = parts9[1]
+		parts := target.split('/')
+		if parts.len > 1 {
+			target = parts[parts.len - 1]
 		}
 	}
 
@@ -158,31 +154,46 @@ fn (mut p Page) parse_link_target(mut link Link) {
 		parts := target.split(':')
 		if parts.len >= 2 {
 			link.target_collection_name = texttools.name_fix(parts[0])
-			link.target_item_name = normalize_page_name(parts[1])
+			// For file links, use name without extension; for page links, normalize normally
+			if link.is_file_link {
+				link.target_item_name = texttools.name_fix_no_ext(parts[1])
+			} else {
+				link.target_item_name = normalize_page_name(parts[1])
+			}
 		}
 	} else {
-		link.target_item_name = normalize_page_name(target).trim_space()
+		// For file links, use name without extension; for page links, normalize normally
+		if link.is_file_link {
+			link.target_item_name = texttools.name_fix_no_ext(target).trim_space()
+		} else {
+			link.target_item_name = normalize_page_name(target).trim_space()
+		}
 		link.target_collection_name = p.collection.name
 	}
 
-	if link.is_file_link == false && !p.collection.atlas.page_exists(link.key()) {
-		p.collection.error(
-			category:     .invalid_page_reference
-			page_key:     p.key()
-			message:      'Broken link to `${link.key()}` at line ${link.line}: `${link.src}`'
-			show_console: true
-		)
-		link.status = .not_found
-	} else if link.is_file_link && !p.collection.atlas.file_or_image_exists(link.key()) {
-		p.collection.error(
-			category:     .invalid_file_reference
-			page_key:     p.key()
-			message:      'Broken file link to `${link.key()}` at line ${link.line}: `${link.src}`'
-			show_console: true
-		)
-		link.status = .not_found
+	// Validate link target exists
+	mut target_exists := false
+	mut error_category := CollectionErrorCategory.invalid_page_reference
+	mut error_prefix := 'Broken link'
+
+	if link.is_file_link {
+		target_exists = p.collection.atlas.file_or_image_exists(link.key())
+		error_category = .invalid_file_reference
+		error_prefix = 'Broken file link'
 	} else {
+		target_exists = p.collection.atlas.page_exists(link.key())
+	}
+
+	if target_exists {
 		link.status = .found
+	} else {
+		p.collection.error(
+			category:     error_category
+			page_key:     p.key()
+			message:      '${error_prefix} to `${link.key()}` at line ${link.line}: `${link.src}`'
+			show_console: true
+		)
+		link.status = .not_found
 	}
 }
 
@@ -214,15 +225,21 @@ fn (mut p Page) content_with_fixed_links(args FixLinksArgs) !string {
 		}
 
 		// Skip cross-collection links unless enabled
-		if !args.cross_collection && !link.is_local_in_collection() {
+		is_local := link.target_collection_name == p.collection.name
+		if !args.cross_collection && !is_local {
 			continue
 		}
 
-		// Calculate new link path
-		new_link := p.calculate_link_path(mut link, args) or { continue }
+		// Calculate new link path based on mode
+		new_link := if args.export_mode {
+			p.export_link_path(mut link) or { continue }
+		} else {
+			p.filesystem_link_path(mut link) or { continue }
+		}
 
 		// Build the complete link markdown
-		prefix := if link.is_file_link { '!' } else { '' }
+		// For image links, link.src already includes the !, so we build the same format
+		prefix := if link.is_image_link { '!' } else { '' }
 		new_link_md := '${prefix}[${link.text}](${new_link})'
 
 		// Replace in content
@@ -232,23 +249,14 @@ fn (mut p Page) content_with_fixed_links(args FixLinksArgs) !string {
 	return content
 }
 
-// calculate_link_path returns the relative path for a link
-fn (mut p Page) calculate_link_path(mut link Link, args FixLinksArgs) !string {
-	if args.export_mode {
-		// Export mode: simple flat structure
-		return p.export_link_path(mut link)!
-	}
-	// Fix mode: filesystem paths
-	return p.filesystem_link_path(mut link)!
-}
-
 // export_link_path calculates path for export (self-contained: all references are local)
 fn (mut p Page) export_link_path(mut link Link) !string {
 	mut target_filename := ''
 
 	if link.is_file_link {
 		mut tf := link.target_file()!
-		target_filename = tf.name
+		// Use file_name() to include the extension
+		target_filename = tf.file_name()
 	} else {
 		mut tp := link.target_page()!
 		target_filename = '${tp.name}.md'

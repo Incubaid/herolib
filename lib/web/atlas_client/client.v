@@ -388,14 +388,35 @@ pub fn (mut c AtlasClient) has_errors(collection_name string) bool {
 	return errors.len > 0
 }
 
+// get_page_paths returns the path of a page and the paths of its linked images.
+// Returns (page_path, image_paths)
+// This is compatible with the doctreeclient API
+pub fn (mut c AtlasClient) get_page_paths(collection_name string, page_name string) !(string, []string) {
+	// Get the page path
+	page_path := c.get_page_path(collection_name, page_name)!
+	page_content := c.get_page_content(collection_name, page_name)!
+
+	// Extract image names from the page content
+	image_names := extract_image_links(page_content, true)!
+
+	mut image_paths := []string{}
+	for image_name in image_names {
+		// Get the path for each image
+		image_path := c.get_image_path(collection_name, image_name) or {
+			// If an image is not found, log a warning and continue, don't fail the whole operation
+			return error('Error: Linked image "${image_name}" not found in collection "${collection_name}". Skipping.')
+		}
+		image_paths << image_path
+	}
+
+	return page_path, image_paths
+}
+
 // copy_images copies all images linked in a page to a destination directory
 // This is compatible with the doctreeclient API
 pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string, destination_path string) ! {
-	// Get page content
-	page_content := c.get_page_content(collection_name, page_name)!
-
-	// Extract image links from content
-	image_names := extract_image_links(page_content, true)!
+	// Get the page path and linked image paths
+	_, image_paths := c.get_page_paths(collection_name, page_name)!
 
 	// Ensure the destination directory exists
 	os.mkdir_all(destination_path)!
@@ -405,16 +426,7 @@ pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string,
 	os.mkdir_all(images_dest_path)!
 
 	// Copy each linked image
-	for image_name in image_names {
-		// Get the image path
-		image_path := c.get_image_path(collection_name, image_name) or {
-			// If an image is not found, return an error
-			return c.error_image_not_found_linked(
-				collection_name: collection_name
-				image_name:      image_name
-			)
-		}
-
+	for image_path in image_paths {
 		image_file_name := os.base(image_path)
 		dest_image_path := os.join_path(images_dest_path, image_file_name)
 		os.cp(image_path, dest_image_path)!

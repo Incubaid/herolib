@@ -14,11 +14,13 @@ pub fn play(mut plbook PlayBook) ! {
 	mut param_define := action_define.params
 
 	config_set(
-		path_build:      param_define.get_default('path_build', '')!
-		path_publish:    param_define.get_default('path_publish', '')!
-		reset:           param_define.get_default_false('reset')
-		template_update: param_define.get_default_false('template_update')
-		install:         param_define.get_default_false('install')
+		path_build:       param_define.get_default('path_build', '')!
+		path_publish:     param_define.get_default('path_publish', '')!
+		reset:            param_define.get_default_false('reset')
+		template_update:  param_define.get_default_false('template_update')
+		install:          param_define.get_default_false('install')
+		use_atlas:        param_define.get_default_false('use_atlas')
+		atlas_export_dir: param_define.get_default('atlas_export_dir', '')!
 	)!
 
 	site_name := param_define.get('name') or {

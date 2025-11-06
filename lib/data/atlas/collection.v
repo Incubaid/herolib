@@ -70,9 +70,10 @@ fn (mut c Collection) add_page(mut path pathlib.Path) ! {
 
 // Add an image to the collection
 fn (mut c Collection) add_file(mut p pathlib.Path) ! {
-	name := p.name_fix_keepext()
+	// Use name without extension for the key and name field
+	name := p.name_fix_no_ext()
 	if name in c.files {
-		return error('Page ${name} already exists in collection ${c.name}')
+		return error('File ${name} already exists in collection ${c.name}')
 	}
 	// Use absolute paths for path_relative to work correctly
 	mut col_path := pathlib.get(c.path)
@@ -80,7 +81,7 @@ fn (mut c Collection) add_file(mut p pathlib.Path) ! {
 	relativepath := file_abs_path.path_relative(col_path.absolute())!
 
 	mut file_new := File{
-		name:       name
+		name:       name // name without extension
 		ext:        p.extension_lower()
 		path:       relativepath // relative path of file in the collection
 		collection: &c

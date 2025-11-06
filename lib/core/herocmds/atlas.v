@@ -4,6 +4,7 @@ import incubaid.herolib.ui.console
 import incubaid.herolib.data.atlas
 import incubaid.herolib.core.playcmds
 import incubaid.herolib.develop.gittools
+import incubaid.herolib.web.docusaurus
 import os
 import cli { Command, Flag }
 
@@ -92,6 +93,21 @@ pub fn cmd_atlas(mut cmdroot Command) Command {
 		description: 'Update environment and git pull before operations.'
 	})
 
+	cmd_run.add_flag(Flag{
+		flag:        .bool
+		required:    false
+		name:        'dev'
+		description: 'Run development server after export (requires docusaurus config).'
+	})
+
+	cmd_run.add_flag(Flag{
+		flag:        .bool
+		required:    false
+		name:        'open'
+		abbrev:      'o'
+		description: 'Open browser when running dev server (use with --dev).'
+	})
+
 	cmdroot.add_command(cmd_run)
 	return cmdroot
 }
@@ -102,6 +118,8 @@ fn cmd_atlas_execute(cmd Command) ! {
 	mut update := cmd.flags.get_bool('update') or { false }
 	mut scan := cmd.flags.get_bool('scan') or { false }
 	mut export := cmd.flags.get_bool('export') or { false }
+	mut dev := cmd.flags.get_bool('dev') or { false }
+	mut open_ := cmd.flags.get_bool('open') or { false }
 
 	// Include and redis default to true unless explicitly disabled
 	mut no_include := cmd.flags.get_bool('no-include') or { false }
@@ -132,7 +150,7 @@ fn cmd_atlas_execute(cmd Command) ! {
 	// Run HeroScript if exists
 	playcmds.run(
 		heroscript_path: atlas_path.path
-		reset:           false
+		reset:           reset
 		emptycheck:      false
 	)!
 
@@ -180,6 +198,28 @@ fn cmd_atlas_execute(cmd Command) ! {
 			if col.has_errors() {
 				col.print_errors()
 			}
+		}
+
+		// Run dev server if -dev flag is set
+		if dev {
+			console.print_header('Starting development server...')
+			console.print_item('Atlas export directory: ${destination}')
+			console.print_item('Looking for docusaurus configuration in: ${atlas_path.path}')
+
+			// Run the docusaurus dev server using the exported atlas content
+			// This will look for a .heroscript file in the atlas_path that configures docusaurus
+			// with use_atlas:true and atlas_export_dir pointing to the destination
+			playcmds.run(
+				heroscript_path: atlas_path.path
+				reset:           reset
+			)!
+
+			// Get the docusaurus site and run dev server
+			mut dsite := docusaurus.dsite_get('')!
+			dsite.dev(
+				open:          open_
+				watch_changes: false
+			)!
 		}
 	}
 }

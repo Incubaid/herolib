@@ -1,18 +1,53 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
+import incubaid.herolib.web.atlas_client
 import incubaid.herolib.web.doctreeclient
 import incubaid.herolib.web.site { Page, Section, Site }
 import incubaid.herolib.data.markdown.tools as markdowntools
 import incubaid.herolib.ui.console
 
-// THIS CODE GENERATES A DOCUSAURUS SITE FROM A DOCTREECLIENT AND SITE DEFINITION
+// THIS CODE GENERATES A DOCUSAURUS SITE FROM A DOCUMENT CLIENT AND SITE DEFINITION
+// Supports both atlas_client and doctreeclient through the unified IDocClient interface
+
+// IDocClient defines the common interface that both atlas_client and doctreeclient implement
+// This allows the Docusaurus module to work with either client transparently
+//
+// Note: V interfaces require exact signature matching, so all methods use `mut` receivers
+// to match the implementation in both atlas_client and doctreeclient
+pub interface IDocClient {
+mut:
+	// Path methods - get absolute paths to resources
+	get_page_path(collection_name string, page_name string) !string
+	get_file_path(collection_name string, file_name string) !string
+	get_image_path(collection_name string, image_name string) !string
+
+	// Existence checks - verify if resources exist
+	page_exists(collection_name string, page_name string) bool
+	file_exists(collection_name string, file_name string) bool
+	image_exists(collection_name string, image_name string) bool
+
+	// Content retrieval
+	get_page_content(collection_name string, page_name string) !string
+
+	// Listing methods - enumerate resources
+	list_collections() ![]string
+	list_pages(collection_name string) ![]string
+	list_files(collection_name string) ![]string
+	list_images(collection_name string) ![]string
+	list_pages_map() !map[string][]string
+	list_markdown() !string
+
+	// Image operations
+	get_page_paths(collection_name string, page_name string) !(string, []string)
+	copy_images(collection_name string, page_name string, destination_path string) !
+}
 
 struct SiteGenerator {
 mut:
 	siteconfig_name string
 	path            pathlib.Path
-	client          &doctreeclient.DocTreeClient
+	client          IDocClient
 	flat            bool // if flat then won't use sitenames as subdir's
 	site            Site
 	errors          []string // collect errors here
@@ -25,9 +60,21 @@ pub fn (mut docsite DocSite) generate_docs() ! {
 	// we generate the docs in the build path
 	docs_path := '${c.path_build.path}/docs'
 
+	// Create the appropriate client based on configuration
+	mut client := if c.use_atlas {
+		// Use atlas_client for filesystem-based access
+		if c.atlas_export_dir == '' {
+			return error('atlas_export_dir is required when use_atlas is true')
+		}
+		IDocClient(atlas_client.new(export_dir: c.atlas_export_dir)!)
+	} else {
+		// Use doctreeclient for Redis-based access
+		IDocClient(doctreeclient.new()!)
+	}
+
 	mut gen := SiteGenerator{
 		path:   pathlib.get_dir(path: docs_path, create: true)!
-		client: doctreeclient.new()!
+		client: client
 		flat:   true
 		site:   docsite.website
 	}
@@ -368,8 +415,65 @@ fn (generator SiteGenerator) fix_links(content string, current_page_path string)
 		}
 	}
 
-	// STEP 5: Remove .md extensions from all links (Docusaurus doesn't use them in URLs)
+	// STEP 5: Fix bare page references (from atlas self-contained exports)
+	// Atlas exports convert cross-collection links to simple relative links like "token_system2.md"
+	// We need to transform these to proper relative paths based on Docusaurus structure
+	for page_name, target_dir in page_to_path {
+		// Match links in the format ](page_name) or ](page_name.md)
+		old_link_with_md := '](${page_name}.md)'
+		old_link_without_md := '](${page_name})'
+
+		if result.contains(old_link_with_md) || result.contains(old_link_without_md) {
+			new_link := calculate_relative_path(current_dir, target_dir, page_name)
+			// Replace both .md and non-.md versions
+			result = result.replace(old_link_with_md, '](${new_link})')
+			result = result.replace(old_link_without_md, '](${new_link})')
+		}
+	}
+
+	// STEP 6: Remove .md extensions from all remaining links (Docusaurus doesn't use them in URLs)
 	result = result.replace('.md)', ')')
+
+	// STEP 7: Fix image links to point to img/ subdirectory
+	// Images are copied to img/ subdirectory by copy_images(), so we need to update the links
+	// Transform ![alt](image.png) to ![alt](img/image.png) for local images only
+	mut image_lines := result.split('\n')
+	for i, line in image_lines {
+		// Find image links: ![...](...) but skip external URLs
+		if line.contains('![') {
+			mut pos := 0
+			for {
+				img_start := line.index_after('![', pos) or { break }
+				alt_end := line.index_after(']', img_start) or { break }
+				if alt_end + 1 >= line.len || line[alt_end + 1] != `(` {
+					pos = alt_end + 1
+					continue
+				}
+				url_start := alt_end + 2
+				url_end := line.index_after(')', url_start) or { break }
+				url := line[url_start..url_end]
+
+				// Skip external URLs and already-prefixed img/ paths
+				if url.starts_with('http://') || url.starts_with('https://')
+					|| url.starts_with('img/') || url.starts_with('./img/') {
+					pos = url_end + 1
+					continue
+				}
+
+				// Skip absolute paths and paths with ../
+				if url.starts_with('/') || url.starts_with('../') {
+					pos = url_end + 1
+					continue
+				}
+
+				// This is a local image reference - add img/ prefix
+				new_url := 'img/${url}'
+				image_lines[i] = line[0..url_start] + new_url + line[url_end..]
+				break
+			}
+		}
+	}
+	result = image_lines.join('\n')
 
 	return result
 }

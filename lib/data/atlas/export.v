@@ -67,8 +67,9 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 	)!
 	json_file.write(meta)!
 
-	// Track cross-collection pages that need to be copied for self-contained export
+	// Track cross-collection pages and files that need to be copied for self-contained export
 	mut cross_collection_pages := map[string]&Page{} // key: page.name, value: &Page
+	mut cross_collection_files := map[string]&File{} // key: file.name, value: &File
 
 	// First pass: export all pages in this collection and collect cross-collection references
 	for _, mut page in c.pages {
@@ -82,15 +83,30 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
 		dest_file.write(content)!
 
-		// Collect cross-collection page references for copying
+		// Collect cross-collection references for copying (pages and files/images)
 		// IMPORTANT: Use cached links from validation (before transformation) to preserve collection info
 		for mut link in page.links {
-			// Only process valid page links (not files/images) from other collections
-			if link.status == .found && !link.is_file_link && !link.is_local_in_collection() {
+			if link.status != .found {
+				continue
+			}
+
+			// Collect cross-collection page references
+			is_local := link.target_collection_name == c.name
+			if !link.is_file_link && !is_local {
 				mut target_page := link.target_page() or { continue }
 				// Use page name as key to avoid duplicates
 				if target_page.name !in cross_collection_pages {
 					cross_collection_pages[target_page.name] = target_page
+				}
+			}
+
+			// Collect cross-collection file/image references
+			if link.is_file_link && !is_local {
+				mut target_file := link.target_file() or { continue }
+				// Use file name as key to avoid duplicates
+				file_key := target_file.file_name()
+				if file_key !in cross_collection_files {
+					cross_collection_files[file_key] = target_file
 				}
 			}
 		}
@@ -101,6 +117,14 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 			mut redis := context.redis()!
 			redis.hset('atlas:${c.name}', page.name, page.path)!
 		}
+	}
+
+	// Copy all files/images from this collection to the export directory
+	for _, mut file in c.files {
+		mut src_file := file.path()!
+		mut dest_path := '${col_dir.path}/${file.file_name()}'
+		mut dest_file := pathlib.get_file(path: dest_path, create: true)!
+		src_file.copy(dest: dest_file.path)!
 	}
 
 	// Second pass: copy cross-collection referenced pages to make collection self-contained
@@ -115,5 +139,13 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		// Write the referenced page to this collection's directory
 		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${ref_page.name}.md', create: true)!
 		dest_file.write(ref_content)!
+	}
+
+	// Third pass: copy cross-collection referenced files/images to make collection self-contained
+	for _, mut ref_file in cross_collection_files {
+		mut src_file := ref_file.path()!
+		mut dest_path := '${col_dir.path}/${ref_file.file_name()}'
+		mut dest_file := pathlib.get_file(path: dest_path, create: true)!
+		src_file.copy(dest: dest_file.path)!
 	}
 }

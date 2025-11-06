@@ -17,6 +17,9 @@ pub mut:
 	reset           bool
 	template_update bool
 	coderoot        string
+	// Client configuration
+	use_atlas        bool   // true = atlas_client, false = doctreeclient
+	atlas_export_dir string // Required when use_atlas = true
 }
 
 @[params]
@@ -28,6 +31,9 @@ pub mut:
 	reset           bool
 	template_update bool
 	coderoot        string
+	// Client configuration
+	use_atlas        bool   // true = atlas_client, false = doctreeclient
+	atlas_export_dir string // Required when use_atlas = true
 }
 
 // return the last know config
@@ -47,12 +53,14 @@ pub fn config() !DocusaurusConfig {
 	}
 
 	mut c := DocusaurusConfig{
-		path_publish:    pathlib.get_dir(path: args.path_publish, create: true)!
-		path_build:      pathlib.get_dir(path: args.path_build, create: true)!
-		coderoot:        args.coderoot
-		install:         args.install
-		reset:           args.reset
-		template_update: args.template_update
+		path_publish:     pathlib.get_dir(path: args.path_publish, create: true)!
+		path_build:       pathlib.get_dir(path: args.path_build, create: true)!
+		coderoot:         args.coderoot
+		install:          args.install
+		reset:            args.reset
+		template_update:  args.template_update
+		use_atlas:        args.use_atlas
+		atlas_export_dir: args.atlas_export_dir
 	}
 	if c.install {
 		install(c)!
