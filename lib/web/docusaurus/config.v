@@ -18,8 +18,8 @@ pub mut:
 	template_update bool
 	coderoot        string
 	// Client configuration
-	use_atlas        bool   // true = atlas_client, false = doctreeclient
-	atlas_export_dir string // Required when use_atlas = true
+	use_atlas       bool   // true = atlas_client, false = doctreeclient
+	atlas_dir       string // Required when use_atlas = true
 }
 
 @[params]
@@ -32,8 +32,8 @@ pub mut:
 	template_update bool
 	coderoot        string
 	// Client configuration
-	use_atlas        bool   // true = atlas_client, false = doctreeclient
-	atlas_export_dir string // Required when use_atlas = true
+	use_atlas       bool   // true = atlas_client, false = doctreeclient
+	atlas_dir       string // Required when use_atlas = true
 }
 
 // return the last know config
@@ -42,6 +42,9 @@ pub fn config() !DocusaurusConfig {
 		docusaurus_config << DocusaurusConfigParams{}
 	}
 	mut args := docusaurus_config[0] or { panic('bug in docusaurus config') }
+	if args.use_atlas && args.atlas_dir == '' {
+		return error('use_atlas is true but atlas_dir is not set')
+	}
 	if args.path_build == '' {
 		args.path_build = '${os.home_dir()}/hero/var/docusaurus/build'
 	}
@@ -53,14 +56,14 @@ pub fn config() !DocusaurusConfig {
 	}
 
 	mut c := DocusaurusConfig{
-		path_publish:     pathlib.get_dir(path: args.path_publish, create: true)!
-		path_build:       pathlib.get_dir(path: args.path_build, create: true)!
-		coderoot:         args.coderoot
-		install:          args.install
-		reset:            args.reset
-		template_update:  args.template_update
-		use_atlas:        args.use_atlas
-		atlas_export_dir: args.atlas_export_dir
+		path_publish:    pathlib.get_dir(path: args.path_publish, create: true)!
+		path_build:      pathlib.get_dir(path: args.path_build, create: true)!
+		coderoot:        args.coderoot
+		install:         args.install
+		reset:           args.reset
+		template_update: args.template_update
+		use_atlas:       args.use_atlas
+		atlas_dir:       args.atlas_dir
 	}
 	if c.install {
 		install(c)!

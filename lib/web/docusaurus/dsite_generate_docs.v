@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.data.atlas.client
+import incubaid.herolib.data.atlas.client as atlas_client
 import incubaid.herolib.web.site { Page, Section, Site }
 import incubaid.herolib.data.markdown.tools as markdowntools
 import incubaid.herolib.ui.console
@@ -60,7 +60,8 @@ pub fn (mut docsite DocSite) generate_docs() ! {
 	docs_path := '${c.path_build.path}/docs'
 
 	// Create the appropriate client based on configuration
-	mut client := IDocClient(atlas.client.new(export_dir: c.atlas_export_dir)!)
+	mut client_instance := atlas_client.new(export_dir: c.atlas_dir)!
+	mut client := IDocClient(client_instance)
 
 	mut gen := SiteGenerator{
 		path:   pathlib.get_dir(path: docs_path, create: true)!
@@ -177,7 +178,7 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 
 	pagefile.write(c)!
 
-	generator.client.copy_images(collection_name, page_name, pagefile.path_dir()) or {
+	generator.client.copy_images(collection_name, page_name, pagefile.path_dir().path) or {
 		generator.error("Couldn't copy image ${pagefile} for '${page_name}' in collection '${collection_name}', try to find the image and fix the path is in ${args.path}.}\nError: ${err}")!
 		return
 	}

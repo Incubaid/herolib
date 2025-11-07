@@ -39,13 +39,13 @@ we make multiple clients on it
     - if file ends with .v, validate vlang code
     - if file ends with .yaml, validate yaml content
     - if file ends with .json, validate json content
-- validate_vlang_code(content: str) -> bool:
+- validate_vlang_content(path: Path) -> bool:
   - validate vlang code content
-- validate_markdown_content(content: str) -> bool:
+- validate_markdown_content(path: Path) -> bool:
   - validate markdown content
-- validate_yaml_content(content: str) -> bool:
+- validate_yaml_content(path: Path) -> bool:
   - validate yaml content
-- validate_json_content(content: str) -> bool:
+- validate_json_content(path: Path) -> bool:
   - validate json content
 - for now the validate functions do nothing, just place holders
 - if validation ok then remoeve .backup and return
