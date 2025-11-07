@@ -382,18 +382,30 @@ After fix (assuming pages are in subdirectories):
 4. **External Links**: HTTP(S), mailto, and anchor links are ignored
 5. **Error Reporting**: Broken links are reported with file, line number, and link details
 
-### Export with Link Validation
+### Export Directory Structure
 
-Links are automatically validated during export:
+When you export an Atlas, the directory structure is organized as:
 
-```v
-a.export(
-    destination: './output'
-    include: true
-)!
+$$\text{export\_dir}/
+\begin{cases}
+\text{content/} \\
+\quad \text{collection\_name/} \\
+\quad \quad \text{page1.md} \\
+\quad \quad \text{page2.md} \\
+\quad \quad \text{img/} & \text{(images)} \\
+\quad \quad \quad \text{logo.png} \\
+\quad \quad \quad \text{banner.jpg} \\
+\quad \quad \text{files/} & \text{(other files)} \\
+\quad \quad \quad \text{data.csv} \\
+\quad \quad \quad \text{document.pdf} \\
+\text{meta/} & \text{(metadata)} \\
+\quad \text{collection\_name.json}
+\end{cases}$$
 
-// Errors are printed for each collection automatically
-```
+- **Pages**: Markdown files directly in collection directory
+- **Images**: Stored in `img/` subdirectory
+- **Files**: Other resources stored in `files/` subdirectory
+- **Metadata**: JSON files in `meta/` directory with collection information
 
 ## Redis Integration
 
@@ -588,6 +600,6 @@ The following features are planned but not yet available:
 - [ ] Load collections from `.collection.json` files
 - [ ] Python API for reading collections
 - [ ] `atlas.validate` playbook action
-- [ ] `atlas.fix_links` playbook action  
+- [ ] `atlas.fix_links` playbook action
 - [ ] Auto-save on collection modifications
 - [ ] Collection version control

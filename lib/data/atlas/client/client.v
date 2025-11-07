@@ -85,7 +85,7 @@ pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name strin
 	// Apply name normalization
 	fixed_collection_name := texttools.name_fix(collection_name)
 	// Files keep their original names with extensions
-	fixed_file_name := texttools.name_fix_keepext(file_name)
+	fixed_file_name := texttools.name_fix_keepext(os.file_name(file_name))
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
@@ -113,7 +113,7 @@ pub fn (mut c AtlasClient) get_image_path(collection_name string, image_name str
 	// Apply name normalization
 	fixed_collection_name := texttools.name_fix_no_underscore_no_ext(collection_name)
 	// Images keep their original names with extensions
-	fixed_image_name := texttools.name_fix_keepext(image_name)
+	fixed_image_name := texttools.name_fix_keepext(os.file_name(image_name))
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
@@ -345,6 +345,28 @@ pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string,
 		// Get image path and copy
 		img_path := c.get_image_path(link.target_collection_name, link.target_item_name)!
 		mut src := pathlib.get_file(path: img_path)!
-		src.copy(dest: '${img_dest.path}/${src.name_fix()}.${src.extension_lower()}')!
+		src.copy(dest: '${img_dest.path}/${src.name_fix_keepext()}')!
+	}
+}
+
+// copy_files copies all non-image files from a page to a destination directory
+// Files are placed in {destination}/files/ subdirectory
+// Only copies files referenced in the page (via links)
+pub fn (mut c AtlasClient) copy_files(collection_name string, page_name string, destination_path string) ! {
+	// Get page links from metadata
+	links := c.get_page_links(collection_name, page_name)!
+	
+	// Create files subdirectory
+	mut files_dest := pathlib.get_dir(path: '${destination_path}/files', create: true)!
+	
+	// Copy only file links (non-image files)
+	for link in links {
+		if !link.is_file_link { continue }
+		if link.is_image_link { continue }
+		
+		// Get file path and copy
+		file_path := c.get_file_path(link.target_collection_name, link.target_item_name)!
+		mut src := pathlib.get_file(path: file_path)!
+		src.copy(dest: '${files_dest.path}/${src.name_fix_keepext()}')!
 	}
 }

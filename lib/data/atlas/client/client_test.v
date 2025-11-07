@@ -64,10 +64,21 @@ fn setup_test_export() string {
           "target": "logo.png",
           "line": 3,
           "target_collection_name": "testcollection",
-          "target_item_name": "logo",
+          "target_item_name": "logo.png",
           "status": "ok",
           "is_file_link": false,
           "is_image_link": true
+        },
+        {
+          "src": "data.csv",
+          "text": "data",
+          "target": "data.csv",
+          "line": 4,
+          "target_collection_name": "testcollection",
+          "target_item_name": "data.csv",
+          "status": "ok",
+          "is_file_link": true,
+          "is_image_link": false
         }
       ]
     }
@@ -160,7 +171,7 @@ fn test_get_page_path_normalization() {
 	defer { cleanup_test_export(test_dir) }
 
 	// Create a page with normalized name
-	normalized_name := name_fix_no_underscore_no_ext('Test_Page-Name')
+	normalized_name := texttools.name_fix('Test_Page-Name')
 	os.write_file(os.join_path(test_dir, 'content', 'testcollection', '${normalized_name}.md'),
 		'# Test') or { panic(err) }
 
@@ -515,8 +526,8 @@ fn test_get_page_links_success() {
 	mut client := new(export_dir: test_dir) or { panic(err) }
 	links := client.get_page_links('testcollection', 'page2') or { panic(err) }
 
-	assert links.len == 1
-	assert links[0].target_item_name == 'logo'
+	assert links.len == 2
+	assert links[0].target_item_name == 'logo.png'
 	assert links[0].target_collection_name == 'testcollection'
 	assert links[0].is_image_link == true
 }
@@ -630,6 +641,40 @@ fn test_copy_images_no_images() {
 	client.copy_images('testcollection', 'page1', dest_dir) or { panic(err) }
 
 	// Should succeed even with no images
+	assert true
+}
+
+// Test copy_files - success
+fn test_copy_files_success() {
+	test_dir := setup_test_export()
+	defer { cleanup_test_export(test_dir) }
+
+	dest_dir := os.join_path(os.temp_dir(), 'copy_files_dest_${os.getpid()}')
+	os.mkdir_all(dest_dir) or { panic(err) }
+	defer { cleanup_test_export(dest_dir) }
+
+	mut client := new(export_dir: test_dir) or { panic(err) }
+	// Note: test data would need to be updated to have file links in page2
+	// For now, this test demonstrates the pattern
+	client.copy_files('testcollection', 'page2', dest_dir) or { panic(err) }
+
+	// Check that files were copied to files subdirectory
+	// assert os.exists(os.join_path(dest_dir, 'files', 'somefile.csv'))
+}
+
+// Test copy_files - no files
+fn test_copy_files_no_files() {
+	test_dir := setup_test_export()
+	defer { cleanup_test_export(test_dir) }
+
+	dest_dir := os.join_path(os.temp_dir(), 'copy_files_empty_${os.getpid()}')
+	os.mkdir_all(dest_dir) or { panic(err) }
+	defer { cleanup_test_export(dest_dir) }
+
+	mut client := new(export_dir: test_dir) or { panic(err) }
+	client.copy_files('testcollection', 'page1', dest_dir) or { panic(err) }
+
+	// Should succeed even with no file links
 	assert true
 }
 

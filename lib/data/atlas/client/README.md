@@ -67,6 +67,7 @@ export_dir/
 - `get_file_path(collection, file)` - Get file path
 - `get_image_path(collection, image)` - Get image path
 - `copy_images(collection, page, dest)` - Copy page images to dest/img/
+- `copy_files(collection, page, dest)` - Copy page files to dest/files/
 
 **Metadata:**
 
