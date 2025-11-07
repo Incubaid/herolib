@@ -28,15 +28,17 @@ fn setup_test_export() string {
 		'# Intro\n\nWelcome!') or { panic(err) }
 
 	// Create test images
-	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'logo.png'), 'fake png data') or {
+	os.mkdir_all(os.join_path(test_dir, 'content', 'testcollection', 'img')) or { panic(err) }
+	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'img', 'logo.png'), 'fake png data') or {
 		panic(err)
 	}
-	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'banner.jpg'), 'fake jpg data') or {
+	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'img', 'banner.jpg'), 'fake jpg data') or {
 		panic(err)
 	}
 
 	// Create test files
-	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'data.csv'), 'col1,col2\nval1,val2') or {
+	os.mkdir_all(os.join_path(test_dir, 'content', 'testcollection', 'files')) or { panic(err) }
+	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'files', 'data.csv'), 'col1,col2\nval1,val2') or {
 		panic(err)
 	}
 
@@ -70,7 +72,20 @@ fn setup_test_export() string {
       ]
     }
   },
-  "files": {},
+  "files": {
+    "logo.png": {
+      "name": "logo.png",
+      "path": "img/logo.png"
+    },
+    "banner.jpg": {
+      "name": "banner.jpg",
+      "path": "img/banner.jpg"
+    },
+    "data.csv": {
+      "name": "data.csv",
+      "path": "files/data.csv"
+    }
+  },
   "errors": []
 }'
 	os.write_file(os.join_path(test_dir, 'meta', 'testcollection.json'), metadata1) or {
