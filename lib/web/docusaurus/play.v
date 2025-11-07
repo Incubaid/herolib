@@ -19,8 +19,7 @@ pub fn play(mut plbook PlayBook) ! {
 		reset:            param_define.get_default_false('reset')
 		template_update:  param_define.get_default_false('template_update')
 		install:          param_define.get_default_false('install')
-		use_atlas:        param_define.get_default_true('use_atlas')
-		atlas_export_dir: param_define.get_default('atlas_export_dir', '')!
+		atlas_dir: param_define.get_default('atlas_dir', '')!
 	)!
 
 	site_name := param_define.get('name') or {

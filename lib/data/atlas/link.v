@@ -251,19 +251,14 @@ fn (mut p Page) content_with_fixed_links(args FixLinksArgs) !string {
 
 // export_link_path calculates path for export (self-contained: all references are local)
 fn (mut p Page) export_link_path(mut link Link) !string {
-	mut target_filename := ''
-
 	if link.is_file_link {
 		mut tf := link.target_file()!
-		// Use file_name() to include the extension
-		target_filename = tf.file_name()
+		mut subdir := if tf.is_image() { 'img' } else { 'files' }
+		return '${subdir}/${tf.file_name()}'
 	} else {
 		mut tp := link.target_page()!
-		target_filename = '${tp.name}.md'
+		return '${tp.name}.md'
 	}
-
-	// For self-contained exports, all links are local (cross-collection pages are copied)
-	return target_filename
 }
 
 // filesystem_link_path calculates path using actual filesystem paths

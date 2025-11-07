@@ -1,4 +1,4 @@
-module atlas_client
+module client
 
 import os
 import incubaid.herolib.core.texttools { name_fix_no_underscore_no_ext }

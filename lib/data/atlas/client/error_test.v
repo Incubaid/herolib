@@ -1,4 +1,4 @@
-module atlas_client
+module client
 
 // Test error_collection_not_found
 fn test_error_collection_not_found() {

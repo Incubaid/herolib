@@ -1,4 +1,4 @@
-module atlas_client
+module client
 
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
@@ -93,7 +93,8 @@ pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name strin
 	}
 
 	// Construct the file path
-	file_path := os.join_path(c.export_dir, 'content', fixed_collection_name, fixed_file_name)
+	file_path := os.join_path(c.export_dir, 'content', 'files', fixed_collection_name,
+		fixed_file_name)
 
 	// Check if the file exists
 	if !os.exists(file_path) {
@@ -120,7 +121,8 @@ pub fn (mut c AtlasClient) get_image_path(collection_name string, image_name str
 	}
 
 	// Construct the image path
-	image_path := os.join_path(c.export_dir, 'content', fixed_collection_name, fixed_image_name)
+	image_path := os.join_path(c.export_dir, 'content', 'img', fixed_collection_name,
+		fixed_image_name)
 
 	// Check if the image exists
 	if !os.exists(image_path) {
@@ -391,44 +393,44 @@ pub fn (mut c AtlasClient) has_errors(collection_name string) bool {
 // get_page_paths returns the path of a page and the paths of its linked images.
 // Returns (page_path, image_paths)
 // This is compatible with the doctreeclient API
-pub fn (mut c AtlasClient) get_page_paths(collection_name string, page_name string) !(string, []string) {
-	// Get the page path
-	page_path := c.get_page_path(collection_name, page_name)!
-	page_content := c.get_page_content(collection_name, page_name)!
+// pub fn (mut c AtlasClient) get_page_paths(collection_name string, page_name string) !(string, []string) {
+// 	// Get the page path
+// 	page_path := c.get_page_path(collection_name, page_name)!
+// 	page_content := c.get_page_content(collection_name, page_name)!
 
-	// Extract image names from the page content
-	image_names := extract_image_links(page_content, true)!
+// 	// Extract image names from the page content
+// 	image_names := extract_image_links(page_content, true)!
 
-	mut image_paths := []string{}
-	for image_name in image_names {
-		// Get the path for each image
-		image_path := c.get_image_path(collection_name, image_name) or {
-			// If an image is not found, log a warning and continue, don't fail the whole operation
-			return error('Error: Linked image "${image_name}" not found in collection "${collection_name}". Skipping.')
-		}
-		image_paths << image_path
-	}
+// 	mut image_paths := []string{}
+// 	for image_name in image_names {
+// 		// Get the path for each image
+// 		image_path := c.get_image_path(collection_name, image_name) or {
+// 			// If an image is not found, log a warning and continue, don't fail the whole operation
+// 			return error('Error: Linked image "${image_name}" not found in collection "${collection_name}". Skipping.')
+// 		}
+// 		image_paths << image_path
+// 	}
 
-	return page_path, image_paths
-}
+// 	return page_path, image_paths
+// }
 
 // copy_images copies all images linked in a page to a destination directory
 // This is compatible with the doctreeclient API
-pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string, destination_path string) ! {
-	// Get the page path and linked image paths
-	_, image_paths := c.get_page_paths(collection_name, page_name)!
+// pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string, destination_path string) ! {
+// 	// Get the page path and linked image paths
+// 	_, image_paths := c.get_page_paths(collection_name, page_name)!
 
-	// Ensure the destination directory exists
-	os.mkdir_all(destination_path)!
+// 	// Ensure the destination directory exists
+// 	os.mkdir_all(destination_path)!
 
-	// Create an 'img' subdirectory within the destination
-	images_dest_path := os.join_path(destination_path, 'img')
-	os.mkdir_all(images_dest_path)!
+// 	// Create an 'img' subdirectory within the destination
+// 	images_dest_path := os.join_path(destination_path, 'img')
+// 	os.mkdir_all(images_dest_path)!
 
-	// Copy each linked image
-	for image_path in image_paths {
-		image_file_name := os.base(image_path)
-		dest_image_path := os.join_path(images_dest_path, image_file_name)
-		os.cp(image_path, dest_image_path)!
-	}
-}
+// 	// Copy each linked image
+// 	for image_path in image_paths {
+// 		image_file_name := os.base(image_path)
+// 		dest_image_path := os.join_path(images_dest_path, image_file_name)
+// 		os.cp(image_path, dest_image_path)!
+// 	}
+// }

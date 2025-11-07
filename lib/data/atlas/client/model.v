@@ -1,4 +1,4 @@
-module atlas_client
+module client
 
 import incubaid.herolib.core.redisclient
 

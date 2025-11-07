@@ -1,20 +1,19 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.web.atlas_client
-import incubaid.herolib.web.doctreeclient
+import incubaid.herolib.data.atlas.client
 import incubaid.herolib.web.site { Page, Section, Site }
 import incubaid.herolib.data.markdown.tools as markdowntools
 import incubaid.herolib.ui.console
 
 // THIS CODE GENERATES A DOCUSAURUS SITE FROM A DOCUMENT CLIENT AND SITE DEFINITION
-// Supports both atlas_client and doctreeclient through the unified IDocClient interface
+// Supports both atlas.client and doctreeclient through the unified IDocClient interface
 
-// IDocClient defines the common interface that both atlas_client and doctreeclient implement
+// IDocClient defines the common interface that both atlas.client and doctreeclient implement
 // This allows the Docusaurus module to work with either client transparently
 //
 // Note: V interfaces require exact signature matching, so all methods use `mut` receivers
-// to match the implementation in both atlas_client and doctreeclient
+// to match the implementation in both atlas.client and doctreeclient
 pub interface IDocClient {
 mut:
 	// Path methods - get absolute paths to resources
@@ -61,16 +60,7 @@ pub fn (mut docsite DocSite) generate_docs() ! {
 	docs_path := '${c.path_build.path}/docs'
 
 	// Create the appropriate client based on configuration
-	mut client := if c.use_atlas {
-		// Use atlas_client for filesystem-based access
-		if c.atlas_export_dir == '' {
-			return error('atlas_export_dir is required when use_atlas is true')
-		}
-		IDocClient(atlas_client.new(export_dir: c.atlas_export_dir)!)
-	} else {
-		// Use doctreeclient for Redis-based access
-		IDocClient(doctreeclient.new()!)
-	}
+	mut client := IDocClient(atlas.client.new(export_dir: c.atlas_export_dir)!)
 
 	mut gen := SiteGenerator{
 		path:   pathlib.get_dir(path: docs_path, create: true)!

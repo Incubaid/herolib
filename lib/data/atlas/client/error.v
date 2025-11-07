@@ -1,4 +1,4 @@
-module atlas_client
+module client
 
 // AtlasErrors represents different types of errors that can occur in AtlasClient
 pub enum AtlasErrors {
