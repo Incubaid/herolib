@@ -6,6 +6,7 @@ import incubaid.herolib.core.pathlib
 import incubaid.herolib.ui.console
 import incubaid.herolib.core.texttools.regext
 
+//import other parts of a docusaurus module into the one we build, this is to import e.g. static parts
 pub fn (mut docsite DocSite) import() ! {
 	for importparams in docsite.website.siteconfig.imports {
 		console.print_header('Importing: path:${importparams.path} or url:${importparams.url}')
