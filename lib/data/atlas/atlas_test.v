@@ -184,16 +184,22 @@ fn test_find_links() {
 [Anchor](#section)
 '
 
-	mut mock_page := Page{
-	    name: 'mock_page'
-	    path: 'mock_page.md'
-	    collection_name: 'mock_collection'
-	    collection: &Collection{} // Mock collection
+	mut mock_atlas := MockAtlas{name: 'mock_atlas'}
+	mut mock_collection := Collection{
+		name: 'test_collection'
+		path: '/mock/path'
+		atlas: &mock_atlas
 	}
-	links := mock_page.find_links(content)!
+	mut p := Page{
+		name: 'test_page'
+		path: 'test_page.md'
+		collection_name: 'test_collection'
+		collection: &mock_collection
+	}
+	links := p.find_links(content)!
 
 	// Should find 3 local links
-	local_links := links.filter(it.target_collection_name == 'mock_collection' || it.target_collection_name == '')
+	local_links := links.filter(it.target_collection_name == 'test_collection' || it.target_collection_name == '')
 	assert local_links.len == 3
 
 	// Check collection:page format
@@ -303,14 +309,33 @@ fn test_link_formats() {
 [Relative path](../other/page4.md)
 '
 
-	mut mock_page := Page{
-	    name: 'mock_page'
-	    path: 'mock_page.md'
-	    collection_name: 'mock_collection'
-	    collection: &Collection{} // Mock collection
+	struct MockAtlas {
+	mut:
+		name string
 	}
-	links := mock_page.find_links(content)!
-	local_links := links.filter(it.target_collection_name == 'mock_collection' || it.target_collection_name == '')
+
+	fn (mut ma MockAtlas) page_exists(key string) bool {
+		return true
+	}
+
+	fn (mut ma MockAtlas) file_or_image_exists(key string) bool {
+		return true
+	}
+
+	mut mock_atlas := MockAtlas{name: 'mock_atlas'}
+	mut mock_collection := Collection{
+		name: 'test_collection'
+		path: '/mock/path'
+		atlas: &mock_atlas
+	}
+	mut p := Page{
+		name: 'test_page'
+		path: 'test_page.md'
+		collection_name: 'test_collection'
+		collection: &mock_collection
+	}
+	links := p.find_links(content)!
+	local_links := links.filter(it.target_collection_name == 'test_collection' || it.target_collection_name == '')
 
 	assert local_links.len == 5
 

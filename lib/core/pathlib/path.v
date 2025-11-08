@@ -45,6 +45,15 @@ pub fn (path Path) shortpath() string {
 	return path.realpath().replace(os.home_dir(), '~')
 }
 
+// extension of file .
+pub fn (mut path Path) ext() !string {
+	if path.is_file() == false {
+		return error('Path is not a file for getting extension: ${path.path}')
+	}
+	filext := os.file_ext(path.name()).to_lower()
+	return filext
+}
+
 // check the inside of pathobject, is like an init function
 pub fn (mut path Path) check() {
 	if os.exists(path.path) {
