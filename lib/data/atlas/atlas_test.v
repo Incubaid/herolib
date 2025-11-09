@@ -71,8 +71,8 @@ fn test_export() {
 
 	a.export(destination: export_path, redis: false)!
 
-	assert os.exists('${export_path}/col1/test.md')
-	assert os.exists('${export_path}/col1/.collection')
+	assert os.exists('${export_path}/content/col1/test.md')
+	assert os.exists('${export_path}/meta/col1.json')
 }
 
 fn test_export_with_includes() {
@@ -98,7 +98,7 @@ fn test_export_with_includes() {
 	a.export(destination: export_path, include: true)!
 
 	// Verify exported page1 has page2 content included
-	exported := os.read_file('${export_path}/test_col/page1.md')!
+	exported := os.read_file('${export_path}/content/test_col/page1.md')!
 	assert exported.contains('Page 2 Content')
 	assert exported.contains('This is included')
 	assert !exported.contains('!!include')
@@ -121,7 +121,7 @@ fn test_export_without_includes() {
 	a.export(destination: export_path, include: false)!
 
 	// Verify exported page1 still has include action
-	exported := os.read_file('${export_path}/test_col2/page1.md')!
+	exported := os.read_file('${export_path}/content/test_col2/page1.md')!
 	assert exported.contains('!!include')
 }
 
@@ -365,6 +365,8 @@ fn test_get_edit_url() {
 	mut atlas := new(name: 'test_atlas')!
 	col_path := '${test_base}/git_test'
 	os.mkdir_all(col_path)!
+	mut cfile := pathlib.get_file(path: '${col_path}/.collection', create: true)!
+	cfile.write('name:git_test_col')!
 	mut col := atlas.add_collection(mut pathlib.get_dir(path: col_path)!)!
 	col.git_url = 'https://github.com/test/repo.git' // Assuming git_url is a field on Collection
 	// Create a mock page
