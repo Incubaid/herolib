@@ -2,6 +2,7 @@ module client
 
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 import os
 import json
 
@@ -105,7 +106,7 @@ pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name strin
 // Images are stored in {export_dir}/content/{collection}/{imagename}
 pub fn (mut c AtlasClient) get_image_path(collection_name string, image_name string) !string {
 	// Apply name normalization
-	fixed_collection_name := texttools.name_fix_no_underscore_no_ext(collection_name)
+	fixed_collection_name := texttools.name_fix_no_ext(collection_name)
 	// Images keep their original names with extensions
 	fixed_image_name := texttools.name_fix_keepext(os.file_name(image_name))
 
@@ -272,7 +273,7 @@ pub fn (mut c AtlasClient) list_markdown() !string {
 // Metadata is stored in {export_dir}/meta/{collection}.json
 pub fn (mut c AtlasClient) get_collection_metadata(collection_name string) !CollectionMetadata {
 	// Apply name normalization
-	fixed_collection_name := texttools.name_fix_no_underscore_no_ext(collection_name)
+	fixed_collection_name := texttools.name_fix_no_ext(collection_name)
 
 	meta_path := os.join_path(c.export_dir, 'meta', '${fixed_collection_name}.json')
 
@@ -283,6 +284,7 @@ pub fn (mut c AtlasClient) get_collection_metadata(collection_name string) !Coll
 
 	// Read and parse the JSON file
 	content := os.read_file(meta_path)!
+
 	metadata := json.decode(CollectionMetadata, content)!
 
 	return metadata
@@ -292,16 +294,14 @@ pub fn (mut c AtlasClient) get_collection_metadata(collection_name string) !Coll
 pub fn (mut c AtlasClient) get_page_links(collection_name string, page_name string) ![]LinkMetadata {
 	// Get collection metadata
 	metadata := c.get_collection_metadata(collection_name)!
-
 	// Apply name normalization to page name
-	fixed_page_name := texttools.name_fix_no_underscore_no_ext(page_name)
+	fixed_page_name := texttools.name_fix_no_ext(page_name)
 
 	// Find the page in metadata
 	if fixed_page_name in metadata.pages {
 		return metadata.pages[fixed_page_name].links
 	}
-
-	return error('page_not_found: Page "${page_name}" not found in collection metadata')
+	return error('page_not_found: Page "${page_name}" not found in collection metadata, for collection: "${collection_name}"')
 }
 
 // get_collection_errors returns the errors for a collection from metadata
@@ -319,18 +319,21 @@ pub fn (mut c AtlasClient) has_errors(collection_name string) bool {
 pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string, destination_path string) ! {
 	// Get page links from metadata
 	links := c.get_page_links(collection_name, page_name)!
-	
+
 	// Create img subdirectory
 	mut img_dest := pathlib.get_dir(path: '${destination_path}/img', create: true)!
-	
+
 	// Copy only image links
 	for link in links {
-		if !link.is_image_link { continue }
-		
+		if !link.is_image_link {
+			continue
+		}
+
 		// Get image path and copy
 		img_path := c.get_image_path(link.target_collection_name, link.target_item_name)!
 		mut src := pathlib.get_file(path: img_path)!
 		src.copy(dest: '${img_dest.path}/${src.name_fix_keepext()}')!
+		console.print_debug('Copied image: ${src.path} to ${img_dest.path}/${src.name_fix_keepext()}')
 	}
 }
 
@@ -340,18 +343,20 @@ pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string,
 pub fn (mut c AtlasClient) copy_files(collection_name string, page_name string, destination_path string) ! {
 	// Get page links from metadata
 	links := c.get_page_links(collection_name, page_name)!
-	
+
 	// Create files subdirectory
 	mut files_dest := pathlib.get_dir(path: '${destination_path}/files', create: true)!
-	
+
 	// Copy only file links (non-image files)
 	for link in links {
-		if !link.is_file_link { continue }
-		if link.is_image_link { continue }
-		
+		if !link.is_file_link {
+			continue
+		}
+		println(link)
 		// Get file path and copy
 		file_path := c.get_file_path(link.target_collection_name, link.target_item_name)!
 		mut src := pathlib.get_file(path: file_path)!
-		src.copy(dest: '${files_dest.path}/${src.name_fix_keepext()}')!
+		// src.copy(dest: '${files_dest.path}/${src.name_fix_keepext()}')!
+		console.print_debug('Copied file: ${src.path} to ${files_dest.path}/${src.name_fix_keepext()}')
 	}
 }

@@ -27,8 +27,6 @@ pub fn (mut docsite DocSite) generate_docs() ! {
 	mut client_instance := atlas_client.new(export_dir: c.atlas_dir)!
 	mut client := IDocClient(client_instance)
 
-	println(client_instance)
-	$dbg;
 	mut gen := SiteGenerator{
 		path:   pathlib.get_dir(path: docs_path, create: true)!
 		client: client
@@ -145,7 +143,11 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 	pagefile.write(c)!
 
 	generator.client.copy_images(collection_name, page_name, pagefile.path_dir()) or {
-		generator.error("Couldn't copy image ${pagefile} for '${page_name}' in collection '${collection_name}', try to find the image and fix the path is in ${args.path}.}\nError: ${err}")!
+		generator.error("Couldn't copy image ${pagefile.path} for page:'${page_name}' in collection:'${collection_name}'\nERROR:${err}")!
+		return
+	}
+	generator.client.copy_files(collection_name, page_name, pagefile.path_dir()) or {
+		generator.error("Couldn't copy files for page:'${page_name}' in collection:'${collection_name}'\nERROR:${err}")!
 		return
 	}
 }

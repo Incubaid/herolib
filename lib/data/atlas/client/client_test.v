@@ -1,7 +1,7 @@
 module client
 
 import os
-import incubaid.herolib.core.texttools { name_fix_no_underscore_no_ext }
+import incubaid.herolib.core.texttools
 
 // Helper function to create a test export directory structure
 fn setup_test_export() string {
@@ -29,18 +29,15 @@ fn setup_test_export() string {
 
 	// Create test images
 	os.mkdir_all(os.join_path(test_dir, 'content', 'testcollection', 'img')) or { panic(err) }
-	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'img', 'logo.png'), 'fake png data') or {
-		panic(err)
-	}
-	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'img', 'banner.jpg'), 'fake jpg data') or {
-		panic(err)
-	}
+	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'img', 'logo.png'),
+		'fake png data') or { panic(err) }
+	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'img', 'banner.jpg'),
+		'fake jpg data') or { panic(err) }
 
 	// Create test files
 	os.mkdir_all(os.join_path(test_dir, 'content', 'testcollection', 'files')) or { panic(err) }
-	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'files', 'data.csv'), 'col1,col2\nval1,val2') or {
-		panic(err)
-	}
+	os.write_file(os.join_path(test_dir, 'content', 'testcollection', 'files', 'data.csv'),
+		'col1,col2\nval1,val2') or { panic(err) }
 
 	// Create metadata files
 	metadata1 := '{

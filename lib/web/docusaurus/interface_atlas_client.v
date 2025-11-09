@@ -26,4 +26,5 @@ mut:
 	// Image operations
 	// get_page_paths(collection_name string, page_name string) !(string, []string)
 	copy_images(collection_name string, page_name string, destination_path string) !
+	copy_files(collection_name string, page_name string, destination_path string) !
 }
