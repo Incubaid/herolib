@@ -268,11 +268,11 @@ fn (mut p Page) export_link_path(mut link Link) !string {
 	match link.file_type {
 		.image {
 			mut tf := link.target_file()!
-			return 'img/${tf.file_name()}'
+			return 'img/${tf.name}'
 		}
 		.file {
 			mut tf := link.target_file()!
-			return 'files/${tf.file_name()}'
+			return 'files/${tf.name}'
 		}
 		.page {
 			mut tp := link.target_page()!

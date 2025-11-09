@@ -1,8 +1,6 @@
 module docusaurus
 
 import incubaid.herolib.core.playbook { PlayBook }
-import incubaid.herolib.web.site
-import os
 
 pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'docusaurus.') {

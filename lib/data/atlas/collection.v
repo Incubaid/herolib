@@ -80,9 +80,8 @@ fn (mut c Collection) add_file(mut p pathlib.Path) ! {
 	relativepath := file_abs_path.path_relative(col_path.absolute())!
 
 	mut file_new := File{
-		name:       name // name without extension
-		ext:        p.extension_lower()
-		path:       relativepath // relative path of file in the collection
+		name:       name
+		path:       relativepath // relative path of file in the collection, includes the name
 		collection: &c
 	}
 

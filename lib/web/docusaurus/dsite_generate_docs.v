@@ -143,7 +143,7 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 	pagefile.write(c)!
 
 	generator.client.copy_images(collection_name, page_name, pagefile.path_dir()) or {
-		generator.error("Couldn't copy image ${pagefile.path} for page:'${page_name}' in collection:'${collection_name}'\nERROR:${err}")!
+		generator.error("Couldn't copy images for page:'${page_name}' in collection:'${collection_name}'\nERROR:${err}")!
 		return
 	}
 	generator.client.copy_files(collection_name, page_name, pagefile.path_dir()) or {

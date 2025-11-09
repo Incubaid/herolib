@@ -103,7 +103,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 			if (link.file_type == .file || link.file_type == .image) && !is_local {
 				mut target_file := link.target_file() or { continue }
 				// Use file name as key to avoid duplicates
-				file_key := target_file.file_name()
+				file_key := target_file.name
 				if file_key !in cross_collection_files {
 					cross_collection_files[file_key] = target_file
 				}
@@ -131,7 +131,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 			create: true
 		)!
 
-		mut dest_path := '${subdir_path.path}/${file.file_name()}'
+		mut dest_path := '${subdir_path.path}/${file.name}'
 		mut dest_file := pathlib.get_file(path: dest_path, create: true)!
 		src_file.copy(dest: dest_file.path)!
 	}
@@ -163,7 +163,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 			create: true
 		)!
 
-		mut dest_path := '${subdir_path.path}/${ref_file.file_name()}'
+		mut dest_path := '${subdir_path.path}/${ref_file.name}'
 		mut dest_file := pathlib.get_file(path: dest_path, create: true)!
 		src_file.copy(dest: dest_file.path)!
 	}

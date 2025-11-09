@@ -40,11 +40,9 @@ pub fn (mut c AtlasClient) get_page_path(collection_name string, page_name strin
 
 // get_file_path returns the path for a file in a collection
 // Files are stored in {export_dir}/content/{collection}/{filename}
-pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name string) !string {
-	// Apply name normalization
-	fixed_collection_name := texttools.name_fix(collection_name)
-	// Files keep their original names with extensions
-	fixed_file_name := texttools.name_fix_keepext(os.file_name(file_name))
+pub fn (mut c AtlasClient) get_file_path(collection_name_ string, file_name_ string) !string {
+	collection_name := texttools.name_fix_no_ext(collection_name_)
+	file_name := texttools.name_fix_keepext(file_name_)
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
@@ -52,12 +50,11 @@ pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name strin
 	}
 
 	// Construct the file path
-	file_path := os.join_path(c.export_dir, 'content', fixed_collection_name, 'files',
-		fixed_file_name)
+	file_path := os.join_path(c.export_dir, 'content', collection_name, 'files', file_name)
 
 	// Check if the file exists
 	if !os.exists(file_path) {
-		return error('file_not_found: File "${file_name}" not found in collection "${collection_name}"')
+		return error('file_not_found:"${file_path}" File "${file_name}" not found in collection "${collection_name}"')
 	}
 
 	return file_path
@@ -65,11 +62,11 @@ pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name strin
 
 // get_image_path returns the path for an image in a collection
 // Images are stored in {export_dir}/content/{collection}/{imagename}
-pub fn (mut c AtlasClient) get_image_path(collection_name string, image_name string) !string {
+pub fn (mut c AtlasClient) get_image_path(collection_name_ string, image_name_ string) !string {
 	// Apply name normalization
-	fixed_collection_name := texttools.name_fix_no_ext(collection_name)
+	collection_name := texttools.name_fix_no_ext(collection_name_)
 	// Images keep their original names with extensions
-	fixed_image_name := texttools.name_fix_keepext(os.file_name(image_name))
+	image_name := texttools.name_fix_keepext(image_name_)
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
@@ -77,12 +74,11 @@ pub fn (mut c AtlasClient) get_image_path(collection_name string, image_name str
 	}
 
 	// Construct the image path
-	image_path := os.join_path(c.export_dir, 'content', fixed_collection_name, 'img',
-		fixed_image_name)
+	image_path := os.join_path(c.export_dir, 'content', collection_name, 'img', image_name)
 
 	// Check if the image exists
 	if !os.exists(image_path) {
-		return error('image_not_found: Image "${image_name}" not found in collection "${collection_name}"')
+		return error('image_not_found":"${image_path}" Image "${image_name}" not found in collection "${collection_name}"')
 	}
 
 	return image_path
@@ -289,12 +285,14 @@ pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string,
 		if link.file_type != .image {
 			continue
 		}
-
+		if link.status == .external {
+			continue
+		}
 		// Get image path and copy
 		img_path := c.get_image_path(link.target_collection_name, link.target_item_name)!
 		mut src := pathlib.get_file(path: img_path)!
 		src.copy(dest: '${img_dest.path}/${src.name_fix_keepext()}')!
-		console.print_debug('Copied image: ${src.path} to ${img_dest.path}/${src.name_fix_keepext()}')
+		// console.print_debug('Copied image: ${src.path} to ${img_dest.path}/${src.name_fix_keepext()}')
 	}
 }
 

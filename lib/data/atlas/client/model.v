@@ -26,8 +26,8 @@ pub mut:
 
 pub struct FileMetadata {
 pub mut:
-	name string // name with extension
-	path string // path in the collection
+	name string // name WITH extension (e.g., "image.png", "data.csv")
+	path string // relative path in export (e.g., "img/image.png" or "files/data.csv")
 }
 
 pub struct LinkMetadata {
@@ -38,8 +38,17 @@ pub mut:
 	line                   int
 	target_collection_name string
 	target_item_name       string
-	status                 string
+	status                 LinkStatus
 	file_type              LinkFileType
+}
+
+pub enum LinkStatus {
+	init
+	external
+	found
+	not_found
+	anchor
+	error
 }
 
 pub enum LinkFileType {

@@ -1,6 +1,7 @@
 module atlas
 
 import incubaid.herolib.core.pathlib
+import os
 
 pub enum FileType {
 	file
@@ -26,5 +27,5 @@ pub fn (f File) is_image() bool {
 }
 
 pub fn (f File) ext() string {
-	return pathlib.get_file_ext(f.name)
+	return os.file_ext(f.name)
 }
