@@ -1,6 +1,13 @@
 module atlas
 
 import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
+
+pub enum LinkFileType {
+	page  // Default: link to another page
+	file  // Link to a non-image file
+	image // Link to an image file
+}
 
 // Link represents a markdown link found in content
 pub struct Link {
@@ -13,8 +20,7 @@ pub mut:
 	target_collection_name string
 	target_item_name       string
 	status                 LinkStatus
-	is_file_link           bool // is the link pointing to a file
-	is_image_link          bool // is the link pointing to an image
+	file_type              LinkFileType // Type of the link target: file, image, or page (default)
 	page                   &Page @[skip; str: skip] // Reference to page where this link is found
 }
 
@@ -85,37 +91,41 @@ fn (mut p Page) find_links(content string) ![]Link {
 			text := line[open_bracket + 1..close_bracket]
 			target := line[open_paren + 1..close_paren]
 
-			// Determine link type
-			// File links have extensions (but not .md), image links start with ![
-			is_file_link := target.contains('.') && !target.trim_space().to_lower().ends_with('.md')
-			is_image_link := image_open != -1 && !is_file_link
+			// Determine link type based on content
+			mut detected_file_type := LinkFileType.page
+
+			// Check if it's an image link (starts with !)
+			if image_open != -1 {
+				detected_file_type = .image
+			} else if target.contains('.') && !target.trim_space().to_lower().ends_with('.md') {
+				// File link: has extension but not .md
+				detected_file_type = .file
+			}
+
+			// console.print_debug('Found link: text="${text}", target="${target}", type=${detected_file_type}')
 
 			// Store position - use image_open if it's an image, otherwise open_bracket
-			link_start_pos := if is_image_link { image_open } else { open_bracket }
+			link_start_pos := if detected_file_type == .image { image_open } else { open_bracket }
 
 			// For image links, src should include the ! prefix
-			link_src := if is_image_link {
+			link_src := if detected_file_type == .image {
 				line[image_open..close_paren + 1]
 			} else {
 				line[open_bracket..close_paren + 1]
 			}
 
 			mut link := Link{
-				src:           link_src
-				text:          text
-				target:        target.trim_space()
-				line:          line_idx + 1
-				pos:           link_start_pos
-				is_file_link:  is_file_link
-				is_image_link: is_image_link
-				page:          &p
+				src:       link_src
+				text:      text
+				target:    target.trim_space()
+				line:      line_idx + 1
+				pos:       link_start_pos
+				file_type: detected_file_type
+				page:      &p
 			}
 
-			p.parse_link_target(mut link)
-			if link.status == .external {
-				link.is_file_link = false
-				link.is_image_link = false
-			}
+			p.parse_link_target(mut link)!
+			// No need to set file_type to false for external links, as it's already .page by default
 			links << link
 
 			pos = close_paren + 1
@@ -125,7 +135,7 @@ fn (mut p Page) find_links(content string) ![]Link {
 }
 
 // Parse link target to extract collection and page
-fn (mut p Page) parse_link_target(mut link Link) {
+fn (mut p Page) parse_link_target(mut link Link) ! {
 	mut target := link.target.to_lower().trim_space()
 
 	// Check for external links (http, https, mailto, ftp)
@@ -155,7 +165,7 @@ fn (mut p Page) parse_link_target(mut link Link) {
 		if parts.len >= 2 {
 			link.target_collection_name = texttools.name_fix(parts[0])
 			// For file links, use name without extension; for page links, normalize normally
-			if link.is_file_link {
+			if link.file_type == .file {
 				link.target_item_name = texttools.name_fix_no_ext(parts[1])
 			} else {
 				link.target_item_name = normalize_page_name(parts[1])
@@ -163,7 +173,7 @@ fn (mut p Page) parse_link_target(mut link Link) {
 		}
 	} else {
 		// For file links, use name without extension; for page links, normalize normally
-		if link.is_file_link {
+		if link.file_type == .file {
 			link.target_item_name = texttools.name_fix_no_ext(target).trim_space()
 		} else {
 			link.target_item_name = normalize_page_name(target).trim_space()
@@ -171,18 +181,22 @@ fn (mut p Page) parse_link_target(mut link Link) {
 		link.target_collection_name = p.collection.name
 	}
 
+	// console.print_debug('Parsed link target: collection="${link.target_collection_name}", item="${link.target_item_name}", type=${link.file_type}')
+
 	// Validate link target exists
 	mut target_exists := false
 	mut error_category := CollectionErrorCategory.invalid_page_reference
 	mut error_prefix := 'Broken link'
 
-	if link.is_file_link {
-		target_exists = p.collection.atlas.file_or_image_exists(link.key())
+	if link.file_type == .file || link.file_type == .image {
+		target_exists = p.collection.atlas.file_or_image_exists(link.key())!
 		error_category = .invalid_file_reference
-		error_prefix = 'Broken file link'
+		error_prefix = if link.file_type == .file { 'Broken file link' } else { 'Broken image link' }
 	} else {
-		target_exists = p.collection.atlas.page_exists(link.key())
+		target_exists = p.collection.atlas.page_exists(link.key())!
 	}
+
+	// console.print_debug('Link target exists: ${target_exists} for key=${link.key()}')
 
 	if target_exists {
 		link.status = .found
@@ -239,7 +253,7 @@ fn (mut p Page) content_with_fixed_links(args FixLinksArgs) !string {
 
 		// Build the complete link markdown
 		// For image links, link.src already includes the !, so we build the same format
-		prefix := if link.is_image_link { '!' } else { '' }
+		prefix := if link.file_type == .image { '!' } else { '' }
 		new_link_md := '${prefix}[${link.text}](${new_link})'
 
 		// Replace in content
@@ -251,13 +265,19 @@ fn (mut p Page) content_with_fixed_links(args FixLinksArgs) !string {
 
 // export_link_path calculates path for export (self-contained: all references are local)
 fn (mut p Page) export_link_path(mut link Link) !string {
-	if link.is_file_link {
-		mut tf := link.target_file()!
-		mut subdir := if tf.is_image() { 'img' } else { 'files' }
-		return '${subdir}/${tf.file_name()}'
-	} else {
-		mut tp := link.target_page()!
-		return '${tp.name}.md'
+	match link.file_type {
+		.image {
+			mut tf := link.target_file()!
+			return 'img/${tf.file_name()}'
+		}
+		.file {
+			mut tf := link.target_file()!
+			return 'files/${tf.file_name()}'
+		}
+		.page {
+			mut tp := link.target_page()!
+			return '${tp.name}.md'
+		}
 	}
 }
 
@@ -265,12 +285,15 @@ fn (mut p Page) export_link_path(mut link Link) !string {
 fn (mut p Page) filesystem_link_path(mut link Link) !string {
 	source_path := p.path()!
 
-	mut target_path := if link.is_file_link {
-		mut tf := link.target_file()!
-		tf.path()!
-	} else {
-		mut tp := link.target_page()!
-		tp.path()!
+	mut target_path := match link.file_type {
+		.image, .file {
+			mut tf := link.target_file()!
+			tf.path()!
+		}
+		.page {
+			mut tp := link.target_page()!
+			tp.path()!
+		}
 	}
 
 	return target_path.path_relative(source_path.path)!

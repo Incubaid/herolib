@@ -5,53 +5,14 @@ import incubaid.herolib.core.texttools
 import incubaid.herolib.ui.console
 import os
 import json
+import incubaid.herolib.core.redisclient
 
-// List of recognized image file extensions
-const image_extensions = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', '.bmp', '.tiff', '.ico']
-
-// CollectionMetadata represents the metadata stored in meta/{collection}.json
-pub struct CollectionMetadata {
+// AtlasClient provides access to Atlas-exported documentation collections
+// It reads from both the exported directory structure and Redis metadata
+pub struct AtlasClient {
 pub mut:
-	name   string
-	path   string
-	pages  map[string]PageMetadata
-	files  map[string]FileMetadata
-	errors []ErrorMetadata
-}
-
-pub struct PageMetadata {
-pub mut:
-	name            string
-	path            string
-	collection_name string
-	links           []LinkMetadata
-}
-
-pub struct FileMetadata {
-pub mut:
-	name string
-	path string
-}
-
-pub struct LinkMetadata {
-pub mut:
-	src                    string
-	text                   string
-	target                 string
-	line                   int
-	target_collection_name string
-	target_item_name       string
-	status                 string
-	is_file_link           bool
-	is_image_link          bool
-}
-
-pub struct ErrorMetadata {
-pub mut:
-	category string
-	page_key string
-	message  string
-	line     int
+	redis      &redisclient.Redis
+	export_dir string // Path to the atlas export directory (contains content/ and meta/)
 }
 
 // get_page_path returns the path for a page in a collection
@@ -325,7 +286,7 @@ pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string,
 
 	// Copy only image links
 	for link in links {
-		if !link.is_image_link {
+		if link.file_type != .image {
 			continue
 		}
 
@@ -349,7 +310,7 @@ pub fn (mut c AtlasClient) copy_files(collection_name string, page_name string, 
 
 	// Copy only file links (non-image files)
 	for link in links {
-		if !link.is_file_link {
+		if link.file_type != .file {
 			continue
 		}
 		println(link)

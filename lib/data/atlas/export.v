@@ -91,7 +91,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 
 			// Collect cross-collection page references
 			is_local := link.target_collection_name == c.name
-			if !link.is_file_link && !is_local {
+			if link.file_type == .page && !is_local {
 				mut target_page := link.target_page() or { continue }
 				// Use page name as key to avoid duplicates
 				if target_page.name !in cross_collection_pages {
@@ -100,7 +100,7 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 			}
 
 			// Collect cross-collection file/image references
-			if link.is_file_link && !is_local {
+			if (link.file_type == .file || link.file_type == .image) && !is_local {
 				mut target_file := link.target_file() or { continue }
 				// Use file name as key to avoid duplicates
 				file_key := target_file.file_name()

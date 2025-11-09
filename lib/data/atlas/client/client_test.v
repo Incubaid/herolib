@@ -63,8 +63,7 @@ fn setup_test_export() string {
           "target_collection_name": "testcollection",
           "target_item_name": "logo.png",
           "status": "ok",
-          "is_file_link": false,
-          "is_image_link": true
+          "file_type": "image"
         },
         {
           "src": "data.csv",
@@ -74,8 +73,7 @@ fn setup_test_export() string {
           "target_collection_name": "testcollection",
           "target_item_name": "data.csv",
           "status": "ok",
-          "is_file_link": true,
-          "is_image_link": false
+          "file_type": "file"
         }
       ]
     }

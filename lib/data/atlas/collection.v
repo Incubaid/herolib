@@ -1,7 +1,7 @@
 module atlas
 
 import incubaid.herolib.core.pathlib
-// import incubaid.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.data.paramsparser { Params }
 import incubaid.herolib.ui.console
@@ -70,8 +70,7 @@ fn (mut c Collection) add_page(mut path pathlib.Path) ! {
 
 // Add an image to the collection
 fn (mut c Collection) add_file(mut p pathlib.Path) ! {
-	// Use name without extension for the key and name field
-	name := p.name_fix_no_ext()
+	name := p.name_fix_keepext() // keep extension
 	if name in c.files {
 		return error('File ${name} already exists in collection ${c.name}')
 	}
@@ -96,7 +95,8 @@ fn (mut c Collection) add_file(mut p pathlib.Path) ! {
 }
 
 // Get a page by name
-pub fn (c Collection) page_get(name string) !&Page {
+pub fn (c Collection) page_get(name_ string) !&Page {
+	name := texttools.name_fix_no_ext(name_)
 	return c.pages[name] or { return PageNotFound{
 		collection: c.name
 		page:       name
@@ -104,7 +104,8 @@ pub fn (c Collection) page_get(name string) !&Page {
 }
 
 // Get an image by name
-pub fn (c Collection) image_get(name string) !&File {
+pub fn (c Collection) image_get(name_ string) !&File {
+	name := texttools.name_fix(name_)
 	mut img := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -116,7 +117,8 @@ pub fn (c Collection) image_get(name string) !&File {
 }
 
 // Get a file by name
-pub fn (c Collection) file_get(name string) !&File {
+pub fn (c Collection) file_get(name_ string) !&File {
+	name := texttools.name_fix(name_)
 	mut f := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -127,7 +129,8 @@ pub fn (c Collection) file_get(name string) !&File {
 	return f
 }
 
-pub fn (c Collection) file_or_image_get(name string) !&File {
+pub fn (c Collection) file_or_image_get(name_ string) !&File {
+	name := texttools.name_fix(name_)
 	mut f := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -136,23 +139,27 @@ pub fn (c Collection) file_or_image_get(name string) !&File {
 }
 
 // Check if page exists
-pub fn (c Collection) page_exists(name string) bool {
+pub fn (c Collection) page_exists(name_ string) !bool {
+	name := texttools.name_fix_no_ext(name_)
 	return name in c.pages
 }
 
 // Check if image exists
-pub fn (c Collection) image_exists(name string) bool {
+pub fn (c Collection) image_exists(name_ string) !bool {
+	name := texttools.name_fix(name_)
 	f := c.files[name] or { return false }
 	return f.ftype == .image
 }
 
 // Check if file exists
-pub fn (c Collection) file_exists(name string) bool {
+pub fn (c Collection) file_exists(name_ string) !bool {
+	name := texttools.name_fix(name_)
 	f := c.files[name] or { return false }
 	return f.ftype == .file
 }
 
-pub fn (c Collection) file_or_image_exists(name string) bool {
+pub fn (c Collection) file_or_image_exists(name_ string) !bool {
+	name := texttools.name_fix(name_)
 	_ := c.files[name] or { return false }
 	return true
 }

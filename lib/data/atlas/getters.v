@@ -4,7 +4,7 @@ module atlas
 pub fn (a Atlas) page_get(key string) !&Page {
 	parts := key.split(':')
 	if parts.len != 2 {
-		return error('Invalid page key format. Use "collection:page"')
+		return error('Invalid page key format. Use "collection:page" in page_get')
 	}
 
 	col := a.get_collection(parts[0])!
@@ -15,7 +15,7 @@ pub fn (a Atlas) page_get(key string) !&Page {
 pub fn (a Atlas) image_get(key string) !&File {
 	parts := key.split(':')
 	if parts.len != 2 {
-		return error('Invalid image key format. Use "collection:image"')
+		return error('Invalid image key format. Use "collection:image" in image_get')
 	}
 
 	col := a.get_collection(parts[0])!
@@ -26,7 +26,7 @@ pub fn (a Atlas) image_get(key string) !&File {
 pub fn (a Atlas) file_get(key string) !&File {
 	parts := key.split(':')
 	if parts.len != 2 {
-		return error('Invalid file key format. Use "collection:file"')
+		return error('Invalid file key format. Use "collection:file" in file_get')
 	}
 
 	col := a.get_collection(parts[0])!
@@ -44,10 +44,10 @@ pub fn (a Atlas) file_or_image_get(key string) !&File {
 }
 
 // Check if page exists
-pub fn (a Atlas) page_exists(key string) bool {
+pub fn (a Atlas) page_exists(key string) !bool {
 	parts := key.split(':')
 	if parts.len != 2 {
-		return false
+		return error("Invalid file key format. Use 'collection:file' in page_exists")
 	}
 
 	col := a.get_collection(parts[0]) or { return false }
@@ -55,10 +55,10 @@ pub fn (a Atlas) page_exists(key string) bool {
 }
 
 // Check if image exists
-pub fn (a Atlas) image_exists(key string) bool {
+pub fn (a Atlas) image_exists(key string) !bool {
 	parts := key.split(':')
 	if parts.len != 2 {
-		return false
+		return error("Invalid file key format. Use 'collection:file' in image_exists")
 	}
 
 	col := a.get_collection(parts[0]) or { return false }
@@ -66,25 +66,24 @@ pub fn (a Atlas) image_exists(key string) bool {
 }
 
 // Check if file exists
-pub fn (a Atlas) file_exists(key string) bool {
+pub fn (a Atlas) file_exists(key string) !bool {
 	parts := key.split(':')
 	if parts.len != 2 {
-		return false
+		return error("Invalid file key format. Use 'collection:file' in file_exists")
 	}
 
 	col := a.get_collection(parts[0]) or { return false }
 	return col.file_exists(parts[1])
 }
 
-pub fn (a Atlas) file_or_image_exists(key string) bool {
+pub fn (a Atlas) file_or_image_exists(key string) !bool {
 	parts := key.split(':')
 	if parts.len != 2 {
-		return false
+		return error("Invalid file key format. Use 'collection:file' in file_or_image_exists")
 	}
 	col := a.get_collection(parts[0]) or { return false }
 	return col.file_or_image_exists(parts[1])
 }
-
 
 // List all pages in Atlas
 pub fn (a Atlas) list_pages() map[string][]string {
