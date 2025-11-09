@@ -6,42 +6,6 @@ import incubaid.herolib.web.site { Page, Section, Site }
 import incubaid.herolib.data.markdown.tools as markdowntools
 import incubaid.herolib.ui.console
 
-// THIS CODE GENERATES A DOCUSAURUS SITE FROM A DOCUMENT CLIENT AND SITE DEFINITION
-// Supports both atlas.client and doctreeclient through the unified IDocClient interface
-
-// IDocClient defines the common interface that both atlas.client and doctreeclient implement
-// This allows the Docusaurus module to work with either client transparently
-//
-// Note: V interfaces require exact signature matching, so all methods use `mut` receivers
-// to match the implementation in both atlas.client and doctreeclient
-pub interface IDocClient {
-mut:
-	// Path methods - get absolute paths to resources
-	get_page_path(collection_name string, page_name string) !string
-	get_file_path(collection_name string, file_name string) !string
-	get_image_path(collection_name string, image_name string) !string
-
-	// Existence checks - verify if resources exist
-	page_exists(collection_name string, page_name string) bool
-	file_exists(collection_name string, file_name string) bool
-	image_exists(collection_name string, image_name string) bool
-
-	// Content retrieval
-	get_page_content(collection_name string, page_name string) !string
-
-	// Listing methods - enumerate resources
-	list_collections() ![]string
-	list_pages(collection_name string) ![]string
-	list_files(collection_name string) ![]string
-	list_images(collection_name string) ![]string
-	list_pages_map() !map[string][]string
-	list_markdown() !string
-
-	// Image operations
-	get_page_paths(collection_name string, page_name string) !(string, []string)
-	copy_images(collection_name string, page_name string, destination_path string) !
-}
-
 struct SiteGenerator {
 mut:
 	siteconfig_name string
@@ -63,6 +27,8 @@ pub fn (mut docsite DocSite) generate_docs() ! {
 	mut client_instance := atlas_client.new(export_dir: c.atlas_dir)!
 	mut client := IDocClient(client_instance)
 
+	println(client_instance)
+	$dbg;
 	mut gen := SiteGenerator{
 		path:   pathlib.get_dir(path: docs_path, create: true)!
 		client: client
@@ -178,7 +144,7 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 
 	pagefile.write(c)!
 
-	generator.client.copy_images(collection_name, page_name, pagefile.path_dir().path) or {
+	generator.client.copy_images(collection_name, page_name, pagefile.path_dir()) or {
 		generator.error("Couldn't copy image ${pagefile} for '${page_name}' in collection '${collection_name}', try to find the image and fix the path is in ${args.path}.}\nError: ${err}")!
 		return
 	}

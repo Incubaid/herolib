@@ -7,11 +7,10 @@ import json
 @[params]
 pub struct ExportArgs {
 pub mut:
-	destination      string @[required]
-	destination_meta string // NEW: where to save collection metadata
-	reset            bool = true
-	include          bool = true
-	redis            bool = true
+	destination string @[requireds]
+	reset       bool = true
+	include     bool = true
+	redis       bool = true
 }
 
 // Export all collections
@@ -122,16 +121,16 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 	// Copy all files/images from this collection to the export directory
 	for _, mut file in c.files {
 		mut src_file := file.path()!
-		
+
 		// Determine subdirectory based on file type
 		mut subdir := if file.is_image() { 'img' } else { 'files' }
-		
+
 		// Ensure subdirectory exists
 		mut subdir_path := pathlib.get_dir(
-			path: '${col_dir.path}/${subdir}'
+			path:   '${col_dir.path}/${subdir}'
 			create: true
 		)!
-		
+
 		mut dest_path := '${subdir_path.path}/${file.file_name()}'
 		mut dest_file := pathlib.get_file(path: dest_path, create: true)!
 		src_file.copy(dest: dest_file.path)!
@@ -154,16 +153,16 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 	// Third pass: copy cross-collection referenced files/images to make collection self-contained
 	for _, mut ref_file in cross_collection_files {
 		mut src_file := ref_file.path()!
-		
+
 		// Determine subdirectory based on file type
 		mut subdir := if ref_file.is_image() { 'img' } else { 'files' }
-		
+
 		// Ensure subdirectory exists
 		mut subdir_path := pathlib.get_dir(
-			path: '${col_dir.path}/${subdir}'
+			path:   '${col_dir.path}/${subdir}'
 			create: true
 		)!
-		
+
 		mut dest_path := '${subdir_path.path}/${ref_file.file_name()}'
 		mut dest_file := pathlib.get_file(path: dest_path, create: true)!
 		src_file.copy(dest: dest_file.path)!
