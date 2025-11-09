@@ -2,7 +2,6 @@ module docusaurus
 
 import incubaid.herolib.core.pathlib
 import json
-import os
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 

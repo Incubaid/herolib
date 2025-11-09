@@ -15,7 +15,6 @@ pub fn new(args AtlasClientArgs) !&AtlasClient {
 	mut redis := context.redis()!
 
 	return &AtlasClient{
-		AtlasError: AtlasError{}
 		redis:      redis
 		export_dir: args.export_dir
 	}

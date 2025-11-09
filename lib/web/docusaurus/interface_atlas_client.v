@@ -1,11 +1,5 @@
 module docusaurus
 
-import incubaid.herolib.core.pathlib
-import incubaid.herolib.data.atlas.client as atlas_client
-import incubaid.herolib.web.site
-import incubaid.herolib.data.markdown.tools as markdowntools
-import incubaid.herolib.ui.console
-
 pub interface IDocClient {
 mut:
 	// Path methods - get absolute paths to resources

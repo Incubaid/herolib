@@ -62,7 +62,7 @@ pub fn (mut c AtlasClient) get_page_path(collection_name string, page_name strin
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
-		return c.error_export_dir_not_found(export_dir: c.export_dir)
+		return error('export_dir_not_found: Export directory "${c.export_dir}" not found')
 	}
 
 	// Construct the page path
@@ -70,10 +70,7 @@ pub fn (mut c AtlasClient) get_page_path(collection_name string, page_name strin
 
 	// Check if the page file exists
 	if !os.exists(page_path) {
-		return c.error_page_not_found(
-			collection_name: collection_name
-			page_name:       page_name
-		)
+		return error('page_not_found: Page "${page_name}" not found in collection "${collection_name}"')
 	}
 
 	return page_path
@@ -89,7 +86,7 @@ pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name strin
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
-		return c.error_export_dir_not_found(export_dir: c.export_dir)
+		return error('export_dir_not_found: Export directory "${c.export_dir}" not found')
 	}
 
 	// Construct the file path
@@ -98,10 +95,7 @@ pub fn (mut c AtlasClient) get_file_path(collection_name string, file_name strin
 
 	// Check if the file exists
 	if !os.exists(file_path) {
-		return c.error_file_not_found(
-			collection_name: collection_name
-			file_name:       file_name
-		)
+		return error('file_not_found: File "${file_name}" not found in collection "${collection_name}"')
 	}
 
 	return file_path
@@ -117,7 +111,7 @@ pub fn (mut c AtlasClient) get_image_path(collection_name string, image_name str
 
 	// Check if export directory exists
 	if !os.exists(c.export_dir) {
-		return c.error_export_dir_not_found(export_dir: c.export_dir)
+		return error('export_dir_not_found: Export directory "${c.export_dir}" not found')
 	}
 
 	// Construct the image path
@@ -126,10 +120,7 @@ pub fn (mut c AtlasClient) get_image_path(collection_name string, image_name str
 
 	// Check if the image exists
 	if !os.exists(image_path) {
-		return c.error_image_not_found(
-			collection_name: collection_name
-			image_name:      image_name
-		)
+		return error('image_not_found: Image "${image_name}" not found in collection "${collection_name}"')
 	}
 
 	return image_path
@@ -166,7 +157,7 @@ pub fn (mut c AtlasClient) get_page_content(collection_name string, page_name st
 
 	// Check if the file exists
 	if !path.exists() {
-		return c.error_page_file_not_exists(page_path: page_path)
+		return error('page_not_found: Page file "${page_path}" does not exist on disk')
 	}
 
 	// Read and return the file content
@@ -180,7 +171,7 @@ pub fn (mut c AtlasClient) list_collections() ![]string {
 
 	// Check if content directory exists
 	if !os.exists(content_dir) {
-		return c.error_invalid_export_structure(content_dir: content_dir)
+		return error('invalid_export_structure: Content directory not found at "${content_dir}"')
 	}
 
 	// Get all subdirectories in content/
@@ -287,10 +278,7 @@ pub fn (mut c AtlasClient) get_collection_metadata(collection_name string) !Coll
 
 	// Check if metadata file exists
 	if !os.exists(meta_path) {
-		return c.error_collection_not_found_at(
-			collection_name: collection_name
-			path:            meta_path
-		)
+		return error('collection_not_found: Metadata file for collection "${collection_name}" not found at "${meta_path}"')
 	}
 
 	// Read and parse the JSON file
@@ -313,10 +301,7 @@ pub fn (mut c AtlasClient) get_page_links(collection_name string, page_name stri
 		return metadata.pages[fixed_page_name].links
 	}
 
-	return c.error_page_not_found_in_metadata(
-		collection_name: collection_name
-		page_name:       page_name
-	)
+	return error('page_not_found: Page "${page_name}" not found in collection metadata')
 }
 
 // get_collection_errors returns the errors for a collection from metadata
