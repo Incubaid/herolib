@@ -1,8 +1,6 @@
 module docusaurus
 
 import incubaid.herolib.core.playbook { PlayBook }
-import incubaid.herolib.web.site
-import os
 
 pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'docusaurus.') {
@@ -19,6 +17,8 @@ pub fn play(mut plbook PlayBook) ! {
 		reset:           param_define.get_default_false('reset')
 		template_update: param_define.get_default_false('template_update')
 		install:         param_define.get_default_false('install')
+		atlas_dir:       param_define.get_default('atlas_dir', '/tmp/atlas_export')!
+		use_atlas:       param_define.get_default_false('use_atlas')
 	)!
 
 	site_name := param_define.get('name') or {
@@ -31,20 +31,6 @@ pub fn play(mut plbook PlayBook) ! {
 	mut dsite := dsite_get(site_name)!
 
 	dsite.generate()!
-
-	mut actions_dev := plbook.find(filter: 'docusaurus.dev')!
-	if actions_dev.len > 1 {
-		return error('Multiple "docusaurus.dev" actions found. Only one is allowed.')
-	}
-	for mut action in actions_dev {
-		mut p := action.params
-		dsite.dev(
-			host: p.get_default('host', 'localhost')!
-			port: p.get_int_default('port', 3000)!
-			open: p.get_default_false('open')
-		)!
-		action.done = true
-	}
 
 	mut actions_build := plbook.find(filter: 'docusaurus.build')!
 	if actions_build.len > 1 {
@@ -61,6 +47,20 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	for mut action in actions_export {
 		dsite.build_publish()!
+		action.done = true
+	}
+
+	mut actions_dev := plbook.find(filter: 'docusaurus.dev')!
+	if actions_dev.len > 1 {
+		return error('Multiple "docusaurus.dev" actions found. Only one is allowed.')
+	}
+	for mut action in actions_dev {
+		mut p := action.params
+		dsite.dev(
+			host: p.get_default('host', 'localhost')!
+			port: p.get_int_default('port', 3000)!
+			open: p.get_default_false('open')
+		)!
 		action.done = true
 	}
 

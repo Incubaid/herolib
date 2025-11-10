@@ -19,19 +19,20 @@ pub mut:
 pub fn new(args AtlasNewArgs) !&Atlas {
 	mut name := texttools.name_fix(args.name)
 
-	mut a := Atlas{
+	mut a := &Atlas{
 		name: name
 	}
 
 	set(a)
-	return &a
+	return a
 }
 
 // Get Atlas from global map
 pub fn get(name string) !&Atlas {
+	mut fixed_name := texttools.name_fix(name)
 	rlock atlases {
-		if name in atlases {
-			return atlases[name] or { return error('Atlas ${name} not found') }
+		if fixed_name in atlases {
+			return atlases[fixed_name] or { return error('Atlas ${name} not found') }
 		}
 	}
 	return error("Atlas '${name}' not found")
@@ -39,8 +40,9 @@ pub fn get(name string) !&Atlas {
 
 // Check if Atlas exists
 pub fn exists(name string) bool {
+	mut fixed_name := texttools.name_fix(name)
 	rlock atlases {
-		return name in atlases
+		return fixed_name in atlases
 	}
 }
 
@@ -52,8 +54,8 @@ pub fn list() []string {
 }
 
 // Store Atlas in global map
-fn set(atlas Atlas) {
+fn set(atlas &Atlas) {
 	lock atlases {
-		atlases[atlas.name] = &atlas
+		atlases[atlas.name] = atlas
 	}
 }

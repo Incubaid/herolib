@@ -128,6 +128,10 @@ fn (mut p Page) process_includes(content string, mut visited map[string]bool) !s
 		}
 	}
 
+	// Remove this page from visited map to allow it to be included again in other contexts
+	// This prevents false positives when a page is included multiple times (which is valid)
+	visited.delete(page_key)
+
 	return processed_lines.join_lines()
 }
 
