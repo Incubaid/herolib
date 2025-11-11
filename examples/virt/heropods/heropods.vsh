@@ -2,17 +2,17 @@
 
 import incubaid.herolib.virt.heropods
 
-// Initialize factory
-mut factory := heropods.new(
+// Initialize heropods
+mut heropods_ := heropods.new(
 	reset:      false
 	use_podman: true
-) or { panic('Failed to init ContainerFactory: ${err}') }
+) or { panic('Failed to init HeroPods: ${err}') }
 
 println('=== HeroPods Refactored API Demo ===')
 
-// Step 1: factory.new() now only creates a container definition/handle
+// Step 1: heropods_.new() now only creates a container definition/handle
 // It does NOT create the actual container in the backend yet
-mut container := factory.new(
+mut container := heropods_.container_new(
 	name:              'demo_alpine'
 	image:             .custom
 	custom_image_name: 'alpine_3_20'
@@ -56,7 +56,7 @@ println('✓ Container deleted successfully')
 
 println('\n=== Demo completed! ===')
 println('The refactored API now works as expected:')
-println('- factory.new() creates definition only')
+println('- heropods_.new() creates definition only')
 println('- container.start() is idempotent')
 println('- container.exec() works and returns results')
 println('- container.delete() works on instances')
