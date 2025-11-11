@@ -6,6 +6,7 @@ import incubaid.herolib.biz.bizmodel
 import incubaid.herolib.threefold.incatokens
 import incubaid.herolib.web.site
 import incubaid.herolib.virt.hetznermanager
+import incubaid.herolib.virt.heropods
 import incubaid.herolib.web.docusaurus
 import incubaid.herolib.clients.openai
 import incubaid.herolib.clients.giteaclient
@@ -57,12 +58,12 @@ pub fn run(args_ PlayArgs) ! {
 	// Website / docs
 	site.play(mut plbook)!
 
-
 	incatokens.play(mut plbook)!
 	atlas.play(mut plbook)!
 	docusaurus.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	hetznermanager.play2(mut plbook)!
+	heropods.play(mut plbook)!
 
 	base.play(mut plbook)!
 	herolib.play(mut plbook)!
