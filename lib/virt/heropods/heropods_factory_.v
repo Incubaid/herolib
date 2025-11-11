@@ -126,14 +126,103 @@ pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'heropods.') {
 		return
 	}
-	mut install_actions := plbook.find(filter: 'heropods.configure')!
-	if install_actions.len > 0 {
-		for mut install_action in install_actions {
-			heroscript := install_action.heroscript()
-			mut obj2 := heroscript_loads(heroscript)!
-			set(obj2)!
-			install_action.done = true
+
+	// Process heropods.configure actions
+	for mut action in plbook.find(filter: 'heropods.configure')! {
+		heroscript := action.heroscript()
+		mut obj := heroscript_loads(heroscript)!
+		set(obj)!
+		action.done = true
+	}
+
+	// Process heropods.container_new actions
+	for mut action in plbook.find(filter: 'heropods.container_new')! {
+		mut p := action.params
+		heropods_name := p.get_default('heropods', heropods_default)!
+		mut hp := get(name: heropods_name)!
+
+		container_name := p.get('name')!
+		image_str := p.get_default('image', 'alpine_3_20')!
+		custom_image_name := p.get_default('custom_image_name', '')!
+		docker_url := p.get_default('docker_url', '')!
+		reset := p.get_default_false('reset')
+
+		image_type := match image_str {
+			'alpine_3_20' { ContainerImageType.alpine_3_20 }
+			'ubuntu_24_04' { ContainerImageType.ubuntu_24_04 }
+			'ubuntu_25_04' { ContainerImageType.ubuntu_25_04 }
+			'custom' { ContainerImageType.custom }
+			else { ContainerImageType.alpine_3_20 }
 		}
+
+		hp.container_new(
+			name:              container_name
+			image:             image_type
+			custom_image_name: custom_image_name
+			docker_url:        docker_url
+			reset:             reset
+		)!
+
+		action.done = true
+	}
+
+	// Process heropods.container_start actions
+	for mut action in plbook.find(filter: 'heropods.container_start')! {
+		mut p := action.params
+		heropods_name := p.get_default('heropods', heropods_default)!
+		mut hp := get(name: heropods_name)!
+
+		container_name := p.get('name')!
+		mut container := hp.get(name: container_name)!
+		container.start()!
+
+		action.done = true
+	}
+
+	// Process heropods.container_exec actions
+	for mut action in plbook.find(filter: 'heropods.container_exec')! {
+		mut p := action.params
+		heropods_name := p.get_default('heropods', heropods_default)!
+		mut hp := get(name: heropods_name)!
+
+		container_name := p.get('name')!
+		cmd := p.get('cmd')!
+		stdout := p.get_default_true('stdout')
+
+		mut container := hp.get(name: container_name)!
+		result := container.exec(cmd: cmd, stdout: stdout)!
+
+		if stdout {
+			println(result)
+		}
+
+		action.done = true
+	}
+
+	// Process heropods.container_stop actions
+	for mut action in plbook.find(filter: 'heropods.container_stop')! {
+		mut p := action.params
+		heropods_name := p.get_default('heropods', heropods_default)!
+		mut hp := get(name: heropods_name)!
+
+		container_name := p.get('name')!
+		mut container := hp.get(name: container_name)!
+		container.stop()!
+
+		action.done = true
+	}
+
+	// Process heropods.container_delete actions
+	for mut action in plbook.find(filter: 'heropods.container_delete')! {
+		mut p := action.params
+		heropods_name := p.get_default('heropods', heropods_default)!
+		mut hp := get(name: heropods_name)!
+
+		container_name := p.get('name')!
+		mut container := hp.get(name: container_name)!
+		container.delete()!
+
+		action.done = true
 	}
 }
 
