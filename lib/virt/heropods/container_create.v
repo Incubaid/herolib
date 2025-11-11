@@ -84,6 +84,10 @@ pub fn (mut self HeroPods) container_new(args ContainerNewArgs) !&Container {
 	}
 
 	self.containers[args.name] = container
+
+	// Always install hero binary in container rootfs
+	self.install_hero_in_rootfs(rootfs_path)!
+
 	return container
 }
 
@@ -149,4 +153,63 @@ fn (self HeroPods) podman_pull_and_export(docker_url string, image_name string, 
 		cmd:    'podman rm ${temp_name}'
 		stdout: false
 	)!
+}
+
+// Install hero binary into container rootfs
+// This copies the hero binary from the host into the container's rootfs
+// If the hero binary doesn't exist on the host, it will be compiled first
+fn (mut self HeroPods) install_hero_in_rootfs(rootfs_path string) ! {
+	console.print_debug('Installing hero binary into container rootfs: ${rootfs_path}')
+
+	// Check if hero binary already exists in rootfs
+	hero_bin_path := '${rootfs_path}/usr/local/bin/hero'
+	if os.exists(hero_bin_path) {
+		console.print_debug('Hero binary already exists in rootfs, skipping installation')
+		return
+	}
+
+	// Ensure /usr/local/bin exists in rootfs
+	osal.dir_ensure('${rootfs_path}/usr/local/bin')!
+
+	// Get the hero binary path using osal utility
+	// This returns ~/hero/bin on all platforms
+	hero_bin_dir := osal.bin_path()!
+	host_hero_path := '${hero_bin_dir}/hero'
+
+	// If hero binary doesn't exist on host, compile it
+	if !os.exists(host_hero_path) {
+		console.print_debug('Hero binary not found on host at ${host_hero_path}')
+		console.print_debug('Compiling hero binary using compile script...')
+
+		// Get herolib directory
+		herolib_dir := os.join_path(os.home_dir(), 'code/github/incubaid/herolib')
+		if !os.exists(herolib_dir) {
+			return error('Herolib source not found at ${herolib_dir}. Cannot compile hero binary.')
+		}
+
+		// Run the compile script
+		compile_script := '${herolib_dir}/cli/compile.vsh'
+		if !os.exists(compile_script) {
+			return error('Hero compile script not found at ${compile_script}')
+		}
+
+		osal.exec(
+			cmd:    compile_script
+			stdout: true
+		)!
+
+		// Verify compilation succeeded
+		if !os.exists(host_hero_path) {
+			return error('Hero compilation failed - binary not found at ${host_hero_path}')
+		}
+	}
+
+	// Copy hero binary to container rootfs
+	console.print_debug('Copying hero binary from ${host_hero_path} to ${hero_bin_path}')
+	os.cp(host_hero_path, hero_bin_path)!
+
+	// Make it executable
+	os.chmod(hero_bin_path, 0o755)!
+
+	console.print_debug('Hero binary successfully installed in container rootfs')
 }

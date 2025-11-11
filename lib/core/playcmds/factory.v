@@ -14,6 +14,9 @@ import incubaid.herolib.osal.tmux
 import incubaid.herolib.installers.base
 import incubaid.herolib.installers.lang.vlang
 import incubaid.herolib.installers.lang.herolib
+import incubaid.herolib.installers.virt.podman
+import incubaid.herolib.installers.infra.gitea
+import incubaid.herolib.builder
 
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands
@@ -49,6 +52,9 @@ pub fn run(args_ PlayArgs) ! {
 	// Tmux actions
 	tmux.play(mut plbook)!
 
+	// Builder actions (nodes and commands)
+	builder.play(mut plbook)!
+
 	// Business model (e.g. currency, bizmodel)
 	bizmodel.play(mut plbook)!
 
@@ -68,6 +74,8 @@ pub fn run(args_ PlayArgs) ! {
 	base.play(mut plbook)!
 	herolib.play(mut plbook)!
 	vlang.play(mut plbook)!
+	podman.play(mut plbook)!
+	gitea.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
 

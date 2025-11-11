@@ -1,9 +1,5 @@
 #!/usr/bin/env hero
 
-// HeroPods Heroscript Demo
-// This demonstrates using heropods functionality through pure heroscript
-// Execute with: hero examples/virt/heropods/demo.heroscript
-
 // Configure the heropods instance
 !!heropods.configure
     name:'demo'
@@ -11,6 +7,7 @@
     use_podman:true
 
 // Create a new Alpine container using podman to pull the image
+// Note: Hero binary is ALWAYS automatically included in all containers
 !!heropods.container_new
     name:'demo_container'
     image:'custom'
@@ -21,37 +18,27 @@
 !!heropods.container_start
     name:'demo_container'
 
-// Execute some commands in the container
+// Verify hero binary exists in the container
 !!heropods.container_exec
     name:'demo_container'
-    cmd:'uname -a'
+    cmd:'ls -lh /usr/local/bin/hero'
     stdout:true
 
+// Verify hero binary is executable and check version
 !!heropods.container_exec
     name:'demo_container'
-    cmd:'cat /etc/os-release'
+    cmd:'which hero && hero -version'
     stdout:true
 
+// Test that hero works by running a simple command
 !!heropods.container_exec
     name:'demo_container'
-    cmd:'ls /bin'
+    cmd:'hero -help | head -n 10'
     stdout:true
 
-!!heropods.container_exec
-    name:'demo_container'
-    cmd:'pwd'
-    stdout:true
-
-!!heropods.container_exec
-    name:'demo_container'
-    cmd:'whoami'
-    stdout:true
-
-// Stop the container
+// Clean up
 !!heropods.container_stop
     name:'demo_container'
 
-// Delete the container
 !!heropods.container_delete
     name:'demo_container'
-
