@@ -15,7 +15,7 @@ pub mut:
 	node        ?&builder.Node
 	tmux_pane   ?&tmux.Pane
 	crun_config ?&crun.CrunConfig
-	factory     &ContainerFactory
+	factory     &HeroPods
 }
 
 // Struct to parse JSON output of `crun state`

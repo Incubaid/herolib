@@ -1,39 +1,39 @@
 module heropods
 
-import incubaid.herolib.ui.console
+import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
+import incubaid.herolib.ui.console
 import incubaid.herolib.virt.crun
 import os
 
+pub const version = '0.0.0'
+const singleton = false
+const default = true
+
+// THIS THE THE SOURCE OF THE INFORMATION OF THIS FILE, HERE WE HAVE THE CONFIG OBJECT CONFIGURED AND MODELLED
+
 @[heap]
-pub struct ContainerFactory {
+pub struct HeroPods {
 pub mut:
-	tmux_session string
-	containers   map[string]&Container
-	images       map[string]&ContainerImage
-	crun_configs map[string]&crun.CrunConfig
-	base_dir     string
+	tmux_session string                      // tmux session name
+	containers   map[string]&Container       // name -> container mapping
+	images       map[string]&ContainerImage  // name -> image mapping
+	crun_configs map[string]&crun.CrunConfig // name -> crun config mapping
+	base_dir     string                      // base directory for all container data
+	reset        bool                        // will reset the heropods
+	use_podman   bool = true // will use podman for image management
+	name         string // name of the heropods
 }
 
-@[params]
-pub struct FactoryInitArgs {
-pub:
-	reset      bool
-	use_podman bool = true
-}
+// your checking & initialization code if needed
+fn obj_init(mycfg_ HeroPods) !HeroPods {
+	mut args := mycfg_
 
-pub fn new(args FactoryInitArgs) !ContainerFactory {
-	mut f := ContainerFactory{}
-	f.init(args)!
-	return f
-}
-
-fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 	// Ensure base directories exist
-	self.base_dir = os.getenv_opt('CONTAINERS_DIR') or { os.home_dir() + '/.containers' }
+	args.base_dir = os.getenv_opt('CONTAINERS_DIR') or { os.home_dir() + '/.containers' }
 
 	osal.exec(
-		cmd:    'mkdir -p ${self.base_dir}/images ${self.base_dir}/configs ${self.base_dir}/runtime'
+		cmd:    'mkdir -p ${args.base_dir}/images ${args.base_dir}/configs ${args.base_dir}/runtime'
 		stdout: false
 	)!
 
@@ -46,21 +46,41 @@ fn (mut self ContainerFactory) init(args FactoryInitArgs) ! {
 		}
 	}
 
+	mut heropods := HeroPods{
+		tmux_session: args.name
+		containers:   map[string]&Container{}
+		images:       map[string]&ContainerImage{}
+		crun_configs: map[string]&crun.CrunConfig{}
+		base_dir:     args.base_dir
+		reset:        args.reset
+		use_podman:   args.use_podman
+		name:         args.name
+	}
+
 	// Clean up any leftover crun state if reset is requested
 	if args.reset {
-		self.cleanup_crun_state()!
+		heropods.cleanup_crun_state()!
 	}
 
 	// Load existing images into cache
-	self.load_existing_images()!
+	heropods.load_existing_images()!
 
 	// Setup default images if not using podman
 	if !args.use_podman {
-		self.setup_default_images(args.reset)!
+		heropods.setup_default_images(args.reset)!
 	}
+
+	return args
 }
 
-fn (mut self ContainerFactory) setup_default_images(reset bool) ! {
+/////////////NORMALLY NO NEED TO TOUCH
+
+pub fn heroscript_loads(heroscript string) !HeroPods {
+	mut obj := encoderhero.decode[HeroPods](heroscript)!
+	return obj
+}
+
+fn (mut self HeroPods) setup_default_images(reset bool) ! {
 	console.print_header('Setting up default images...')
 
 	default_images := [ContainerImageType.alpine_3_20, .ubuntu_24_04, .ubuntu_25_04]
@@ -78,7 +98,7 @@ fn (mut self ContainerFactory) setup_default_images(reset bool) ! {
 }
 
 // Load existing images from filesystem into cache
-fn (mut self ContainerFactory) load_existing_images() ! {
+fn (mut self HeroPods) load_existing_images() ! {
 	images_base_dir := '${self.base_dir}/containers/images'
 	if !os.is_dir(images_base_dir) {
 		return
@@ -106,7 +126,7 @@ fn (mut self ContainerFactory) load_existing_images() ! {
 	}
 }
 
-pub fn (mut self ContainerFactory) get(args ContainerNewArgs) !&Container {
+pub fn (mut self HeroPods) get(args ContainerNewArgs) !&Container {
 	if args.name !in self.containers {
 		return error('Container "${args.name}" does not exist. Use factory.new() to create it first.')
 	}
@@ -114,7 +134,7 @@ pub fn (mut self ContainerFactory) get(args ContainerNewArgs) !&Container {
 }
 
 // Get image by name
-pub fn (mut self ContainerFactory) image_get(name string) !&ContainerImage {
+pub fn (mut self HeroPods) image_get(name string) !&ContainerImage {
 	if name !in self.images {
 		return error('Image "${name}" not found in cache. Try importing or downloading it.')
 	}
@@ -122,7 +142,7 @@ pub fn (mut self ContainerFactory) image_get(name string) !&ContainerImage {
 }
 
 // List all containers currently managed by crun
-pub fn (self ContainerFactory) list() ![]Container {
+pub fn (self HeroPods) list() ![]Container {
 	mut containers := []Container{}
 	result := osal.exec(cmd: 'crun list --format json', stdout: false)!
 
@@ -144,7 +164,7 @@ pub fn (self ContainerFactory) list() ![]Container {
 }
 
 // Clean up any leftover crun state
-fn (mut self ContainerFactory) cleanup_crun_state() ! {
+fn (mut self HeroPods) cleanup_crun_state() ! {
 	console.print_debug('Cleaning up leftover crun state...')
 	crun_root := '${self.base_dir}/runtime'
 

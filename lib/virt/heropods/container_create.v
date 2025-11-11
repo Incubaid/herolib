@@ -24,7 +24,7 @@ pub:
 	reset             bool
 }
 
-pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
+pub fn (mut self HeroPods) container_new(args ContainerNewArgs) !&Container {
 	if args.name in self.containers && !args.reset {
 		return self.containers[args.name] or { panic('bug: container should exist') }
 	}
@@ -88,7 +88,7 @@ pub fn (mut self ContainerFactory) new(args ContainerNewArgs) !&Container {
 }
 
 // Create crun configuration using the crun module
-fn (mut self ContainerFactory) create_crun_config(container_name string, rootfs_path string) !&crun.CrunConfig {
+fn (mut self HeroPods) create_crun_config(container_name string, rootfs_path string) !&crun.CrunConfig {
 	// Create crun configuration using the factory pattern
 	mut config := crun.new(mut self.crun_configs, name: container_name)!
 
@@ -120,7 +120,7 @@ fn (mut self ContainerFactory) create_crun_config(container_name string, rootfs_
 }
 
 // Use podman to pull image and extract rootfs
-fn (self ContainerFactory) podman_pull_and_export(docker_url string, image_name string, rootfs_path string) ! {
+fn (self HeroPods) podman_pull_and_export(docker_url string, image_name string, rootfs_path string) ! {
 	// Pull image
 	osal.exec(
 		cmd:    'podman pull ${docker_url}'

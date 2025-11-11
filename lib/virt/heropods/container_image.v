@@ -2,10 +2,8 @@ module heropods
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.osal.core as osal
-import incubaid.herolib.core.pathlib
 import incubaid.herolib.core.texttools
 import os
-import json
 
 @[heap]
 pub struct ContainerImage {
@@ -15,7 +13,7 @@ pub mut:
 	rootfs_path string // path to the extracted rootfs
 	size_mb     f64    // size in MB
 	created_at  string // creation timestamp
-	factory     &ContainerFactory @[skip; str: skip]
+	factory     &HeroPods @[skip; str: skip]
 }
 
 @[params]
@@ -41,7 +39,7 @@ pub mut:
 }
 
 // Create new image or get existing
-pub fn (mut self ContainerFactory) image_new(args ContainerImageArgs) !&ContainerImage {
+pub fn (mut self HeroPods) image_new(args ContainerImageArgs) !&ContainerImage {
 	mut image_name := texttools.name_fix(args.image_name)
 	rootfs_path := '${self.base_dir}/images/${image_name}/rootfs'
 
@@ -138,7 +136,7 @@ fn (mut self ContainerImage) update_metadata() ! {
 }
 
 // List all available images
-pub fn (mut self ContainerFactory) images_list() ![]&ContainerImage {
+pub fn (mut self HeroPods) images_list() ![]&ContainerImage {
 	mut images := []&ContainerImage{}
 
 	images_base_dir := '${self.base_dir}/images'
@@ -194,7 +192,7 @@ pub fn (mut self ContainerImage) export(args ImageExportArgs) ! {
 }
 
 // Import image from .tgz file
-pub fn (mut self ContainerFactory) image_import(args ImageImportArgs) !&ContainerImage {
+pub fn (mut self HeroPods) image_import(args ImageImportArgs) !&ContainerImage {
 	if !os.exists(args.source_path) {
 		return error('Source file not found: ${args.source_path}')
 	}
