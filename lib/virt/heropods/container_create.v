@@ -6,25 +6,44 @@ import incubaid.herolib.virt.crun
 import incubaid.herolib.installers.virt.herorunner as herorunner_installer
 import os
 
-// Updated enum to be more flexible
+// ContainerImageType defines the available container base images
 pub enum ContainerImageType {
-	alpine_3_20
-	ubuntu_24_04
-	ubuntu_25_04
-	custom // For custom images downloaded via podman
+	alpine_3_20  // Alpine Linux 3.20
+	ubuntu_24_04 // Ubuntu 24.04 LTS
+	ubuntu_25_04 // Ubuntu 25.04
+	custom       // Custom image downloaded via podman
 }
 
+// ContainerNewArgs defines parameters for creating a new container
 @[params]
 pub struct ContainerNewArgs {
 pub:
-	name              string @[required]
-	image             ContainerImageType = .alpine_3_20
+	name              string @[required] // Unique container name
+	image             ContainerImageType = .alpine_3_20 // Base image type
 	custom_image_name string // Used when image = .custom
 	docker_url        string // Docker image URL for new images
-	reset             bool
+	reset             bool   // Reset if container already exists
 }
 
+// Create a new container
+//
+// This method:
+// 1. Validates the container name
+// 2. Determines the image to use (built-in or custom)
+// 3. Creates crun configuration
+// 4. Installs hero binary in rootfs
+// 5. Configures DNS in rootfs
+//
+// Note: The actual container creation in crun happens when start() is called.
+// This method only prepares the configuration and rootfs.
+//
+// Thread Safety:
+// This method doesn't interact with network_config, so no mutex is needed.
+// Network setup happens later in container.start().
 pub fn (mut self HeroPods) container_new(args ContainerNewArgs) !&Container {
+	// Validate container name to prevent shell injection and path traversal
+	validate_container_name(args.name) or { return error('Invalid container name: ${err}') }
+
 	if args.name in self.containers && !args.reset {
 		return self.containers[args.name] or { panic('bug: container should exist') }
 	}
@@ -85,13 +104,22 @@ pub fn (mut self HeroPods) container_new(args ContainerNewArgs) !&Container {
 
 	self.containers[args.name] = container
 
-	// Always install hero binary in container rootfs
+	// Install hero binary in container rootfs
 	self.install_hero_in_rootfs(rootfs_path)!
+
+	// Configure DNS in container rootfs (uses network_config but doesn't modify it)
+	self.network_configure_dns(args.name, rootfs_path)!
 
 	return container
 }
 
-// Create crun configuration using the crun module
+// Create crun configuration for a container
+//
+// This creates an OCI-compliant runtime configuration with:
+// - No terminal (background container)
+// - Long-running sleep process
+// - Standard environment variables
+// - Resource limits
 fn (mut self HeroPods) create_crun_config(container_name string, rootfs_path string) !&crun.CrunConfig {
 	// Create crun configuration using the factory pattern
 	mut config := crun.new(mut self.crun_configs, name: container_name)!
@@ -107,7 +135,7 @@ fn (mut self HeroPods) create_crun_config(container_name string, rootfs_path str
 	config.set_hostname('container')
 	config.set_no_new_privileges(true)
 
-	// Add the specific rlimit for file descriptors
+	// Add resource limits
 	config.add_rlimit(.rlimit_nofile, 1024, 1024)
 
 	// Validate the configuration
@@ -123,7 +151,13 @@ fn (mut self HeroPods) create_crun_config(container_name string, rootfs_path str
 	return config
 }
 
-// Use podman to pull image and extract rootfs
+// Pull a Docker image using podman and extract its rootfs
+//
+// This method:
+// 1. Pulls the image from Docker registry
+// 2. Creates a temporary container from the image
+// 3. Exports the container filesystem to rootfs_path
+// 4. Cleans up the temporary container
 fn (self HeroPods) podman_pull_and_export(docker_url string, image_name string, rootfs_path string) ! {
 	// Pull image
 	osal.exec(
@@ -156,8 +190,12 @@ fn (self HeroPods) podman_pull_and_export(docker_url string, image_name string, 
 }
 
 // Install hero binary into container rootfs
-// This copies the hero binary from the host into the container's rootfs
-// If the hero binary doesn't exist on the host, it will be compiled first
+//
+// This method:
+// 1. Checks if hero binary already exists in rootfs
+// 2. If not, copies from host (~/hero/bin/hero)
+// 3. If host binary doesn't exist, compiles it first
+// 4. Makes the binary executable
 fn (mut self HeroPods) install_hero_in_rootfs(rootfs_path string) ! {
 	console.print_debug('Installing hero binary into container rootfs: ${rootfs_path}')
 

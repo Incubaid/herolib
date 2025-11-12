@@ -5,40 +5,57 @@ import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core.texttools
 import os
 
+// ContainerImage represents a container base image with its rootfs
+//
+// Thread Safety:
+// Image operations are filesystem-based and don't interact with network_config,
+// so no special thread safety considerations are needed.
 @[heap]
 pub struct ContainerImage {
 pub mut:
-	image_name  string @[required] // image is located in ${self.factory.base_dir}/images/<image_name>/rootfs
-	docker_url  string // optional docker image URL
-	rootfs_path string // path to the extracted rootfs
-	size_mb     f64    // size in MB
-	created_at  string // creation timestamp
-	factory     &HeroPods @[skip; str: skip]
+	image_name  string @[required] // Image name (located in ${self.factory.base_dir}/images/<image_name>/rootfs)
+	docker_url  string // Optional Docker registry URL
+	rootfs_path string // Path to the extracted rootfs
+	size_mb     f64    // Size in MB
+	created_at  string // Creation timestamp
+	factory     &HeroPods @[skip; str: skip] // Reference to parent HeroPods instance
 }
 
+// ContainerImageArgs defines parameters for creating/managing container images
 @[params]
 pub struct ContainerImageArgs {
 pub mut:
-	image_name string @[required] // image is located in ${self.factory.base_dir}/images/<image_name>/rootfs
-	docker_url string // docker image URL like "alpine:3.20" or "ubuntu:24.04"
-	reset      bool
+	image_name string @[required] // Unique image name (located in ${self.factory.base_dir}/images/<image_name>/rootfs)
+	docker_url string // Docker image URL like "alpine:3.20" or "ubuntu:24.04"
+	reset      bool   // Reset if image already exists
 }
 
+// ImageExportArgs defines parameters for exporting an image
 @[params]
 pub struct ImageExportArgs {
 pub mut:
-	dest_path      string @[required] // destination .tgz file path
-	compress_level int = 6 // compression level 1-9
+	dest_path      string @[required] // Destination .tgz file path
+	compress_level int = 6 // Compression level 1-9
 }
 
+// ImageImportArgs defines parameters for importing an image
 @[params]
 pub struct ImageImportArgs {
 pub mut:
-	source_path string @[required] // source .tgz file path
-	reset       bool // overwrite if exists
+	source_path string @[required] // Source .tgz file path
+	reset       bool // Overwrite if exists
 }
 
-// Create new image or get existing
+// Create a new image or get existing image
+//
+// This method:
+// 1. Normalizes the image name
+// 2. Returns existing image if found (unless reset=true)
+// 3. Downloads image from Docker registry if docker_url provided
+// 4. Creates image metadata and stores in cache
+//
+// Thread Safety:
+// Image operations are filesystem-based and don't interact with network_config.
 pub fn (mut self HeroPods) image_new(args ContainerImageArgs) !&ContainerImage {
 	mut image_name := texttools.name_fix(args.image_name)
 	rootfs_path := '${self.base_dir}/images/${image_name}/rootfs'
@@ -77,7 +94,13 @@ pub fn (mut self HeroPods) image_new(args ContainerImageArgs) !&ContainerImage {
 	return image
 }
 
-// Download image from docker registry using podman
+// Download image from Docker registry using podman
+//
+// This method:
+// 1. Pulls the image from Docker registry
+// 2. Creates a temporary container
+// 3. Exports the rootfs to the images directory
+// 4. Cleans up the temporary container
 fn (mut self ContainerImage) download_from_docker(docker_url string, reset bool) ! {
 	console.print_header('Downloading image: ${docker_url}')
 
@@ -119,12 +142,14 @@ fn (mut self ContainerImage) download_from_docker(docker_url string, reset bool)
 }
 
 // Update image metadata (size, creation time, etc.)
+//
+// Calculates the rootfs size and records creation timestamp
 fn (mut self ContainerImage) update_metadata() ! {
 	if !os.is_dir(self.rootfs_path) {
 		return error('Rootfs path does not exist: ${self.rootfs_path}')
 	}
 
-	// Calculate size
+	// Calculate size in MB
 	result := osal.exec(cmd: 'du -sm ${self.rootfs_path}', stdout: false)!
 	result_parts := result.output.split_by_space()[0] or { panic('bug') }
 	size_str := result_parts.trim_space()
@@ -132,10 +157,12 @@ fn (mut self ContainerImage) update_metadata() ! {
 
 	// Get creation time
 	info := os.stat(self.rootfs_path) or { return error('stat failed: ${err}') }
-	self.created_at = info.ctime.str() // or mtime.str(), depending on what you want
+	self.created_at = info.ctime.str()
 }
 
 // List all available images
+//
+// Scans the images directory and returns all found images with metadata
 pub fn (mut self HeroPods) images_list() ![]&ContainerImage {
 	mut images := []&ContainerImage{}
 
@@ -173,6 +200,8 @@ pub fn (mut self HeroPods) images_list() ![]&ContainerImage {
 }
 
 // Export image to .tgz file
+//
+// Creates a compressed tarball of the image rootfs
 pub fn (mut self ContainerImage) export(args ImageExportArgs) ! {
 	if !os.is_dir(self.rootfs_path) {
 		return error('Image rootfs not found: ${self.rootfs_path}')
@@ -192,6 +221,8 @@ pub fn (mut self ContainerImage) export(args ImageExportArgs) ! {
 }
 
 // Import image from .tgz file
+//
+// Extracts a compressed tarball into the images directory and creates image metadata
 pub fn (mut self HeroPods) image_import(args ImageImportArgs) !&ContainerImage {
 	if !os.exists(args.source_path) {
 		return error('Source file not found: ${args.source_path}')
@@ -238,6 +269,8 @@ pub fn (mut self HeroPods) image_import(args ImageImportArgs) !&ContainerImage {
 }
 
 // Delete image
+//
+// Removes the image directory and removes from factory cache
 pub fn (mut self ContainerImage) delete() ! {
 	console.print_header('Deleting image: ${self.image_name}')
 
@@ -255,6 +288,8 @@ pub fn (mut self ContainerImage) delete() ! {
 }
 
 // Get image info as map
+//
+// Returns image metadata as a string map for display/serialization
 pub fn (self ContainerImage) info() map[string]string {
 	return {
 		'name':        self.image_name
@@ -265,7 +300,9 @@ pub fn (self ContainerImage) info() map[string]string {
 	}
 }
 
-// List available docker images that can be downloaded
+// List available Docker images that can be downloaded
+//
+// Returns a curated list of commonly used Docker images
 pub fn list_available_docker_images() []string {
 	return [
 		'alpine:3.20',

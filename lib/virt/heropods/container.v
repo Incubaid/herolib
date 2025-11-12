@@ -8,25 +8,47 @@ import time
 import incubaid.herolib.builder
 import json
 
+// Container lifecycle timeout constants
+const cleanup_retry_delay_ms = 500 // Time to wait for filesystem cleanup to complete
+const sigterm_timeout_ms = 5000 // Time to wait for graceful shutdown (5 seconds)
+const sigkill_wait_ms = 500 // Time to wait after SIGKILL
+const stop_check_interval_ms = 500 // Interval to check if container stopped
+
+// Container represents a running or stopped OCI container managed by crun
+//
+// Thread Safety:
+// Container operations that interact with network configuration (start, stop, delete)
+// are thread-safe because they delegate to HeroPods.network_* methods which use
+// the network_mutex for protection.
 @[heap]
 pub struct Container {
 pub mut:
-	name        string
-	node        ?&builder.Node
-	tmux_pane   ?&tmux.Pane
-	crun_config ?&crun.CrunConfig
-	factory     &HeroPods
+	name        string            // Unique container name
+	node        ?&builder.Node    // Builder node for executing commands inside container
+	tmux_pane   ?&tmux.Pane       // Optional tmux pane for interactive access
+	crun_config ?&crun.CrunConfig // OCI runtime configuration
+	factory     &HeroPods         // Reference to parent HeroPods instance
 }
 
-// Struct to parse JSON output of `crun state`
+// CrunState represents the JSON output of `crun state` command
 struct CrunState {
-	id      string
-	status  string
-	pid     int
-	bundle  string
-	created string
+	id      string // Container ID
+	status  string // Container status (running, stopped, paused)
+	pid     int    // PID of container init process
+	bundle  string // Path to OCI bundle
+	created string // Creation timestamp
 }
 
+// Start the container
+//
+// This method handles the complete container startup lifecycle:
+// 1. Creates the container in crun if it doesn't exist
+// 2. Handles leftover state cleanup if creation fails
+// 3. Starts the container process
+// 4. Sets up networking (thread-safe via network_mutex)
+//
+// Thread Safety:
+// Network setup is thread-safe via HeroPods.network_setup_container()
 pub fn (mut self Container) start() ! {
 	// Check if container exists in crun
 	container_exists := self.container_exists_in_crun()!
@@ -37,7 +59,7 @@ pub fn (mut self Container) start() ! {
 		// Try to create the container, if it fails with "File exists" error,
 		// try to force delete any leftover state and retry
 		crun_root := '${self.factory.base_dir}/runtime'
-		create_result := osal.exec(
+		_ := osal.exec(
 			cmd:    'crun --root ${crun_root} create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
 			stdout: true
 		) or {
@@ -50,7 +72,7 @@ pub fn (mut self Container) start() ! {
 				osal.exec(cmd: 'rm -rf ${crun_root}/${self.name}', stdout: false) or {}
 				osal.exec(cmd: 'rm -rf /run/crun/${self.name}', stdout: false) or {}
 				// Wait a moment for cleanup to complete
-				time.sleep(500 * time.millisecond)
+				time.sleep(cleanup_retry_delay_ms * time.millisecond)
 				// Retry creation
 				osal.exec(
 					cmd:    'crun --root ${crun_root} create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
@@ -84,10 +106,34 @@ pub fn (mut self Container) start() ! {
 
 	// start the container (crun start doesn't have --detach flag)
 	crun_root := '${self.factory.base_dir}/runtime'
-	osal.exec(cmd: 'crun --root ${crun_root} start ${self.name}', stdout: true)!
+	// Start the container
+	osal.exec(cmd: 'crun --root ${crun_root} start ${self.name}', stdout: true) or {
+		return error('Failed to start container: ${err}')
+	}
+
+	// Setup network for the container (thread-safe)
+	// If this fails, stop the container to clean up
+	self.setup_network() or {
+		console.print_stderr('Network setup failed, stopping container: ${err}')
+		// Use stop() method to properly clean up (kills process, cleans network, etc.)
+		// Ignore errors from stop since we're already in an error path
+		self.stop() or { console.print_debug('Failed to stop container during cleanup: ${err}') }
+		return error('Failed to setup network for container: ${err}')
+	}
+
 	console.print_green('Container ${self.name} started')
 }
 
+// Stop the container gracefully (SIGTERM) or forcefully (SIGKILL)
+//
+// This method:
+// 1. Sends SIGTERM for graceful shutdown
+// 2. Waits up to sigterm_timeout_ms for graceful stop
+// 3. Sends SIGKILL if still running after timeout
+// 4. Cleans up network resources (thread-safe)
+//
+// Thread Safety:
+// Network cleanup is thread-safe via HeroPods.network_cleanup_container()
 pub fn (mut self Container) stop() ! {
 	status := self.status()!
 	if status == .stopped {
@@ -96,28 +142,90 @@ pub fn (mut self Container) stop() ! {
 	}
 
 	crun_root := '${self.factory.base_dir}/runtime'
-	osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGTERM', stdout: false) or {}
-	time.sleep(2 * time.second)
 
-	// Force kill if still running
-	if self.status()! == .running {
-		osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGKILL', stdout: false) or {}
+	// Send SIGTERM for graceful shutdown
+	osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGTERM', stdout: false) or {
+		console.print_debug('Failed to send SIGTERM (container may already be stopped): ${err}')
 	}
+
+	// Wait up to sigterm_timeout_ms for graceful shutdown
+	mut attempts := 0
+	max_attempts := sigterm_timeout_ms / stop_check_interval_ms
+	for attempts < max_attempts {
+		time.sleep(stop_check_interval_ms * time.millisecond)
+		current_status := self.status() or {
+			// If we can't get status, assume it's stopped (container may have been deleted)
+			ContainerStatus.stopped
+		}
+		if current_status == .stopped {
+			console.print_debug('Container ${self.name} stopped gracefully')
+			self.cleanup_network()! // Thread-safe network cleanup
+			console.print_green('Container ${self.name} stopped')
+			return
+		}
+		attempts++
+	}
+
+	// Force kill if still running after timeout
+	console.print_debug('Container ${self.name} did not stop gracefully, force killing')
+	osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGKILL', stdout: false) or {
+		console.print_debug('Failed to send SIGKILL: ${err}')
+	}
+
+	// Wait for SIGKILL to take effect
+	time.sleep(sigkill_wait_ms * time.millisecond)
+
+	// Verify it's actually stopped
+	final_status := self.status() or {
+		// If we can't get status, assume it's stopped (container may have been deleted)
+		ContainerStatus.stopped
+	}
+	if final_status != .stopped {
+		return error('Failed to stop container ${self.name} - status: ${final_status}')
+	}
+
+	// Cleanup network resources (thread-safe)
+	self.cleanup_network()!
+
 	console.print_green('Container ${self.name} stopped')
 }
 
+// Delete the container
+//
+// This method:
+// 1. Checks if container exists in crun
+// 2. Stops the container (which cleans up network)
+// 3. Deletes the container from crun
+// 4. Removes from factory's container cache
+//
+// Thread Safety:
+// Network cleanup is thread-safe via stop() -> cleanup_network()
 pub fn (mut self Container) delete() ! {
 	// Check if container exists before trying to delete
 	if !self.container_exists_in_crun()! {
-		console.print_debug('Container ${self.name} does not exist, nothing to delete')
+		console.print_debug('Container ${self.name} does not exist in crun')
+		// Still cleanup network resources in case they exist (thread-safe)
+		self.cleanup_network() or {
+			console.print_debug('Network cleanup failed (may not exist): ${err}')
+		}
+		// Remove from factory's container cache only after all cleanup is done
+		if self.name in self.factory.containers {
+			self.factory.containers.delete(self.name)
+		}
+		console.print_debug('Container ${self.name} removed from cache')
 		return
 	}
 
+	// Stop the container (this will cleanup network via stop())
 	self.stop()!
-	crun_root := '${self.factory.base_dir}/runtime'
-	osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {}
 
-	// Remove from factory's container cache
+	// Delete the container from crun
+	crun_root := '${self.factory.base_dir}/runtime'
+	osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {
+		console.print_debug('Failed to delete container from crun: ${err}')
+	}
+
+	// Remove from factory's container cache only after all cleanup is complete
 	if self.name in self.factory.containers {
 		self.factory.containers.delete(self.name)
 	}
@@ -135,24 +243,92 @@ pub fn (mut self Container) exec(cmd_ osal.Command) !string {
 	// Use the builder node to execute inside container
 	mut node := self.node()!
 	console.print_debug('Executing command in container ${self.name}: ${cmd_.cmd}')
-	return node.exec(cmd: cmd_.cmd, stdout: cmd_.stdout)
+
+	// Execute and provide better error context
+	return node.exec(cmd: cmd_.cmd, stdout: cmd_.stdout) or {
+		// Check if container still exists to provide better error message
+		if !self.container_exists_in_crun()! {
+			return error('Container ${self.name} was deleted during command execution')
+		}
+		return error('Command execution failed in container ${self.name}: ${err}')
+	}
 }
 
 pub fn (self Container) status() !ContainerStatus {
 	crun_root := '${self.factory.base_dir}/runtime'
 	result := osal.exec(cmd: 'crun --root ${crun_root} state ${self.name}', stdout: false) or {
-		return .unknown
+		// Container doesn't exist - this is expected in some cases (e.g., before creation)
+		// Check error message to distinguish between "not found" and real errors
+		err_msg := err.msg().to_lower()
+		if err_msg.contains('does not exist') || err_msg.contains('not found')
+			|| err_msg.contains('no such') {
+			return .stopped
+		}
+		// Real error (permissions, crun not installed, etc.) - propagate it
+		return error('Failed to get container status: ${err}')
 	}
 
 	// Parse JSON output from crun state
-	state := json.decode(CrunState, result.output) or { return .unknown }
-
-	return match state.status {
-		'running' { .running }
-		'stopped' { .stopped }
-		'paused' { .paused }
-		else { .unknown }
+	state := json.decode(CrunState, result.output) or {
+		return error('Failed to parse container state JSON: ${err}')
 	}
+
+	status_result := match state.status {
+		'running' {
+			ContainerStatus.running
+		}
+		'stopped' {
+			ContainerStatus.stopped
+		}
+		'paused' {
+			ContainerStatus.paused
+		}
+		else {
+			console.print_debug('Unknown container status: ${state.status}')
+			ContainerStatus.unknown
+		}
+	}
+	return status_result
+}
+
+// Get the PID of the container's init process
+pub fn (self Container) pid() !int {
+	crun_root := '${self.factory.base_dir}/runtime'
+	result := osal.exec(
+		cmd:    'crun --root ${crun_root} state ${self.name}'
+		stdout: false
+	)!
+
+	// Parse JSON output from crun state
+	state := json.decode(CrunState, result.output)!
+
+	if state.pid == 0 {
+		return error('Container ${self.name} has no PID (not running?)')
+	}
+
+	return state.pid
+}
+
+// Setup network for this container (thread-safe)
+//
+// Delegates to HeroPods.network_setup_container() which uses network_mutex
+// for thread-safe IP allocation and network configuration.
+fn (mut self Container) setup_network() ! {
+	// Get container PID
+	container_pid := self.pid()!
+
+	// Delegate to factory's network setup (thread-safe)
+	mut factory := self.factory
+	factory.network_setup_container(self.name, container_pid)!
+}
+
+// Cleanup network for this container (thread-safe)
+//
+// Delegates to HeroPods.network_cleanup_container() which uses network_mutex
+// for thread-safe IP deallocation and network cleanup.
+fn (mut self Container) cleanup_network() ! {
+	mut factory := self.factory
+	factory.network_cleanup_container(self.name)!
 }
 
 // Check if container exists in crun (regardless of its state)
@@ -167,11 +343,12 @@ fn (self Container) container_exists_in_crun() !bool {
 	return result.exit_code == 0
 }
 
+// ContainerStatus represents the current state of a container
 pub enum ContainerStatus {
-	running
-	stopped
-	paused
-	unknown
+	running // Container is running
+	stopped // Container is stopped or doesn't exist
+	paused  // Container is paused
+	unknown // Unknown status (error case)
 }
 
 // Get CPU usage in percentage

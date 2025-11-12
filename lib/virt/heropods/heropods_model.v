@@ -5,24 +5,31 @@ import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 import incubaid.herolib.virt.crun
 import os
+import sync
 
 pub const version = '0.0.0'
 const singleton = false
 const default = true
 
-// THIS THE THE SOURCE OF THE INFORMATION OF THIS FILE, HERE WE HAVE THE CONFIG OBJECT CONFIGURED AND MODELLED
-
+// HeroPods factory for managing containers
+//
+// Thread Safety:
+// The network_config field is protected by network_mutex for thread-safe concurrent access.
+// We use a separate mutex instead of marking network_config as `shared` because V's
+// compile-time reflection (used by paramsparser) cannot handle shared fields.
 @[heap]
 pub struct HeroPods {
 pub mut:
-	tmux_session string                      // tmux session name
-	containers   map[string]&Container       // name -> container mapping
-	images       map[string]&ContainerImage  // name -> image mapping
-	crun_configs map[string]&crun.CrunConfig // name -> crun config mapping
-	base_dir     string                      // base directory for all container data
-	reset        bool                        // will reset the heropods
-	use_podman   bool = true // will use podman for image management
-	name         string // name of the heropods
+	tmux_session   string                      // tmux session name
+	containers     map[string]&Container       // name -> container mapping
+	images         map[string]&ContainerImage  // name -> image mapping
+	crun_configs   map[string]&crun.CrunConfig // name -> crun config mapping
+	base_dir       string                      // base directory for all container data
+	reset          bool                        // will reset the heropods
+	use_podman     bool = true // will use podman for image management
+	name           string // name of the heropods
+	network_config NetworkConfig @[skip; str: skip] // network configuration (automatically initialized, not serialized)
+	network_mutex  sync.Mutex    @[skip; str: skip] // protects network_config for thread-safe concurrent access
 }
 
 // your checking & initialization code if needed
@@ -46,21 +53,30 @@ fn obj_init(mycfg_ HeroPods) !HeroPods {
 		}
 	}
 
+	// Initialize HeroPods instance with network configuration
+	// Note: network_mutex is automatically initialized to zero value (unlocked state)
 	mut heropods := HeroPods{
-		tmux_session: args.name
-		containers:   map[string]&Container{}
-		images:       map[string]&ContainerImage{}
-		crun_configs: map[string]&crun.CrunConfig{}
-		base_dir:     args.base_dir
-		reset:        args.reset
-		use_podman:   args.use_podman
-		name:         args.name
+		tmux_session:   args.name
+		containers:     map[string]&Container{}
+		images:         map[string]&ContainerImage{}
+		crun_configs:   map[string]&crun.CrunConfig{}
+		base_dir:       args.base_dir
+		reset:          args.reset
+		use_podman:     args.use_podman
+		name:           args.name
+		network_config: NetworkConfig{
+			allocated_ips: map[string]string{}
+		}
 	}
 
 	// Clean up any leftover crun state if reset is requested
 	if args.reset {
 		heropods.cleanup_crun_state()!
+		heropods.network_cleanup_all(false)! // Keep bridge for reuse
 	}
+
+	// Initialize network layer
+	heropods.network_init()!
 
 	// Load existing images into cache
 	heropods.load_existing_images()!
@@ -70,7 +86,7 @@ fn obj_init(mycfg_ HeroPods) !HeroPods {
 		heropods.setup_default_images(args.reset)!
 	}
 
-	return args
+	return heropods
 }
 
 /////////////NORMALLY NO NEED TO TOUCH
@@ -92,7 +108,7 @@ fn (mut self HeroPods) setup_default_images(reset bool) ! {
 		}
 		if img.str() !in self.images || reset {
 			console.print_debug('Preparing default image: ${img.str()}')
-			_ = self.image_new(args)!
+			self.image_new(args)!
 		}
 	}
 }

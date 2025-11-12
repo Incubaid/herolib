@@ -4,6 +4,14 @@ import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
 import json
 
+// Global state for HeroPods instances
+//
+// Thread Safety Note:
+// heropods_global is not marked as `shared` because it would break compile-time
+// reflection in paramsparser. The map operations are generally safe for concurrent
+// read access. For write operations, the Redis backend provides the source of truth
+// and synchronization. Each HeroPods instance has its own network_mutex for
+// protecting network operations.
 __global (
 	heropods_global  map[string]&HeroPods
 	heropods_default string
@@ -31,9 +39,12 @@ pub fn new(args ArgsGet) !&HeroPods {
 	return get(name: args.name)!
 }
 
+// Get a HeroPods instance by name
+// If fromdb is true, loads from Redis; otherwise returns from memory cache
 pub fn get(args ArgsGet) !&HeroPods {
 	mut context := base.context()!
 	heropods_default = args.name
+
 	if args.fromdb || args.name !in heropods_global {
 		mut r := context.redis()!
 		if r.hexists('context:heropods', args.name)! {
@@ -52,15 +63,16 @@ pub fn get(args ArgsGet) !&HeroPods {
 				return error("HeroPods with name '${args.name}' does not exist")
 			}
 		}
-		return get(args)! // no longer from db nor create
+		return get(args)! // Recursive call with fromdb=false
 	}
+
 	return heropods_global[args.name] or {
 		print_backtrace()
 		return error('could not get config for heropods with name:${args.name}')
 	}
 }
 
-// register the config for the future
+// Register a HeroPods instance (saves to both memory and Redis)
 pub fn set(o HeroPods) ! {
 	mut o2 := set_in_mem(o)!
 	heropods_default = o2.name
@@ -69,13 +81,14 @@ pub fn set(o HeroPods) ! {
 	r.hset('context:heropods', o2.name, json.encode(o2))!
 }
 
-// does the config exists?
+// Check if a HeroPods instance exists in Redis
 pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
 	mut r := context.redis()!
 	return r.hexists('context:heropods', args.name)!
 }
 
+// Delete a HeroPods instance from Redis (does not affect memory cache)
 pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
 	mut r := context.redis()!
@@ -88,33 +101,36 @@ pub mut:
 	fromdb bool // will load from filesystem
 }
 
-// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+// List all HeroPods instances
+// If fromdb is true, loads from Redis and resets memory cache
+// If fromdb is false, returns from memory cache
 pub fn list(args ArgsList) ![]&HeroPods {
 	mut res := []&HeroPods{}
 	mut context := base.context()!
+
 	if args.fromdb {
-		// reset what is in mem
+		// Reset memory cache and load from Redis
 		heropods_global = map[string]&HeroPods{}
 		heropods_default = ''
-	}
-	if args.fromdb {
+
 		mut r := context.redis()!
 		mut l := r.hkeys('context:heropods')!
 
 		for name in l {
 			res << get(name: name, fromdb: true)!
 		}
-		return res
 	} else {
-		// load from memory
+		// Load from memory cache
 		for _, client in heropods_global {
 			res << client
 		}
 	}
+
 	return res
 }
 
-// only sets in mem, does not set as config
+// Set a HeroPods instance in memory cache only (does not persist to Redis)
+// Initializes the instance via obj_init before caching
 fn set_in_mem(o HeroPods) !HeroPods {
 	mut o2 := obj_init(o)!
 	heropods_global[o2.name] = &o2
@@ -226,7 +242,11 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 }
 
-// switch instance to be used for heropods
+// Switch the default HeroPods instance
+//
+// Thread Safety Note:
+// String assignment is atomic on most platforms, so no explicit locking is needed.
+// If strict thread safety is required in the future, this could be wrapped in a lock.
 pub fn switch(name string) {
 	heropods_default = name
 }
