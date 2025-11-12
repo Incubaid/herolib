@@ -30,8 +30,7 @@ pub:
 // 1. Validates the container name
 // 2. Determines the image to use (built-in or custom)
 // 3. Creates crun configuration
-// 4. Installs hero binary in rootfs
-// 5. Configures DNS in rootfs
+// 4. Configures DNS in rootfs
 //
 // Note: The actual container creation in crun happens when start() is called.
 // This method only prepares the configuration and rootfs.
@@ -106,9 +105,6 @@ pub fn (mut self HeroPods) container_new(args ContainerNewArgs) !&Container {
 	}
 
 	self.containers[args.name] = container
-
-	// Install hero binary in container rootfs
-	self.install_hero_in_rootfs(rootfs_path)!
 
 	// Configure DNS in container rootfs (uses network_config but doesn't modify it)
 	self.network_configure_dns(args.name, rootfs_path)!
@@ -190,91 +186,4 @@ fn (self HeroPods) podman_pull_and_export(docker_url string, image_name string, 
 		cmd:    'podman rm ${temp_name}'
 		stdout: false
 	)!
-}
-
-// Install hero binary into container rootfs
-//
-// This method:
-// 1. Checks if hero binary already exists in rootfs
-// 2. If not, copies from host (~/hero/bin/hero)
-// 3. If host binary doesn't exist, compiles it first
-// 4. Makes the binary executable
-fn (mut self HeroPods) install_hero_in_rootfs(rootfs_path string) ! {
-	self.logger.log(
-		cat:     'container'
-		log:     'Installing hero binary into container rootfs: ${rootfs_path}'
-		logtype: .stdout
-	) or {}
-
-	// Check if hero binary already exists in rootfs
-	hero_bin_path := '${rootfs_path}/usr/local/bin/hero'
-	if os.exists(hero_bin_path) {
-		self.logger.log(
-			cat:     'container'
-			log:     'Hero binary already exists in rootfs, skipping installation'
-			logtype: .stdout
-		) or {}
-		return
-	}
-
-	// Ensure /usr/local/bin exists in rootfs
-	osal.dir_ensure('${rootfs_path}/usr/local/bin')!
-
-	// Get the hero binary path using osal utility
-	// This returns ~/hero/bin on all platforms
-	hero_bin_dir := osal.bin_path()!
-	host_hero_path := '${hero_bin_dir}/hero'
-
-	// If hero binary doesn't exist on host, compile it
-	if !os.exists(host_hero_path) {
-		self.logger.log(
-			cat:     'container'
-			log:     'Hero binary not found on host at ${host_hero_path}'
-			logtype: .stdout
-		) or {}
-		self.logger.log(
-			cat:     'container'
-			log:     'Compiling hero binary using compile script...'
-			logtype: .stdout
-		) or {}
-
-		// Get herolib directory
-		herolib_dir := os.join_path(os.home_dir(), 'code/github/incubaid/herolib')
-		if !os.exists(herolib_dir) {
-			return error('Herolib source not found at ${herolib_dir}. Cannot compile hero binary.')
-		}
-
-		// Run the compile script
-		compile_script := '${herolib_dir}/cli/compile.vsh'
-		if !os.exists(compile_script) {
-			return error('Hero compile script not found at ${compile_script}')
-		}
-
-		osal.exec(
-			cmd:    compile_script
-			stdout: true
-		)!
-
-		// Verify compilation succeeded
-		if !os.exists(host_hero_path) {
-			return error('Hero compilation failed - binary not found at ${host_hero_path}')
-		}
-	}
-
-	// Copy hero binary to container rootfs
-	self.logger.log(
-		cat:     'container'
-		log:     'Copying hero binary from ${host_hero_path} to ${hero_bin_path}'
-		logtype: .stdout
-	) or {}
-	os.cp(host_hero_path, hero_bin_path)!
-
-	// Make it executable
-	os.chmod(hero_bin_path, 0o755)!
-
-	self.logger.log(
-		cat:     'container'
-		log:     'Hero binary successfully installed in container rootfs'
-		logtype: .stdout
-	) or {}
 }
