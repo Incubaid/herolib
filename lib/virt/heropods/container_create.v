@@ -1,6 +1,5 @@
 module heropods
 
-import incubaid.herolib.ui.console
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.virt.crun
 import incubaid.herolib.installers.virt.herorunner as herorunner_installer
@@ -74,7 +73,11 @@ pub fn (mut self HeroPods) container_new(args ContainerNewArgs) !&Container {
 
 			// If image not yet extracted, pull and unpack it
 			if !os.is_dir(rootfs_path) && args.docker_url != '' {
-				console.print_debug('Pulling image ${args.docker_url} with podman...')
+				self.logger.log(
+					cat:     'images'
+					log:     'Pulling image ${args.docker_url} with podman...'
+					logtype: .stdout
+				) or {}
 				self.podman_pull_and_export(args.docker_url, image_name, rootfs_path)!
 			}
 		}
@@ -197,12 +200,20 @@ fn (self HeroPods) podman_pull_and_export(docker_url string, image_name string, 
 // 3. If host binary doesn't exist, compiles it first
 // 4. Makes the binary executable
 fn (mut self HeroPods) install_hero_in_rootfs(rootfs_path string) ! {
-	console.print_debug('Installing hero binary into container rootfs: ${rootfs_path}')
+	self.logger.log(
+		cat:     'container'
+		log:     'Installing hero binary into container rootfs: ${rootfs_path}'
+		logtype: .stdout
+	) or {}
 
 	// Check if hero binary already exists in rootfs
 	hero_bin_path := '${rootfs_path}/usr/local/bin/hero'
 	if os.exists(hero_bin_path) {
-		console.print_debug('Hero binary already exists in rootfs, skipping installation')
+		self.logger.log(
+			cat:     'container'
+			log:     'Hero binary already exists in rootfs, skipping installation'
+			logtype: .stdout
+		) or {}
 		return
 	}
 
@@ -216,8 +227,16 @@ fn (mut self HeroPods) install_hero_in_rootfs(rootfs_path string) ! {
 
 	// If hero binary doesn't exist on host, compile it
 	if !os.exists(host_hero_path) {
-		console.print_debug('Hero binary not found on host at ${host_hero_path}')
-		console.print_debug('Compiling hero binary using compile script...')
+		self.logger.log(
+			cat:     'container'
+			log:     'Hero binary not found on host at ${host_hero_path}'
+			logtype: .stdout
+		) or {}
+		self.logger.log(
+			cat:     'container'
+			log:     'Compiling hero binary using compile script...'
+			logtype: .stdout
+		) or {}
 
 		// Get herolib directory
 		herolib_dir := os.join_path(os.home_dir(), 'code/github/incubaid/herolib')
@@ -243,11 +262,19 @@ fn (mut self HeroPods) install_hero_in_rootfs(rootfs_path string) ! {
 	}
 
 	// Copy hero binary to container rootfs
-	console.print_debug('Copying hero binary from ${host_hero_path} to ${hero_bin_path}')
+	self.logger.log(
+		cat:     'container'
+		log:     'Copying hero binary from ${host_hero_path} to ${hero_bin_path}'
+		logtype: .stdout
+	) or {}
 	os.cp(host_hero_path, hero_bin_path)!
 
 	// Make it executable
 	os.chmod(hero_bin_path, 0o755)!
 
-	console.print_debug('Hero binary successfully installed in container rootfs')
+	self.logger.log(
+		cat:     'container'
+		log:     'Hero binary successfully installed in container rootfs'
+		logtype: .stdout
+	) or {}
 }

@@ -1,6 +1,5 @@
 module heropods
 
-import incubaid.herolib.ui.console
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core.texttools
 import os
@@ -102,7 +101,11 @@ pub fn (mut self HeroPods) image_new(args ContainerImageArgs) !&ContainerImage {
 // 3. Exports the rootfs to the images directory
 // 4. Cleans up the temporary container
 fn (mut self ContainerImage) download_from_docker(docker_url string, reset bool) ! {
-	console.print_header('Downloading image: ${docker_url}')
+	self.factory.logger.log(
+		cat:     'images'
+		log:     'Downloading image: ${docker_url}'
+		logtype: .stdout
+	) or {}
 
 	// Clean image name for local storage
 	image_dir := '${self.factory.base_dir}/images/${self.image_name}'
@@ -116,7 +119,11 @@ fn (mut self ContainerImage) download_from_docker(docker_url string, reset bool)
 	osal.exec(cmd: 'mkdir -p ${image_dir}', stdout: false)!
 
 	// Pull image using podman
-	console.print_debug('Pulling image: ${docker_url}')
+	self.factory.logger.log(
+		cat:     'images'
+		log:     'Pulling image: ${docker_url}'
+		logtype: .stdout
+	) or {}
 	osal.exec(cmd: 'podman pull ${docker_url}', stdout: true)!
 
 	// Create container from image (without running it)
@@ -138,7 +145,11 @@ fn (mut self ContainerImage) download_from_docker(docker_url string, reset bool)
 	// Remove the pulled image from podman to save space (optional)
 	osal.exec(cmd: 'podman rmi ${docker_url}', stdout: false) or {}
 
-	console.print_green('Image ${docker_url} extracted to ${self.rootfs_path}')
+	self.factory.logger.log(
+		cat:     'images'
+		log:     'Image ${docker_url} extracted to ${self.rootfs_path}'
+		logtype: .stdout
+	) or {}
 }
 
 // Update image metadata (size, creation time, etc.)
@@ -186,7 +197,11 @@ pub fn (mut self HeroPods) images_list() ![]&ContainerImage {
 						factory:     &self
 					}
 					image.update_metadata() or {
-						console.print_stderr('Failed to update metadata for image ${dir}: ${err}')
+						self.logger.log(
+							cat:     'images'
+							log:     'Failed to update metadata for image ${dir}: ${err}'
+							logtype: .error
+						) or {}
 						continue
 					}
 					self.images[dir] = image
@@ -207,7 +222,11 @@ pub fn (mut self ContainerImage) export(args ImageExportArgs) ! {
 		return error('Image rootfs not found: ${self.rootfs_path}')
 	}
 
-	console.print_header('Exporting image ${self.image_name} to ${args.dest_path}')
+	self.factory.logger.log(
+		cat:     'images'
+		log:     'Exporting image ${self.image_name} to ${args.dest_path}'
+		logtype: .stdout
+	) or {}
 
 	// Ensure destination directory exists
 	dest_dir := os.dir(args.dest_path)
@@ -217,7 +236,11 @@ pub fn (mut self ContainerImage) export(args ImageExportArgs) ! {
 	cmd := 'tar -czf ${args.dest_path} -C ${os.dir(self.rootfs_path)} ${os.base(self.rootfs_path)}'
 	osal.exec(cmd: cmd, stdout: true)!
 
-	console.print_green('Image exported successfully to ${args.dest_path}')
+	self.factory.logger.log(
+		cat:     'images'
+		log:     'Image exported successfully to ${args.dest_path}'
+		logtype: .stdout
+	) or {}
 }
 
 // Import image from .tgz file
@@ -233,7 +256,11 @@ pub fn (mut self HeroPods) image_import(args ImageImportArgs) !&ContainerImage {
 	image_name := filename.replace('.tgz', '').replace('.tar.gz', '')
 	image_name_clean := texttools.name_fix(image_name)
 
-	console.print_header('Importing image from ${args.source_path}')
+	self.logger.log(
+		cat:     'images'
+		log:     'Importing image from ${args.source_path}'
+		logtype: .stdout
+	) or {}
 
 	image_dir := '${self.base_dir}/images/${image_name_clean}'
 	rootfs_path := '${image_dir}/rootfs'
@@ -264,7 +291,11 @@ pub fn (mut self HeroPods) image_import(args ImageImportArgs) !&ContainerImage {
 	image.update_metadata()!
 	self.images[image_name_clean] = image
 
-	console.print_green('Image imported successfully: ${image_name_clean}')
+	self.logger.log(
+		cat:     'images'
+		log:     'Image imported successfully: ${image_name_clean}'
+		logtype: .stdout
+	) or {}
 	return image
 }
 
@@ -272,7 +303,11 @@ pub fn (mut self HeroPods) image_import(args ImageImportArgs) !&ContainerImage {
 //
 // Removes the image directory and removes from factory cache
 pub fn (mut self ContainerImage) delete() ! {
-	console.print_header('Deleting image: ${self.image_name}')
+	self.factory.logger.log(
+		cat:     'images'
+		log:     'Deleting image: ${self.image_name}'
+		logtype: .stdout
+	) or {}
 
 	image_dir := os.dir(self.rootfs_path)
 	if os.is_dir(image_dir) {
@@ -284,7 +319,11 @@ pub fn (mut self ContainerImage) delete() ! {
 		self.factory.images.delete(self.image_name)
 	}
 
-	console.print_green('Image ${self.image_name} deleted successfully')
+	self.factory.logger.log(
+		cat:     'images'
+		log:     'Image ${self.image_name} deleted successfully'
+		logtype: .stdout
+	) or {}
 }
 
 // Get image info as map

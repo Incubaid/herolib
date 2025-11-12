@@ -2,8 +2,8 @@ module heropods
 
 import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
-import incubaid.herolib.ui.console
 import incubaid.herolib.virt.crun
+import incubaid.herolib.core.logger
 import os
 import sync
 
@@ -30,6 +30,7 @@ pub mut:
 	name           string // name of the heropods
 	network_config NetworkConfig @[skip; str: skip] // network configuration (automatically initialized, not serialized)
 	network_mutex  sync.Mutex    @[skip; str: skip] // protects network_config for thread-safe concurrent access
+	logger         logger.Logger @[skip; str: skip] // logger instance for debugging (not serialized)
 }
 
 // your checking & initialization code if needed
@@ -44,13 +45,21 @@ fn obj_init(mycfg_ HeroPods) !HeroPods {
 		stdout: false
 	)!
 
+	// Note: Logger not yet initialized at this point, so we use eprintln for early warnings
 	if args.use_podman {
 		if !osal.cmd_exists('podman') {
-			console.print_stderr('Warning: podman not found. Install podman for better image management.')
-			console.print_debug('Install with: apt install podman (Ubuntu) or brew install podman (macOS)')
-		} else {
-			console.print_debug('Using podman for image management')
+			eprintln('Warning: podman not found. Install podman for better image management.')
+			eprintln('Install with: apt install podman (Ubuntu) or brew install podman (macOS)')
 		}
+	}
+
+	// Initialize logger for debugging (with console output for visibility)
+	mut heropods_logger := logger.new(
+		path:           '${args.base_dir}/logs'
+		console_output: true
+	) or {
+		eprintln('Warning: Failed to create logger: ${err}')
+		logger.Logger{} // Use empty logger as fallback
 	}
 
 	// Initialize HeroPods instance with network configuration
@@ -67,6 +76,7 @@ fn obj_init(mycfg_ HeroPods) !HeroPods {
 		network_config: NetworkConfig{
 			allocated_ips: map[string]string{}
 		}
+		logger:         heropods_logger
 	}
 
 	// Clean up any leftover crun state if reset is requested
@@ -97,7 +107,11 @@ pub fn heroscript_loads(heroscript string) !HeroPods {
 }
 
 fn (mut self HeroPods) setup_default_images(reset bool) ! {
-	console.print_header('Setting up default images...')
+	self.logger.log(
+		cat:     'images'
+		log:     'Setting up default images...'
+		logtype: .stdout
+	) or {}
 
 	default_images := [ContainerImageType.alpine_3_20, .ubuntu_24_04, .ubuntu_25_04]
 
@@ -107,7 +121,11 @@ fn (mut self HeroPods) setup_default_images(reset bool) ! {
 			reset:      reset
 		}
 		if img.str() !in self.images || reset {
-			console.print_debug('Preparing default image: ${img.str()}')
+			self.logger.log(
+				cat:     'images'
+				log:     'Preparing default image: ${img.str()}'
+				logtype: .stdout
+			) or {}
 			self.image_new(args)!
 		}
 	}
@@ -132,11 +150,19 @@ fn (mut self HeroPods) load_existing_images() ! {
 					factory:     &self
 				}
 				image.update_metadata() or {
-					console.print_stderr('⚠️ Failed to update metadata for image ${dir}: ${err}')
+					self.logger.log(
+						cat:     'images'
+						log:     'Failed to update metadata for image ${dir}: ${err}'
+						logtype: .error
+					) or {}
 					continue
 				}
 				self.images[dir] = image
-				console.print_debug('Loaded existing image: ${dir}')
+				self.logger.log(
+					cat:     'images'
+					log:     'Loaded existing image: ${dir}'
+					logtype: .stdout
+				) or {}
 			}
 		}
 	}
@@ -181,7 +207,11 @@ pub fn (self HeroPods) list() ![]Container {
 
 // Clean up any leftover crun state
 fn (mut self HeroPods) cleanup_crun_state() ! {
-	console.print_debug('Cleaning up leftover crun state...')
+	self.logger.log(
+		cat:     'cleanup'
+		log:     'Cleaning up leftover crun state...'
+		logtype: .stdout
+	) or {}
 	crun_root := '${self.base_dir}/runtime'
 
 	// Stop and delete all containers in our custom root
@@ -189,7 +219,11 @@ fn (mut self HeroPods) cleanup_crun_state() ! {
 
 	for container_name in result.output.split_into_lines() {
 		if container_name.trim_space() != '' {
-			console.print_debug('Cleaning up container: ${container_name}')
+			self.logger.log(
+				cat:     'cleanup'
+				log:     'Cleaning up container: ${container_name}'
+				logtype: .stdout
+			) or {}
 			osal.exec(cmd: 'crun --root ${crun_root} kill ${container_name} SIGKILL', stdout: false) or {}
 			osal.exec(cmd: 'crun --root ${crun_root} delete ${container_name}', stdout: false) or {}
 		}
@@ -199,7 +233,11 @@ fn (mut self HeroPods) cleanup_crun_state() ! {
 	result2 := osal.exec(cmd: 'crun list -q', stdout: false) or { return }
 	for container_name in result2.output.split_into_lines() {
 		if container_name.trim_space() != '' && container_name in self.containers {
-			console.print_debug('Cleaning up container from default root: ${container_name}')
+			self.logger.log(
+				cat:     'cleanup'
+				log:     'Cleaning up container from default root: ${container_name}'
+				logtype: .stdout
+			) or {}
 			osal.exec(cmd: 'crun kill ${container_name} SIGKILL', stdout: false) or {}
 			osal.exec(cmd: 'crun delete ${container_name}', stdout: false) or {}
 		}

@@ -1,6 +1,5 @@
 module heropods
 
-import incubaid.herolib.ui.console
 import incubaid.herolib.osal.tmux
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.virt.crun
@@ -55,7 +54,11 @@ pub fn (mut self Container) start() ! {
 
 	if !container_exists {
 		// Container doesn't exist, create it first
-		console.print_debug('Container ${self.name} does not exist, creating it...')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} does not exist, creating it...'
+			logtype: .stdout
+		) or {}
 		// Try to create the container, if it fails with "File exists" error,
 		// try to force delete any leftover state and retry
 		crun_root := '${self.factory.base_dir}/runtime'
@@ -64,7 +67,11 @@ pub fn (mut self Container) start() ! {
 			stdout: true
 		) or {
 			if err.msg().contains('File exists') {
-				console.print_debug('Container creation failed with "File exists", attempting to clean up leftover state...')
+				self.factory.logger.log(
+					cat:     'container'
+					log:     'Container creation failed with "File exists", attempting to clean up leftover state...'
+					logtype: .stdout
+				) or {}
 				// Force delete any leftover state - try multiple cleanup approaches
 				osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {}
 				osal.exec(cmd: 'crun delete ${self.name}', stdout: false) or {} // Also try default root
@@ -82,26 +89,42 @@ pub fn (mut self Container) start() ! {
 				return err
 			}
 		}
-		console.print_debug('Container ${self.name} created')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} created'
+			logtype: .stdout
+		) or {}
 	}
 
 	status := self.status()!
 	if status == .running {
-		console.print_debug('Container ${self.name} is already running')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} is already running'
+			logtype: .stdout
+		) or {}
 		return
 	}
 
 	// If container exists but is stopped, we need to delete and recreate it
 	// because crun doesn't allow restarting a stopped container
 	if container_exists && status != .running {
-		console.print_debug('Container ${self.name} exists but is stopped, recreating...')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} exists but is stopped, recreating...'
+			logtype: .stdout
+		) or {}
 		crun_root := '${self.factory.base_dir}/runtime'
 		osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {}
 		osal.exec(
 			cmd:    'crun --root ${crun_root} create --bundle ${self.factory.base_dir}/configs/${self.name} ${self.name}'
 			stdout: true
 		)!
-		console.print_debug('Container ${self.name} recreated')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} recreated'
+			logtype: .stdout
+		) or {}
 	}
 
 	// start the container (crun start doesn't have --detach flag)
@@ -114,14 +137,28 @@ pub fn (mut self Container) start() ! {
 	// Setup network for the container (thread-safe)
 	// If this fails, stop the container to clean up
 	self.setup_network() or {
-		console.print_stderr('Network setup failed, stopping container: ${err}')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Network setup failed, stopping container: ${err}'
+			logtype: .error
+		) or {}
 		// Use stop() method to properly clean up (kills process, cleans network, etc.)
 		// Ignore errors from stop since we're already in an error path
-		self.stop() or { console.print_debug('Failed to stop container during cleanup: ${err}') }
+		self.stop() or {
+			self.factory.logger.log(
+				cat:     'container'
+				log:     'Failed to stop container during cleanup: ${err}'
+				logtype: .error
+			) or {}
+		}
 		return error('Failed to setup network for container: ${err}')
 	}
 
-	console.print_green('Container ${self.name} started')
+	self.factory.logger.log(
+		cat:     'container'
+		log:     'Container ${self.name} started'
+		logtype: .stdout
+	) or {}
 }
 
 // Stop the container gracefully (SIGTERM) or forcefully (SIGKILL)
@@ -137,7 +174,11 @@ pub fn (mut self Container) start() ! {
 pub fn (mut self Container) stop() ! {
 	status := self.status()!
 	if status == .stopped {
-		console.print_debug('Container ${self.name} is already stopped')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} is already stopped'
+			logtype: .stdout
+		) or {}
 		return
 	}
 
@@ -145,7 +186,11 @@ pub fn (mut self Container) stop() ! {
 
 	// Send SIGTERM for graceful shutdown
 	osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGTERM', stdout: false) or {
-		console.print_debug('Failed to send SIGTERM (container may already be stopped): ${err}')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Failed to send SIGTERM (container may already be stopped): ${err}'
+			logtype: .stdout
+		) or {}
 	}
 
 	// Wait up to sigterm_timeout_ms for graceful shutdown
@@ -158,18 +203,34 @@ pub fn (mut self Container) stop() ! {
 			ContainerStatus.stopped
 		}
 		if current_status == .stopped {
-			console.print_debug('Container ${self.name} stopped gracefully')
+			self.factory.logger.log(
+				cat:     'container'
+				log:     'Container ${self.name} stopped gracefully'
+				logtype: .stdout
+			) or {}
 			self.cleanup_network()! // Thread-safe network cleanup
-			console.print_green('Container ${self.name} stopped')
+			self.factory.logger.log(
+				cat:     'container'
+				log:     'Container ${self.name} stopped'
+				logtype: .stdout
+			) or {}
 			return
 		}
 		attempts++
 	}
 
 	// Force kill if still running after timeout
-	console.print_debug('Container ${self.name} did not stop gracefully, force killing')
+	self.factory.logger.log(
+		cat:     'container'
+		log:     'Container ${self.name} did not stop gracefully, force killing'
+		logtype: .stdout
+	) or {}
 	osal.exec(cmd: 'crun --root ${crun_root} kill ${self.name} SIGKILL', stdout: false) or {
-		console.print_debug('Failed to send SIGKILL: ${err}')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Failed to send SIGKILL: ${err}'
+			logtype: .error
+		) or {}
 	}
 
 	// Wait for SIGKILL to take effect
@@ -187,7 +248,11 @@ pub fn (mut self Container) stop() ! {
 	// Cleanup network resources (thread-safe)
 	self.cleanup_network()!
 
-	console.print_green('Container ${self.name} stopped')
+	self.factory.logger.log(
+		cat:     'container'
+		log:     'Container ${self.name} stopped'
+		logtype: .stdout
+	) or {}
 }
 
 // Delete the container
@@ -203,16 +268,28 @@ pub fn (mut self Container) stop() ! {
 pub fn (mut self Container) delete() ! {
 	// Check if container exists before trying to delete
 	if !self.container_exists_in_crun()! {
-		console.print_debug('Container ${self.name} does not exist in crun')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} does not exist in crun'
+			logtype: .stdout
+		) or {}
 		// Still cleanup network resources in case they exist (thread-safe)
 		self.cleanup_network() or {
-			console.print_debug('Network cleanup failed (may not exist): ${err}')
+			self.factory.logger.log(
+				cat:     'container'
+				log:     'Network cleanup failed (may not exist): ${err}'
+				logtype: .stdout
+			) or {}
 		}
 		// Remove from factory's container cache only after all cleanup is done
 		if self.name in self.factory.containers {
 			self.factory.containers.delete(self.name)
 		}
-		console.print_debug('Container ${self.name} removed from cache')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Container ${self.name} removed from cache'
+			logtype: .stdout
+		) or {}
 		return
 	}
 
@@ -222,7 +299,11 @@ pub fn (mut self Container) delete() ! {
 	// Delete the container from crun
 	crun_root := '${self.factory.base_dir}/runtime'
 	osal.exec(cmd: 'crun --root ${crun_root} delete ${self.name}', stdout: false) or {
-		console.print_debug('Failed to delete container from crun: ${err}')
+		self.factory.logger.log(
+			cat:     'container'
+			log:     'Failed to delete container from crun: ${err}'
+			logtype: .error
+		) or {}
 	}
 
 	// Remove from factory's container cache only after all cleanup is complete
@@ -230,7 +311,11 @@ pub fn (mut self Container) delete() ! {
 		self.factory.containers.delete(self.name)
 	}
 
-	console.print_green('Container ${self.name} deleted')
+	self.factory.logger.log(
+		cat:     'container'
+		log:     'Container ${self.name} deleted'
+		logtype: .stdout
+	) or {}
 }
 
 // Execute command inside the container
@@ -242,7 +327,11 @@ pub fn (mut self Container) exec(cmd_ osal.Command) !string {
 
 	// Use the builder node to execute inside container
 	mut node := self.node()!
-	console.print_debug('Executing command in container ${self.name}: ${cmd_.cmd}')
+	self.factory.logger.log(
+		cat:     'container'
+		log:     'Executing command in container ${self.name}: ${cmd_.cmd}'
+		logtype: .stdout
+	) or {}
 
 	// Execute and provide better error context
 	return node.exec(cmd: cmd_.cmd, stdout: cmd_.stdout) or {
@@ -284,7 +373,7 @@ pub fn (self Container) status() !ContainerStatus {
 			ContainerStatus.paused
 		}
 		else {
-			console.print_debug('Unknown container status: ${state.status}')
+			// Unknown status - return unknown (can't log here as function is immutable)
 			ContainerStatus.unknown
 		}
 	}

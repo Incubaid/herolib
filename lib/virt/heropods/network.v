@@ -1,7 +1,6 @@
 module heropods
 
 import incubaid.herolib.osal.core as osal
-import incubaid.herolib.ui.console
 import os
 import crypto.sha256
 
@@ -40,12 +39,25 @@ mut:
 
 // Initialize network configuration in HeroPods factory
 fn (mut self HeroPods) network_init() ! {
-	console.print_debug('Initializing HeroPods network layer...')
+	self.logger.log(
+		cat: 'network'
+		log: 'START network_init() - Initializing HeroPods network layer'
+	) or {}
 
 	// Setup host bridge if it doesn't exist
+	self.logger.log(
+		cat:     'network'
+		log:     'Calling network_setup_bridge()...'
+		logtype: .stdout
+	) or {}
+
 	self.network_setup_bridge()!
 
-	console.print_debug('HeroPods network layer initialized')
+	self.logger.log(
+		cat:     'network'
+		log:     'END network_init() - HeroPods network layer initialized successfully'
+		logtype: .stdout
+	) or {}
 }
 
 // Setup the host bridge network (one-time setup, idempotent)
@@ -54,82 +66,212 @@ fn (mut self HeroPods) network_setup_bridge() ! {
 	gateway_ip := '${self.network_config.gateway_ip}/${self.network_config.subnet.split('/')[1]}'
 	subnet := self.network_config.subnet
 
-	// Check if bridge already exists
-	result := osal.exec(
-		cmd:         'ip link show ${bridge_name}'
-		stdout:      false
-		raise_error: false
-	) or {
-		osal.Job{
-			exit_code: 1
-		}
-	}
+	self.logger.log(
+		cat:     'network'
+		log:     'START network_setup_bridge() - bridge=${bridge_name}, gateway=${gateway_ip}, subnet=${subnet}'
+		logtype: .stdout
+	) or {}
 
-	if result.exit_code == 0 {
-		console.print_debug('Bridge ${bridge_name} already exists')
+	// Check if bridge already exists using os.execute (more reliable than osal.exec)
+	self.logger.log(
+		cat:     'network'
+		log:     'Checking if bridge ${bridge_name} exists (running: ip link show ${bridge_name})...'
+		logtype: .stdout
+	) or {}
+
+	check_result := os.execute('ip link show ${bridge_name} 2>/dev/null')
+
+	self.logger.log(
+		cat:     'network'
+		log:     'Bridge check result: exit_code=${check_result.exit_code}'
+		logtype: .stdout
+	) or {}
+
+	if check_result.exit_code == 0 {
+		self.logger.log(
+			cat:     'network'
+			log:     'Bridge ${bridge_name} already exists - skipping creation'
+			logtype: .stdout
+		) or {}
 		return
 	}
 
-	console.print_debug('Creating bridge ${bridge_name}...')
+	self.logger.log(
+		cat:     'network'
+		log:     'Bridge ${bridge_name} does not exist - creating new bridge'
+		logtype: .stdout
+	) or {}
 
 	// Create bridge
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 1: Creating bridge (running: ip link add name ${bridge_name} type bridge)...'
+		logtype: .stdout
+	) or {}
+
 	osal.exec(
 		cmd:    'ip link add name ${bridge_name} type bridge'
 		stdout: false
 	)!
 
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 1: Bridge created successfully'
+		logtype: .stdout
+	) or {}
+
 	// Assign IP to bridge
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 2: Assigning IP to bridge (running: ip addr add ${gateway_ip} dev ${bridge_name})...'
+		logtype: .stdout
+	) or {}
+
 	osal.exec(
 		cmd:    'ip addr add ${gateway_ip} dev ${bridge_name}'
 		stdout: false
 	)!
 
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 2: IP assigned successfully'
+		logtype: .stdout
+	) or {}
+
 	// Bring bridge up
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 3: Bringing bridge up (running: ip link set ${bridge_name} up)...'
+		logtype: .stdout
+	) or {}
+
 	osal.exec(
 		cmd:    'ip link set ${bridge_name} up'
 		stdout: false
 	)!
 
-	// Enable IP forwarding (with error resilience)
-	osal.exec(
-		cmd:    'sysctl -w net.ipv4.ip_forward=1'
-		stdout: false
-	) or {
-		console.print_stderr('Warning: Failed to enable IPv4 forwarding. Containers may not have internet access.')
-		console.print_debug('You may need to run: sudo sysctl -w net.ipv4.ip_forward=1')
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 3: Bridge brought up successfully'
+		logtype: .stdout
+	) or {}
+
+	// Enable IP forwarding
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 4: Enabling IP forwarding (running: sysctl -w net.ipv4.ip_forward=1)...'
+		logtype: .stdout
+	) or {}
+
+	forward_result := os.execute('sysctl -w net.ipv4.ip_forward=1 2>/dev/null')
+	if forward_result.exit_code != 0 {
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 4: WARNING - Failed to enable IPv4 forwarding (exit_code=${forward_result.exit_code})'
+			logtype: .error
+		) or {}
+	} else {
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 4: IP forwarding enabled successfully'
+			logtype: .stdout
+		) or {}
 	}
 
 	// Get primary network interface for NAT
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 5: Detecting primary network interface...'
+		logtype: .stdout
+	) or {}
+
 	primary_iface := self.network_get_primary_interface() or {
-		console.print_stderr('Warning: Could not detect primary network interface. NAT may not work.')
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 5: WARNING - Could not detect primary interface: ${err}, using fallback eth0'
+			logtype: .error
+		) or {}
 		'eth0' // fallback
 	}
 
-	// Setup NAT for outbound traffic (with error resilience)
-	console.print_debug('Setting up NAT rules for ${primary_iface}...')
-	osal.exec(
-		cmd:    'iptables -t nat -C POSTROUTING -s ${subnet} -o ${primary_iface} -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -s ${subnet} -o ${primary_iface} -j MASQUERADE'
-		stdout: false
-	) or {
-		console.print_stderr('Warning: Failed to setup NAT rules. Containers may not have internet access.')
-		console.print_debug('You may need to run: sudo iptables -t nat -A POSTROUTING -s ${subnet} -o ${primary_iface} -j MASQUERADE')
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 5: Primary interface detected: ${primary_iface}'
+		logtype: .stdout
+	) or {}
+
+	// Setup NAT for outbound traffic
+
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 6: Setting up NAT rules for ${primary_iface} (running iptables command)...'
+		logtype: .stdout
+	) or {}
+
+	nat_result := os.execute('iptables -t nat -C POSTROUTING -s ${subnet} -o ${primary_iface} -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -s ${subnet} -o ${primary_iface} -j MASQUERADE')
+	if nat_result.exit_code != 0 {
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 6: WARNING - Failed to setup NAT rules (exit_code=${nat_result.exit_code})'
+			logtype: .error
+		) or {}
+	} else {
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 6: NAT rules configured successfully'
+			logtype: .stdout
+		) or {}
 	}
 
-	console.print_green('Bridge ${bridge_name} created and configured')
+	self.logger.log(
+		cat:     'network'
+		log:     'END network_setup_bridge() - Bridge ${bridge_name} created and configured successfully'
+		logtype: .stdout
+	) or {}
 }
 
 // Get the primary network interface for NAT
-fn (self HeroPods) network_get_primary_interface() !string {
+fn (mut self HeroPods) network_get_primary_interface() !string {
+	self.logger.log(
+		cat:     'network'
+		log:     'START network_get_primary_interface() - Detecting primary interface'
+		logtype: .stdout
+	) or {}
+
 	// Try to get the default route interface
+	cmd := "ip route | grep default | awk '{print \$5}' | head -n1"
+	self.logger.log(
+		cat:     'network'
+		log:     'Running command: ${cmd}'
+		logtype: .stdout
+	) or {}
+
 	result := osal.exec(
-		cmd:    "ip route | grep default | awk '{print \$5}' | head -n1"
+		cmd:    cmd
 		stdout: false
 	)!
 
+	self.logger.log(
+		cat:     'network'
+		log:     'Command completed, output: "${result.output.trim_space()}"'
+		logtype: .stdout
+	) or {}
+
 	iface := result.output.trim_space()
 	if iface == '' {
+		self.logger.log(
+			cat:     'network'
+			log:     'ERROR: Could not determine primary network interface (empty output)'
+			logtype: .error
+		) or {}
 		return error('Could not determine primary network interface')
 	}
+
+	self.logger.log(
+		cat:     'network'
+		log:     'END network_get_primary_interface() - Detected interface: ${iface}'
+		logtype: .stdout
+	) or {}
 
 	return iface
 }
@@ -146,14 +288,49 @@ fn (self HeroPods) network_get_primary_interface() !string {
 // Multiple concurrent container starts will be serialized at the IP allocation step,
 // preventing race conditions where two containers could receive the same IP.
 fn (mut self HeroPods) network_allocate_ip(container_name string) !string {
+	self.logger.log(
+		cat:     'network'
+		log:     'START network_allocate_ip() for container: ${container_name}'
+		logtype: .stdout
+	) or {}
+
+	self.logger.log(
+		cat:     'network'
+		log:     'Acquiring network_mutex lock...'
+		logtype: .stdout
+	) or {}
+
 	self.network_mutex.@lock()
+
+	self.logger.log(
+		cat:     'network'
+		log:     'network_mutex lock acquired'
+		logtype: .stdout
+	) or {}
+
 	defer {
+		self.logger.log(
+			cat:     'network'
+			log:     'Releasing network_mutex lock...'
+			logtype: .stdout
+		) or {}
 		self.network_mutex.unlock()
+		self.logger.log(
+			cat:     'network'
+			log:     'network_mutex lock released'
+			logtype: .stdout
+		) or {}
 	}
 
 	// Check if already allocated
 	if container_name in self.network_config.allocated_ips {
-		return self.network_config.allocated_ips[container_name]
+		existing_ip := self.network_config.allocated_ips[container_name]
+		self.logger.log(
+			cat:     'network'
+			log:     'Container ${container_name} already has IP: ${existing_ip}'
+			logtype: .stdout
+		) or {}
+		return existing_ip
 	}
 
 	// Extract base IP from subnet (e.g., "10.10.0.0/24" -> "10.10.0")
@@ -167,7 +344,11 @@ fn (mut self HeroPods) network_allocate_ip(container_name string) !string {
 		// Reuse a freed IP from the pool (LIFO - pop from end)
 		ip_offset = self.network_config.freed_ip_pool.last()
 		self.network_config.freed_ip_pool.delete_last()
-		console.print_debug('Reusing IP offset ${ip_offset} from freed pool (pool size: ${self.network_config.freed_ip_pool.len})')
+		self.logger.log(
+			cat:     'network'
+			log:     'Reusing IP offset ${ip_offset} from freed pool (pool size: ${self.network_config.freed_ip_pool.len})'
+			logtype: .stdout
+		) or {}
 	} else {
 		// No freed IPs available, allocate a new one
 		// This increment is atomic within the mutex lock
@@ -179,21 +360,27 @@ fn (mut self HeroPods) network_allocate_ip(container_name string) !string {
 			return error('IP address pool exhausted: subnet ${self.network_config.subnet} has no more available IPs. Consider using a larger subnet or multiple bridges.')
 		}
 
-		console.print_debug('Allocated new IP offset ${ip_offset} (next: ${self.network_config.next_ip_offset})')
+		self.logger.log(
+			cat:     'network'
+			log:     'Allocated new IP offset ${ip_offset} (next: ${self.network_config.next_ip_offset})'
+			logtype: .stdout
+		) or {}
 	}
 
 	// Build the full IP address
 	ip := '${base_ip}.${ip_offset}'
 	self.network_config.allocated_ips[container_name] = ip
 
-	console.print_debug('Allocated IP ${ip} to container ${container_name}')
+	self.logger.log(
+		cat:     'network'
+		log:     'Allocated IP ${ip} to container ${container_name}'
+		logtype: .stdout
+	) or {}
 	return ip
 }
 
 // Setup network for a container (creates veth pair, assigns IP, configures routing)
 fn (mut self HeroPods) network_setup_container(container_name string, container_pid int) ! {
-	console.print_debug('Setting up network for container ${container_name} (PID: ${container_pid})...')
-
 	// Allocate IP address (thread-safe)
 	container_ip := self.network_allocate_ip(container_name)!
 
@@ -212,7 +399,7 @@ fn (mut self HeroPods) network_setup_container(container_name string, container_
 	osal.exec(cmd: 'ip link delete ${veth_bridge_short} 2>/dev/null', stdout: false) or {}
 
 	// Create veth pair
-	console.print_debug('Creating veth pair: ${veth_container_short} <-> ${veth_bridge_short}')
+
 	osal.exec(
 		cmd:    'ip link add ${veth_container_short} type veth peer name ${veth_bridge_short}'
 		stdout: false
@@ -230,14 +417,13 @@ fn (mut self HeroPods) network_setup_container(container_name string, container_
 	)!
 
 	// Move container end into container's network namespace
-	console.print_debug('Moving ${veth_container_short} into container namespace (PID: ${container_pid})')
+
 	osal.exec(
 		cmd:    'ip link set ${veth_container_short} netns ${container_pid}'
 		stdout: false
 	)!
 
 	// Configure network inside container
-	console.print_debug('Configuring network inside container: ${container_ip}/${subnet_mask}')
 
 	// Rename veth to eth0 inside container for consistency
 	osal.exec(
@@ -262,14 +448,10 @@ fn (mut self HeroPods) network_setup_container(container_name string, container_
 		cmd:    'nsenter -t ${container_pid} -n ip route add default via ${gateway_ip}'
 		stdout: false
 	)!
-
-	console.print_green('Network configured for container ${container_name}: ${container_ip}')
 }
 
 // Configure DNS inside container by writing resolv.conf
 fn (self HeroPods) network_configure_dns(container_name string, rootfs_path string) ! {
-	console.print_debug('Configuring DNS for container ${container_name}...')
-
 	resolv_conf_path := '${rootfs_path}/etc/resolv.conf'
 
 	// Ensure /etc directory exists
@@ -288,7 +470,6 @@ fn (self HeroPods) network_configure_dns(container_name string, rootfs_path stri
 	os.write_file(resolv_conf_path, dns_content)!
 
 	dns_servers_str := self.network_config.dns_servers.join(', ')
-	console.print_debug('DNS configured: ${dns_servers_str}')
 }
 
 // Cleanup network for a container (removes veth pair and deallocates IP)
@@ -297,8 +478,6 @@ fn (self HeroPods) network_configure_dns(container_name string, rootfs_path stri
 // IP deallocation is protected by network_mutex to prevent race conditions
 // when multiple containers are being deleted concurrently.
 fn (mut self HeroPods) network_cleanup_container(container_name string) ! {
-	console.print_debug('Cleaning up network for container ${container_name}...')
-
 	// Remove veth interfaces (they should be auto-removed when container stops, but cleanup anyway)
 	// Use same hash logic as setup to ensure we delete the correct interface
 	short_hash := sha256.hexhash(container_name)[..6]
@@ -307,7 +486,7 @@ fn (mut self HeroPods) network_cleanup_container(container_name string) ! {
 	osal.exec(
 		cmd:    'ip link delete ${veth_bridge_short} 2>/dev/null'
 		stdout: false
-	) or { console.print_debug('veth interface ${veth_bridge_short} already removed') }
+	) or {}
 
 	// Deallocate IP address and return it to the freed pool for reuse (thread-safe)
 	self.network_mutex.@lock()
@@ -326,13 +505,11 @@ fn (mut self HeroPods) network_cleanup_container(container_name string) ! {
 			// Add to freed pool for reuse (avoid duplicates)
 			if ip_offset !in self.network_config.freed_ip_pool {
 				self.network_config.freed_ip_pool << ip_offset
-				console.print_debug('Returned IP offset ${ip_offset} to freed pool (pool size: ${self.network_config.freed_ip_pool.len})')
 			}
 		}
 
 		// Remove from allocated IPs
 		self.network_config.allocated_ips.delete(container_name)
-		console.print_debug('Deallocated IP ${ip} from container ${container_name}')
 	}
 }
 
@@ -346,8 +523,6 @@ fn (mut self HeroPods) network_cleanup_container(container_name string) ! {
 // Uses separate lock/unlock calls for read and write operations to minimize
 // lock contention. The container cleanup loop runs without holding the lock.
 fn (mut self HeroPods) network_cleanup_all(full bool) ! {
-	console.print_debug('Cleaning up all HeroPods network resources (full=${full})...')
-
 	// Get list of containers to cleanup (thread-safe read)
 	self.network_mutex.@lock()
 	container_names := self.network_config.allocated_ips.keys()
@@ -356,7 +531,6 @@ fn (mut self HeroPods) network_cleanup_all(full bool) ! {
 	// Remove all veth interfaces (no lock needed - operates on local copy)
 	for container_name in container_names {
 		self.network_cleanup_container(container_name) or {
-			console.print_debug('Failed to cleanup network for ${container_name}: ${err}')
 		}
 	}
 
@@ -367,18 +541,13 @@ fn (mut self HeroPods) network_cleanup_all(full bool) ! {
 	self.network_config.next_ip_offset = 10
 	self.network_mutex.unlock()
 
-	console.print_debug('Cleared IP allocations and freed pool')
-
 	// Optionally remove the bridge for full cleanup
 	if full {
 		bridge_name := self.network_config.bridge_name
 
-		console.print_debug('Removing bridge ${bridge_name}...')
 		osal.exec(
 			cmd:    'ip link delete ${bridge_name}'
 			stdout: false
-		) or { console.print_debug('Bridge ${bridge_name} already removed or does not exist') }
+		) or {}
 	}
-
-	console.print_debug('Network cleanup complete')
 }
