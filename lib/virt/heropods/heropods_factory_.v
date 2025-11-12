@@ -27,13 +27,24 @@ pub mut:
 	create     bool // default will not create if not exist
 	reset      bool // will reset the heropods
 	use_podman bool = true // will use podman for image management
+	// Network configuration
+	bridge_name string   = 'heropods0'
+	subnet      string   = '10.10.0.0/24'
+	gateway_ip  string   = '10.10.0.1'
+	dns_servers []string = ['8.8.8.8', '8.8.4.4']
 }
 
 pub fn new(args ArgsGet) !&HeroPods {
 	mut obj := HeroPods{
-		name:       args.name
-		reset:      args.reset
-		use_podman: args.use_podman
+		name:           args.name
+		reset:          args.reset
+		use_podman:     args.use_podman
+		network_config: NetworkConfig{
+			bridge_name: args.bridge_name
+			subnet:      args.subnet
+			gateway_ip:  args.gateway_ip
+			dns_servers: args.dns_servers
+		}
 	}
 	set(obj)!
 	return get(name: args.name)!
@@ -130,9 +141,10 @@ pub fn list(args ArgsList) ![]&HeroPods {
 }
 
 // Set a HeroPods instance in memory cache only (does not persist to Redis)
-// Initializes the instance via obj_init before caching
+// Performs lightweight validation via obj_init, then heavy initialization
 fn set_in_mem(o HeroPods) !HeroPods {
 	mut o2 := obj_init(o)!
+	o2.initialize()! // Perform heavy initialization after validation
 	heropods_global[o2.name] = &o2
 	heropods_default = o2.name
 	return o2

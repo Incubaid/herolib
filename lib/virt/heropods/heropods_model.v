@@ -33,70 +33,78 @@ pub mut:
 	logger         logger.Logger @[skip; str: skip] // logger instance for debugging (not serialized)
 }
 
-// your checking & initialization code if needed
+// obj_init performs lightweight validation and field normalization only
+// Heavy initialization is done in the initialize() method
 fn obj_init(mycfg_ HeroPods) !HeroPods {
-	mut args := mycfg_
+	mut mycfg := mycfg_
 
-	// Ensure base directories exist
-	args.base_dir = os.getenv_opt('CONTAINERS_DIR') or { os.home_dir() + '/.containers' }
+	// Normalize base_dir from environment variable if not set
+	if mycfg.base_dir == '' {
+		mycfg.base_dir = os.getenv_opt('CONTAINERS_DIR') or { os.home_dir() + '/.containers' }
+	}
 
+	// Validate: warn if podman is requested but not available
+	if mycfg.use_podman && !osal.cmd_exists('podman') {
+		eprintln('Warning: podman not found. Install podman for better image management.')
+		eprintln('Install with: apt install podman (Ubuntu) or brew install podman (macOS)')
+	}
+
+	// Preserve network_config from input, set defaults only if empty
+	if mycfg.network_config.bridge_name == '' {
+		mycfg.network_config.bridge_name = 'heropods0'
+	}
+	if mycfg.network_config.subnet == '' {
+		mycfg.network_config.subnet = '10.10.0.0/24'
+	}
+	if mycfg.network_config.gateway_ip == '' {
+		mycfg.network_config.gateway_ip = '10.10.0.1'
+	}
+	if mycfg.network_config.dns_servers.len == 0 {
+		mycfg.network_config.dns_servers = ['8.8.8.8', '8.8.4.4']
+	}
+
+	// Ensure allocated_ips map is initialized
+	if mycfg.network_config.allocated_ips.len == 0 {
+		mycfg.network_config.allocated_ips = map[string]string{}
+	}
+
+	return mycfg
+}
+
+// initialize performs heavy initialization operations
+// This should be called after obj_init in the factory pattern
+fn (mut self HeroPods) initialize() ! {
+	// Create base directories
 	osal.exec(
-		cmd:    'mkdir -p ${args.base_dir}/images ${args.base_dir}/configs ${args.base_dir}/runtime'
+		cmd:    'mkdir -p ${self.base_dir}/images ${self.base_dir}/configs ${self.base_dir}/runtime'
 		stdout: false
 	)!
 
-	// Note: Logger not yet initialized at this point, so we use eprintln for early warnings
-	if args.use_podman {
-		if !osal.cmd_exists('podman') {
-			eprintln('Warning: podman not found. Install podman for better image management.')
-			eprintln('Install with: apt install podman (Ubuntu) or brew install podman (macOS)')
-		}
-	}
-
-	// Initialize logger for debugging (with console output for visibility)
-	mut heropods_logger := logger.new(
-		path:           '${args.base_dir}/logs'
+	// Initialize logger
+	self.logger = logger.new(
+		path:           '${self.base_dir}/logs'
 		console_output: true
 	) or {
 		eprintln('Warning: Failed to create logger: ${err}')
 		logger.Logger{} // Use empty logger as fallback
 	}
 
-	// Initialize HeroPods instance with network configuration
-	// Note: network_mutex is automatically initialized to zero value (unlocked state)
-	mut heropods := HeroPods{
-		tmux_session:   args.name
-		containers:     map[string]&Container{}
-		images:         map[string]&ContainerImage{}
-		crun_configs:   map[string]&crun.CrunConfig{}
-		base_dir:       args.base_dir
-		reset:          args.reset
-		use_podman:     args.use_podman
-		name:           args.name
-		network_config: NetworkConfig{
-			allocated_ips: map[string]string{}
-		}
-		logger:         heropods_logger
-	}
-
 	// Clean up any leftover crun state if reset is requested
-	if args.reset {
-		heropods.cleanup_crun_state()!
-		heropods.network_cleanup_all(false)! // Keep bridge for reuse
+	if self.reset {
+		self.cleanup_crun_state()!
+		self.network_cleanup_all(false)! // Keep bridge for reuse
 	}
 
 	// Initialize network layer
-	heropods.network_init()!
+	self.network_init()!
 
 	// Load existing images into cache
-	heropods.load_existing_images()!
+	self.load_existing_images()!
 
 	// Setup default images if not using podman
-	if !args.use_podman {
-		heropods.setup_default_images(args.reset)!
+	if !self.use_podman {
+		self.setup_default_images(self.reset)!
 	}
-
-	return heropods
 }
 
 /////////////NORMALLY NO NEED TO TOUCH

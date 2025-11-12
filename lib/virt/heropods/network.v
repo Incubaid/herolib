@@ -27,11 +27,11 @@ import crypto.sha256
 
 // NetworkConfig holds network configuration for HeroPods containers
 struct NetworkConfig {
-mut:
-	bridge_name    string   = 'heropods0'
-	subnet         string   = '10.10.0.0/24'
-	gateway_ip     string   = '10.10.0.1'
-	dns_servers    []string = ['8.8.8.8', '8.8.4.4']
+pub mut:
+	bridge_name    string            // Name of the bridge (e.g., "heropods0")
+	subnet         string            // Subnet for the bridge (e.g., "10.10.0.0/24")
+	gateway_ip     string            // Gateway IP for the bridge
+	dns_servers    []string          // List of DNS servers
 	allocated_ips  map[string]string // container_name -> IP address
 	freed_ip_pool  []int             // Pool of freed IP offsets for reuse (e.g., [15, 23, 42])
 	next_ip_offset int = 10 // Start allocating from 10.10.0.10 (only used when pool is empty)
