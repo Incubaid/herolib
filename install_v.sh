@@ -33,6 +33,7 @@ print_help() {
     echo "  --remove       Remove V installation and exit"
     echo "  --analyzer     Install/update v-analyzer"
     echo "  --herolib      Install our herolib"
+    echo "  --herolib-version VERSION  Install specific herolib tag/branch (default: development)"
     echo "  --start-redis  Start the Redis service if installed"
     echo
     echo "Examples:"
@@ -267,6 +268,17 @@ function hero_lib_get {
         git clone --depth 1 --no-single-branch https://github.com/incubaid/herolib.git
         popd 2>&1 >> /dev/null
     fi
+
+    # Checkout specific version if requested
+    if [ -n "${HEROLIB_VERSION:-}" ]; then
+        pushd $DIR_CODE/github/incubaid/herolib 2>&1 >> /dev/null
+        if ! git checkout "$HEROLIB_VERSION"; then
+            echo "Failed to checkout herolib version: $HEROLIB_VERSION"
+            popd 2>&1 >> /dev/null
+            return 1
+        fi
+        popd 2>&1 >> /dev/null
+    fi
 }
 
 remove_all() {
@@ -473,6 +485,15 @@ main() {
             ;;
             --herolib)
                 HEROLIB=true
+            ;;
+            --herolib-version)
+                if [ -n "${2:-}" ] && [ "${2:0:1}" != "-" ]; then
+                    HEROLIB_VERSION="$2"
+                    shift
+                else
+                    echo "Error: --herolib-version requires a version argument"
+                    exit 1
+                fi
             ;;
             --analyzer)
                 INSTALL_ANALYZER=true
