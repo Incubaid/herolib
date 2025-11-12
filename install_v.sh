@@ -101,16 +101,16 @@ ubuntu_sources_fix() {
 
         if [ -f /etc/apt/sources.list ]; then
             echo "📦 Backing up /etc/apt/sources.list -> /etc/apt/sources.list.backup.$TIMESTAMP"
-            sudo mv /etc/apt/sources.list /etc/apt/sources.list.backup.$TIMESTAMP
+            run_sudo mv /etc/apt/sources.list /etc/apt/sources.list.backup.$TIMESTAMP
         fi
 
         if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
             echo "📦 Backing up /etc/apt/sources.list.d/ubuntu.sources -> /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP"
-            sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP
+            run_sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP
         fi
 
-        echo "📝 Writing new /etc/apt/sources.list.d/ubuntu.sources"
-    sudo tee /etc/apt/sources.list.d/ubuntu.sources >/dev/null <<EOF
+    echo "📝 Writing new /etc/apt/sources.list.d/ubuntu.sources"
+    run_sudo tee /etc/apt/sources.list.d/ubuntu.sources >/dev/null <<EOF
 Types: deb
 URIs: mirror://mirrors.ubuntu.com/mirrors.txt
 Suites: $CODENAME $CODENAME-updates $CODENAME-backports $CODENAME-security
@@ -118,7 +118,7 @@ Components: main restricted universe multiverse
 EOF
 
         echo "🔄 Running apt update..."
-        sudo apt update -qq
+        run_sudo apt update -qq
 
         echo "✅ Done! Your system now uses the rotating Ubuntu mirror list."
     fi
