@@ -33,7 +33,7 @@ print_help() {
     echo "  --remove       Remove V installation and exit"
     echo "  --analyzer     Install/update v-analyzer"
     echo "  --herolib      Install our herolib"
-    echo "  --herolib-version VERSION  Install specific herolib tag/branch (default: development)"
+    echo "  --herolib-version=VERSION  Install specific herolib tag/branch (default: development)"
     echo "  --start-redis  Start the Redis service if installed"
     echo
     echo "Examples:"
@@ -145,7 +145,7 @@ function sshknownkeysadd {
 # WARNING: This is designed for CI/automated environments. It can be dangerous
 # on a personal machine as it may remove essential packages to resolve conflicts.
 function apt_force_install {
-    run_sudo apt -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef" install "$1" -q -y --allow-downgrades --allow-remove-essential
+    run_sudo apt -o Dpkg::Options::="--force-confold" -o Dpkg::Options::="--force-confdef" install "$@" -q -y --allow-downgrades --allow-remove-essential
 }
 
 is_github_actions() {
@@ -486,12 +486,11 @@ main() {
             --herolib)
                 HEROLIB=true
             ;;
-            --herolib-version)
-                if [ -n "${2:-}" ] && [ "${2:0:1}" != "-" ]; then
-                    HEROLIB_VERSION="$2"
-                    shift
-                else
+            --herolib-version=*)
+                HEROLIB_VERSION="${arg#*=}"
+                if [ -z "$HEROLIB_VERSION" ]; then
                     echo "Error: --herolib-version requires a version argument"
+                    echo "Example: $0 --herolib-version=v1.0.0"
                     exit 1
                 fi
             ;;
