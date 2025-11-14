@@ -73,6 +73,7 @@ pub mut:
 	port          int    = 3000
 	open          bool   = true  // whether to open the browser automatically
 	watch_changes bool   = false // whether to watch for changes in docs and rebuild automatically
+	skip_generate bool   = false // whether to skip generation (useful when docs are pre-generated, e.g., from atlas)
 }
 
 pub fn (mut s DocSite) open(args DevArgs) ! {
@@ -82,9 +83,11 @@ pub fn (mut s DocSite) open(args DevArgs) ! {
 }
 
 pub fn (mut s DocSite) dev(args DevArgs) ! {
-	s.generate()!
+	if !args.skip_generate {
+		s.generate()!
+	}
 	osal.exec(
-		cmd:   '	
+		cmd:   '
 			cd ${s.path_build.path}
 			bun run start -p ${args.port} -h ${args.host}
 			'

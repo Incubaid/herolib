@@ -2,7 +2,6 @@ module docusaurus
 
 import incubaid.herolib.core.pathlib
 import json
-import os
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 
@@ -15,7 +14,7 @@ pub fn (mut docsite DocSite) generate() ! {
 	console.print_header(' docsite generate: ${docsite.name} on ${c.path_build.path}')
 
 	// Store Docusaurus site structure in Redis for link processing
-	docsite.store_site_structure()!
+	// docsite.store_site_structure()!
 
 	osal.rm('${c.path_build.path}/docs')!
 

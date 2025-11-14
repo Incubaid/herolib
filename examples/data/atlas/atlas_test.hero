@@ -1,0 +1,5 @@
+#!/usr/bin/env hero
+
+!!atlas.scan git_url:"https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/tests"
+
+!!atlas.export destination: '/tmp/atlas_export' 

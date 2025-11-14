@@ -1,7 +1,7 @@
 module atlas
 
 import incubaid.herolib.core.pathlib
-// import incubaid.herolib.core.texttools
+import incubaid.herolib.core.texttools
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.data.paramsparser { Params }
 import incubaid.herolib.ui.console
@@ -45,7 +45,6 @@ fn (mut c Collection) init_post() ! {
 	c.init_git_info()!
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Add a page to the collection
@@ -54,7 +53,10 @@ fn (mut c Collection) add_page(mut path pathlib.Path) ! {
 	if name in c.pages {
 		return error('Page ${name} already exists in collection ${c.name}')
 	}
-	relativepath := path.path_relative(c.path()!.path)!
+	// Use absolute paths for path_relative to work correctly
+	mut col_path := pathlib.get(c.path)
+	mut page_abs_path := pathlib.get(path.absolute())
+	relativepath := page_abs_path.path_relative(col_path.absolute())!
 
 	mut p_new := Page{
 		name:            name
@@ -68,16 +70,18 @@ fn (mut c Collection) add_page(mut path pathlib.Path) ! {
 
 // Add an image to the collection
 fn (mut c Collection) add_file(mut p pathlib.Path) ! {
-	name := p.name_fix_keepext()
+	name := p.name_fix_keepext() // keep extension
 	if name in c.files {
-		return error('Page ${name} already exists in collection ${c.name}')
+		return error('File ${name} already exists in collection ${c.name}')
 	}
-	relativepath := p.path_relative(c.path()!.path)!
+	// Use absolute paths for path_relative to work correctly
+	mut col_path := pathlib.get(c.path)
+	mut file_abs_path := pathlib.get(p.absolute())
+	relativepath := file_abs_path.path_relative(col_path.absolute())!
 
 	mut file_new := File{
 		name:       name
-		ext:        p.extension_lower()
-		path:       relativepath // relative path of file in the collection
+		path:       relativepath // relative path of file in the collection, includes the name
 		collection: &c
 	}
 
@@ -90,7 +94,8 @@ fn (mut c Collection) add_file(mut p pathlib.Path) ! {
 }
 
 // Get a page by name
-pub fn (c Collection) page_get(name string) !&Page {
+pub fn (c Collection) page_get(name_ string) !&Page {
+	name := texttools.name_fix_no_ext(name_)
 	return c.pages[name] or { return PageNotFound{
 		collection: c.name
 		page:       name
@@ -98,7 +103,8 @@ pub fn (c Collection) page_get(name string) !&Page {
 }
 
 // Get an image by name
-pub fn (c Collection) image_get(name string) !&File {
+pub fn (c Collection) image_get(name_ string) !&File {
+	name := texttools.name_fix(name_)
 	mut img := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -110,7 +116,8 @@ pub fn (c Collection) image_get(name string) !&File {
 }
 
 // Get a file by name
-pub fn (c Collection) file_get(name string) !&File {
+pub fn (c Collection) file_get(name_ string) !&File {
+	name := texttools.name_fix(name_)
 	mut f := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -121,7 +128,8 @@ pub fn (c Collection) file_get(name string) !&File {
 	return f
 }
 
-pub fn (c Collection) file_or_image_get(name string) !&File {
+pub fn (c Collection) file_or_image_get(name_ string) !&File {
+	name := texttools.name_fix(name_)
 	mut f := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -129,31 +137,31 @@ pub fn (c Collection) file_or_image_get(name string) !&File {
 	return f
 }
 
-
 // Check if page exists
-pub fn (c Collection) page_exists(name string) bool {
+pub fn (c Collection) page_exists(name_ string) !bool {
+	name := texttools.name_fix_no_ext(name_)
 	return name in c.pages
 }
 
 // Check if image exists
-pub fn (c Collection) image_exists(name string) bool {
+pub fn (c Collection) image_exists(name_ string) !bool {
+	name := texttools.name_fix(name_)
 	f := c.files[name] or { return false }
 	return f.ftype == .image
 }
 
 // Check if file exists
-pub fn (c Collection) file_exists(name string) bool {
+pub fn (c Collection) file_exists(name_ string) !bool {
+	name := texttools.name_fix(name_)
 	f := c.files[name] or { return false }
 	return f.ftype == .file
 }
 
-pub fn (c Collection) file_or_image_exists(name string) bool {
-	f := c.files[name] or { return false }
+pub fn (c Collection) file_or_image_exists(name_ string) !bool {
+	name := texttools.name_fix(name_)
+	_ := c.files[name] or { return false }
 	return true
 }
-
-
-
 
 @[params]
 pub struct CollectionErrorArgs {
@@ -243,7 +251,7 @@ pub fn (c Collection) print_errors() {
 pub fn (mut c Collection) validate_links() ! {
 	for _, mut page in c.pages {
 		content := page.content(include: true)!
-		page.links=page.find_links(content)! // will walk over links see if errors and add errors
+		page.links = page.find_links(content)! // will walk over links see if errors and add errors
 	}
 }
 

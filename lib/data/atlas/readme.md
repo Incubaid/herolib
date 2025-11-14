@@ -11,7 +11,35 @@ A lightweight document collection manager for V, inspired by doctree but simplif
 - **Type-Safe Access**: Get pages, images, and files with error handling
 - **Error Tracking**: Built-in error collection and reporting with deduplication
 
+
 ## Quick Start
+
+put in .hero file and execute with hero or but shebang line on top of .hero script
+
+**Scan Parameters:**
+
+- `name` (optional, default: 'main') - Atlas instance name
+- `path` (required when git_url not provided) - Directory path to scan
+- `git_url` (alternative to path) - Git repository URL to clone/checkout
+- `git_root` (optional when using git_url, default: ~/code) - Base directory for cloning
+- `meta_path` (optional) - Directory to save collection metadata JSON
+- `ignore` (optional) - List of directory names to skip during scan
+
+
+**most basic example**
+
+```heroscript
+#!/usr/bin/env hero
+
+!!atlas.scan git_url:"https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/tests"
+
+!!atlas.export destination: '/tmp/atlas_export' 
+
+```
+
+put this in .hero file
+
+## usage in herolib
 
 ```v
 import incubaid.herolib.data.atlas
@@ -227,9 +255,9 @@ You can scan collections directly from a git repository:
 
 ```heroscript
 !!atlas.scan
- name: 'my_docs'
- git_url: 'https://github.com/myorg/docs.git'
- git_root: '~/code'  // optional, defaults to ~/code
+    name: 'my_docs'
+    git_url: 'https://github.com/myorg/docs.git'
+    git_root: '~/code'  // optional, defaults to ~/code
 ```
 
 The repository will be automatically cloned if it doesn't exist locally.
@@ -354,18 +382,30 @@ After fix (assuming pages are in subdirectories):
 4. **External Links**: HTTP(S), mailto, and anchor links are ignored
 5. **Error Reporting**: Broken links are reported with file, line number, and link details
 
-### Export with Link Validation
+### Export Directory Structure
 
-Links are automatically validated during export:
+When you export an Atlas, the directory structure is organized as:
 
-```v
-a.export(
-    destination: './output'
-    include: true
-)!
+$$\text{export\_dir}/
+\begin{cases}
+\text{content/} \\
+\quad \text{collection\_name/} \\
+\quad \quad \text{page1.md} \\
+\quad \quad \text{page2.md} \\
+\quad \quad \text{img/} & \text{(images)} \\
+\quad \quad \quad \text{logo.png} \\
+\quad \quad \quad \text{banner.jpg} \\
+\quad \quad \text{files/} & \text{(other files)} \\
+\quad \quad \quad \text{data.csv} \\
+\quad \quad \quad \text{document.pdf} \\
+\text{meta/} & \text{(metadata)} \\
+\quad \text{collection\_name.json}
+\end{cases}$$
 
-// Errors are printed for each collection automatically
-```
+- **Pages**: Markdown files directly in collection directory
+- **Images**: Stored in `img/` subdirectory
+- **Files**: Other resources stored in `files/` subdirectory
+- **Metadata**: JSON files in `meta/` directory with collection information
 
 ## Redis Integration
 
@@ -455,53 +495,9 @@ save_path/
 └── collection3.json
 ```
 
-**Note:** Not in the collection directories themselves - saved to a separate location you specify.
-
-### Limitations
-
-- Load-from-JSON functionality is not yet implemented
-- Python loader is planned but not yet available
-- Currently, collections must be rescanned from source files
 ## HeroScript Integration
 
 Atlas integrates with HeroScript, allowing you to define Atlas operations in `.vsh` or playbook files.
-
-### Available Actions
-
-#### `atlas.scan` - Scan Directory for Collections
-
-Scan a directory tree to find and load collections marked with `.collection` files.
-
-```heroscript
-!!atlas.scan
- name: 'main'
- path: './docs'
- git_url: 'https://github.com/org/repo.git'  # optional
- git_root: '~/code'                          # optional, default: ~/code
- meta_path: './metadata'                     # optional, saves metadata here
- ignore: ['private', 'draft']                # optional, directories to skip
-```
-
-**Parameters:**
-- `name` (optional, default: 'main') - Atlas instance name
-- `path` (required when git_url not provided) - Directory path to scan
-- `git_url` (alternative to path) - Git repository URL to clone/checkout
-- `git_root` (optional when using git_url, default: ~/code) - Base directory for cloning
-- `meta_path` (optional) - Directory to save collection metadata JSON
-- `ignore` (optional) - List of directory names to skip during scan
-
-### Real Workflow Example: Scan and Export
-
-```heroscript
-!!atlas.scan
- path: '~/docs/myproject'
- meta_path: '~/docs/metadata'
-
-!!atlas.export
- destination: '~/docs/output'
- include: true
- redis: false
-```
 
 ### Using in V Scripts
 
@@ -515,12 +511,9 @@ import incubaid.herolib.data.atlas
 
 // Define your HeroScript content
 heroscript := "
-!!atlas.scan
- path: './docs'
+!!atlas.scan path: './docs'
 
-!!atlas.export
- destination: './output'
- include: true
+!!atlas.export destination: './output' include: true
 "
 
 // Create playbook from text
@@ -538,14 +531,14 @@ Create a `docs.play` file:
 
 ```heroscript
 !!atlas.scan
- name: 'main'
- path: '~/code/docs'
+    name: 'main'
+    path: '~/code/docs'
 
 !!atlas.export
- destination: '~/code/output'
- reset: true
- include: true
- redis: true
+    destination: '~/code/output'
+    reset: true
+    include: true
+    redis: true
 ```
 
 Execute it:
@@ -607,6 +600,6 @@ The following features are planned but not yet available:
 - [ ] Load collections from `.collection.json` files
 - [ ] Python API for reading collections
 - [ ] `atlas.validate` playbook action
-- [ ] `atlas.fix_links` playbook action  
+- [ ] `atlas.fix_links` playbook action
 - [ ] Auto-save on collection modifications
 - [ ] Collection version control
