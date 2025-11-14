@@ -4,6 +4,7 @@ import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.virt.crun
 import incubaid.herolib.core.logger
+import incubaid.herolib.core
 import os
 import sync
 
@@ -74,6 +75,11 @@ fn obj_init(mycfg_ HeroPods) !HeroPods {
 // initialize performs heavy initialization operations
 // This should be called after obj_init in the factory pattern
 fn (mut self HeroPods) initialize() ! {
+	// Check platform - HeroPods requires Linux
+	if core.is_osx()! {
+		return error('HeroPods requires Linux. It uses Linux-specific tools (ip, iptables, nsenter, crun) that are not available on macOS. Please run HeroPods on a Linux system or use Docker/Podman directly on macOS.')
+	}
+
 	// Create base directories
 	osal.exec(
 		cmd:    'mkdir -p ${self.base_dir}/images ${self.base_dir}/configs ${self.base_dir}/runtime'

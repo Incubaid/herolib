@@ -2,6 +2,20 @@
 
 HeroPods is a lightweight container management system built on crun (OCI runtime), providing Docker-like functionality with bridge networking, automatic IP allocation, and image management via Podman.
 
+## Requirements
+
+**Platform:** Linux only
+
+HeroPods requires Linux-specific tools and will not work on macOS or Windows:
+
+- `crun` (OCI runtime)
+- `ip` (iproute2 package)
+- `iptables` (for NAT)
+- `nsenter` (for network namespace management)
+- `podman` (optional, for image management)
+
+On macOS/Windows, please use Docker or Podman directly instead of HeroPods.
+
 ## Quick Start
 
 ### Basic Usage
@@ -106,9 +120,3 @@ See `examples/virt/heropods/` for more detailed examples:
 - `heropods.vsh` - Complete API demonstration
 - `demo.heroscript` - HeroScript usage
 - `runcommands.vsh` - Simple command execution
-
-## Requirements
-
-- **crun**: OCI container runtime (auto-installed if missing)
-- **podman** (optional): For pulling Docker images
-- **Linux**: Bridge networking requires Linux kernel features

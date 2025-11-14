@@ -86,6 +86,7 @@ fn do() ! {
 
 	base.redis_install()!
 
+	// herocmds.cmd_run(mut cmd)
 	herocmds.cmd_git(mut cmd)
 	herocmds.cmd_generator(mut cmd)
 	herocmds.cmd_docusaurus(mut cmd)
