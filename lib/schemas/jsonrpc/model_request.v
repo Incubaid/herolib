@@ -70,7 +70,7 @@ pub fn decode_request(data string) !Request {
 // Returns:
 //   - A JSON string representation of the Request
 pub fn (req Request) encode() string {
-	return json2.encode(req, prettify: true)
+	return json2.encode(req)
 }
 
 // validate checks if the Request object contains all required fields
