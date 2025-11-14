@@ -56,8 +56,6 @@ fn do() ! {
 		version:     '1.0.36'
 	}
 
-	// herocmds.cmd_run_add_flags(mut cmd)
-
 	mut toinstall := false
 	if !osal.cmd_exists('mc') || !osal.cmd_exists('redis-cli') {
 		toinstall = true
@@ -86,7 +84,7 @@ fn do() ! {
 
 	base.redis_install()!
 
-	// herocmds.cmd_run(mut cmd)
+	herocmds.cmd_run(mut cmd)
 	herocmds.cmd_git(mut cmd)
 	herocmds.cmd_generator(mut cmd)
 	herocmds.cmd_docusaurus(mut cmd)
