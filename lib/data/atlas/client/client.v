@@ -313,7 +313,7 @@ pub fn (mut c AtlasClient) copy_files(collection_name string, page_name string, 
 		}
 		if link.status == .external {
 			continue
-		}		
+		}
 		// println(link)
 		// Get file path and copy
 		file_path := c.get_file_path(link.target_collection_name, link.target_item_name)!
