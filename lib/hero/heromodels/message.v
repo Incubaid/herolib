@@ -239,6 +239,7 @@ pub fn (mut self DBMessages) list(args MessageListArg) ![]Message {
 	return filtered_messages
 }
 
+// is how we implement the openrpc calls
 pub fn message_handle(mut f ModelsFactory, rpcid int, servercontext map[string]string, userref UserRef, method string, params string) !Response {
 	match method {
 		'get' {

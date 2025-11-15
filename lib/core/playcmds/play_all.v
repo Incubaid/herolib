@@ -41,7 +41,6 @@ import incubaid.herolib.installers.virt.docker
 import incubaid.herolib.installers.virt.herorunner
 import incubaid.herolib.installers.virt.kubernetes_installer
 import incubaid.herolib.installers.virt.lima
-import incubaid.herolib.installers.virt.myhypervisor
 import incubaid.herolib.installers.virt.pacman
 import incubaid.herolib.installers.virt.podman
 import incubaid.herolib.installers.virt.youki
@@ -100,7 +99,6 @@ pub fn run_all(args_ PlayArgs) ! {
 	herorunner.play(mut plbook)!
 	kubernetes_installer.play(mut plbook)!
 	lima.play(mut plbook)!
-	myhypervisor.play(mut plbook)!
 	pacman.play(mut plbook)!
 	podman.play(mut plbook)!
 	youki.play(mut plbook)!
