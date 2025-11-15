@@ -46,9 +46,6 @@ jobs:
           cd v
           make
           ./v symlink
-          if [ "${{ runner.os }}" = "macOS" ]; then
-            sudo sed -i '' '618,631d' /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/math.h
-          fi
           cd -
 
           mkdir -p ~/.vmodules/incubaid
@@ -92,7 +89,7 @@ jobs:
             '
 
           else
-          v -w -d use_openssl -enable-globals -gc none -cc tcc cli/hero.v -o cli/hero-${{ matrix.target }}
+          v -w -d use_openssl -enable-globals -cc clang cli/hero.v -o cli/hero-${{ matrix.target }}
           fi
 
       - name: Upload glibc binary
