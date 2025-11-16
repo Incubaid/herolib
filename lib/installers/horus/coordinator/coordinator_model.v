@@ -1,6 +1,5 @@
 module coordinator
 
-import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core.pathlib
@@ -22,9 +21,12 @@ pub mut:
 	repo_path    string = '/root/code/git.ourworld.tf/herocode/horus'
 }
 
-// your checking & initialization code if needed
+// Initialize configuration with defaults if not provided
+// Note: Struct defaults are already set, this ensures runtime overrides work correctly
 fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
 	mut mycfg := mycfg_
+	
+	// Only override if explicitly empty (struct defaults should handle most cases)
 	if mycfg.name == '' {
 		mycfg.name = 'default'
 	}
@@ -46,6 +48,7 @@ fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
 	if mycfg.repo_path == '' {
 		mycfg.repo_path = '/root/code/git.ourworld.tf/herocode/horus'
 	}
+	
 	return mycfg
 }
 

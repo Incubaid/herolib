@@ -2,30 +2,12 @@ module coordinator
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
-import incubaid.herolib.core.texttools
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.osal.startupmanager
 import incubaid.herolib.installers.ulist
 import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.installers.base.redis
 import incubaid.herolib.develop.gittools
-import os
-
-// Helper function to ensure Redis is installed and running
-fn ensure_redis_running() ! {
-	redis_config := redis.RedisInstall{
-		port: 6379
-		datadir: '/var/lib/redis'
-		ipaddr: 'localhost'
-	}
-	
-	if !redis.check(redis_config) {
-		println('Installing and starting Redis...')
-		redis.redis_install(redis_config)!
-	} else {
-		println('Redis is already running')
-	}
-}
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut cfg := get()!
@@ -35,7 +17,6 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 		name: 'coordinator'
 		cmd:  '${cfg.binary_path} --redis-addr ${cfg.redis_addr} --api-http-port ${cfg.http_port} --api-ws-port ${cfg.ws_port}'
 		env:  {
-			'HOME':           os.home_dir()
 			'RUST_LOG':       cfg.log_level
 			'RUST_LOG_STYLE': 'never'
 		}
@@ -51,16 +32,21 @@ fn running() !bool {
 	return res.exit_code == 0
 }
 
+// Lifecycle hooks - can be implemented for custom pre/post actions
 fn start_pre() ! {
+	// Add any pre-start actions here if needed
 }
 
 fn start_post() ! {
+	// Add any post-start actions here if needed
 }
 
 fn stop_pre() ! {
+	// Add any pre-stop actions here if needed
 }
 
 fn stop_post() ! {
+	// Add any post-stop actions here if needed
 }
 
 //////////////////// following actions are not specific to instance of the object
@@ -90,6 +76,22 @@ fn upload() ! {
 	//     cmdname: 'coordinator'
 	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/coordinator'
 	// )!
+}
+
+// Helper function to ensure Redis is installed and running
+fn ensure_redis_running() ! {
+	redis_config := redis.RedisInstall{
+		port: 6379
+		datadir: '/var/lib/redis'
+		ipaddr: 'localhost'
+	}
+	
+	if !redis.check(redis_config) {
+		println('Installing and starting Redis...')
+		redis.redis_install(redis_config)!
+	} else {
+		println('Redis is already running')
+	}
 }
 
 fn install() ! {
@@ -137,6 +139,7 @@ pub fn build() ! {
 	
 	// Clone or get the repository
 	println('Step 3/4: Cloning/updating horus repository...')
+	// Use the configured repo_path or default coderoot
 	mut gs := gittools.new(coderoot: '/root/code')!
 	mut repo := gs.get_repo(
 		url:   'https://git.ourworld.tf/herocode/horus.git'
@@ -167,7 +170,15 @@ pub fn build() ! {
 	source_binary := '${cfg.repo_path}/target/release/coordinator'
 	println('Copying binary from: ${source_binary}')
 	println('Copying binary to: ${cfg.binary_path}')
-	mut source_file := pathlib.get_file(path: source_binary)!
+	
+	// Verify source binary exists before copying
+	mut source_file := pathlib.get_file(path: source_binary) or {
+		return error('Built binary not found at ${source_binary}. Build may have failed.')
+	}
+	if !source_file.exists() {
+		return error('Built binary not found at ${source_binary}. Build may have failed.')
+	}
+	
 	source_file.copy(dest: cfg.binary_path, rsync: false)!
 	
 	println('\nCoordinator built successfully!')
