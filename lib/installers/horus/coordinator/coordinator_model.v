@@ -15,6 +15,7 @@ pub mut:
 	name         string = 'default'
 	binary_path  string = '/hero/var/bin/coordinator'
 	redis_addr   string = '127.0.0.1:6379'
+	redis_port   int    = 6379
 	http_port    int    = 8081
 	ws_port      int    = 9653
 	log_level    string = 'info'
@@ -35,6 +36,9 @@ fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
 	}
 	if mycfg.redis_addr == '' {
 		mycfg.redis_addr = '127.0.0.1:6379'
+	}
+	if mycfg.redis_port == 0 {
+		mycfg.redis_port = 6379
 	}
 	if mycfg.http_port == 0 {
 		mycfg.http_port = 8081

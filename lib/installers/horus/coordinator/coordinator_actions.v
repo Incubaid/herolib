@@ -8,6 +8,7 @@ import incubaid.herolib.installers.ulist
 import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.installers.base.redis
 import incubaid.herolib.develop.gittools
+import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut cfg := get()!
@@ -17,6 +18,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 		name: 'coordinator'
 		cmd:  '${cfg.binary_path} --redis-addr ${cfg.redis_addr} --api-http-port ${cfg.http_port} --api-ws-port ${cfg.ws_port}'
 		env:  {
+			'HOME':           os.home_dir()
 			'RUST_LOG':       cfg.log_level
 			'RUST_LOG_STYLE': 'never'
 		}
@@ -79,18 +81,26 @@ fn upload() ! {
 }
 
 // Helper function to ensure Redis is installed and running
-fn ensure_redis_running() ! {
+@[params]
+struct EnsureRedisArgs {
+pub mut:
+	redis_port int    = 6379
+	redis_addr string = 'localhost'
+	datadir    string = '/var/lib/redis'
+}
+
+fn ensure_redis_running(args EnsureRedisArgs) ! {
 	redis_config := redis.RedisInstall{
-		port: 6379
-		datadir: '/var/lib/redis'
-		ipaddr: 'localhost'
+		port: args.redis_port
+		datadir: args.datadir
+		ipaddr: args.redis_addr
 	}
 	
 	if !redis.check(redis_config) {
-		println('Installing and starting Redis...')
+		println('Installing and starting Redis on ${args.redis_addr}:${args.redis_port}...')
 		redis.redis_install(redis_config)!
 	} else {
-		println('Redis is already running')
+		println('Redis is already running on ${args.redis_addr}:${args.redis_port}')
 	}
 }
 
@@ -122,7 +132,10 @@ pub fn build() ! {
 	
 	// Ensure Redis is installed and running (required for coordinator)
 	println('Step 1/4: Checking Redis dependency...')
-	ensure_redis_running()!
+	// Parse redis_addr to extract host
+	parts := cfg.redis_addr.split(':')
+	redis_host := if parts.len > 0 { parts[0] } else { 'localhost' }
+	ensure_redis_running(redis_port: cfg.redis_port, redis_addr: redis_host)!
 	println('Redis is ready\n')
 	
 	// Ensure rust is installed
