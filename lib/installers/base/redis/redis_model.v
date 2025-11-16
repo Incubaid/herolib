@@ -17,7 +17,7 @@ pub struct RedisInstall {
 pub mut:
 	name    string = 'default'
 	port    int    = 6379
-	datadir string = '${os.home_dir()}/hero/var/redis'
+	datadir string = '/var/lib/redis'
 	ipaddr  string = 'localhost' // can be more than 1, space separated
 }
 
@@ -31,7 +31,7 @@ fn obj_init(mycfg_ RedisInstall) !RedisInstall {
 		mycfg.port = 6379
 	}
 	if mycfg.datadir == '' {
-		mycfg.datadir = '${os.home_dir()}/hero/var/redis'
+		mycfg.datadir = '/var/lib/redis'
 	}
 	if mycfg.ipaddr == '' {
 		mycfg.ipaddr = 'localhost'
@@ -47,11 +47,17 @@ fn configfilepath(args RedisInstall) string {
 	}
 }
 
-// called before start if done
+// Configure with args passed directly (like old installer)
+fn configure_with_args(args RedisInstall) ! {
+	// Use V's template macro like the old installer
+	c := $tmpl('templates/redis_config.conf')
+	pathlib.template_write(c, configfilepath(args), true)!
+}
+
+// called before start if done (uses factory)
 fn configure() ! {
 	mut args := get()!
-	c := $tmpl('../templates/redis_config.conf')
-	pathlib.template_write(c, configfilepath(args), true)!
+	configure_with_args(args)!
 }
 
 /////////////NORMALLY NO NEED TO TOUCH
