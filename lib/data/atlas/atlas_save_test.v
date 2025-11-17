@@ -188,7 +188,7 @@ fn test_save_and_load_with_images() {
 
 	col := a.get_collection('docs')!
 	// assert col.images.len == 1
-	assert col.image_exists('test')
+	assert col.image_exists('test')!
 
 	// // Save
 	// a.save(destination_meta: '/tmp/atlas_meta')!
@@ -199,9 +199,9 @@ fn test_save_and_load_with_images() {
 
 	// loaded_col := a2.get_collection('docs')!
 	// assert loaded_col.images.len == 1
-	// assert loaded_col.image_exists('test')
+	// assert loaded_col.image_exists('test')!
 
 	img_file := col.image_get('test')!
-	assert img_file.file_name() == 'test.png'
+	assert img_file.name == 'test.png'
 	assert img_file.is_image()
 }
