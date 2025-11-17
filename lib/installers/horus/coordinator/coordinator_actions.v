@@ -6,7 +6,6 @@ import incubaid.herolib.core.pathlib
 import incubaid.herolib.osal.startupmanager
 import incubaid.herolib.installers.ulist
 import incubaid.herolib.installers.lang.rust
-import incubaid.herolib.installers.base.redis
 import incubaid.herolib.develop.gittools
 import os
 
@@ -80,30 +79,6 @@ fn upload() ! {
 	// )!
 }
 
-// Helper function to ensure Redis is installed and running
-@[params]
-struct EnsureRedisArgs {
-pub mut:
-	redis_port int    = 6379
-	redis_addr string = 'localhost'
-	datadir    string = '/var/lib/redis'
-}
-
-fn ensure_redis_running(args EnsureRedisArgs) ! {
-	redis_config := redis.RedisInstall{
-		port: args.redis_port
-		datadir: args.datadir
-		ipaddr: args.redis_addr
-	}
-	
-	if !redis.check(redis_config) {
-		println('Installing and starting Redis on ${args.redis_addr}:${args.redis_port}...')
-		redis.redis_install(redis_config)!
-	} else {
-		println('Redis is already running on ${args.redis_addr}:${args.redis_port}')
-	}
-}
-
 fn install() ! {
 	console.print_header('install coordinator')
 	// For coordinator, we build from source instead of downloading
@@ -130,28 +105,20 @@ pub fn build() ! {
 	println('   - HTTP port: ${cfg.http_port}')
 	println('   - WS port: ${cfg.ws_port}\n')
 	
-	// Ensure Redis is installed and running (required for coordinator)
-	println('Step 1/4: Checking Redis dependency...')
-	// Parse redis_addr to extract host
-	parts := cfg.redis_addr.split(':')
-	redis_host := if parts.len > 0 { parts[0] } else { 'localhost' }
-	ensure_redis_running(redis_port: cfg.redis_port, redis_addr: redis_host)!
-	println('Redis is ready\n')
-	
 	// Ensure rust is installed
-	println('Step 2/4: Checking Rust dependency...')
-	mut rust_installer := rust.get()!
-	res := osal.exec(cmd: 'rustc -V', stdout: false, raise_error: false)!
-	if res.exit_code != 0 {
-		println('Installing Rust...')
+	println('Step 1/3: Checking Rust dependency...')
+	if !osal.cmd_exists('rustc') {
+		println('Rust not found, installing...')
+		mut rust_installer := rust.get()!
 		rust_installer.install()!
-		println('Rust installed\n')
+		println('Rust installed successfully\n')
 	} else {
+		res := osal.exec(cmd: 'rustc --version', stdout: false, raise_error: false)!
 		println('Rust is already installed: ${res.output.trim_space()}\n')
 	}
 	
 	// Clone or get the repository
-	println('Step 3/4: Cloning/updating horus repository...')
+	println('Step 2/3: Cloning/updating horus repository...')
 	// Use the configured repo_path or default coderoot
 	mut gs := gittools.new(coderoot: '/root/code')!
 	mut repo := gs.get_repo(
@@ -165,7 +132,7 @@ pub fn build() ! {
 	println('Repository ready at: ${cfg.repo_path}\n')
 	
 	// Build the coordinator binary from the horus workspace
-	println('Step 4/4: Building coordinator binary...')
+	println('Step 3/3: Building coordinator binary...')
 	println('WARNING: This may take several minutes (compiling Rust code)...')
 	println('Running: cargo build -p hero-coordinator --release\n')
 	

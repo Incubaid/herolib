@@ -58,12 +58,30 @@ coordinator.start()!
 
 ### Install
 Builds the coordinator binary from the horus workspace. This will:
-1. Install and start Redis if not present
-2. Install Rust if not present
-3. Clone the horus repository from git.ourworld.tf
-4. Build the coordinator binary with `cargo build -p hero-coordinator --release`
+1. Check if Rust is installed (installs if not present)
+2. Clone the horus repository from git.ourworld.tf
+3. Build the coordinator binary with `cargo build -p hero-coordinator --release`
+
+**Note**: The installer skips the build if the binary already exists at the configured path.
 
 ```bash
+hero coordinator.install
+```
+
+### Force Reinstall
+To force a rebuild even if the binary already exists, use the `reset` flag:
+
+```v
+import incubaid.herolib.installers.horus.coordinator as coordinator_installer
+
+mut coordinator := coordinator_installer.get()!
+coordinator.install(reset: true)!  // Force reinstall
+```
+
+Or manually delete the binary before running install:
+
+```bash
+rm /hero/var/bin/coordinator
 hero coordinator.install
 ```
 
@@ -98,9 +116,9 @@ hero coordinator.destroy
 ## Requirements
 
 - **Dependencies**: 
-  - Rust toolchain (automatically installed)
+  - Rust toolchain (automatically installed if not present)
   - Git (for cloning repository)
-  - Redis (automatically installed and started)
+  - Redis (must be pre-installed and running)
   - Mycelium (must be installed and running separately)
 
 ## Architecture
@@ -114,8 +132,9 @@ The installer follows the standard herolib installer pattern:
 ## Notes
 
 - The installer builds from source rather than downloading pre-built binaries
-- Mycelium is expected to be already installed and running in the environment
-- Redis is automatically installed and started if not already running
+- **Redis must be pre-installed and running** - the installer does not install Redis
+- The installer checks if the binary already exists and skips rebuild unless `reset: true` is used
+- Rust is automatically installed if not present (checks for `rustc` command)
 - The binary is built with `RUSTFLAGS="-A warnings"` to suppress warnings
 - Service management uses zinit by default
 

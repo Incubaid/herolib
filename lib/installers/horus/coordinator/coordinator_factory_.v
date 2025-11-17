@@ -39,12 +39,10 @@ pub fn new(args ArgsGet) !&CoordinatorServer {
 		repo_path:   args.repo_path
 	}
 	
-	// Try to set in Redis, if it fails (Redis not available), build first
+	// Try to set in Redis, if it fails (Redis not available), use in-memory config
 	set(obj) or {
-		console.print_header('Redis not available, installing dependencies first...')
-		build()!  // build() now handles both factory and non-factory cases
-		// Now try again with Redis available
-		set(obj)!
+		console.print_debug('Redis not available, using in-memory configuration')
+		set_in_mem(obj)!
 	}
 	
 	return get(name: args.name)!
