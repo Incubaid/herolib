@@ -38,7 +38,13 @@ pub fn new(args ArgsGet) !&CoordinatorServer {
 		log_level:   args.log_level
 		repo_path:   args.repo_path
 	}
-	set(obj)!
+	
+	// Try to set in Redis, if it fails (Redis not available), use in-memory config
+	set(obj) or {
+		console.print_debug('Redis not available, using in-memory configuration')
+		set_in_mem(obj)!
+	}
+	
 	return get(name: args.name)!
 }
 

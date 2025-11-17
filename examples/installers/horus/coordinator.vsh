@@ -4,25 +4,30 @@ import incubaid.herolib.installers.horus.coordinator
 
 // Example usage of coordinator installer
 // This will:
-// 1. Check and install Redis if not running (required dependency)
-// 2. Install Rust if not already installed
-// 3. Clone the horus repository
-// 4. Build the coordinator binary
+// 1. Check if Rust is installed (installs if not present)
+// 2. Clone the horus repository
+// 3. Build the coordinator binary
+//
+// Note: Redis must be pre-installed and running before using the coordinator
 
 println('Building coordinator from horus repository...')
-println('(This will install Redis and Rust if not already installed)\n')
+println('(This will install Rust if not already installed)\n')
 
-// Create coordinator instance - will auto-install Redis if needed
+// Create coordinator instance
 mut coord := coordinator.new()!
 
 // Build and install
+// Note: This will skip the build if the binary already exists
 coord.install()!
+
+// To force a rebuild even if binary exists, use:
+// coord.install(reset: true)!
 
 println('\nCoordinator built and installed successfully!')
 println('Binary location: ${coord.binary_path}')
 
 // Note: To start the service, uncomment the lines below
-// (requires proper zinit or screen session setup)
+// (requires proper zinit or screen session setup and Redis running)
 // coord.start()!
 // if coord.running()! {
 // 	println('Coordinator is running!')

@@ -95,46 +95,22 @@ pub fn build_coordinator() ! {
 	println('   - HTTP port: ${cfg.http_port}')
 	println('   - WS port: ${cfg.ws_port}\n')
 	
-	// Ensure Redis is installed and running (required for coordinator)
-	println('🔍 Step 1/4: Checking Redis dependency...')
-	
-	// First check if redis-server is installed
-	if !osal.cmd_exists_profile('redis-server') {
-		println('⚠️  Redis is not installed')
-		println('📥 Installing Redis...')
-		osal.package_install('redis-server')!
-		println('✅ Redis installed')
-	} else {
-		println('✅ Redis is already installed')
-	}
-	
-	// Now check if it's running
-	println('🔍 Checking if Redis is running...')
-	redis_check := osal.exec(cmd: 'redis-cli -c -p 6379 ping', stdout: false, raise_error: false)!
-	if redis_check.exit_code != 0 {
-		println('⚠️  Redis is not running')
-		println('🚀 Starting Redis...')
-		osal.exec(cmd: 'systemctl start redis-server')!
-		println('✅ Redis started successfully\n')
-	} else {
-		println('✅ Redis is already running\n')
-	}
-	
 	// Ensure rust is installed
-	println('🔍 Step 2/4: Checking Rust dependency...')
-	mut rust_installer := rust.get()!
-	res := osal.exec(cmd: 'rustc -V', stdout: false, raise_error: false)!
-	if res.exit_code != 0 {
-		println('📥 Installing Rust...')
+	println('Step 1/3: Checking Rust dependency...')
+	if !osal.cmd_exists('rustc') {
+		println('Rust not found, installing...')
+		mut rust_installer := rust.get()!
 		rust_installer.install()!
-		println('✅ Rust installed\n')
+		println('Rust installed successfully\n')
 	} else {
-		println('✅ Rust is already installed: ${res.output.trim_space()}\n')
+		res := osal.exec(cmd: 'rustc --version', stdout: false, raise_error: false)!
+		println('Rust is already installed: ${res.output.trim_space()}\n')
 	}
 	
 	// Clone or get the repository
-	println('🔍 Step 3/4: Cloning/updating horus repository...')
-	mut gs := gittools.new()!
+	println('Step 2/3: Cloning/updating horus repository...')
+	// Use the configured repo_path or default coderoot
+	mut gs := gittools.new(coderoot: '/root/code')!
 	mut repo := gs.get_repo(
 		url:   'https://git.ourworld.tf/herocode/horus.git'
 		pull:  true
@@ -146,9 +122,9 @@ pub fn build_coordinator() ! {
 	println('✅ Repository ready at: ${cfg.repo_path}\n')
 	
 	// Build the coordinator binary from the horus workspace
-	println('🔍 Step 4/4: Building coordinator binary...')
-	println('⚠️  This may take several minutes (compiling Rust code)...')
-	println('📝 Running: cargo build -p hero-coordinator --release\n')
+	println('Step 3/3: Building coordinator binary...')
+	println('WARNING: This may take several minutes (compiling Rust code)...')
+	println('Running: cargo build -p hero-coordinator --release\n')
 	
 	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-coordinator --release'
 	osal.execute_stdout(cmd)!
