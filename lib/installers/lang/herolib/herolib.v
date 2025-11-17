@@ -101,7 +101,7 @@ pub fn compile(args InstallArgs) ! {
 	cmd := "
 		cd /tmp
 		export TERM=xterm
-		curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+		curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_v.sh' > /tmp/install_v.sh
 		bash /tmp/install_v.sh --herolib 
 		"
 	osal.execute_stdout(cmd) or { return error('Cannot install hero.\n${err}') }

@@ -1,7 +1,0 @@
-#!/usr/bin/env -S v -w -n -enable-globals run
-import @{name_snake}
-
-@{name_snake}.run_http_server(
-    base_url: 'http://localhost:@{port}'
-    port: @{port}
-)!
