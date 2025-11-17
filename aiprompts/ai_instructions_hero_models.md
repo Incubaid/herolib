@@ -2,11 +2,12 @@
 
 ## Overview
 
-This document provides clear instructions for AI agents to create new HeroDB models similar to `message.v`. These models are used to store structured data in Redis using the HeroDB system.
+This document provides clear instructions for AI agents to create new HeroDB models similar to `message.v`. 
+These models are used to store structured data in Redis using the HeroDB system.
+The message.v can be found in `lib/hero/heromodels/message.v`.s
 
 ## Key Concepts
 
-- Each model represents a data type stored in Redis hash sets
 - Models must implement serialization/deserialization using the `encoder` module
 - Models inherit from the `Base` struct which provides common fields
 - The database uses a factory pattern for model access

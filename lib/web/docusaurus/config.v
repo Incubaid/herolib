@@ -18,8 +18,8 @@ pub mut:
 	template_update bool
 	coderoot        string
 	// Client configuration
-	use_atlas       bool   // true = atlas_client, false = doctreeclient
-	atlas_dir       string // Required when use_atlas = true
+	use_atlas bool   // true = atlas_client, false = doctreeclient
+	atlas_dir string // Required when use_atlas = true
 }
 
 @[params]
@@ -32,8 +32,8 @@ pub mut:
 	template_update bool
 	coderoot        string
 	// Client configuration
-	use_atlas       bool   // true = atlas_client, false = doctreeclient
-	atlas_dir       string // Required when use_atlas = true
+	use_atlas bool   // true = atlas_client, false = doctreeclient
+	atlas_dir string // Required when use_atlas = true
 }
 
 // return the last know config
