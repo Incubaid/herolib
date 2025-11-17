@@ -1,10 +1,10 @@
-module coordinator
+module herorunner
 
-import os
 import incubaid.herolib.data.paramsparser
 import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core.pathlib
+import os
 
 const version = '0.1.0'
 const singleton = true
@@ -12,40 +12,28 @@ const default = true
 
 // THIS THE THE SOURCE OF THE INFORMATION OF THIS FILE, HERE WE HAVE THE CONFIG OBJECT CONFIGURED AND MODELLED
 @[heap]
-pub struct CoordinatorServer {
+pub struct HerorunnerServer {
 pub mut:
 	name         string = 'default'
-	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/coordinator')
+	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/herorunner')
 	redis_addr   string = '127.0.0.1:6379'
-	http_port    int    = 8081
-	ws_port      int    = 9653
 	log_level    string = 'info'
-	repo_path    string = '/root/code/git.ourworld.tf/herocode/horus'
 }
 
 // your checking & initialization code if needed
-fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
+fn obj_init(mycfg_ HerorunnerServer) !HerorunnerServer {
 	mut mycfg := mycfg_
 	if mycfg.name == '' {
 		mycfg.name = 'default'
 	}
 	if mycfg.binary_path == '' {
-		mycfg.binary_path = os.join_path(os.home_dir(),'hero/bin/coordinator')
+		mycfg.binary_path = os.join_path(os.home_dir(), 'hero/bin/herorunner')
 	}
 	if mycfg.redis_addr == '' {
 		mycfg.redis_addr = '127.0.0.1:6379'
 	}
-	if mycfg.http_port == 0 {
-		mycfg.http_port = 8081
-	}
-	if mycfg.ws_port == 0 {
-		mycfg.ws_port = 9653
-	}
 	if mycfg.log_level == '' {
 		mycfg.log_level = 'info'
-	}
-	if mycfg.repo_path == '' {
-		mycfg.repo_path = '/root/code/git.ourworld.tf/herocode/horus'
 	}
 	return mycfg
 }
@@ -60,11 +48,11 @@ fn configure() ! {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_dumps(obj CoordinatorServer) !string {
-	return encoderhero.encode[CoordinatorServer](obj)!
+pub fn heroscript_dumps(obj HerorunnerServer) !string {
+	return encoderhero.encode[HerorunnerServer](obj)!
 }
 
-pub fn heroscript_loads(heroscript string) !CoordinatorServer {
-	mut obj := encoderhero.decode[CoordinatorServer](heroscript)!
+pub fn heroscript_loads(heroscript string) !HerorunnerServer {
+	mut obj := encoderhero.decode[HerorunnerServer](heroscript)!
 	return obj
 }

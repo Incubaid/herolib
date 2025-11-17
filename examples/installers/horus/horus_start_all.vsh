@@ -1,0 +1,76 @@
+#!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
+
+import incubaid.herolib.installers.horus.coordinator
+import incubaid.herolib.installers.horus.supervisor
+import incubaid.herolib.installers.horus.herorunner
+import incubaid.herolib.installers.horus.osirisrunner
+import incubaid.herolib.installers.horus.salrunner
+import time
+
+// Start All Horus Services
+// This script starts all Horus components in the correct order
+
+println('🚀 Starting All Horus Services')
+
+// Step 1: Start Coordinator
+println('\n▶️  Step 1/5: Starting Coordinator...')
+mut coordinator_installer := coordinator.get()!
+coordinator_installer.start()!
+if coordinator_installer.running()! {
+	println('✅ Coordinator is running on HTTP:${coordinator_installer.http_port} WS:${coordinator_installer.ws_port}')
+} else {
+	println('❌ Coordinator failed to start')
+}
+
+// Step 2: Start Supervisor
+println('\n▶️  Step 2/5: Starting Supervisor...')
+mut supervisor_inst := supervisor.get()!
+supervisor_inst.start()!
+if supervisor_inst.running()! {
+	println('✅ Supervisor is running on HTTP:${supervisor_inst.http_port} WS:${supervisor_inst.ws_port}')
+} else {
+	println('❌ Supervisor failed to start')
+}
+
+// Step 3: Start Hero Runner
+println('\n▶️  Step 3/5: Starting Hero Runner...')
+mut hero_runner := herorunner.get()!
+hero_runner.start()!
+if hero_runner.running()! {
+	println('✅ Hero Runner is running')
+} else {
+	println('❌ Hero Runner failed to start')
+}
+
+// Step 4: Start Osiris Runner
+println('\n▶️  Step 4/5: Starting Osiris Runner...')
+mut osiris_runner := osirisrunner.get()!
+osiris_runner.start()!
+if osiris_runner.running()! {
+	println('✅ Osiris Runner is running')
+} else {
+	println('❌ Osiris Runner failed to start')
+}
+
+// Step 5: Start SAL Runner
+println('\n▶️  Step 5/5: Starting SAL Runner...')
+mut sal_runner := salrunner.get()!
+sal_runner.start()!
+if sal_runner.running()! {
+	println('✅ SAL Runner is running')
+} else {
+	println('❌ SAL Runner failed to start')
+}
+
+println('🎉 All Horus services started!')
+
+println('\n📊 Service Status:')
+println('  • Coordinator: ${if coordinator_installer.running()! { "✅ Running" } else { "❌ Stopped" }} (http://127.0.0.1:${coordinator_installer.http_port})')
+println('  • Supervisor:  ${if supervisor_inst.running()! { "✅ Running" } else { "❌ Stopped" }} (http://127.0.0.1:${supervisor_inst.http_port})')
+println('  • Hero Runner: ${if hero_runner.running()! { "✅ Running" } else { "❌ Stopped" }}')
+println('  • Osiris Runner: ${if osiris_runner.running()! { "✅ Running" } else { "❌ Stopped" }}')
+println('  • SAL Runner: ${if sal_runner.running()! { "✅ Running" } else { "❌ Stopped" }}')
+
+println('\n💡 Next Steps:')
+println('  To stop services, run: ./horus_stop_all.vsh')
+println('  To check status, run: ./horus_status.vsh')

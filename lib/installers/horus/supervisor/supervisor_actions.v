@@ -1,4 +1,4 @@
-module coordinator
+module supervisor
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
@@ -15,7 +15,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 	
 	res << startupmanager.ZProcessNewArgs{
-		name: 'coordinator'
+		name: 'supervisor'
 		cmd:  '${cfg.binary_path} --redis-addr ${cfg.redis_addr} --api-http-port ${cfg.http_port} --api-ws-port ${cfg.ws_port}'
 		env:  {
 			'HOME':           os.home_dir()
@@ -70,32 +70,32 @@ fn ulist_get() !ulist.UList {
 // uploads to S3 server if configured
 fn upload() ! {
 	// installers.upload(
-	//     cmdname: 'coordinator'
-	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/coordinator'
+	//     cmdname: 'supervisor'
+	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/supervisor'
 	// )!
 }
 
 fn install() ! {
-	console.print_header('install coordinator')
-	// For coordinator, we build from source instead of downloading
+	console.print_header('install supervisor')
+	// For supervisor, we build from source instead of downloading
 	build()!
 }
 
-// Public function to build coordinator without requiring factory/redis
-pub fn build_coordinator() ! {
-	console.print_header('build coordinator')
-	println('📦 Starting coordinator build process...\n')
+// Public function to build supervisor without requiring factory/redis
+pub fn build_supervisor() ! {
+	console.print_header('build supervisor')
+	println('📦 Starting supervisor build process...\n')
 	
 	// Use default config instead of getting from factory
 	println('⚙️  Initializing configuration...')
-	mut cfg := CoordinatorServer{}
+	mut cfg := SupervisorServer{}
 	println('✅ Configuration initialized')
 	println('   - Binary path: ${cfg.binary_path}')
 	println('   - Redis address: ${cfg.redis_addr}')
 	println('   - HTTP port: ${cfg.http_port}')
 	println('   - WS port: ${cfg.ws_port}\n')
 	
-	// Ensure Redis is installed and running (required for coordinator)
+	// Ensure Redis is installed and running (required for supervisor)
 	println('🔍 Step 1/4: Checking Redis dependency...')
 	
 	// First check if redis-server is installed
@@ -145,12 +145,12 @@ pub fn build_coordinator() ! {
 	cfg.repo_path = repo.path()
 	println('✅ Repository ready at: ${cfg.repo_path}\n')
 	
-	// Build the coordinator binary from the horus workspace
-	println('🔍 Step 4/4: Building coordinator binary...')
+	// Build the supervisor binary from the horus workspace
+	println('🔍 Step 4/4: Building supervisor binary...')
 	println('⚠️  This may take several minutes (compiling Rust code)...')
-	println('📝 Running: cargo build -p hero-coordinator --release\n')
+	println('📝 Running: cargo build -p hero-supervisor --release\n')
 	
-	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-coordinator --release'
+	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-supervisor --release'
 	osal.execute_stdout(cmd)!
 	
 	println('\n✅ Build completed successfully')
@@ -161,22 +161,22 @@ pub fn build_coordinator() ! {
 	osal.dir_ensure(binary_path_obj.path_dir())!
 	
 	// Copy the built binary to the configured location
-	source_binary := '${cfg.repo_path}/target/release/coordinator'
+	source_binary := '${cfg.repo_path}/target/release/supervisor'
 	println('📋 Copying binary from: ${source_binary}')
 	println('📋 Copying binary to: ${cfg.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
 	source_file.copy(dest: cfg.binary_path, rsync: false)!
 	
-	println('\n🎉 Coordinator built successfully!')
+	println('\n🎉 Supervisor built successfully!')
 	println('📍 Binary location: ${cfg.binary_path}')
 }
 
 fn build() ! {
-	console.print_header('build coordinator')
+	console.print_header('build supervisor')
 	
 	mut cfg := get()!
 	
-	// Ensure Redis is installed and running (required for coordinator)
+	// Ensure Redis is installed and running (required for supervisor)
 	console.print_debug('Checking if Redis is installed and running...')
 	redis_check := osal.exec(cmd: 'redis-cli -c -p 6379 ping', stdout: false, raise_error: false)!
 	if redis_check.exit_code != 0 {
@@ -217,36 +217,36 @@ fn build() ! {
 	set(cfg)!
 	console.print_debug('Repository path: ${cfg.repo_path}')
 	
-	// Build the coordinator binary from the horus workspace
-	console.print_header('Building coordinator binary (this may take several minutes ${cfg.repo_path})...')
-	console.print_debug('Running: cargo build -p hero-coordinator --release')
+	// Build the supervisor binary from the horus workspace
+	console.print_header('Building supervisor binary (this may take several minutes)...')
+	console.print_debug('Running: cargo build -p hero-supervisor --release')
 	console.print_debug('Build output:')
 	
-	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-coordinator --release'
+	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-supervisor --release'
 	osal.execute_stdout(cmd)!
 	
 	console.print_debug('Build completed successfully')
 	
 	// Ensure binary directory exists and copy the binary
-	console.print_header('Preparing binary directory: ${cfg.binary_path}')
+	console.print_debug('Preparing binary directory: ${cfg.binary_path}')
 	mut binary_path_obj := pathlib.get(cfg.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
 	
 	// Copy the built binary to the configured location
-	source_binary := '${cfg.repo_path}/target/release/coordinator'
+	source_binary := '${cfg.repo_path}/target/release/supervisor'
 	console.print_debug('Copying binary from: ${source_binary}')
 	console.print_debug('Copying binary to: ${cfg.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
 	source_file.copy(dest: cfg.binary_path, rsync: false)!
 	
-	console.print_header('coordinator built successfully at ${cfg.binary_path}')
+	console.print_header('supervisor built successfully at ${cfg.binary_path}')
 }
 
 fn destroy() ! {
 	mut server := get()!
 	server.stop()!
 	
-	osal.process_kill_recursive(name: 'coordinator')!
+	osal.process_kill_recursive(name: 'supervisor')!
 	
 	// Remove the built binary
 	osal.rm(server.binary_path)!

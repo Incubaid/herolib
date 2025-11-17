@@ -29,7 +29,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 			start:       true
 		}
 	}
-	osal.dir_ensure(os.home_dir() + '/hero/cfg/zinit')!
+	osal.dir_ensure(os.join_path(os.home_dir(), 'hero/cfg/zinit'))!
 	return res
 }
 

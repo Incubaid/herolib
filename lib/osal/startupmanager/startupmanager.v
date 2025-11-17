@@ -16,19 +16,34 @@ pub fn get(cat StartupManagerType) !StartupManager {
 	mut sm := StartupManager{
 		cat: cat
 	}
-	if sm.cat == .auto {
-		// Try to get a ZinitRPC client and check if it can discover RPC methods.
-		// This implies the zinit daemon is running and accessible via its socket.
-		mut zinit_client_test := zinit.get(create: true)! // 'create:true' ensures a client object is initiated even if the socket isn't active.
-		if _ := zinit_client_test.rpc_discover() {
-			sm.cat = .zinit
-		} else {
-			sm.cat = .screen
+	match sm.cat {
+		.zinit {
+			mut zinit_client_test := zinit.get()! // 'create:true' ensures a client object is initiated even if the socket isn't active.
+			if _ := zinit_client_test.rpc_discover() {
+				sm.cat = .zinit
+			} else {
+				return error('zinit not found ${err}')
+			}
+
 		}
-	}
-	if sm.cat == .unknown {
-		print_backtrace()
-		return error("can't determine startup manager type, need to be a known one.")
+		.auto {
+			// Try to get a ZinitRPC client and check if it can discover RPC methods.
+			// This implies the zinit daemon is running and accessible via its socket.
+			// Since it's auto doesn't insist and die if it can't find zinit.
+			mut zinit_client_test := zinit.get(create: true)! // 'create:true' ensures a client object is initiated even if the socket isn't active.
+			if _ := zinit_client_test.rpc_discover() {
+				sm.cat = .zinit
+			} else {
+				sm.cat = .screen
+			}
+		} 
+		.unknown {
+			print_backtrace()
+			return error("can't determine startup manager type, need to be a known one.")
+		}
+		else {
+			return sm
+		}
 	}
 	return sm
 }

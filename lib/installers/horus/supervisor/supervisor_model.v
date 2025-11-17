@@ -1,4 +1,4 @@
-module coordinator
+module supervisor
 
 import os
 import incubaid.herolib.data.paramsparser
@@ -12,34 +12,34 @@ const default = true
 
 // THIS THE THE SOURCE OF THE INFORMATION OF THIS FILE, HERE WE HAVE THE CONFIG OBJECT CONFIGURED AND MODELLED
 @[heap]
-pub struct CoordinatorServer {
+pub struct SupervisorServer {
 pub mut:
 	name         string = 'default'
-	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/coordinator')
+	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/supervisor')
 	redis_addr   string = '127.0.0.1:6379'
-	http_port    int    = 8081
-	ws_port      int    = 9653
+	http_port    int    = 8082
+	ws_port      int    = 9654
 	log_level    string = 'info'
 	repo_path    string = '/root/code/git.ourworld.tf/herocode/horus'
 }
 
 // your checking & initialization code if needed
-fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
+fn obj_init(mycfg_ SupervisorServer) !SupervisorServer {
 	mut mycfg := mycfg_
 	if mycfg.name == '' {
 		mycfg.name = 'default'
 	}
 	if mycfg.binary_path == '' {
-		mycfg.binary_path = os.join_path(os.home_dir(),'hero/bin/coordinator')
+		mycfg.binary_path = os.join_path(os.home_dir(), 'hero/bin/supervisor')
 	}
 	if mycfg.redis_addr == '' {
 		mycfg.redis_addr = '127.0.0.1:6379'
 	}
 	if mycfg.http_port == 0 {
-		mycfg.http_port = 8081
+		mycfg.http_port = 8082
 	}
 	if mycfg.ws_port == 0 {
-		mycfg.ws_port = 9653
+		mycfg.ws_port = 9654
 	}
 	if mycfg.log_level == '' {
 		mycfg.log_level = 'info'
@@ -60,11 +60,11 @@ fn configure() ! {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_dumps(obj CoordinatorServer) !string {
-	return encoderhero.encode[CoordinatorServer](obj)!
+pub fn heroscript_dumps(obj SupervisorServer) !string {
+	return encoderhero.encode[SupervisorServer](obj)!
 }
 
-pub fn heroscript_loads(heroscript string) !CoordinatorServer {
-	mut obj := encoderhero.decode[CoordinatorServer](heroscript)!
+pub fn heroscript_loads(heroscript string) !SupervisorServer {
+	mut obj := encoderhero.decode[SupervisorServer](heroscript)!
 	return obj
 }
