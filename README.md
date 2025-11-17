@@ -14,7 +14,7 @@ Herolib is an opinionated library primarily used by ThreeFold to automate cloud 
 The Hero tool can be installed with a single command:
 
 ```bash
-curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_hero.sh | bash
+curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_hero.sh | bash
 ```
 
 Hero will be installed in:
