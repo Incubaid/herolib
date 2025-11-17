@@ -1,6 +1,6 @@
-# Herocoordinator Installer
+# Coordinator Installer
 
-A V language installer module for building and managing the Herocoordinator service. This installer handles the complete lifecycle of the Herocoordinator binary from the Horus workspace.
+A V language installer module for building and managing the Coordinator service. This installer handles the complete lifecycle of the Coordinator binary from the Horus workspace.
 
 ## Features
 
@@ -15,27 +15,28 @@ A V language installer module for building and managing the Herocoordinator serv
 ### Using the Example Script
 
 ```bash
-cd /root/code/github/incubaid/herolib/examples/installers/infra
-./herocoordinator.vsh
+cd /root/code/github/incubaid/herolib/examples/installers/horus
+./coordinator.vsh
 ```
 
 ### Manual Usage
 
 ```v
-import incubaid.herolib.installers.infra.herocoordinator as herocoordinator_installer
+import incubaid.herolib.installers.horus.coordinator as coordinator_installer
 
-mut herocoordinator := herocoordinator_installer.get()!
-herocoordinator.install()!
-herocoordinator.start()!
+mut coordinator := coordinator_installer.get()!
+coordinator.install()!
+coordinator.start()!
 ```
 
 ## Configuration
 
 ```bash
-!!herocoordinator.configure
+!!coordinator.configure
     name:'default'
     binary_path:'/hero/var/bin/coordinator'
     redis_addr:'127.0.0.1:6379'
+    redis_port:6379
     http_port:8081
     ws_port:9653
     log_level:'info'
@@ -47,6 +48,7 @@ herocoordinator.start()!
 - **name**: Instance name (default: 'default')
 - **binary_path**: Path where the coordinator binary will be installed (default: '/hero/var/bin/coordinator')
 - **redis_addr**: Redis server address (default: '127.0.0.1:6379')
+- **redis_port**: Redis server port (default: 6379)
 - **http_port**: HTTP API port (default: 8081)
 - **ws_port**: WebSocket API port (default: 9653)
 - **log_level**: Rust log level - trace, debug, info, warn, error (default: 'info')
@@ -56,40 +58,41 @@ herocoordinator.start()!
 
 ### Install
 Builds the coordinator binary from the horus workspace. This will:
-1. Install Rust if not present
-2. Clone the horus repository from git.ourworld.tf
-3. Build the coordinator binary with `cargo build -p hero-coordinator --release`
+1. Install and start Redis if not present
+2. Install Rust if not present
+3. Clone the horus repository from git.ourworld.tf
+4. Build the coordinator binary with `cargo build -p hero-coordinator --release`
 
 ```bash
-hero herocoordinator.install
+hero coordinator.install
 ```
 
 ### Start
-Starts the herocoordinator service using zinit:
+Starts the coordinator service using zinit:
 
 ```bash
-hero herocoordinator.start
+hero coordinator.start
 ```
 
 ### Stop
 Stops the running service:
 
 ```bash
-hero herocoordinator.stop
+hero coordinator.stop
 ```
 
 ### Restart
 Restarts the service:
 
 ```bash
-hero herocoordinator.restart
+hero coordinator.restart
 ```
 
 ### Destroy
 Stops the service and removes all files:
 
 ```bash
-hero herocoordinator.destroy
+hero coordinator.destroy
 ```
 
 ## Requirements
@@ -97,35 +100,36 @@ hero herocoordinator.destroy
 - **Dependencies**: 
   - Rust toolchain (automatically installed)
   - Git (for cloning repository)
-  - Redis (must be running separately)
+  - Redis (automatically installed and started)
   - Mycelium (must be installed and running separately)
 
 ## Architecture
 
 The installer follows the standard herolib installer pattern:
 
-- **herocoordinator_model.v**: Configuration structure and initialization
-- **herocoordinator_actions.v**: Build, install, start, stop, destroy logic
-- **herocoordinator_factory_.v**: Factory pattern for instance management
+- **coordinator_model.v**: Configuration structure and initialization
+- **coordinator_actions.v**: Build, install, start, stop, destroy logic
+- **coordinator_factory_.v**: Factory pattern for instance management
 
 ## Notes
 
 - The installer builds from source rather than downloading pre-built binaries
 - Mycelium is expected to be already installed and running in the environment
-- Redis must be running and accessible at the configured address
+- Redis is automatically installed and started if not already running
 - The binary is built with `RUSTFLAGS="-A warnings"` to suppress warnings
 - Service management uses zinit by default
 
 ## Example Workflow
 
 ```v
-import incubaid.herolib.installers.infra.herocoordinator as hc
+import incubaid.herolib.installers.horus.coordinator as hc
 
 // Get installer instance
 mut coordinator := hc.get()!
 
 // Customize configuration
 coordinator.redis_addr = '127.0.0.1:6379'
+coordinator.redis_port = 6379
 coordinator.http_port = 8081
 coordinator.log_level = 'debug'
 hc.set(coordinator)!
