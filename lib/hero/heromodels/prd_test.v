@@ -186,6 +186,9 @@ fn test_prd_type_name() ! {
 
 fn test_prd_list() ! {
 	mut mydb := db.new_test()!
+	// Clear the test database to ensure clean state
+	mydb.redis.flushdb()!
+
 	mut db_prd := DBPrd{
 		db: &mydb
 	}
