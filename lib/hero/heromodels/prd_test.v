@@ -17,7 +17,6 @@ fn test_prd_new() ! {
 		use_cases:    []
 		requirements: []
 		constraints:  []
-		risks:        {}
 	}
 
 	prd := db_prd.new(args)!
@@ -30,7 +29,6 @@ fn test_prd_new() ! {
 	assert prd.use_cases.len == 0
 	assert prd.requirements.len == 0
 	assert prd.constraints.len == 0
-	assert prd.risks.len == 0
 	assert prd.updated_at > 0
 
 	println('✓ PRD new test passed!')
@@ -52,7 +50,6 @@ fn test_prd_crud_operations() ! {
 		use_cases:    []
 		requirements: []
 		constraints:  []
-		risks:        {}
 	}
 
 	mut prd := db_prd.new(args)!
@@ -124,9 +121,6 @@ fn test_prd_encoding_decoding_complex() ! {
 		ctype:       .technica
 	}
 
-	mut risks := map[string]string{}
-	risks['RISK1'] = 'Mitigation strategy here'
-
 	mut args := PrdArg{
 		product_name: 'Complex Test Product'
 		version:      'v2.0'
@@ -136,7 +130,6 @@ fn test_prd_encoding_decoding_complex() ! {
 		use_cases:    [use_case]
 		requirements: [requirement]
 		constraints:  [constraint]
-		risks:        risks
 	}
 
 	mut prd := db_prd.new(args)!
@@ -164,9 +157,6 @@ fn test_prd_encoding_decoding_complex() ! {
 	assert retrieved_prd.constraints[0].id == 'C1'
 	assert retrieved_prd.constraints[0].ctype == .technica
 
-	assert retrieved_prd.risks.len == 1
-	assert retrieved_prd.risks['RISK1'] == 'Mitigation strategy here'
-
 	println('✓ PRD encoding/decoding complex test passed!')
 }
 
@@ -185,7 +175,6 @@ fn test_prd_type_name() ! {
 		use_cases:    []
 		requirements: []
 		constraints:  []
-		risks:        {}
 	}
 
 	prd := db_prd.new(args)!
@@ -212,7 +201,6 @@ fn test_prd_list() ! {
 			use_cases:    []
 			requirements: []
 			constraints:  []
-			risks:        {}
 		}
 		mut prd := db_prd.new(args)!
 		prd = db_prd.set(prd)!
