@@ -51,7 +51,7 @@ fn test_scan() {
 
 	assert a.collections.len == 1
 	col := a.get_collection('guides')!
-	assert col.page_exists('intro')
+	assert col.page_exists('intro')!
 }
 
 fn test_export() {
