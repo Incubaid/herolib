@@ -8,14 +8,15 @@ import cli { Command, Flag }
 pub fn cmd_run(mut cmdroot Command) {
 	mut cmd_run := Command{
 		name:          'run'
-		description:   'Run heroscript from inline string or file'
+		description:   'Run heroscript from inline string, file path, or URL'
 		usage:         '
 Run HeroScript
 
 USAGE:
-  hero run [flags] [file]
-  hero run -s "heroscript content"
-  hero run -p "path to heroscript"
+  hero run [file]                           Run heroscript from file path (positional argument)
+  hero run -s "heroscript content"          Run inline heroscript
+  hero run -p /path/to/script.hero          Run heroscript from file path
+  hero run -u https://example.com/script    Run heroscript from URL (currently disabled)
 '
 		required_args: 0
 		execute:       cmd_run_execute
@@ -53,6 +54,25 @@ fn cmd_run_execute(cmd Command) ! {
 	mut inline_script := cmd.flags.get_string('script') or { '' }
 	// mut url := cmd.flags.get_string('url') or { '' }
 	mut path_flag := cmd.flags.get_string('path') or { '' }
+
+	// Count how many input methods are being used
+	mut input_count := 0
+	if inline_script != '' {
+		input_count++
+	}
+
+	if path_flag != '' {
+		input_count++
+	}
+
+	if cmd.args.len > 0 {
+		input_count++
+	}
+
+	// Validate that only one input method is used
+	if input_count > 1 {
+		return error('Error: Multiple input methods specified. Please use only one of: -s (inline script), -p (file path), or positional file argument.\n\n${cmd.help_message()}')
+	}
 
 	// If inline script is provided via -s flag
 	if inline_script != '' {
@@ -122,5 +142,5 @@ fn cmd_run_execute(cmd Command) ! {
 	}
 
 	// No script provided
-	return error('No heroscript provided. Use -s for inline script, -u for URL, or provide a file path.\n\n${cmd.help_message()}')
+	return error('Error: No heroscript provided.\n\nPlease specify a heroscript using one of these methods:\n  -s "script"           Inline heroscript content\n  -p /path/to/file      Path to heroscript file\n  [file]                File path as positional argument\n\n${cmd.help_message()}')
 }
