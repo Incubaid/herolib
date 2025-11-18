@@ -27,13 +27,8 @@ pub fn new(args ArgsGet) !&ZinitRPC {
 	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&ZinitRPC {
-	mut args := args_
+pub fn get(args ArgsGet) !&ZinitRPC {
 	mut context := base.context()!
-	// If name is 'default' and zinit_default is set, use zinit_default instead
-	if args.name == 'default' && zinit_default != '' {
-		args.name = zinit_default
-	}
 	zinit_default = args.name
 	if args.fromdb || args.name !in zinit_global {
 		mut r := context.redis()!
