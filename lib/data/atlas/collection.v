@@ -104,7 +104,7 @@ pub fn (c Collection) page_get(name_ string) !&Page {
 
 // Get an image by name
 pub fn (c Collection) image_get(name_ string) !&File {
-	name := texttools.name_fix(name_)
+	name := texttools.name_fix_keepext(name_)
 	mut img := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -117,7 +117,7 @@ pub fn (c Collection) image_get(name_ string) !&File {
 
 // Get a file by name
 pub fn (c Collection) file_get(name_ string) !&File {
-	name := texttools.name_fix(name_)
+	name := texttools.name_fix_keepext(name_)
 	mut f := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -129,7 +129,7 @@ pub fn (c Collection) file_get(name_ string) !&File {
 }
 
 pub fn (c Collection) file_or_image_get(name_ string) !&File {
-	name := texttools.name_fix(name_)
+	name := texttools.name_fix_keepext(name_)
 	mut f := c.files[name] or { return FileNotFound{
 		collection: c.name
 		file:       name
@@ -145,20 +145,20 @@ pub fn (c Collection) page_exists(name_ string) !bool {
 
 // Check if image exists
 pub fn (c Collection) image_exists(name_ string) !bool {
-	name := texttools.name_fix(name_)
+	name := texttools.name_fix_keepext(name_)
 	f := c.files[name] or { return false }
 	return f.ftype == .image
 }
 
 // Check if file exists
 pub fn (c Collection) file_exists(name_ string) !bool {
-	name := texttools.name_fix(name_)
+	name := texttools.name_fix_keepext(name_)
 	f := c.files[name] or { return false }
 	return f.ftype == .file
 }
 
 pub fn (c Collection) file_or_image_exists(name_ string) !bool {
-	name := texttools.name_fix(name_)
+	name := texttools.name_fix_keepext(name_)
 	_ := c.files[name] or { return false }
 	return true
 }

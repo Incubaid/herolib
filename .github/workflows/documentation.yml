@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Vlang
-        run: ./install_v.sh
+        run: ./scripts/install_v.sh
 
       - name: Generate documentation
         run: |

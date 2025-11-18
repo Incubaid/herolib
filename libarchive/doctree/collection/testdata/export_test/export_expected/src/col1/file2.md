@@ -1,1 +1,0 @@
-[some page](../col2/file3.md)
