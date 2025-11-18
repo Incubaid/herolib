@@ -17,7 +17,7 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name        string = 'coordinator'
+	name        string = 'default'
 	binary_path string
 	redis_addr  string
 	http_port   int
@@ -48,12 +48,9 @@ pub fn new(args ArgsGet) !&CoordinatorServer {
 	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&CoordinatorServer {
-	mut args := args_
+pub fn get(args ArgsGet) !&CoordinatorServer {
 	mut context := base.context()!
-	if args.name == 'coordinator' && coordinator_default != '' {
-		args.name = coordinator_default
-	}
+	coordinator_default = args.name
 	if args.fromdb || args.name !in coordinator_global {
 		mut r := context.redis()!
 		if r.hexists('context:coordinator', args.name)! {
