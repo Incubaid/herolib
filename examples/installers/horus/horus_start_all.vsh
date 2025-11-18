@@ -14,7 +14,7 @@ println('🚀 Starting All Horus Services')
 
 // Step 1: Start Coordinator
 println('\n▶️  Step 1/5: Starting Coordinator...')
-mut coordinator_installer := coordinator.get()!
+mut coordinator_installer := coordinator.get(name: 'ayman', create: true)!
 coordinator_installer.start()!
 if coordinator_installer.running()! {
 	println('✅ Coordinator is running on HTTP:${coordinator_installer.http_port} WS:${coordinator_installer.ws_port}')
@@ -65,11 +65,20 @@ if sal_runner.running()! {
 println('🎉 All Horus services started!')
 
 println('\n📊 Service Status:')
-println('  • Coordinator: ${if coordinator_installer.running()! { "✅ Running" } else { "❌ Stopped" }} (http://127.0.0.1:${coordinator_installer.http_port})')
-println('  • Supervisor:  ${if supervisor_inst.running()! { "✅ Running" } else { "❌ Stopped" }} (http://127.0.0.1:${supervisor_inst.http_port})')
-println('  • Hero Runner: ${if hero_runner.running()! { "✅ Running" } else { "❌ Stopped" }}')
-println('  • Osiris Runner: ${if osiris_runner.running()! { "✅ Running" } else { "❌ Stopped" }}')
-println('  • SAL Runner: ${if sal_runner.running()! { "✅ Running" } else { "❌ Stopped" }}')
+coordinator_status := if coordinator_installer.running()! { '✅ Running' } else { '❌ Stopped' }
+println('  • Coordinator: ${coordinator_status} (http://127.0.0.1:${coordinator_installer.http_port})')
+
+supervisor_status := if supervisor_inst.running()! { '✅ Running' } else { '❌ Stopped' }
+println('  • Supervisor:  ${supervisor_status} (http://127.0.0.1:${supervisor_inst.http_port})')
+
+hero_runner_status := if hero_runner.running()! { '✅ Running' } else { '❌ Stopped' }
+println('  • Hero Runner: ${hero_runner_status}')
+
+osiris_runner_status := if osiris_runner.running()! { '✅ Running' } else { '❌ Stopped' }
+println('  • Osiris Runner: ${osiris_runner_status}')
+
+sal_runner_status := if sal_runner.running()! { '✅ Running' } else { '❌ Stopped' }
+println('  • SAL Runner: ${sal_runner_status}')
 
 println('\n💡 Next Steps:')
 println('  To stop services, run: ./horus_stop_all.vsh')

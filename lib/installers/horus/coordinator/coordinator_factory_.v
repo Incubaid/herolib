@@ -17,7 +17,7 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name        string = 'default'
+	name        string = 'coordinator'
 	binary_path string
 	redis_addr  string
 	http_port   int
@@ -38,19 +38,22 @@ pub fn new(args ArgsGet) !&CoordinatorServer {
 		log_level:   args.log_level
 		repo_path:   args.repo_path
 	}
-	
+
 	// Try to set in Redis, if it fails (Redis not available), use in-memory config
 	set(obj) or {
 		console.print_debug('Redis not available, using in-memory configuration')
 		set_in_mem(obj)!
 	}
-	
+
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&CoordinatorServer {
+pub fn get(args_ ArgsGet) !&CoordinatorServer {
+	mut args := args_
 	mut context := base.context()!
-	coordinator_default = args.name
+	if args.name == 'coordinator' && coordinator_default != '' {
+		args.name = coordinator_default
+	}
 	if args.fromdb || args.name !in coordinator_global {
 		mut r := context.redis()!
 		if r.hexists('context:coordinator', args.name)! {

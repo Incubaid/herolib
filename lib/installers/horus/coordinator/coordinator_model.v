@@ -14,13 +14,13 @@ const default = true
 @[heap]
 pub struct CoordinatorServer {
 pub mut:
-	name         string = 'default'
-	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/coordinator')
-	redis_addr   string = '127.0.0.1:6379'
-	http_port    int    = 8081
-	ws_port      int    = 9653
-	log_level    string = 'info'
-	repo_path    string = '/root/code/git.ourworld.tf/herocode/horus'
+	name        string = 'coordinator'
+	binary_path string = os.join_path(os.home_dir(), 'hero/bin/coordinator')
+	redis_addr  string = '127.0.0.1:6379'
+	http_port   int    = 8081
+	ws_port     int    = 9653
+	log_level   string = 'info'
+	repo_path   string = '/root/code/git.ourworld.tf/herocode/horus'
 }
 
 // your checking & initialization code if needed
@@ -30,7 +30,7 @@ fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
 		mycfg.name = 'default'
 	}
 	if mycfg.binary_path == '' {
-		mycfg.binary_path = os.join_path(os.home_dir(),'hero/bin/coordinator')
+		mycfg.binary_path = os.join_path(os.home_dir(), 'hero/bin/coordinator')
 	}
 	if mycfg.redis_addr == '' {
 		mycfg.redis_addr = '127.0.0.1:6379'
