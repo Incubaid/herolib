@@ -91,7 +91,6 @@ fn do() ! {
 	herocmds.cmd_web(mut cmd)
 	herocmds.cmd_sshagent(mut cmd)
 	herocmds.cmd_atlas(mut cmd)
-	herocmds.cmd_pods(mut cmd)
 
 	cmd.setup()
 	cmd.parse(os.args)
