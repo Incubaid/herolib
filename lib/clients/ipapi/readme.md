@@ -1,11 +1,11 @@
-# ipapi
+# ip api (IP INFO SERVICE CLIENT)
 
 To get started
 
 ```v
 
 
-import incubaid.herolib.clients. ipapi
+import incubaid.herolib.clients.ipapi
 
 mut client:= ipapi.get()!
 

@@ -1,9 +1,0 @@
-fn test_new_openrpc_interface() ! {
-	new_openrpc_interface()!
-}
-
-@if http
-fn test_new_openrpc_http_controller() ! {
-	new_openrpc_http_controller()!
-}
-@end

@@ -205,8 +205,7 @@ pub fn create_heroscript(args ModuleMeta) ! {
 			'1'
 		} else {
 			'0'
-		}
-	}"
+		}}"
 	}
 	if !os.exists(args.path) {
 		os.mkdir(args.path)!

@@ -31,6 +31,7 @@ pub mut:
 	registration_desk DBRegistrationDesk
 	messages          DBMessages
 	tags              DBTags
+	prd               DBPrd
 	rpc_handler       &Handler
 }
 
@@ -89,6 +90,9 @@ pub fn new(args NewArgs) !&ModelsFactory {
 			db: &mydb
 		}
 		tags:              DBTags{
+			db: &mydb
+		}
+		prd:               DBPrd{
 			db: &mydb
 		}
 		rpc_handler:       &h

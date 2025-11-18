@@ -1,7 +1,7 @@
 module rcloneclient
 
 fn test_rclone_new() {
-	rclone := new('test_remote') or { panic(err) }
+	rclone := new(name: 'test_remote') or { panic(err) }
 	assert rclone.name == 'test_remote'
 }
 

@@ -24,7 +24,7 @@ Thank you for your interest in contributing to Herolib! This document provides g
 For developers, you can use the automated installation script:
 
 ```bash
-curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
 ```

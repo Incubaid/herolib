@@ -1,7 +1,0 @@
-fn test_new_http_server() ! {
-	new_http_server()!
-}
-
-fn test_run_http_server() ! {
-	spawn run_http_server()
-}
