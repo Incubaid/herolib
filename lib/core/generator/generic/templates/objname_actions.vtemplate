@@ -110,7 +110,7 @@ fn upload() ! {
 }
 
 
-@[params]
+@@[params]
 pub struct InstallArgs {
 pub mut:
 	reset bool
