@@ -223,6 +223,49 @@ fn (mut self HeroPods) network_setup_bridge() ! {
 		) or {}
 	}
 
+	// Setup FORWARD rules to allow traffic from/to the bridge
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 7: Setting up FORWARD rules for ${bridge_name}...'
+		logtype: .stdout
+	) or {}
+
+	// Allow forwarding from bridge to external interface
+	forward_out_result := os.execute('iptables -C FORWARD -i ${bridge_name} -o ${primary_iface} -j ACCEPT 2>/dev/null || iptables -A FORWARD -i ${bridge_name} -o ${primary_iface} -j ACCEPT')
+	if forward_out_result.exit_code != 0 {
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 7: WARNING - Failed to setup FORWARD rule (bridge -> external) (exit_code=${forward_out_result.exit_code})'
+			logtype: .error
+		) or {}
+	}
+
+	// Allow forwarding from external interface to bridge (for established connections)
+	forward_in_result := os.execute('iptables -C FORWARD -i ${primary_iface} -o ${bridge_name} -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || iptables -A FORWARD -i ${primary_iface} -o ${bridge_name} -m state --state RELATED,ESTABLISHED -j ACCEPT')
+	if forward_in_result.exit_code != 0 {
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 7: WARNING - Failed to setup FORWARD rule (external -> bridge) (exit_code=${forward_in_result.exit_code})'
+			logtype: .error
+		) or {}
+	}
+
+	// Allow forwarding between containers on the same bridge
+	forward_bridge_result := os.execute('iptables -C FORWARD -i ${bridge_name} -o ${bridge_name} -j ACCEPT 2>/dev/null || iptables -A FORWARD -i ${bridge_name} -o ${bridge_name} -j ACCEPT')
+	if forward_bridge_result.exit_code != 0 {
+		self.logger.log(
+			cat:     'network'
+			log:     'Step 7: WARNING - Failed to setup FORWARD rule (bridge -> bridge) (exit_code=${forward_bridge_result.exit_code})'
+			logtype: .error
+		) or {}
+	}
+
+	self.logger.log(
+		cat:     'network'
+		log:     'Step 7: FORWARD rules configured successfully'
+		logtype: .stdout
+	) or {}
+
 	self.logger.log(
 		cat:     'network'
 		log:     'END network_setup_bridge() - Bridge ${bridge_name} created and configured successfully'
@@ -468,8 +511,6 @@ fn (self HeroPods) network_configure_dns(container_name string, rootfs_path stri
 	dns_content := dns_lines.join('\n') + '\n'
 
 	os.write_file(resolv_conf_path, dns_content)!
-
-	dns_servers_str := self.network_config.dns_servers.join(', ')
 }
 
 // Cleanup network for a container (removes veth pair and deallocates IP)
