@@ -18,22 +18,10 @@
 !!heropods.container_start
     name:'demo_container'
 
-// Verify hero binary exists in the container
+// Test network connectivity with wget (ping requires capabilities in Alpine)
 !!heropods.container_exec
     name:'demo_container'
-    cmd:'ls -lh /usr/local/bin/hero'
-    stdout:true
-
-// Verify hero binary is executable and check version
-!!heropods.container_exec
-    name:'demo_container'
-    cmd:'which hero && hero -version'
-    stdout:true
-
-// Test that hero works by running a simple command
-!!heropods.container_exec
-    name:'demo_container'
-    cmd:'hero -help | head -n 10'
+    cmd:'wget -O- http://google.com --timeout=5 2>&1 | head -n 5'
     stdout:true
 
 // Clean up
