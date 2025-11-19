@@ -27,12 +27,14 @@ fn (self &Coordinator) startupcmd() ![]startupmanager.ZProcessNewArgs {
 
 fn (self &Coordinator) running_check() !bool {
 	// Check if the process is running by checking the HTTP port
+	// The coordinator returns 405 for GET requests (requires POST), so we check if we get any response
 	res := osal.exec(
-		cmd:         'curl -fsSL http://127.0.0.1:${self.http_port} || exit 1'
+		cmd:         'curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${self.http_port}'
 		stdout:      false
 		raise_error: false
 	)!
-	return res.exit_code == 0
+	// Any HTTP response code (including 405) means the server is running
+	return res.output.len > 0 && res.output.int() > 0
 }
 
 fn (self &Coordinator) start_pre() ! {

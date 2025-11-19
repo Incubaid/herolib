@@ -102,18 +102,42 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 				shutdown_timeout: 0            // Default, or add to ZProcessNewArgs if needed
 			}
 
+			// Check if service already exists
+			existing_service := zinit_client.service_get(args.name) or { zinit.ServiceConfig{} }
+
+			// If service exists, stop monitoring, stop, and delete it first
+			if existing_service.exec.len > 0 {
+				console.print_debug('startupmanager: service ${args.name} already exists, cleaning up...')
+				// Stop the service first
+				zinit_client.service_stop(args.name) or {
+					console.print_debug('startupmanager: failed to stop service ${args.name}: ${err}')
+				}
+				// Forget (stop monitoring) the service
+				zinit_client.service_forget(args.name) or {
+					console.print_debug('startupmanager: failed to forget service ${args.name}: ${err}')
+				}
+				// Delete the service configuration
+				zinit_client.service_delete(args.name) or {
+					console.print_debug('startupmanager: failed to delete service ${args.name}: ${err}')
+				}
+			}
+
 			// Create the service configuration file in zinit
 			zinit_client.service_create(args.name, service_config) or {
 				return error('startupmanager: failed to create zinit service ${args.name}: ${err}')
+			}
+
+			// If 'start' is true, monitor and start the service immediately after creation
+			if args.start {
+				// Monitor loads the config and starts monitoring the service
+				zinit_client.service_monitor(args.name) or {
+					return error('startupmanager: failed to monitor zinit service ${args.name}: ${err}')
+				}
 			}
 		}
 		else {
 			panic('to implement, startup manager only support screen & systemd for now: ${mycat}')
 		}
-	}
-	// If 'start' is true, also monitor and start the service
-	if args.start {
-		sm.start(args.name)!
 	}
 }
 
@@ -138,11 +162,6 @@ pub fn (mut sm StartupManager) start(name string) ! {
 			mut zinit_client := zinit.get()! // Get the already configured zinit client
 			zinit_client.service_start(name) or {
 				return error('startupmanager: Failed to start zinit service ${name}: ${err}')
-			}
-			// Monitor loads the config, if it's new it starts it.
-			// If the service is already managed, this will bring it back up.
-			zinit_client.service_monitor(name) or {
-				return error('startupmanager: Failed to monitor zinit service ${name}: ${err}')
 			}
 		}
 		else {

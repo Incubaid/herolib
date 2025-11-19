@@ -24,7 +24,7 @@ if coordinator_installer.running()! {
 
 // Step 2: Start Supervisor
 println('\n▶️  Step 2/5: Starting Supervisor...')
-mut supervisor_inst := supervisor.get()!
+mut supervisor_inst := supervisor.get(create: true)!
 supervisor_inst.start()!
 if supervisor_inst.running()! {
 	println('✅ Supervisor is running on HTTP:${supervisor_inst.http_port} WS:${supervisor_inst.ws_port}')
@@ -34,7 +34,7 @@ if supervisor_inst.running()! {
 
 // Step 3: Start Hero Runner
 println('\n▶️  Step 3/5: Starting Hero Runner...')
-mut hero_runner := herorunner.get()!
+mut hero_runner := herorunner.get(create: true)!
 hero_runner.start()!
 if hero_runner.running()! {
 	println('✅ Hero Runner is running')
@@ -44,7 +44,7 @@ if hero_runner.running()! {
 
 // Step 4: Start Osiris Runner
 println('\n▶️  Step 4/5: Starting Osiris Runner...')
-mut osiris_runner := osirisrunner.get()!
+mut osiris_runner := osirisrunner.get(create: true)!
 osiris_runner.start()!
 if osiris_runner.running()! {
 	println('✅ Osiris Runner is running')
@@ -54,7 +54,7 @@ if osiris_runner.running()! {
 
 // Step 5: Start SAL Runner
 println('\n▶️  Step 5/5: Starting SAL Runner...')
-mut sal_runner := salrunner.get()!
+mut sal_runner := salrunner.get(create: true)!
 sal_runner.start()!
 if sal_runner.running()! {
 	println('✅ SAL Runner is running')

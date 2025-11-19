@@ -44,14 +44,19 @@ pub fn new(args ArgsGet) !&Supervisor {
 
 pub fn get(args ArgsGet) !&Supervisor {
 	mut context := base.context()!
-	supervisor_default = args.name
-	if args.fromdb || args.name !in supervisor_global {
+	mut name := if args.name == 'default' && supervisor_default.len > 0 {
+		supervisor_default
+	} else {
+		args.name
+	}
+	supervisor_default = name
+	if args.fromdb || name !in supervisor_global {
 		mut r := context.redis()!
-		if r.hexists('context:supervisor', args.name)! {
-			data := r.hget('context:supervisor', args.name)!
+		if r.hexists('context:supervisor', name)! {
+			data := r.hget('context:supervisor', name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('Supervisor with name: ${args.name} does not exist, prob bug.')
+				return error('Supervisor with name: ${name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(Supervisor, data)!
 			set_in_mem(obj)!
@@ -60,14 +65,14 @@ pub fn get(args ArgsGet) !&Supervisor {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("Supervisor with name '${args.name}' does not exist")
+				return error("Supervisor with name '${name}' does not exist")
 			}
 		}
-		return get(name: args.name)! // no longer from db nor create
+		return get(name: name)! // no longer from db nor create
 	}
-	return supervisor_global[args.name] or {
+	return supervisor_global[name] or {
 		print_backtrace()
-		return error('could not get config for supervisor with name:${args.name}')
+		return error('could not get config for supervisor with name:${name}')
 	}
 }
 
@@ -154,7 +159,7 @@ pub fn play(mut plbook PlayBook) ! {
 			reset := p.get_default_false('reset')
 			mut supervisor_obj := get(name: name)!
 			console.print_debug('action object:\n${supervisor_obj}')
-			
+
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action supervisor.destroy')
 				supervisor_obj.destroy()!
@@ -168,7 +173,8 @@ pub fn play(mut plbook PlayBook) ! {
 				supervisor_obj.build()!
 			}
 		}
-		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
+		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre',
+			'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
 			mut supervisor_obj := get(name: name)!
@@ -261,8 +267,6 @@ pub fn (mut self Supervisor) start() ! {
 	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
-		println('debugzo ${sm}')
-
 		console.print_debug('installer: supervisor starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
@@ -318,7 +322,6 @@ pub fn (mut self Supervisor) running() !bool {
 	}
 	return self.running_check()!
 }
-
 
 // switch instance to be used for supervisor
 pub fn switch(name string) {
