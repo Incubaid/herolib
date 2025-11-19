@@ -8,7 +8,7 @@ import incubaid.herolib.osal.startupmanager
 import time
 
 __global (
-	herorunner_global  map[string]&HerorunnerServer
+	herorunner_global  map[string]&Herorunner
 	herorunner_default string
 )
 
@@ -25,8 +25,8 @@ pub mut:
 	create      bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&HerorunnerServer {
-	mut obj := HerorunnerServer{
+pub fn new(args ArgsGet) !&Herorunner {
+	mut obj := Herorunner{
 		name:        args.name
 		binary_path: args.binary_path
 		redis_addr:  args.redis_addr
@@ -36,7 +36,7 @@ pub fn new(args ArgsGet) !&HerorunnerServer {
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&HerorunnerServer {
+pub fn get(args ArgsGet) !&Herorunner {
 	mut context := base.context()!
 	herorunner_default = args.name
 	if args.fromdb || args.name !in herorunner_global {
@@ -45,16 +45,16 @@ pub fn get(args ArgsGet) !&HerorunnerServer {
 			data := r.hget('context:herorunner', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('HerorunnerServer with name: ${args.name} does not exist, prob bug.')
+				return error('Herorunner with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(HerorunnerServer, data)!
+			mut obj := json.decode(Herorunner, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("HerorunnerServer with name '${args.name}' does not exist")
+				return error("Herorunner with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
@@ -66,7 +66,7 @@ pub fn get(args ArgsGet) !&HerorunnerServer {
 }
 
 // register the config for the future
-pub fn set(o HerorunnerServer) ! {
+pub fn set(o Herorunner) ! {
 	mut o2 := set_in_mem(o)!
 	herorunner_default = o2.name
 	mut context := base.context()!
@@ -94,12 +94,12 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&HerorunnerServer {
-	mut res := []&HerorunnerServer{}
+pub fn list(args ArgsList) ![]&Herorunner {
+	mut res := []&Herorunner{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		herorunner_global = map[string]&HerorunnerServer{}
+		herorunner_global = map[string]&Herorunner{}
 		herorunner_default = ''
 	}
 	if args.fromdb {
@@ -120,7 +120,7 @@ pub fn list(args ArgsList) ![]&HerorunnerServer {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o HerorunnerServer) !HerorunnerServer {
+fn set_in_mem(o Herorunner) !Herorunner {
 	mut o2 := obj_init(o)!
 	herorunner_global[o2.name] = &o2
 	herorunner_default = o2.name
@@ -144,17 +144,25 @@ pub fn play(mut plbook PlayBook) ! {
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
+			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
+			mut herorunner_obj := get(name: name)!
+			console.print_debug('action object:\n${herorunner_obj}')
+			
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action herorunner.destroy')
-				destroy()!
+				herorunner_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action herorunner.install')
-				install()!
+				herorunner_obj.install(reset: reset)!
+			}
+			if other_action.name == 'build' {
+				console.print_debug('install action herorunner.build')
+				herorunner_obj.build()!
 			}
 		}
-		if other_action.name in ['start', 'stop', 'restart'] {
+		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
 			mut herorunner_obj := get(name: name)!
@@ -163,7 +171,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action herorunner.${other_action.name}')
 				herorunner_obj.start()!
 			}
-
 			if other_action.name == 'stop' {
 				console.print_debug('install action herorunner.${other_action.name}')
 				herorunner_obj.stop()!
@@ -171,6 +178,22 @@ pub fn play(mut plbook PlayBook) ! {
 			if other_action.name == 'restart' {
 				console.print_debug('install action herorunner.${other_action.name}')
 				herorunner_obj.restart()!
+			}
+			if other_action.name == 'start_pre' {
+				console.print_debug('install action herorunner.${other_action.name}')
+				herorunner_obj.start_pre()!
+			}
+			if other_action.name == 'start_post' {
+				console.print_debug('install action herorunner.${other_action.name}')
+				herorunner_obj.start_post()!
+			}
+			if other_action.name == 'stop_pre' {
+				console.print_debug('install action herorunner.${other_action.name}')
+				herorunner_obj.stop_pre()!
+			}
+			if other_action.name == 'stop_post' {
+				console.print_debug('install action herorunner.${other_action.name}')
+				herorunner_obj.stop_post()!
 			}
 		}
 		other_action.done = true
@@ -208,12 +231,12 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 }
 
 // load from disk and make sure is properly intialized
-pub fn (mut self HerorunnerServer) reload() ! {
+pub fn (mut self Herorunner) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
 }
 
-pub fn (mut self HerorunnerServer) start() ! {
+pub fn (mut self Herorunner) start() ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -221,15 +244,13 @@ pub fn (mut self HerorunnerServer) start() ! {
 
 	console.print_header('installer: herorunner start')
 
-	if !installed()! {
-		install()!
+	if !self.installed()! {
+		self.install()!
 	}
 
-	configure()!
+	self.start_pre()!
 
-	start_pre()!
-
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: herorunner starting with ${zprocess.startuptype}...')
@@ -239,7 +260,7 @@ pub fn (mut self HerorunnerServer) start() ! {
 		sm.start(zprocess.name)!
 	}
 
-	start_post()!
+	self.start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -250,33 +271,33 @@ pub fn (mut self HerorunnerServer) start() ! {
 	return error('herorunner did not install properly.')
 }
 
-pub fn (mut self HerorunnerServer) install_start(args InstallArgs) ! {
+pub fn (mut self Herorunner) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
 	self.start()!
 }
 
-pub fn (mut self HerorunnerServer) stop() ! {
+pub fn (mut self Herorunner) stop() ! {
 	switch(self.name)
-	stop_pre()!
-	for zprocess in startupcmd()! {
+	self.stop_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.stop(zprocess.name)!
 	}
-	stop_post()!
+	self.stop_post()!
 }
 
-pub fn (mut self HerorunnerServer) restart() ! {
+pub fn (mut self Herorunner) restart() ! {
 	switch(self.name)
 	self.stop()!
 	self.start()!
 }
 
-pub fn (mut self HerorunnerServer) running() !bool {
+pub fn (mut self Herorunner) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		if zprocess.startuptype != .screen {
 			mut sm := startupmanager_get(zprocess.startuptype)!
 			r := sm.running(zprocess.name)!
@@ -285,31 +306,7 @@ pub fn (mut self HerorunnerServer) running() !bool {
 			}
 		}
 	}
-	return running()!
-}
-
-@[params]
-pub struct InstallArgs {
-pub mut:
-	reset bool
-}
-
-pub fn (mut self HerorunnerServer) install(args InstallArgs) ! {
-	switch(self.name)
-	if args.reset || (!installed()!) {
-		install()!
-	}
-}
-
-pub fn (mut self HerorunnerServer) build() ! {
-	switch(self.name)
-	build()!
-}
-
-pub fn (mut self HerorunnerServer) destroy() ! {
-	switch(self.name)
-	self.stop() or {}
-	destroy()!
+	return self.running_check()!
 }
 
 // switch instance to be used for herorunner

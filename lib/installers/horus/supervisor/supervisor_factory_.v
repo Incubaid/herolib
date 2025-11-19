@@ -8,7 +8,7 @@ import incubaid.herolib.osal.startupmanager
 import time
 
 __global (
-	supervisor_global  map[string]&SupervisorServer
+	supervisor_global  map[string]&Supervisor
 	supervisor_default string
 )
 
@@ -28,8 +28,8 @@ pub mut:
 	create      bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&SupervisorServer {
-	mut obj := SupervisorServer{
+pub fn new(args ArgsGet) !&Supervisor {
+	mut obj := Supervisor{
 		name:        args.name
 		binary_path: args.binary_path
 		redis_addr:  args.redis_addr
@@ -42,7 +42,7 @@ pub fn new(args ArgsGet) !&SupervisorServer {
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&SupervisorServer {
+pub fn get(args ArgsGet) !&Supervisor {
 	mut context := base.context()!
 	supervisor_default = args.name
 	if args.fromdb || args.name !in supervisor_global {
@@ -51,16 +51,16 @@ pub fn get(args ArgsGet) !&SupervisorServer {
 			data := r.hget('context:supervisor', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('SupervisorServer with name: ${args.name} does not exist, prob bug.')
+				return error('Supervisor with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(SupervisorServer, data)!
+			mut obj := json.decode(Supervisor, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("SupervisorServer with name '${args.name}' does not exist")
+				return error("Supervisor with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
@@ -72,7 +72,7 @@ pub fn get(args ArgsGet) !&SupervisorServer {
 }
 
 // register the config for the future
-pub fn set(o SupervisorServer) ! {
+pub fn set(o Supervisor) ! {
 	mut o2 := set_in_mem(o)!
 	supervisor_default = o2.name
 	mut context := base.context()!
@@ -100,12 +100,12 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&SupervisorServer {
-	mut res := []&SupervisorServer{}
+pub fn list(args ArgsList) ![]&Supervisor {
+	mut res := []&Supervisor{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		supervisor_global = map[string]&SupervisorServer{}
+		supervisor_global = map[string]&Supervisor{}
 		supervisor_default = ''
 	}
 	if args.fromdb {
@@ -126,7 +126,7 @@ pub fn list(args ArgsList) ![]&SupervisorServer {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o SupervisorServer) !SupervisorServer {
+fn set_in_mem(o Supervisor) !Supervisor {
 	mut o2 := obj_init(o)!
 	supervisor_global[o2.name] = &o2
 	supervisor_default = o2.name
@@ -150,17 +150,25 @@ pub fn play(mut plbook PlayBook) ! {
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
+			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
+			mut supervisor_obj := get(name: name)!
+			console.print_debug('action object:\n${supervisor_obj}')
+			
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action supervisor.destroy')
-				destroy()!
+				supervisor_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action supervisor.install')
-				install()!
+				supervisor_obj.install(reset: reset)!
+			}
+			if other_action.name == 'build' {
+				console.print_debug('install action supervisor.build')
+				supervisor_obj.build()!
 			}
 		}
-		if other_action.name in ['start', 'stop', 'restart'] {
+		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
 			mut supervisor_obj := get(name: name)!
@@ -169,7 +177,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action supervisor.${other_action.name}')
 				supervisor_obj.start()!
 			}
-
 			if other_action.name == 'stop' {
 				console.print_debug('install action supervisor.${other_action.name}')
 				supervisor_obj.stop()!
@@ -177,6 +184,22 @@ pub fn play(mut plbook PlayBook) ! {
 			if other_action.name == 'restart' {
 				console.print_debug('install action supervisor.${other_action.name}')
 				supervisor_obj.restart()!
+			}
+			if other_action.name == 'start_pre' {
+				console.print_debug('install action supervisor.${other_action.name}')
+				supervisor_obj.start_pre()!
+			}
+			if other_action.name == 'start_post' {
+				console.print_debug('install action supervisor.${other_action.name}')
+				supervisor_obj.start_post()!
+			}
+			if other_action.name == 'stop_pre' {
+				console.print_debug('install action supervisor.${other_action.name}')
+				supervisor_obj.stop_pre()!
+			}
+			if other_action.name == 'stop_post' {
+				console.print_debug('install action supervisor.${other_action.name}')
+				supervisor_obj.stop_post()!
 			}
 		}
 		other_action.done = true
@@ -214,12 +237,12 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 }
 
 // load from disk and make sure is properly intialized
-pub fn (mut self SupervisorServer) reload() ! {
+pub fn (mut self Supervisor) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
 }
 
-pub fn (mut self SupervisorServer) start() ! {
+pub fn (mut self Supervisor) start() ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -227,16 +250,18 @@ pub fn (mut self SupervisorServer) start() ! {
 
 	console.print_header('installer: supervisor start')
 
-	if !installed()! {
-		install()!
+	if !self.installed()! {
+		self.install()!
 	}
 
-	configure()!
+	self.configure()!
 
-	start_pre()!
+	self.start_pre()!
 
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
+
+		println('debugzo ${sm}')
 
 		console.print_debug('installer: supervisor starting with ${zprocess.startuptype}...')
 
@@ -245,7 +270,7 @@ pub fn (mut self SupervisorServer) start() ! {
 		sm.start(zprocess.name)!
 	}
 
-	start_post()!
+	self.start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -256,33 +281,33 @@ pub fn (mut self SupervisorServer) start() ! {
 	return error('supervisor did not install properly.')
 }
 
-pub fn (mut self SupervisorServer) install_start(args InstallArgs) ! {
+pub fn (mut self Supervisor) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
 	self.start()!
 }
 
-pub fn (mut self SupervisorServer) stop() ! {
+pub fn (mut self Supervisor) stop() ! {
 	switch(self.name)
-	stop_pre()!
-	for zprocess in startupcmd()! {
+	self.stop_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.stop(zprocess.name)!
 	}
-	stop_post()!
+	self.stop_post()!
 }
 
-pub fn (mut self SupervisorServer) restart() ! {
+pub fn (mut self Supervisor) restart() ! {
 	switch(self.name)
 	self.stop()!
 	self.start()!
 }
 
-pub fn (mut self SupervisorServer) running() !bool {
+pub fn (mut self Supervisor) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		if zprocess.startuptype != .screen {
 			mut sm := startupmanager_get(zprocess.startuptype)!
 			r := sm.running(zprocess.name)!
@@ -291,32 +316,9 @@ pub fn (mut self SupervisorServer) running() !bool {
 			}
 		}
 	}
-	return running()!
+	return self.running_check()!
 }
 
-@[params]
-pub struct InstallArgs {
-pub mut:
-	reset bool
-}
-
-pub fn (mut self SupervisorServer) install(args InstallArgs) ! {
-	switch(self.name)
-	if args.reset || (!installed()!) {
-		install()!
-	}
-}
-
-pub fn (mut self SupervisorServer) build() ! {
-	switch(self.name)
-	build()!
-}
-
-pub fn (mut self SupervisorServer) destroy() ! {
-	switch(self.name)
-	self.stop() or {}
-	destroy()!
-}
 
 // switch instance to be used for supervisor
 pub fn switch(name string) {
