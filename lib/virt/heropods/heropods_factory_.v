@@ -32,18 +32,31 @@ pub mut:
 	subnet      string   = '10.10.0.0/24'
 	gateway_ip  string   = '10.10.0.1'
 	dns_servers []string = ['8.8.8.8', '8.8.4.4']
+	// Mycelium IPv6 overlay network configuration
+	enable_mycelium     bool     // Enable Mycelium IPv6 overlay network
+	mycelium_version    string   // Mycelium version to install (default: 'v0.5.6')
+	mycelium_ipv6_range string   // Mycelium IPv6 address range (default: '400::/7')
+	mycelium_peers      []string // Mycelium peer addresses (default: use public nodes)
+	mycelium_key_path   string = '~/hero/cfg/priv_key.bin' // Path to Mycelium private key
 }
 
 pub fn new(args ArgsGet) !&HeroPods {
 	mut obj := HeroPods{
-		name:           args.name
-		reset:          args.reset
-		use_podman:     args.use_podman
-		network_config: NetworkConfig{
+		name:            args.name
+		reset:           args.reset
+		use_podman:      args.use_podman
+		network_config:  NetworkConfig{
 			bridge_name: args.bridge_name
 			subnet:      args.subnet
 			gateway_ip:  args.gateway_ip
 			dns_servers: args.dns_servers
+		}
+		mycelium_config: MyceliumConfig{
+			enabled:    args.enable_mycelium
+			version:    args.mycelium_version
+			ipv6_range: args.mycelium_ipv6_range
+			peers:      args.mycelium_peers
+			key_path:   args.mycelium_key_path
 		}
 	}
 	set(obj)!
@@ -160,6 +173,47 @@ pub fn play(mut plbook PlayBook) ! {
 		heroscript := action.heroscript()
 		mut obj := heroscript_loads(heroscript)!
 		set(obj)!
+		action.done = true
+	}
+
+	// Process heropods.enable_mycelium actions
+	for mut action in plbook.find(filter: 'heropods.enable_mycelium')! {
+		mut p := action.params
+		heropods_name := p.get_default('heropods', heropods_default)!
+		mut hp := get(name: heropods_name)!
+
+		// Validate required parameters
+		mycelium_version := p.get('version') or {
+			return error('heropods.enable_mycelium: "version" is required (e.g., version:\'v0.5.6\')')
+		}
+		mycelium_ipv6_range := p.get('ipv6_range') or {
+			return error('heropods.enable_mycelium: "ipv6_range" is required (e.g., ipv6_range:\'400::/7\')')
+		}
+		mycelium_key_path := p.get('key_path') or {
+			return error('heropods.enable_mycelium: "key_path" is required (e.g., key_path:\'~/hero/cfg/priv_key.bin\')')
+		}
+		peers_array := p.get_list('peers') or {
+			return error('heropods.enable_mycelium: "peers" is required. Provide array of peer addresses (e.g., peers:[\'tcp://185.69.166.8:9651\', \'quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651\'])')
+		}
+
+		// Validate peers list is not empty
+		if peers_array.len == 0 {
+			return error('heropods.enable_mycelium: "peers" cannot be empty. Provide at least one peer address.')
+		}
+
+		// Update Mycelium configuration
+		hp.mycelium_config.enabled = true
+		hp.mycelium_config.version = mycelium_version
+		hp.mycelium_config.ipv6_range = mycelium_ipv6_range
+		hp.mycelium_config.key_path = mycelium_key_path
+		hp.mycelium_config.peers = peers_array
+
+		// Initialize Mycelium if not already done
+		hp.mycelium_init()!
+
+		// Save updated configuration
+		set(hp)!
+
 		action.done = true
 	}
 

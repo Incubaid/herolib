@@ -79,44 +79,89 @@ container.start()!
 
 ```heroscript
 !!heropods.configure
-    name:'demo'
+    name:'my_heropods'
     reset:false
     use_podman:true
 
 !!heropods.container_new
-    name:'demo_container'
+    name:'my_container'
     image:'custom'
     custom_image_name:'alpine_3_20'
     docker_url:'docker.io/library/alpine:3.20'
 
 !!heropods.container_start
-    name:'demo_container'
+    name:'my_container'
 
 !!heropods.container_exec
-    name:'demo_container'
+    name:'my_container'
     cmd:'echo "Hello from HeroPods!"'
     stdout:true
 
 !!heropods.container_stop
-    name:'demo_container'
+    name:'my_container'
 
 !!heropods.container_delete
-    name:'demo_container'
+    name:'my_container'
 ```
+
+### Mycelium IPv6 Overlay Network
+
+HeroPods supports Mycelium for end-to-end encrypted IPv6 connectivity:
+
+```heroscript
+!!heropods.configure
+    name:'mycelium_demo'
+    reset:false
+    use_podman:true
+
+!!heropods.enable_mycelium
+    heropods:'mycelium_demo'
+    version:'v0.5.6'
+    ipv6_range:'400::/7'
+    key_path:'~/hero/cfg/priv_key.bin'
+    peers:'tcp://185.69.166.8:9651,quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651'
+
+!!heropods.container_new
+    name:'ipv6_container'
+    image:'alpine_3_20'
+
+!!heropods.container_start
+    name:'ipv6_container'
+
+// Container now has both IPv4 and IPv6 (Mycelium) connectivity
+```
+
+See [MYCELIUM.md](./MYCELIUM.md) for detailed Mycelium configuration.
 
 ## Features
 
 - **Container Lifecycle**: create, start, stop, delete, exec
-- **Bridge Networking**: Automatic IP allocation with NAT
+- **IPv4 Bridge Networking**: Automatic IP allocation with NAT
+- **IPv6 Mycelium Overlay**: End-to-end encrypted peer-to-peer networking
 - **Image Management**: Pull Docker images via Podman or use built-in images
 - **Resource Monitoring**: CPU and memory usage tracking
 - **Thread-Safe**: Concurrent container operations supported
 - **Configurable**: Custom network settings, DNS, resource limits
 
-## More Examples
+## Examples
 
-See `examples/virt/heropods/` for more detailed examples:
+See `examples/virt/heropods/` for complete working examples:
 
-- `heropods.vsh` - Complete API demonstration
-- `demo.heroscript` - HeroScript usage
-- `runcommands.vsh` - Simple command execution
+### HeroScript Examples
+
+- **simple_container.heroscript** - Basic container lifecycle management
+- **ipv4_connection.heroscript** - IPv4 networking and internet connectivity
+- **container_mycelium.heroscript** - Mycelium IPv6 overlay networking
+
+### V Language Examples
+
+- **heropods.vsh** - Complete API demonstration
+- **runcommands.vsh** - Simple command execution
+
+Each example is fully documented and can be run independently. See [examples/virt/heropods/README.md](../../../examples/virt/heropods/README.md) for details.
+
+## Documentation
+
+- **[MYCELIUM.md](./MYCELIUM.md)** - Mycelium IPv6 overlay network integration guide
+- **[PRODUCTION_READINESS_REVIEW.md](./PRODUCTION_READINESS_REVIEW.md)** - Production readiness assessment
+- **[ACTIONABLE_RECOMMENDATIONS.md](./ACTIONABLE_RECOMMENDATIONS.md)** - Code quality recommendations

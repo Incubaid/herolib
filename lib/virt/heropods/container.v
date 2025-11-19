@@ -154,6 +154,27 @@ pub fn (mut self Container) start() ! {
 		return error('Failed to setup network for container: ${err}')
 	}
 
+	// Setup Mycelium IPv6 overlay network if enabled
+	if self.factory.mycelium_config.enabled {
+		container_pid := self.pid()!
+		self.factory.mycelium_setup_container(self.name, container_pid) or {
+			self.factory.logger.log(
+				cat:     'container'
+				log:     'Mycelium setup failed, stopping container: ${err}'
+				logtype: .error
+			) or {}
+			// Stop container to clean up
+			self.stop() or {
+				self.factory.logger.log(
+					cat:     'container'
+					log:     'Failed to stop container during Mycelium cleanup: ${err}'
+					logtype: .error
+				) or {}
+			}
+			return error('Failed to setup Mycelium for container: ${err}')
+		}
+	}
+
 	self.factory.logger.log(
 		cat:     'container'
 		log:     'Container ${self.name} started'
@@ -415,9 +436,21 @@ fn (mut self Container) setup_network() ! {
 //
 // Delegates to HeroPods.network_cleanup_container() which uses network_mutex
 // for thread-safe IP deallocation and network cleanup.
+// Also cleans up Mycelium IPv6 overlay network if enabled.
 fn (mut self Container) cleanup_network() ! {
 	mut factory := self.factory
 	factory.network_cleanup_container(self.name)!
+
+	// Cleanup Mycelium IPv6 overlay network if enabled
+	if factory.mycelium_config.enabled {
+		factory.mycelium_cleanup_container(self.name) or {
+			factory.logger.log(
+				cat:     'container'
+				log:     'Warning: Failed to cleanup Mycelium for container ${self.name}: ${err}'
+				logtype: .error
+			) or {}
+		}
+	}
 }
 
 // Check if container exists in crun (regardless of its state)

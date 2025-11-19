@@ -1,0 +1,125 @@
+#!/usr/bin/env hero
+
+// ============================================================================
+// HeroPods Example: Mycelium IPv6 Overlay Networking
+// ============================================================================
+//
+// This script demonstrates Mycelium IPv6 overlay networking:
+// - End-to-end encrypted IPv6 connectivity
+// - Peer-to-peer routing through public relay nodes
+// - Container IPv6 address assignment from host's /64 prefix
+// - Connectivity to other Mycelium nodes across the internet
+//
+// Mycelium provides each container with an IPv6 address in the 400::/7 range
+// and enables encrypted communication with other Mycelium nodes.
+// ============================================================================
+
+// Step 1: Configure HeroPods instance
+// This creates a HeroPods instance with default IPv4 networking
+!!heropods.configure
+    name:'mycelium_demo'
+    reset:false
+    use_podman:true
+
+// Step 2: Enable Mycelium IPv6 overlay network
+// All parameters are required for Mycelium configuration
+!!heropods.enable_mycelium
+    heropods:'mycelium_demo'
+    version:'v0.5.6'
+    ipv6_range:'400::/7'
+    key_path:'~/hero/cfg/priv_key.bin'
+    peers:[
+        'tcp://185.69.166.8:9651',
+        'quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651',
+        'tcp://65.109.18.113:9651',
+        'quic://[2a01:4f9:5a:1042::2]:9651',
+        'tcp://5.78.122.16:9651',
+        'quic://[2a01:4ff:1f0:8859::1]:9651',
+        'tcp://5.223.43.251:9651',
+        'quic://[2a01:4ff:2f0:3621::1]:9651',
+        'tcp://142.93.217.194:9651',
+        'quic://[2400:6180:100:d0::841:2001]:9651'
+    ]
+
+// Step 3: Create a new Alpine Linux container
+// Alpine includes basic IPv6 networking tools
+!!heropods.container_new
+    name:'mycelium_container'
+    image:'custom'
+    custom_image_name:'alpine_3_20'
+    docker_url:'docker.io/library/alpine:3.20'
+
+// Step 4: Start the container
+// This sets up both IPv4 and IPv6 (Mycelium) networking
+!!heropods.container_start
+    name:'mycelium_container'
+
+// Step 5: Verify IPv6 network configuration
+
+// Show all network interfaces (including IPv6 addresses)
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'ip addr show'
+    stdout:true
+
+// Show IPv6 addresses specifically
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'ip -6 addr show'
+    stdout:true
+
+// Show IPv6 routing table
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'ip -6 route show'
+    stdout:true
+
+// Step 6: Test Mycelium IPv6 connectivity
+// Ping a known public Mycelium node to verify connectivity
+// Note: This requires the container to have CAP_NET_RAW capability for ping6
+// If ping6 fails with permission denied, this is expected behavior in Alpine
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'ping6 -c 3 400:8f3a:8d0e:3503:db8e:6a02:2e9:83dd'
+    stdout:true
+
+// Alternative: Test IPv6 connectivity using nc (netcat) if available
+// This doesn't require special capabilities
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'nc -6 -zv -w 3 400:8f3a:8d0e:3503:db8e:6a02:2e9:83dd 80 2>&1 || echo "nc test completed"'
+    stdout:true
+
+// Step 7: Show Mycelium-specific information
+
+// Display the container's Mycelium IPv6 address
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'ip -6 addr show | grep "400:" || echo "No Mycelium IPv6 address found"'
+    stdout:true
+
+// Show IPv6 neighbors (if any)
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'ip -6 neigh show'
+    stdout:true
+
+// Step 8: Verify dual-stack networking (IPv4 + IPv6)
+// The container should have both IPv4 and IPv6 connectivity
+
+// Test IPv4 connectivity
+!!heropods.container_exec
+    name:'mycelium_container'
+    cmd:'wget -O- http://google.com --timeout=5 2>&1 | head -n 5'
+    stdout:true
+
+// Step 9: Stop the container
+// This cleans up both IPv4 and IPv6 (Mycelium) networking
+!!heropods.container_stop
+    name:'mycelium_container'
+
+// Step 10: Delete the container
+// This removes the container and all associated resources
+!!heropods.container_delete
+    name:'mycelium_container'
+
