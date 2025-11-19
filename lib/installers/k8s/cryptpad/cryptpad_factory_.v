@@ -28,12 +28,9 @@ pub fn new(args ArgsGet) !&CryptpadServer {
 	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&CryptpadServer {
-	mut args := args_
+pub fn get(args ArgsGet) !&CryptpadServer {
 	mut context := base.context()!
-	if args.name == 'cryptpad' && cryptpad_default != '' {
-		args.name = cryptpad_default
-	}
+	cryptpad_default = args.name
 	if args.fromdb || args.name !in cryptpad_global {
 		mut r := context.redis()!
 		if r.hexists('context:cryptpad', args.name)! {
@@ -52,17 +49,12 @@ pub fn get(args_ ArgsGet) !&CryptpadServer {
 				return error("CryptpadServer with name '${args.name}' does not exist")
 			}
 		}
-		return get(
-			name:   args.name
-			fromdb: args.fromdb
-			create: args.create
-		)! // no longer from db nor create
+		return get(name: args.name)! // no longer from db nor create
 	}
-	result := cryptpad_global[args.name] or {
+	return cryptpad_global[args.name] or {
 		print_backtrace()
 		return error('could not get config for cryptpad with name:${args.name}')
 	}
-	return result
 }
 
 // register the config for the future
@@ -71,8 +63,7 @@ pub fn set(o CryptpadServer) ! {
 	cryptpad_default = o2.name
 	mut context := base.context()!
 	mut r := context.redis()!
-	encoded := json.encode(o2)
-	r.hset('context:cryptpad', o2.name, encoded)!
+	r.hset('context:cryptpad', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
