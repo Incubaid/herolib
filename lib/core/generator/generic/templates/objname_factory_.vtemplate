@@ -169,7 +169,11 @@ pub fn play(mut plbook PlayBook) ! {
     @if args.cat == .installer
     mut other_actions := plbook.find(filter: '${args.name}.')!
     for mut other_action in other_actions {
+        @if args.startupmanager
+        if other_action.name in ["destroy","install","build","start","stop","restart","start_pre","start_post","stop_pre","stop_post"]{
+        @else
         if other_action.name in ["destroy","install","build"]{
+        @end
             mut p := other_action.params
             name := p.get_default('name', 'default')!
             reset:=p.get_default_false("reset")
@@ -188,13 +192,7 @@ pub fn play(mut plbook PlayBook) ! {
                 console.print_debug("install action ${args.name}.build")
                 ${args.name}_obj.build()!
             }
-        }
-        @if args.startupmanager
-        if other_action.name in ["start","stop","restart","start_pre","start_post","stop_pre","stop_post"]{
-            mut p := other_action.params
-            name := p.get('name')!            
-            mut ${args.name}_obj:=get(name:name)!
-            console.print_debug("action object:\n??{${args.name}_obj}")
+            @if args.startupmanager
             if other_action.name == "start"{
                 console.print_debug("install action ${args.name}.??{other_action.name}")
                 ${args.name}_obj.start()!
@@ -223,8 +221,8 @@ pub fn play(mut plbook PlayBook) ! {
                 console.print_debug("install action ${args.name}.??{other_action.name}")
                 ${args.name}_obj.stop_post()!
             }
+            @end
         }
-        @end
         other_action.done = true
     }
     @end    

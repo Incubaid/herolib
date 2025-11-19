@@ -142,7 +142,7 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut other_actions := plbook.find(filter: 'herorunner.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install', 'build'] {
+		if other_action.name in ['destroy', 'install', 'build', 'start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
@@ -161,12 +161,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action herorunner.build')
 				herorunner_obj.build()!
 			}
-		}
-		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
-			mut p := other_action.params
-			name := p.get('name')!
-			mut herorunner_obj := get(name: name)!
-			console.print_debug('action object:\n${herorunner_obj}')
 			if other_action.name == 'start' {
 				console.print_debug('install action herorunner.${other_action.name}')
 				herorunner_obj.start()!
