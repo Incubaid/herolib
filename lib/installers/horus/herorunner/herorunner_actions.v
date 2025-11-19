@@ -11,7 +11,7 @@ import os
 
 fn (self &Herorunner) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
-	
+
 	res << startupmanager.ZProcessNewArgs{
 		name: 'herorunner'
 		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr}'
@@ -52,7 +52,7 @@ fn (self &Herorunner) installed() !bool {
 	if !binary.exists() {
 		return false
 	}
-	
+
 	return true
 }
 
@@ -65,7 +65,6 @@ fn ulist_get() !ulist.UList {
 // uploads to S3 server if configured
 fn upload() ! {
 }
-
 
 @[params]
 pub struct InstallArgs {
@@ -81,7 +80,7 @@ fn (mut self Herorunner) install(args InstallArgs) ! {
 
 fn (mut self Herorunner) build() ! {
 	console.print_header('build herorunner')
-	
+
 	// Ensure rust is installed
 	console.print_debug('Checking if Rust is installed...')
 	mut rust_installer := rust.get()!
@@ -92,7 +91,7 @@ fn (mut self Herorunner) build() ! {
 	} else {
 		console.print_debug('Rust is already installed: ${res.output.trim_space()}')
 	}
-	
+
 	// Clone or get the repository
 	console.print_debug('Cloning/updating horus repository...')
 	mut gs := gittools.new()!
@@ -101,40 +100,40 @@ fn (mut self Herorunner) build() ! {
 		pull:  true
 		reset: false
 	)!
-	
+
 	repo_path := repo.path()
 	console.print_debug('Repository path: ${repo_path}')
-	
+
 	// Build the herorunner binary from the horus workspace
 	console.print_header('Building herorunner binary (this may take several minutes)...')
 	console.print_debug('Running: cargo build -p runner-hero --release')
 	console.print_debug('Build output:')
-	
+
 	cmd := 'cd ${repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p runner-hero --release'
 	osal.execute_stdout(cmd)!
-	
+
 	console.print_debug('Build completed successfully')
-	
+
 	// Ensure binary directory exists and copy the binary
 	console.print_debug('Preparing binary directory: ${self.binary_path}')
 	mut binary_path_obj := pathlib.get(self.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
-	
+
 	// Copy the built binary to the configured location
 	source_binary := '${repo_path}/target/release/herorunner'
 	console.print_debug('Copying binary from: ${source_binary}')
 	console.print_debug('Copying binary to: ${self.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
 	source_file.copy(dest: self.binary_path, rsync: false)!
-	
+
 	console.print_header('herorunner built successfully at ${self.binary_path}')
 }
 
 fn (mut self Herorunner) destroy() ! {
 	self.stop()!
-	
+
 	osal.process_kill_recursive(name: 'herorunner')!
-	
+
 	// Remove the built binary
 	osal.rm(self.binary_path)!
 }

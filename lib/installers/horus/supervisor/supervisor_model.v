@@ -14,13 +14,13 @@ const default = true
 @[heap]
 pub struct Supervisor {
 pub mut:
-	name         string = 'default'
-	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/supervisor')
-	redis_addr   string = '127.0.0.1:6379'
-	http_port    int    = 8082
-	ws_port      int    = 9654
-	log_level    string = 'info'
-	repo_path    string = '/root/code/git.ourworld.tf/herocode/horus'
+	name        string = 'default'
+	binary_path string = os.join_path(os.home_dir(), 'hero/bin/supervisor')
+	redis_addr  string = '127.0.0.1:6379'
+	http_port   int    = 8082
+	ws_port     int    = 9654
+	log_level   string = 'info'
+	repo_path   string = '/root/code/git.ourworld.tf/herocode/horus'
 }
 
 // your checking & initialization code if needed

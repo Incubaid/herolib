@@ -12,7 +12,7 @@ import os
 
 fn (self &Supervisor) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
-	
+
 	res << startupmanager.ZProcessNewArgs{
 		name: 'supervisor'
 		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr} --api-http-port ${self.http_port} --api-ws-port ${self.ws_port}'
@@ -28,7 +28,11 @@ fn (self &Supervisor) startupcmd() ![]startupmanager.ZProcessNewArgs {
 
 fn (self &Supervisor) running_check() !bool {
 	// Check if the process is running by checking the HTTP port
-	res := osal.exec(cmd: 'curl -fsSL http://127.0.0.1:${self.http_port} || exit 1', stdout: false, raise_error: false)!
+	res := osal.exec(
+		cmd:         'curl -fsSL http://127.0.0.1:${self.http_port} || exit 1'
+		stdout:      false
+		raise_error: false
+	)!
 	return res.exit_code == 0
 }
 
@@ -53,7 +57,7 @@ fn (self &Supervisor) installed() !bool {
 	if !binary.exists() {
 		return false
 	}
-	
+
 	return true
 }
 
@@ -71,7 +75,6 @@ fn upload() ! {
 	// )!
 }
 
-
 @[params]
 pub struct InstallArgs {
 pub mut:
@@ -88,7 +91,7 @@ fn (mut self Supervisor) install(args InstallArgs) ! {
 pub fn build_supervisor() ! {
 	console.print_header('build supervisor')
 	println('📦 Starting supervisor build process...\n')
-	
+
 	// Use default config instead of getting from factory
 	println('⚙️  Initializing configuration...')
 	mut cfg := Supervisor{}
@@ -97,10 +100,10 @@ pub fn build_supervisor() ! {
 	println('   - Redis address: ${cfg.redis_addr}')
 	println('   - HTTP port: ${cfg.http_port}')
 	println('   - WS port: ${cfg.ws_port}\n')
-	
+
 	// Ensure Redis is installed and running (required for supervisor)
 	println('🔍 Step 1/4: Checking Redis dependency...')
-	
+
 	// First check if redis-server is installed
 	if !osal.cmd_exists_profile('redis-server') {
 		println('⚠️  Redis is not installed')
@@ -110,7 +113,7 @@ pub fn build_supervisor() ! {
 	} else {
 		println('✅ Redis is already installed')
 	}
-	
+
 	// Now check if it's running
 	println('🔍 Checking if Redis is running...')
 	redis_check := osal.exec(cmd: 'redis-cli -c -p 6379 ping', stdout: false, raise_error: false)!
@@ -122,7 +125,7 @@ pub fn build_supervisor() ! {
 	} else {
 		println('✅ Redis is already running\n')
 	}
-	
+
 	// Ensure rust is installed
 	println('🔍 Step 2/4: Checking Rust dependency...')
 	mut rust_installer := rust.get()!
@@ -134,7 +137,7 @@ pub fn build_supervisor() ! {
 	} else {
 		println('✅ Rust is already installed: ${res.output.trim_space()}\n')
 	}
-	
+
 	// Clone or get the repository
 	println('🔍 Step 3/4: Cloning/updating horus repository...')
 	mut gs := gittools.new()!
@@ -143,40 +146,40 @@ pub fn build_supervisor() ! {
 		pull:  true
 		reset: false
 	)!
-	
+
 	// Update the path to the actual cloned repo
 	cfg.repo_path = repo.path()
 	println('✅ Repository ready at: ${cfg.repo_path}\n')
-	
+
 	// Build the supervisor binary from the horus workspace
 	println('🔍 Step 4/4: Building supervisor binary...')
 	println('⚠️  This may take several minutes (compiling Rust code)...')
 	println('📝 Running: cargo build -p hero-supervisor --release\n')
-	
+
 	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-supervisor --release'
 	osal.execute_stdout(cmd)!
-	
+
 	println('\n✅ Build completed successfully')
-	
+
 	// Ensure binary directory exists and copy the binary
 	println('📁 Preparing binary directory: ${cfg.binary_path}')
 	mut binary_path_obj := pathlib.get(cfg.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
-	
+
 	// Copy the built binary to the configured location
 	source_binary := '${cfg.repo_path}/target/release/supervisor'
 	println('📋 Copying binary from: ${source_binary}')
 	println('📋 Copying binary to: ${cfg.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
 	source_file.copy(dest: cfg.binary_path, rsync: false)!
-	
+
 	println('\n🎉 Supervisor built successfully!')
 	println('📍 Binary location: ${cfg.binary_path}')
 }
 
 fn (mut self Supervisor) build() ! {
 	console.print_header('build supervisor')
-	
+
 	// Ensure Redis is installed and running (required for supervisor)
 	console.print_debug('Checking if Redis is installed and running...')
 	redis_check := osal.exec(cmd: 'redis-cli -c -p 6379 ping', stdout: false, raise_error: false)!
@@ -192,7 +195,7 @@ fn (mut self Supervisor) build() ! {
 	} else {
 		console.print_debug('Redis is already running')
 	}
-	
+
 	// Ensure rust is installed
 	console.print_debug('Checking if Rust is installed...')
 	mut rust_installer := rust.get()!
@@ -203,7 +206,7 @@ fn (mut self Supervisor) build() ! {
 	} else {
 		console.print_debug('Rust is already installed: ${res.output.trim_space()}')
 	}
-	
+
 	// Clone or get the repository
 	console.print_debug('Cloning/updating horus repository...')
 	mut gs := gittools.new()!
@@ -212,42 +215,42 @@ fn (mut self Supervisor) build() ! {
 		pull:  true
 		reset: false
 	)!
-	
+
 	// Update the path to the actual cloned repo
 	self.repo_path = repo.path()
 	set(self)!
 	console.print_debug('Repository path: ${self.repo_path}')
-	
+
 	// Build the supervisor binary from the horus workspace
 	console.print_header('Building supervisor binary (this may take several minutes)...')
 	console.print_debug('Running: cargo build -p hero-supervisor --release')
 	console.print_debug('Build output:')
-	
+
 	cmd := 'cd ${self.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-supervisor --release'
 	osal.execute_stdout(cmd)!
-	
+
 	console.print_debug('Build completed successfully')
-	
+
 	// Ensure binary directory exists and copy the binary
 	console.print_debug('Preparing binary directory: ${self.binary_path}')
 	mut binary_path_obj := pathlib.get(self.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
-	
+
 	// Copy the built binary to the configured location
 	source_binary := '${self.repo_path}/target/release/supervisor'
 	console.print_debug('Copying binary from: ${source_binary}')
 	console.print_debug('Copying binary to: ${self.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
 	source_file.copy(dest: self.binary_path, rsync: false)!
-	
+
 	console.print_header('supervisor built successfully at ${self.binary_path}')
 }
 
 fn (mut self Supervisor) destroy() ! {
 	self.stop()!
-	
+
 	osal.process_kill_recursive(name: 'supervisor')!
-	
+
 	// Remove the built binary
 	osal.rm(self.binary_path)!
 }
