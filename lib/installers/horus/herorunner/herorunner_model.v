@@ -12,7 +12,7 @@ const default = true
 
 // THIS THE THE SOURCE OF THE INFORMATION OF THIS FILE, HERE WE HAVE THE CONFIG OBJECT CONFIGURED AND MODELLED
 @[heap]
-pub struct HerorunnerServer {
+pub struct Herorunner {
 pub mut:
 	name         string = 'default'
 	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/herorunner')
@@ -21,7 +21,7 @@ pub mut:
 }
 
 // your checking & initialization code if needed
-fn obj_init(mycfg_ HerorunnerServer) !HerorunnerServer {
+fn obj_init(mycfg_ Herorunner) !Herorunner {
 	mut mycfg := mycfg_
 	if mycfg.name == '' {
 		mycfg.name = 'default'
@@ -48,11 +48,11 @@ fn configure() ! {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_dumps(obj HerorunnerServer) !string {
-	return encoderhero.encode[HerorunnerServer](obj)!
+pub fn heroscript_dumps(obj Herorunner) !string {
+	return encoderhero.encode[Herorunner](obj)!
 }
 
-pub fn heroscript_loads(heroscript string) !HerorunnerServer {
-	mut obj := encoderhero.decode[HerorunnerServer](heroscript)!
+pub fn heroscript_loads(heroscript string) !Herorunner {
+	mut obj := encoderhero.decode[Herorunner](heroscript)!
 	return obj
 }

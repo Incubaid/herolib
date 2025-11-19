@@ -2,7 +2,7 @@
 // This file demonstrates how to configure all Horus components using heroscript
 
 // Configure Coordinator
-!!herocoordinator.configure
+!!coordinator.configure
     name:'default'
     binary_path:'/hero/var/bin/coordinator'
     redis_addr:'127.0.0.1:6379'
