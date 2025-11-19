@@ -10,16 +10,15 @@ import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.develop.gittools
 import os
 
-fn startupcmd() ![]startupmanager.ZProcessNewArgs {
-	mut cfg := get()!
+fn (self &Supervisor) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 	
 	res << startupmanager.ZProcessNewArgs{
 		name: 'supervisor'
-		cmd:  '${cfg.binary_path} --redis-addr ${cfg.redis_addr} --api-http-port ${cfg.http_port} --api-ws-port ${cfg.ws_port}'
+		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr} --api-http-port ${self.http_port} --api-ws-port ${self.ws_port}'
 		env:  {
 			'HOME':           os.home_dir()
-			'RUST_LOG':       cfg.log_level
+			'RUST_LOG':       self.log_level
 			'RUST_LOG_STYLE': 'never'
 		}
 	}
@@ -27,33 +26,30 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	return res
 }
 
-fn running() !bool {
-	mut cfg := get()!
+fn (self &Supervisor) running_check() !bool {
 	// Check if the process is running by checking the HTTP port
-	res := osal.exec(cmd: 'curl -fsSL http://127.0.0.1:${cfg.http_port} || exit 1', stdout: false, raise_error: false)!
+	res := osal.exec(cmd: 'curl -fsSL http://127.0.0.1:${self.http_port} || exit 1', stdout: false, raise_error: false)!
 	return res.exit_code == 0
 }
 
-fn start_pre() ! {
+fn (self &Supervisor) start_pre() ! {
 }
 
-fn start_post() ! {
+fn (self &Supervisor) start_post() ! {
 }
 
-fn stop_pre() ! {
+fn (self &Supervisor) stop_pre() ! {
 }
 
-fn stop_post() ! {
+fn (self &Supervisor) stop_post() ! {
 }
 
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
-fn installed() !bool {
-	mut cfg := get()!
-	
+fn (self &Supervisor) installed() !bool {
 	// Check if the binary exists
-	mut binary := pathlib.get(cfg.binary_path)
+	mut binary := pathlib.get(self.binary_path)
 	if !binary.exists() {
 		return false
 	}
@@ -75,10 +71,17 @@ fn upload() ! {
 	// )!
 }
 
-fn install() ! {
+
+@[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
+}
+
+fn (mut self Supervisor) install(args InstallArgs) ! {
 	console.print_header('install supervisor')
 	// For supervisor, we build from source instead of downloading
-	build()!
+	self.build()!
 }
 
 // Public function to build supervisor without requiring factory/redis
@@ -88,7 +91,7 @@ pub fn build_supervisor() ! {
 	
 	// Use default config instead of getting from factory
 	println('⚙️  Initializing configuration...')
-	mut cfg := SupervisorServer{}
+	mut cfg := Supervisor{}
 	println('✅ Configuration initialized')
 	println('   - Binary path: ${cfg.binary_path}')
 	println('   - Redis address: ${cfg.redis_addr}')
@@ -171,10 +174,8 @@ pub fn build_supervisor() ! {
 	println('📍 Binary location: ${cfg.binary_path}')
 }
 
-fn build() ! {
+fn (mut self Supervisor) build() ! {
 	console.print_header('build supervisor')
-	
-	mut cfg := get()!
 	
 	// Ensure Redis is installed and running (required for supervisor)
 	console.print_debug('Checking if Redis is installed and running...')
@@ -213,41 +214,40 @@ fn build() ! {
 	)!
 	
 	// Update the path to the actual cloned repo
-	cfg.repo_path = repo.path()
-	set(cfg)!
-	console.print_debug('Repository path: ${cfg.repo_path}')
+	self.repo_path = repo.path()
+	set(self)!
+	console.print_debug('Repository path: ${self.repo_path}')
 	
 	// Build the supervisor binary from the horus workspace
 	console.print_header('Building supervisor binary (this may take several minutes)...')
 	console.print_debug('Running: cargo build -p hero-supervisor --release')
 	console.print_debug('Build output:')
 	
-	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-supervisor --release'
+	cmd := 'cd ${self.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-supervisor --release'
 	osal.execute_stdout(cmd)!
 	
 	console.print_debug('Build completed successfully')
 	
 	// Ensure binary directory exists and copy the binary
-	console.print_debug('Preparing binary directory: ${cfg.binary_path}')
-	mut binary_path_obj := pathlib.get(cfg.binary_path)
+	console.print_debug('Preparing binary directory: ${self.binary_path}')
+	mut binary_path_obj := pathlib.get(self.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
 	
 	// Copy the built binary to the configured location
-	source_binary := '${cfg.repo_path}/target/release/supervisor'
+	source_binary := '${self.repo_path}/target/release/supervisor'
 	console.print_debug('Copying binary from: ${source_binary}')
-	console.print_debug('Copying binary to: ${cfg.binary_path}')
+	console.print_debug('Copying binary to: ${self.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
-	source_file.copy(dest: cfg.binary_path, rsync: false)!
+	source_file.copy(dest: self.binary_path, rsync: false)!
 	
-	console.print_header('supervisor built successfully at ${cfg.binary_path}')
+	console.print_header('supervisor built successfully at ${self.binary_path}')
 }
 
-fn destroy() ! {
-	mut server := get()!
-	server.stop()!
+fn (mut self Supervisor) destroy() ! {
+	self.stop()!
 	
 	osal.process_kill_recursive(name: 'supervisor')!
 	
 	// Remove the built binary
-	osal.rm(server.binary_path)!
+	osal.rm(self.binary_path)!
 }

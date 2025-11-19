@@ -1,7 +1,7 @@
 
 !!hero_code.generate_installer
     name:''
-    classname:'CoordinatorServer'
+    classname:'Coordinator'
     singleton:0
     templates:1
     default:1

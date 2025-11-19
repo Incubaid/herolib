@@ -21,6 +21,11 @@ import incubaid.herolib.clients.zerodb_client
 import incubaid.herolib.clients.zinit
 import incubaid.herolib.develop.heroprompt
 import incubaid.herolib.installers.db.meilisearch_installer
+import incubaid.herolib.installers.horus.coordinator
+import incubaid.herolib.installers.horus.supervisor
+import incubaid.herolib.installers.horus.herorunner
+import incubaid.herolib.installers.horus.osirisrunner
+import incubaid.herolib.installers.horus.salrunner
 import incubaid.herolib.installers.infra.coredns
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.installers.infra.livekit
@@ -38,7 +43,6 @@ import incubaid.herolib.installers.sysadmintools.garage_s3
 import incubaid.herolib.installers.threefold.griddriver
 import incubaid.herolib.installers.virt.cloudhypervisor
 import incubaid.herolib.installers.virt.docker
-import incubaid.herolib.installers.virt.herorunner
 import incubaid.herolib.installers.virt.kubernetes_installer
 import incubaid.herolib.installers.virt.lima
 import incubaid.herolib.installers.virt.pacman
@@ -109,4 +113,9 @@ pub fn run_all(args_ PlayArgs) ! {
 	zola.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	kubernetes.play(mut plbook)!
+	coordinator.play(mut plbook)!
+	supervisor.play(mut plbook)!
+	herorunner.play(mut plbook)!
+	osirisrunner.play(mut plbook)!
+	salrunner.play(mut plbook)!
 }

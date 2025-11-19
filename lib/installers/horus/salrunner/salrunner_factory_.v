@@ -8,7 +8,7 @@ import incubaid.herolib.osal.startupmanager
 import time
 
 __global (
-	salrunner_global  map[string]&SalrunnerServer
+	salrunner_global  map[string]&Salrunner
 	salrunner_default string
 )
 
@@ -26,8 +26,8 @@ pub mut:
 	create      bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&SalrunnerServer {
-	mut obj := SalrunnerServer{
+pub fn new(args ArgsGet) !&Salrunner {
+	mut obj := Salrunner{
 		name:        args.name
 		binary_path: args.binary_path
 		redis_addr:  args.redis_addr
@@ -38,7 +38,7 @@ pub fn new(args ArgsGet) !&SalrunnerServer {
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&SalrunnerServer {
+pub fn get(args ArgsGet) !&Salrunner {
 	mut context := base.context()!
 	salrunner_default = args.name
 	if args.fromdb || args.name !in salrunner_global {
@@ -47,16 +47,16 @@ pub fn get(args ArgsGet) !&SalrunnerServer {
 			data := r.hget('context:salrunner', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('SalrunnerServer with name: ${args.name} does not exist, prob bug.')
+				return error('Salrunner with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(SalrunnerServer, data)!
+			mut obj := json.decode(Salrunner, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("SalrunnerServer with name '${args.name}' does not exist")
+				return error("Salrunner with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
@@ -68,7 +68,7 @@ pub fn get(args ArgsGet) !&SalrunnerServer {
 }
 
 // register the config for the future
-pub fn set(o SalrunnerServer) ! {
+pub fn set(o Salrunner) ! {
 	mut o2 := set_in_mem(o)!
 	salrunner_default = o2.name
 	mut context := base.context()!
@@ -96,12 +96,12 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&SalrunnerServer {
-	mut res := []&SalrunnerServer{}
+pub fn list(args ArgsList) ![]&Salrunner {
+	mut res := []&Salrunner{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		salrunner_global = map[string]&SalrunnerServer{}
+		salrunner_global = map[string]&Salrunner{}
 		salrunner_default = ''
 	}
 	if args.fromdb {
@@ -122,7 +122,7 @@ pub fn list(args ArgsList) ![]&SalrunnerServer {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o SalrunnerServer) !SalrunnerServer {
+fn set_in_mem(o Salrunner) !Salrunner {
 	mut o2 := obj_init(o)!
 	salrunner_global[o2.name] = &o2
 	salrunner_default = o2.name
@@ -146,17 +146,25 @@ pub fn play(mut plbook PlayBook) ! {
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
+			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
+			mut salrunner_obj := get(name: name)!
+			console.print_debug('action object:\n${salrunner_obj}')
+			
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action salrunner.destroy')
-				destroy()!
+				salrunner_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action salrunner.install')
-				install()!
+				salrunner_obj.install(reset: reset)!
+			}
+			if other_action.name == 'build' {
+				console.print_debug('install action salrunner.build')
+				salrunner_obj.build()!
 			}
 		}
-		if other_action.name in ['start', 'stop', 'restart'] {
+		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
 			mut salrunner_obj := get(name: name)!
@@ -165,7 +173,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action salrunner.${other_action.name}')
 				salrunner_obj.start()!
 			}
-
 			if other_action.name == 'stop' {
 				console.print_debug('install action salrunner.${other_action.name}')
 				salrunner_obj.stop()!
@@ -173,6 +180,22 @@ pub fn play(mut plbook PlayBook) ! {
 			if other_action.name == 'restart' {
 				console.print_debug('install action salrunner.${other_action.name}')
 				salrunner_obj.restart()!
+			}
+			if other_action.name == 'start_pre' {
+				console.print_debug('install action salrunner.${other_action.name}')
+				salrunner_obj.start_pre()!
+			}
+			if other_action.name == 'start_post' {
+				console.print_debug('install action salrunner.${other_action.name}')
+				salrunner_obj.start_post()!
+			}
+			if other_action.name == 'stop_pre' {
+				console.print_debug('install action salrunner.${other_action.name}')
+				salrunner_obj.stop_pre()!
+			}
+			if other_action.name == 'stop_post' {
+				console.print_debug('install action salrunner.${other_action.name}')
+				salrunner_obj.stop_post()!
 			}
 		}
 		other_action.done = true
@@ -210,12 +233,12 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 }
 
 // load from disk and make sure is properly intialized
-pub fn (mut self SalrunnerServer) reload() ! {
+pub fn (mut self Salrunner) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
 }
 
-pub fn (mut self SalrunnerServer) start() ! {
+pub fn (mut self Salrunner) start() ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -223,15 +246,13 @@ pub fn (mut self SalrunnerServer) start() ! {
 
 	console.print_header('installer: salrunner start')
 
-	if !installed()! {
-		install()!
+	if !self.installed()! {
+		self.install()!
 	}
 
-	configure()!
+	self.start_pre()!
 
-	start_pre()!
-
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: salrunner starting with ${zprocess.startuptype}...')
@@ -241,7 +262,7 @@ pub fn (mut self SalrunnerServer) start() ! {
 		sm.start(zprocess.name)!
 	}
 
-	start_post()!
+	self.start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -252,33 +273,33 @@ pub fn (mut self SalrunnerServer) start() ! {
 	return error('salrunner did not install properly.')
 }
 
-pub fn (mut self SalrunnerServer) install_start(args InstallArgs) ! {
+pub fn (mut self Salrunner) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
 	self.start()!
 }
 
-pub fn (mut self SalrunnerServer) stop() ! {
+pub fn (mut self Salrunner) stop() ! {
 	switch(self.name)
-	stop_pre()!
-	for zprocess in startupcmd()! {
+	self.stop_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.stop(zprocess.name)!
 	}
-	stop_post()!
+	self.stop_post()!
 }
 
-pub fn (mut self SalrunnerServer) restart() ! {
+pub fn (mut self Salrunner) restart() ! {
 	switch(self.name)
 	self.stop()!
 	self.start()!
 }
 
-pub fn (mut self SalrunnerServer) running() !bool {
+pub fn (mut self Salrunner) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		if zprocess.startuptype != .screen {
 			mut sm := startupmanager_get(zprocess.startuptype)!
 			r := sm.running(zprocess.name)!
@@ -287,31 +308,7 @@ pub fn (mut self SalrunnerServer) running() !bool {
 			}
 		}
 	}
-	return running()!
-}
-
-@[params]
-pub struct InstallArgs {
-pub mut:
-	reset bool
-}
-
-pub fn (mut self SalrunnerServer) install(args InstallArgs) ! {
-	switch(self.name)
-	if args.reset || (!installed()!) {
-		install()!
-	}
-}
-
-pub fn (mut self SalrunnerServer) build() ! {
-	switch(self.name)
-	build()!
-}
-
-pub fn (mut self SalrunnerServer) destroy() ! {
-	switch(self.name)
-	self.stop() or {}
-	destroy()!
+	return self.running_check()!
 }
 
 // switch instance to be used for salrunner

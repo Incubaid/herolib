@@ -9,16 +9,15 @@ import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.develop.gittools
 import os
 
-fn startupcmd() ![]startupmanager.ZProcessNewArgs {
-	mut cfg := get()!
+fn (self &Herorunner) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 	
 	res << startupmanager.ZProcessNewArgs{
 		name: 'herorunner'
-		cmd:  '${cfg.binary_path} --redis-addr ${cfg.redis_addr}'
+		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr}'
 		env:  {
 			'HOME':           os.home_dir()
-			'RUST_LOG':       cfg.log_level
+			'RUST_LOG':       self.log_level
 			'RUST_LOG_STYLE': 'never'
 		}
 	}
@@ -26,32 +25,30 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	return res
 }
 
-fn running() !bool {
+fn (self &Herorunner) running_check() !bool {
 	// Check if the process is running
 	res := osal.exec(cmd: 'pgrep -f herorunner', stdout: false, raise_error: false)!
 	return res.exit_code == 0
 }
 
-fn start_pre() ! {
+fn (self &Herorunner) start_pre() ! {
 }
 
-fn start_post() ! {
+fn (self &Herorunner) start_post() ! {
 }
 
-fn stop_pre() ! {
+fn (self &Herorunner) stop_pre() ! {
 }
 
-fn stop_post() ! {
+fn (self &Herorunner) stop_post() ! {
 }
 
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
-fn installed() !bool {
-	mut cfg := get()!
-	
+fn (self &Herorunner) installed() !bool {
 	// Check if the binary exists
-	mut binary := pathlib.get(cfg.binary_path)
+	mut binary := pathlib.get(self.binary_path)
 	if !binary.exists() {
 		return false
 	}
@@ -69,16 +66,21 @@ fn ulist_get() !ulist.UList {
 fn upload() ! {
 }
 
-fn install() ! {
-	console.print_header('install herorunner')
-	// For herorunner, we build from source instead of downloading
-	build()!
+
+@[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
 }
 
-fn build() ! {
+fn (mut self Herorunner) install(args InstallArgs) ! {
+	console.print_header('install herorunner')
+	// For herorunner, we build from source instead of downloading
+	self.build()!
+}
+
+fn (mut self Herorunner) build() ! {
 	console.print_header('build herorunner')
-	
-	mut cfg := get()!
 	
 	// Ensure rust is installed
 	console.print_debug('Checking if Rust is installed...')
@@ -114,26 +116,25 @@ fn build() ! {
 	console.print_debug('Build completed successfully')
 	
 	// Ensure binary directory exists and copy the binary
-	console.print_debug('Preparing binary directory: ${cfg.binary_path}')
-	mut binary_path_obj := pathlib.get(cfg.binary_path)
+	console.print_debug('Preparing binary directory: ${self.binary_path}')
+	mut binary_path_obj := pathlib.get(self.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
 	
 	// Copy the built binary to the configured location
 	source_binary := '${repo_path}/target/release/herorunner'
 	console.print_debug('Copying binary from: ${source_binary}')
-	console.print_debug('Copying binary to: ${cfg.binary_path}')
+	console.print_debug('Copying binary to: ${self.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
-	source_file.copy(dest: cfg.binary_path, rsync: false)!
+	source_file.copy(dest: self.binary_path, rsync: false)!
 	
-	console.print_header('herorunner built successfully at ${cfg.binary_path}')
+	console.print_header('herorunner built successfully at ${self.binary_path}')
 }
 
-fn destroy() ! {
-	mut server := get()!
-	server.stop()!
+fn (mut self Herorunner) destroy() ! {
+	self.stop()!
 	
 	osal.process_kill_recursive(name: 'herorunner')!
 	
 	// Remove the built binary
-	osal.rm(server.binary_path)!
+	osal.rm(self.binary_path)!
 }

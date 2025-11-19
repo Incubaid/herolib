@@ -9,16 +9,15 @@ import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.develop.gittools
 import os
 
-fn startupcmd() ![]startupmanager.ZProcessNewArgs {
-	mut cfg := get()!
+fn (self &Coordinator) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 
 	res << startupmanager.ZProcessNewArgs{
 		name: 'coordinator'
-		cmd:  '${cfg.binary_path} --redis-addr ${cfg.redis_addr} --api-http-port ${cfg.http_port} --api-ws-port ${cfg.ws_port}'
+		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr} --api-http-port ${self.http_port} --api-ws-port ${self.ws_port}'
 		env:  {
 			'HOME':           os.home_dir()
-			'RUST_LOG':       cfg.log_level
+			'RUST_LOG':       self.log_level
 			'RUST_LOG_STYLE': 'never'
 		}
 	}
@@ -26,37 +25,34 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	return res
 }
 
-fn running() !bool {
-	mut cfg := get()!
+fn (self &Coordinator) running_check() !bool {
 	// Check if the process is running by checking the HTTP port
 	res := osal.exec(
-		cmd:         'curl -fsSL http://127.0.0.1:${cfg.http_port} || exit 1'
+		cmd:         'curl -fsSL http://127.0.0.1:${self.http_port} || exit 1'
 		stdout:      false
 		raise_error: false
 	)!
 	return res.exit_code == 0
 }
 
-fn start_pre() ! {
+fn (self &Coordinator) start_pre() ! {
 }
 
-fn start_post() ! {
+fn (self &Coordinator) start_post() ! {
 }
 
-fn stop_pre() ! {
+fn (self &Coordinator) stop_pre() ! {
 }
 
-fn stop_post() ! {
+fn (self &Coordinator) stop_post() ! {
 }
 
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
-fn installed() !bool {
-	mut cfg := get()!
-
+fn (self &Coordinator) installed() !bool {
 	// Check if the binary exists
-	mut binary := pathlib.get(cfg.binary_path)
+	mut binary := pathlib.get(self.binary_path)
 	if !binary.exists() {
 		return false
 	}
@@ -78,10 +74,16 @@ fn upload() ! {
 	// )!
 }
 
-fn install() ! {
+@[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
+}
+
+fn (mut self Coordinator) install(args InstallArgs) ! {
 	console.print_header('install coordinator')
 	// For coordinator, we build from source instead of downloading
-	build()!
+	self.build()!
 }
 
 // Public function to build coordinator without requiring factory/redis
@@ -91,7 +93,7 @@ pub fn build_coordinator() ! {
 
 	// Use default config instead of getting from factory
 	println('⚙️  Initializing configuration...')
-	mut cfg := CoordinatorServer{}
+	mut cfg := Coordinator{}
 	println('✅ Configuration initialized')
 	println('   - Binary path: ${cfg.binary_path}')
 	println('   - Redis address: ${cfg.redis_addr}')
@@ -150,10 +152,10 @@ pub fn build_coordinator() ! {
 	println('📍 Binary location: ${cfg.binary_path}')
 }
 
-fn build() ! {
+fn (mut self Coordinator) build() ! {
 	console.print_header('build coordinator')
 
-	mut cfg := get()!
+	println('Building coordinator binary from ${self}')
 
 	// Ensure Redis is installed and running (required for coordinator)
 	console.print_debug('Checking if Redis is installed and running...')
@@ -192,41 +194,40 @@ fn build() ! {
 	)!
 
 	// Update the path to the actual cloned repo
-	cfg.repo_path = repo.path()
-	set(cfg)!
-	console.print_debug('Repository path: ${cfg.repo_path}')
+	self.repo_path = repo.path()
+	set(self)!
+	console.print_debug('Repository path: ${self.repo_path}')
 
 	// Build the coordinator binary from the horus workspace
-	console.print_header('Building coordinator binary (this may take several minutes ${cfg.repo_path})...')
+	console.print_header('Building coordinator binary (this may take several minutes ${self.repo_path})...')
 	console.print_debug('Running: cargo build -p hero-coordinator --release')
 	console.print_debug('Build output:')
 
-	cmd := 'cd ${cfg.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-coordinator --release'
+	cmd := 'cd ${self.repo_path} && . ~/.cargo/env && RUSTFLAGS="-A warnings" cargo build -p hero-coordinator --release'
 	osal.execute_stdout(cmd)!
 
 	console.print_debug('Build completed successfully')
 
 	// Ensure binary directory exists and copy the binary
-	console.print_header('Preparing binary directory: ${cfg.binary_path}')
-	mut binary_path_obj := pathlib.get(cfg.binary_path)
+	console.print_header('Preparing binary directory: ${self.binary_path}')
+	mut binary_path_obj := pathlib.get(self.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
 
 	// Copy the built binary to the configured location
-	source_binary := '${cfg.repo_path}/target/release/coordinator'
+	source_binary := '${self.repo_path}/target/release/coordinator'
 	console.print_debug('Copying binary from: ${source_binary}')
-	console.print_debug('Copying binary to: ${cfg.binary_path}')
+	console.print_debug('Copying binary to: ${self.binary_path}')
 	mut source_file := pathlib.get_file(path: source_binary)!
-	source_file.copy(dest: cfg.binary_path, rsync: false)!
+	source_file.copy(dest: self.binary_path, rsync: false)!
 
-	console.print_header('coordinator built successfully at ${cfg.binary_path}')
+	console.print_header('coordinator built successfully at ${self.binary_path}')
 }
 
-fn destroy() ! {
-	mut server := get()!
-	server.stop()!
+fn (mut self Coordinator) destroy() ! {
+	self.stop()!
 
 	osal.process_kill_recursive(name: 'coordinator')!
 
 	// Remove the built binary
-	osal.rm(server.binary_path)!
+	osal.rm(self.binary_path)!
 }

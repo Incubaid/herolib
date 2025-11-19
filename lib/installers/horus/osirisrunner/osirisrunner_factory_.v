@@ -8,7 +8,7 @@ import incubaid.herolib.osal.startupmanager
 import time
 
 __global (
-	osirisrunner_global  map[string]&OsirisrunnerServer
+	osirisrunner_global  map[string]&Osirisrunner
 	osirisrunner_default string
 )
 
@@ -26,8 +26,8 @@ pub mut:
 	create      bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&OsirisrunnerServer {
-	mut obj := OsirisrunnerServer{
+pub fn new(args ArgsGet) !&Osirisrunner {
+	mut obj := Osirisrunner{
 		name:        args.name
 		binary_path: args.binary_path
 		redis_addr:  args.redis_addr
@@ -38,7 +38,7 @@ pub fn new(args ArgsGet) !&OsirisrunnerServer {
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&OsirisrunnerServer {
+pub fn get(args ArgsGet) !&Osirisrunner {
 	mut context := base.context()!
 	osirisrunner_default = args.name
 	if args.fromdb || args.name !in osirisrunner_global {
@@ -47,16 +47,16 @@ pub fn get(args ArgsGet) !&OsirisrunnerServer {
 			data := r.hget('context:osirisrunner', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('OsirisrunnerServer with name: ${args.name} does not exist, prob bug.')
+				return error('Osirisrunner with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(OsirisrunnerServer, data)!
+			mut obj := json.decode(Osirisrunner, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("OsirisrunnerServer with name '${args.name}' does not exist")
+				return error("Osirisrunner with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
@@ -68,7 +68,7 @@ pub fn get(args ArgsGet) !&OsirisrunnerServer {
 }
 
 // register the config for the future
-pub fn set(o OsirisrunnerServer) ! {
+pub fn set(o Osirisrunner) ! {
 	mut o2 := set_in_mem(o)!
 	osirisrunner_default = o2.name
 	mut context := base.context()!
@@ -96,12 +96,12 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&OsirisrunnerServer {
-	mut res := []&OsirisrunnerServer{}
+pub fn list(args ArgsList) ![]&Osirisrunner {
+	mut res := []&Osirisrunner{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		osirisrunner_global = map[string]&OsirisrunnerServer{}
+		osirisrunner_global = map[string]&Osirisrunner{}
 		osirisrunner_default = ''
 	}
 	if args.fromdb {
@@ -122,7 +122,7 @@ pub fn list(args ArgsList) ![]&OsirisrunnerServer {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o OsirisrunnerServer) !OsirisrunnerServer {
+fn set_in_mem(o Osirisrunner) !Osirisrunner {
 	mut o2 := obj_init(o)!
 	osirisrunner_global[o2.name] = &o2
 	osirisrunner_default = o2.name
@@ -146,17 +146,25 @@ pub fn play(mut plbook PlayBook) ! {
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
+			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
+			mut osirisrunner_obj := get(name: name)!
+			console.print_debug('action object:\n${osirisrunner_obj}')
+			
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action osirisrunner.destroy')
-				destroy()!
+				osirisrunner_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action osirisrunner.install')
-				install()!
+				osirisrunner_obj.install(reset: reset)!
+			}
+			if other_action.name == 'build' {
+				console.print_debug('install action osirisrunner.build')
+				osirisrunner_obj.build()!
 			}
 		}
-		if other_action.name in ['start', 'stop', 'restart'] {
+		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
 			mut osirisrunner_obj := get(name: name)!
@@ -165,7 +173,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action osirisrunner.${other_action.name}')
 				osirisrunner_obj.start()!
 			}
-
 			if other_action.name == 'stop' {
 				console.print_debug('install action osirisrunner.${other_action.name}')
 				osirisrunner_obj.stop()!
@@ -173,6 +180,22 @@ pub fn play(mut plbook PlayBook) ! {
 			if other_action.name == 'restart' {
 				console.print_debug('install action osirisrunner.${other_action.name}')
 				osirisrunner_obj.restart()!
+			}
+			if other_action.name == 'start_pre' {
+				console.print_debug('install action osirisrunner.${other_action.name}')
+				osirisrunner_obj.start_pre()!
+			}
+			if other_action.name == 'start_post' {
+				console.print_debug('install action osirisrunner.${other_action.name}')
+				osirisrunner_obj.start_post()!
+			}
+			if other_action.name == 'stop_pre' {
+				console.print_debug('install action osirisrunner.${other_action.name}')
+				osirisrunner_obj.stop_pre()!
+			}
+			if other_action.name == 'stop_post' {
+				console.print_debug('install action osirisrunner.${other_action.name}')
+				osirisrunner_obj.stop_post()!
 			}
 		}
 		other_action.done = true
@@ -210,12 +233,12 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 }
 
 // load from disk and make sure is properly intialized
-pub fn (mut self OsirisrunnerServer) reload() ! {
+pub fn (mut self Osirisrunner) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
 }
 
-pub fn (mut self OsirisrunnerServer) start() ! {
+pub fn (mut self Osirisrunner) start() ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -223,15 +246,13 @@ pub fn (mut self OsirisrunnerServer) start() ! {
 
 	console.print_header('installer: osirisrunner start')
 
-	if !installed()! {
-		install()!
+	if !self.installed()! {
+		self.install()!
 	}
 
-	configure()!
+	self.start_pre()!
 
-	start_pre()!
-
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: osirisrunner starting with ${zprocess.startuptype}...')
@@ -241,7 +262,7 @@ pub fn (mut self OsirisrunnerServer) start() ! {
 		sm.start(zprocess.name)!
 	}
 
-	start_post()!
+	self.start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -252,33 +273,33 @@ pub fn (mut self OsirisrunnerServer) start() ! {
 	return error('osirisrunner did not install properly.')
 }
 
-pub fn (mut self OsirisrunnerServer) install_start(args InstallArgs) ! {
+pub fn (mut self Osirisrunner) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
 	self.start()!
 }
 
-pub fn (mut self OsirisrunnerServer) stop() ! {
+pub fn (mut self Osirisrunner) stop() ! {
 	switch(self.name)
-	stop_pre()!
-	for zprocess in startupcmd()! {
+	self.stop_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.stop(zprocess.name)!
 	}
-	stop_post()!
+	self.stop_post()!
 }
 
-pub fn (mut self OsirisrunnerServer) restart() ! {
+pub fn (mut self Osirisrunner) restart() ! {
 	switch(self.name)
 	self.stop()!
 	self.start()!
 }
 
-pub fn (mut self OsirisrunnerServer) running() !bool {
+pub fn (mut self Osirisrunner) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		if zprocess.startuptype != .screen {
 			mut sm := startupmanager_get(zprocess.startuptype)!
 			r := sm.running(zprocess.name)!
@@ -287,31 +308,7 @@ pub fn (mut self OsirisrunnerServer) running() !bool {
 			}
 		}
 	}
-	return running()!
-}
-
-@[params]
-pub struct InstallArgs {
-pub mut:
-	reset bool
-}
-
-pub fn (mut self OsirisrunnerServer) install(args InstallArgs) ! {
-	switch(self.name)
-	if args.reset || (!installed()!) {
-		install()!
-	}
-}
-
-pub fn (mut self OsirisrunnerServer) build() ! {
-	switch(self.name)
-	build()!
-}
-
-pub fn (mut self OsirisrunnerServer) destroy() ! {
-	switch(self.name)
-	self.stop() or {}
-	destroy()!
+	return self.running_check()!
 }
 
 // switch instance to be used for osirisrunner

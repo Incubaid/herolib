@@ -33,7 +33,8 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		// Close the socket explicitly
 		unix.shutdown(socket.sock.handle)
 		socket.close() or {}
-		console.print_debug('The server closed the socket, check if closed') // We should debug this
+		// print_backtrace()
+		console.print_debug('The server did not close the socket, we did timeout or there was other error.')
 	}
 
 	// Set timeout if specified

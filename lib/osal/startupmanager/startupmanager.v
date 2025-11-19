@@ -19,6 +19,7 @@ pub fn get(cat StartupManagerType) !StartupManager {
 	match sm.cat {
 		.zinit {
 			mut zinit_client_test := zinit.get(create: true)! // 'create:true' ensures a client object is initiated even if the socket isn't active.
+
 			if _ := zinit_client_test.rpc_discover() {
 				sm.cat = .zinit
 			} else {

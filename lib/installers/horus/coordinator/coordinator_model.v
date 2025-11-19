@@ -12,7 +12,7 @@ const default = true
 
 // THIS THE THE SOURCE OF THE INFORMATION OF THIS FILE, HERE WE HAVE THE CONFIG OBJECT CONFIGURED AND MODELLED
 @[heap]
-pub struct CoordinatorServer {
+pub struct Coordinator {
 pub mut:
 	name        string = 'coordinator'
 	binary_path string = os.join_path(os.home_dir(), 'hero/bin/coordinator')
@@ -24,7 +24,7 @@ pub mut:
 }
 
 // your checking & initialization code if needed
-fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
+fn obj_init(mycfg_ Coordinator) !Coordinator {
 	mut mycfg := mycfg_
 	if mycfg.name == '' {
 		mycfg.name = 'default'
@@ -51,20 +51,19 @@ fn obj_init(mycfg_ CoordinatorServer) !CoordinatorServer {
 }
 
 // called before start if done
-fn configure() ! {
-	mut server := get()!
+fn (self &Coordinator) configure() ! {
 	// Ensure the binary directory exists
-	mut binary_path_obj := pathlib.get(server.binary_path)
+	mut binary_path_obj := pathlib.get(self.binary_path)
 	osal.dir_ensure(binary_path_obj.path_dir())!
 }
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_dumps(obj CoordinatorServer) !string {
-	return encoderhero.encode[CoordinatorServer](obj)!
+pub fn heroscript_dumps(obj Coordinator) !string {
+	return encoderhero.encode[Coordinator](obj)!
 }
 
-pub fn heroscript_loads(heroscript string) !CoordinatorServer {
-	mut obj := encoderhero.decode[CoordinatorServer](heroscript)!
+pub fn heroscript_loads(heroscript string) !Coordinator {
+	mut obj := encoderhero.decode[Coordinator](heroscript)!
 	return obj
 }

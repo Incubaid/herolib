@@ -8,7 +8,7 @@ import incubaid.herolib.osal.startupmanager
 import time
 
 __global (
-	coordinator_global  map[string]&CoordinatorServer
+	coordinator_global  map[string]&Coordinator
 	coordinator_default string
 )
 
@@ -28,8 +28,8 @@ pub mut:
 	create      bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&CoordinatorServer {
-	mut obj := CoordinatorServer{
+pub fn new(args ArgsGet) !&Coordinator {
+	mut obj := Coordinator{
 		name:        args.name
 		binary_path: args.binary_path
 		redis_addr:  args.redis_addr
@@ -48,7 +48,7 @@ pub fn new(args ArgsGet) !&CoordinatorServer {
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&CoordinatorServer {
+pub fn get(args ArgsGet) !&Coordinator {
 	mut context := base.context()!
 	coordinator_default = args.name
 	if args.fromdb || args.name !in coordinator_global {
@@ -57,16 +57,16 @@ pub fn get(args ArgsGet) !&CoordinatorServer {
 			data := r.hget('context:coordinator', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('CoordinatorServer with name: ${args.name} does not exist, prob bug.')
+				return error('Coordinator with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(CoordinatorServer, data)!
+			mut obj := json.decode(Coordinator, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("CoordinatorServer with name '${args.name}' does not exist")
+				return error("Coordinator with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
@@ -78,7 +78,7 @@ pub fn get(args ArgsGet) !&CoordinatorServer {
 }
 
 // register the config for the future
-pub fn set(o CoordinatorServer) ! {
+pub fn set(o Coordinator) ! {
 	mut o2 := set_in_mem(o)!
 	coordinator_default = o2.name
 	mut context := base.context()!
@@ -106,12 +106,12 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&CoordinatorServer {
-	mut res := []&CoordinatorServer{}
+pub fn list(args ArgsList) ![]&Coordinator {
+	mut res := []&Coordinator{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		coordinator_global = map[string]&CoordinatorServer{}
+		coordinator_global = map[string]&Coordinator{}
 		coordinator_default = ''
 	}
 	if args.fromdb {
@@ -132,7 +132,7 @@ pub fn list(args ArgsList) ![]&CoordinatorServer {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o CoordinatorServer) !CoordinatorServer {
+fn set_in_mem(o Coordinator) !Coordinator {
 	mut o2 := obj_init(o)!
 	coordinator_global[o2.name] = &o2
 	coordinator_default = o2.name
@@ -156,17 +156,25 @@ pub fn play(mut plbook PlayBook) ! {
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
+			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
+			mut coordinator_obj := get(name: name)!
+			console.print_debug('action object:\n${coordinator_obj}')
+			
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action coordinator.destroy')
-				destroy()!
+				coordinator_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action coordinator.install')
-				install()!
+				coordinator_obj.install(reset: reset)!
+			}
+			if other_action.name == 'build' {
+				console.print_debug('install action coordinator.build')
+				coordinator_obj.build()!
 			}
 		}
-		if other_action.name in ['start', 'stop', 'restart'] {
+		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
 			mut coordinator_obj := get(name: name)!
@@ -175,7 +183,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action coordinator.${other_action.name}')
 				coordinator_obj.start()!
 			}
-
 			if other_action.name == 'stop' {
 				console.print_debug('install action coordinator.${other_action.name}')
 				coordinator_obj.stop()!
@@ -183,6 +190,22 @@ pub fn play(mut plbook PlayBook) ! {
 			if other_action.name == 'restart' {
 				console.print_debug('install action coordinator.${other_action.name}')
 				coordinator_obj.restart()!
+			}
+			if other_action.name == 'start_pre' {
+				console.print_debug('install action coordinator.${other_action.name}')
+				coordinator_obj.start_pre()!
+			}
+			if other_action.name == 'start_post' {
+				console.print_debug('install action coordinator.${other_action.name}')
+				coordinator_obj.start_post()!
+			}
+			if other_action.name == 'stop_pre' {
+				console.print_debug('install action coordinator.${other_action.name}')
+				coordinator_obj.stop_pre()!
+			}
+			if other_action.name == 'stop_post' {
+				console.print_debug('install action coordinator.${other_action.name}')
+				coordinator_obj.stop_post()!
 			}
 		}
 		other_action.done = true
@@ -221,12 +244,12 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 }
 
 // load from disk and make sure is properly intialized
-pub fn (mut self CoordinatorServer) reload() ! {
+pub fn (mut self Coordinator) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
 }
 
-pub fn (mut self CoordinatorServer) start() ! {
+pub fn (mut self Coordinator) start() ! {
 	switch(self.name)
 
 	if self.running()! {
@@ -235,14 +258,14 @@ pub fn (mut self CoordinatorServer) start() ! {
 
 	console.print_header('installer: coordinator start')
 
-	if !installed()! {
-		install()!
+	if !self.installed()! {
+		self.install()!
 	}
 
-	configure()!
+	self.configure()!
 
-	start_pre()!
-	for zprocess in startupcmd()! {
+	self.start_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: coordinator starting with ${zprocess.startuptype}...')
@@ -252,7 +275,7 @@ pub fn (mut self CoordinatorServer) start() ! {
 		sm.start(zprocess.name)!
 	}
 
-	start_post()!
+	self.start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -263,33 +286,33 @@ pub fn (mut self CoordinatorServer) start() ! {
 	return error('coordinator did not install properly.')
 }
 
-pub fn (mut self CoordinatorServer) install_start(args InstallArgs) ! {
+pub fn (mut self Coordinator) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
 	self.start()!
 }
 
-pub fn (mut self CoordinatorServer) stop() ! {
+pub fn (mut self Coordinator) stop() ! {
 	switch(self.name)
-	stop_pre()!
-	for zprocess in startupcmd()! {
+	self.stop_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.stop(zprocess.name)!
 	}
-	stop_post()!
+	self.stop_post()!
 }
 
-pub fn (mut self CoordinatorServer) restart() ! {
+pub fn (mut self Coordinator) restart() ! {
 	switch(self.name)
 	self.stop()!
 	self.start()!
 }
 
-pub fn (mut self CoordinatorServer) running() !bool {
+pub fn (mut self Coordinator) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		if zprocess.startuptype != .screen {
 			mut sm := startupmanager_get(zprocess.startuptype)!
 			r := sm.running(zprocess.name)!
@@ -298,31 +321,7 @@ pub fn (mut self CoordinatorServer) running() !bool {
 			}
 		}
 	}
-	return running()!
-}
-
-@[params]
-pub struct InstallArgs {
-pub mut:
-	reset bool
-}
-
-pub fn (mut self CoordinatorServer) install(args InstallArgs) ! {
-	switch(self.name)
-	if args.reset || (!installed()!) {
-		install()!
-	}
-}
-
-pub fn (mut self CoordinatorServer) build() ! {
-	switch(self.name)
-	build()!
-}
-
-pub fn (mut self CoordinatorServer) destroy() ! {
-	switch(self.name)
-	self.stop() or {}
-	destroy()!
+	return self.running_check()!
 }
 
 // switch instance to be used for coordinator
