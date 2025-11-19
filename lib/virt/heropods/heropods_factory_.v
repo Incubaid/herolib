@@ -42,22 +42,20 @@ pub mut:
 
 pub fn new(args ArgsGet) !&HeroPods {
 	mut obj := HeroPods{
-		name:            args.name
-		reset:           args.reset
-		use_podman:      args.use_podman
-		network_config:  NetworkConfig{
+		name:                args.name
+		reset:               args.reset
+		use_podman:          args.use_podman
+		network_config:      NetworkConfig{
 			bridge_name: args.bridge_name
 			subnet:      args.subnet
 			gateway_ip:  args.gateway_ip
 			dns_servers: args.dns_servers
 		}
-		mycelium_config: MyceliumConfig{
-			enabled:    args.enable_mycelium
-			version:    args.mycelium_version
-			ipv6_range: args.mycelium_ipv6_range
-			peers:      args.mycelium_peers
-			key_path:   args.mycelium_key_path
-		}
+		mycelium_enabled:    args.enable_mycelium
+		mycelium_version:    args.mycelium_version
+		mycelium_ipv6_range: args.mycelium_ipv6_range
+		mycelium_peers:      args.mycelium_peers
+		mycelium_key_path:   args.mycelium_key_path
 	}
 	set(obj)!
 	return get(name: args.name)!
@@ -192,21 +190,22 @@ pub fn play(mut plbook PlayBook) ! {
 		mycelium_key_path := p.get('key_path') or {
 			return error('heropods.enable_mycelium: "key_path" is required (e.g., key_path:\'~/hero/cfg/priv_key.bin\')')
 		}
-		peers_array := p.get_list('peers') or {
-			return error('heropods.enable_mycelium: "peers" is required. Provide array of peer addresses (e.g., peers:[\'tcp://185.69.166.8:9651\', \'quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651\'])')
+		mycelium_peers_str := p.get('peers') or {
+			return error('heropods.enable_mycelium: "peers" is required. Provide comma-separated list of peer addresses (e.g., peers:\'tcp://185.69.166.8:9651,quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651\')')
 		}
 
-		// Validate peers list is not empty
+		// Parse and validate peers list
+		peers_array := mycelium_peers_str.split(',').map(it.trim_space()).filter(it.len > 0)
 		if peers_array.len == 0 {
 			return error('heropods.enable_mycelium: "peers" cannot be empty. Provide at least one peer address.')
 		}
 
 		// Update Mycelium configuration
-		hp.mycelium_config.enabled = true
-		hp.mycelium_config.version = mycelium_version
-		hp.mycelium_config.ipv6_range = mycelium_ipv6_range
-		hp.mycelium_config.key_path = mycelium_key_path
-		hp.mycelium_config.peers = peers_array
+		hp.mycelium_enabled = true
+		hp.mycelium_version = mycelium_version
+		hp.mycelium_ipv6_range = mycelium_ipv6_range
+		hp.mycelium_key_path = mycelium_key_path
+		hp.mycelium_peers = peers_array
 
 		// Initialize Mycelium if not already done
 		hp.mycelium_init()!

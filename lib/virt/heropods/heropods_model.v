@@ -12,17 +12,8 @@ pub const version = '0.0.0'
 const singleton = false
 const default = true
 
-// MyceliumConfig holds Mycelium IPv6 overlay network configuration
-struct MyceliumConfig {
-pub mut:
-	enabled        bool     // Whether Mycelium is enabled
-	version        string   // Mycelium version to install (e.g., 'v0.5.6')
-	ipv6_range     string   // Mycelium IPv6 address range (e.g., '400::/7')
-	peers          []string // Mycelium peer addresses
-	key_path       string   // Path to Mycelium private key
-	mycelium_ip6   string   // Host's Mycelium IPv6 address (cached)
-	interface_name string   // Mycelium TUN interface name (e.g., "mycelium0")
-}
+// MyceliumConfig holds Mycelium IPv6 overlay network configuration (flattened into HeroPods struct)
+// Note: These fields are flattened to avoid nested struct serialization issues with encoderhero
 
 // HeroPods factory for managing containers
 //
@@ -33,18 +24,25 @@ pub mut:
 @[heap]
 pub struct HeroPods {
 pub mut:
-	tmux_session    string                      // tmux session name
-	containers      map[string]&Container       // name -> container mapping
-	images          map[string]&ContainerImage  // name -> image mapping
-	crun_configs    map[string]&crun.CrunConfig // name -> crun config mapping
-	base_dir        string                      // base directory for all container data
-	reset           bool                        // will reset the heropods
-	use_podman      bool = true // will use podman for image management
-	name            string // name of the heropods
-	network_config  NetworkConfig @[skip; str: skip] // network configuration (automatically initialized, not serialized)
-	network_mutex   sync.Mutex    @[skip; str: skip] // protects network_config for thread-safe concurrent access
-	mycelium_config MyceliumConfig // mycelium IPv6 overlay network configuration
-	logger          logger.Logger @[skip; str: skip] // logger instance for debugging (not serialized)
+	tmux_session   string                      // tmux session name
+	containers     map[string]&Container       // name -> container mapping
+	images         map[string]&ContainerImage  // name -> image mapping
+	crun_configs   map[string]&crun.CrunConfig // name -> crun config mapping
+	base_dir       string                      // base directory for all container data
+	reset          bool                        // will reset the heropods
+	use_podman     bool = true // will use podman for image management
+	name           string // name of the heropods
+	network_config NetworkConfig @[skip; str: skip] // network configuration (automatically initialized, not serialized)
+	network_mutex  sync.Mutex    @[skip; str: skip] // protects network_config for thread-safe concurrent access
+	// Mycelium IPv6 overlay network configuration (flattened fields)
+	mycelium_enabled        bool     // Whether Mycelium is enabled
+	mycelium_version        string   // Mycelium version to install (e.g., 'v0.5.6')
+	mycelium_ipv6_range     string   // Mycelium IPv6 address range (e.g., '400::/7')
+	mycelium_peers          []string // Mycelium peer addresses
+	mycelium_key_path       string   // Path to Mycelium private key
+	mycelium_ip6            string   // Host's Mycelium IPv6 address (cached)
+	mycelium_interface_name string   // Mycelium TUN interface name (e.g., "mycelium0")
+	logger                  logger.Logger @[skip; str: skip] // logger instance for debugging (not serialized)
 }
 
 // obj_init performs lightweight validation and field normalization only
@@ -83,8 +81,8 @@ fn obj_init(mycfg_ HeroPods) !HeroPods {
 	}
 
 	// Initialize Mycelium configuration defaults (only for non-required fields)
-	if mycfg.mycelium_config.interface_name == '' {
-		mycfg.mycelium_config.interface_name = 'mycelium0'
+	if mycfg.mycelium_interface_name == '' {
+		mycfg.mycelium_interface_name = 'mycelium0'
 	}
 
 	return mycfg
@@ -123,7 +121,7 @@ fn (mut self HeroPods) initialize() ! {
 	self.network_init()!
 
 	// Initialize Mycelium IPv6 overlay network if enabled
-	if self.mycelium_config.enabled {
+	if self.mycelium_enabled {
 		self.mycelium_init()!
 	}
 

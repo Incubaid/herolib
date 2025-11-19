@@ -155,7 +155,7 @@ pub fn (mut self Container) start() ! {
 	}
 
 	// Setup Mycelium IPv6 overlay network if enabled
-	if self.factory.mycelium_config.enabled {
+	if self.factory.mycelium_enabled {
 		container_pid := self.pid()!
 		self.factory.mycelium_setup_container(self.name, container_pid) or {
 			self.factory.logger.log(
@@ -442,7 +442,7 @@ fn (mut self Container) cleanup_network() ! {
 	factory.network_cleanup_container(self.name)!
 
 	// Cleanup Mycelium IPv6 overlay network if enabled
-	if factory.mycelium_config.enabled {
+	if factory.mycelium_enabled {
 		factory.mycelium_cleanup_container(self.name) or {
 			factory.logger.log(
 				cat:     'container'

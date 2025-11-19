@@ -2,36 +2,38 @@ module heropods
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.clients.mycelium
-import incubaid.herolib.installers.net.mycelium_installer
-import time
 import crypto.sha256
 
 // Initialize Mycelium for HeroPods
 //
 // This method:
 // 1. Validates required configuration
-// 2. Installs Mycelium binary if not present
-// 3. Starts Mycelium service with configured peers
+// 2. Checks that Mycelium binary is installed
+// 3. Checks that Mycelium service is running
 // 4. Retrieves the host's Mycelium IPv6 address
+//
+// Prerequisites:
+// - Mycelium must be installed on the system
+// - Mycelium service must be running
 //
 // Thread Safety:
 // This is called during HeroPods initialization, before any concurrent operations.
 fn (mut self HeroPods) mycelium_init() ! {
-	if !self.mycelium_config.enabled {
+	if !self.mycelium_enabled {
 		return
 	}
 
 	// Validate required configuration
-	if self.mycelium_config.version == '' {
+	if self.mycelium_version == '' {
 		return error('Mycelium configuration error: "version" is required. Use heropods.enable_mycelium to configure.')
 	}
-	if self.mycelium_config.ipv6_range == '' {
+	if self.mycelium_ipv6_range == '' {
 		return error('Mycelium configuration error: "ipv6_range" is required. Use heropods.enable_mycelium to configure.')
 	}
-	if self.mycelium_config.key_path == '' {
+	if self.mycelium_key_path == '' {
 		return error('Mycelium configuration error: "key_path" is required. Use heropods.enable_mycelium to configure.')
 	}
-	if self.mycelium_config.peers.len == 0 {
+	if self.mycelium_peers.len == 0 {
 		return error('Mycelium configuration error: "peers" is required. Use heropods.enable_mycelium to configure.')
 	}
 
@@ -40,39 +42,34 @@ fn (mut self HeroPods) mycelium_init() ! {
 		log: 'START mycelium_init() - Initializing Mycelium IPv6 overlay network'
 	) or {}
 
-	// Check if Mycelium is already installed and running
-	if mycelium_installed := self.mycelium_check_installed() {
-		if mycelium_installed {
-			self.logger.log(
-				cat:     'mycelium'
-				log:     'Mycelium is already installed'
-				logtype: .stdout
-			) or {}
-		} else {
-			// Install Mycelium
-			self.mycelium_install()!
-		}
+	// Check if Mycelium is installed - it's a prerequisite
+	if !self.mycelium_check_installed()! {
+		return error('Mycelium is not installed. Please install Mycelium first. See: https://github.com/threefoldtech/mycelium')
 	}
 
-	// Start Mycelium service if not running
-	if mycelium_running := self.mycelium_check_running() {
-		if mycelium_running {
-			self.logger.log(
-				cat:     'mycelium'
-				log:     'Mycelium service is already running'
-				logtype: .stdout
-			) or {}
-		} else {
-			self.mycelium_start_service()!
-		}
+	self.logger.log(
+		cat:     'mycelium'
+		log:     'Mycelium binary found'
+		logtype: .stdout
+	) or {}
+
+	// Check if Mycelium service is running - it's a prerequisite
+	if !self.mycelium_check_running()! {
+		return error('Mycelium service is not running. Please start Mycelium service first (e.g., mycelium --key-file ${self.mycelium_key_path} --peers <peers>)')
 	}
+
+	self.logger.log(
+		cat:     'mycelium'
+		log:     'Mycelium service is running'
+		logtype: .stdout
+	) or {}
 
 	// Get and cache the host's Mycelium IPv6 address
 	self.mycelium_get_host_address()!
 
 	self.logger.log(
 		cat:     'mycelium'
-		log:     'END mycelium_init() - Mycelium initialized successfully with address ${self.mycelium_config.mycelium_ip6}'
+		log:     'END mycelium_init() - Mycelium initialized successfully with address ${self.mycelium_ip6}'
 		logtype: .stdout
 	) or {}
 }
@@ -85,65 +82,8 @@ fn (mut self HeroPods) mycelium_check_installed() !bool {
 // Check if Mycelium service is running
 fn (mut self HeroPods) mycelium_check_running() !bool {
 	// Try to inspect Mycelium - if it succeeds, it's running
-	mycelium.inspect(key_file_path: self.mycelium_config.key_path) or { return false }
+	mycelium.inspect(key_file_path: self.mycelium_key_path) or { return false }
 	return true
-}
-
-// Install Mycelium binary
-fn (mut self HeroPods) mycelium_install() ! {
-	self.logger.log(
-		cat:     'mycelium'
-		log:     'Installing Mycelium ${self.mycelium_config.version}...'
-		logtype: .stdout
-	) or {}
-
-	// Use the mycelium_installer to install
-	mut installer := mycelium_installer.get(create: true)!
-	installer.peers = self.mycelium_config.peers
-
-	// Install Mycelium using the instance method
-	installer.install(reset: false)!
-
-	self.logger.log(
-		cat:     'mycelium'
-		log:     'Mycelium installed successfully'
-		logtype: .stdout
-	) or {}
-}
-
-// Start Mycelium service
-fn (mut self HeroPods) mycelium_start_service() ! {
-	self.logger.log(
-		cat:     'mycelium'
-		log:     'Starting Mycelium service...'
-		logtype: .stdout
-	) or {}
-
-	// Use the mycelium_installer to start the service
-	mut installer := mycelium_installer.get()!
-	installer.start()!
-
-	// Wait for Mycelium to be ready
-	for i in 0 .. 50 {
-		if self.mycelium_check_running()! {
-			self.logger.log(
-				cat:     'mycelium'
-				log:     'Mycelium service started successfully'
-				logtype: .stdout
-			) or {}
-			return
-		}
-		if i % 10 == 0 {
-			self.logger.log(
-				cat:     'mycelium'
-				log:     'Waiting for Mycelium service to start... (${i}/50)'
-				logtype: .stdout
-			) or {}
-		}
-		time.sleep(100 * time.millisecond)
-	}
-
-	return error('Mycelium service failed to start after 5 seconds')
 }
 
 // Get the host's Mycelium IPv6 address
@@ -155,17 +95,17 @@ fn (mut self HeroPods) mycelium_get_host_address() ! {
 	) or {}
 
 	// Use mycelium inspect to get the address
-	inspect_result := mycelium.inspect(key_file_path: self.mycelium_config.key_path)!
+	inspect_result := mycelium.inspect(key_file_path: self.mycelium_key_path)!
 
 	if inspect_result.address == '' {
 		return error('Failed to get Mycelium IPv6 address from inspect')
 	}
 
-	self.mycelium_config.mycelium_ip6 = inspect_result.address
+	self.mycelium_ip6 = inspect_result.address
 
 	self.logger.log(
 		cat:     'mycelium'
-		log:     'Host Mycelium IPv6 address: ${self.mycelium_config.mycelium_ip6}'
+		log:     'Host Mycelium IPv6 address: ${self.mycelium_ip6}'
 		logtype: .stdout
 	) or {}
 }
@@ -182,7 +122,7 @@ fn (mut self HeroPods) mycelium_get_host_address() ! {
 // This is called from container.start() which is already serialized per container.
 // Multiple containers can be started concurrently, each with their own veth pair.
 fn (mut self HeroPods) mycelium_setup_container(container_name string, container_pid int) ! {
-	if !self.mycelium_config.enabled {
+	if !self.mycelium_enabled {
 		return
 	}
 
@@ -280,12 +220,12 @@ fn (mut self HeroPods) mycelium_setup_container(container_name string, container
 	// Add route in container for Mycelium traffic (400::/7 via link-local)
 	self.logger.log(
 		cat:     'mycelium'
-		log:     'Adding route for ${self.mycelium_config.ipv6_range} via ${veth_host_ll}'
+		log:     'Adding route for ${self.mycelium_ipv6_range} via ${veth_host_ll}'
 		logtype: .stdout
 	) or {}
 
 	osal.exec(
-		cmd:    'nsenter -t ${container_pid} -n ip route add ${self.mycelium_config.ipv6_range} via ${veth_host_ll} dev ${veth_container}'
+		cmd:    'nsenter -t ${container_pid} -n ip route add ${self.mycelium_ipv6_range} via ${veth_host_ll} dev ${veth_container}'
 		stdout: false
 	)!
 
@@ -313,14 +253,14 @@ fn (mut self HeroPods) mycelium_setup_container(container_name string, container
 // Extracts the /64 prefix from the full IPv6 address
 // Example: "400:1234:5678::1" -> "400:1234:5678:"
 fn (mut self HeroPods) mycelium_get_ipv6_prefix() !string {
-	if self.mycelium_config.mycelium_ip6 == '' {
+	if self.mycelium_ip6 == '' {
 		return error('Mycelium IPv6 address not set')
 	}
 
 	// Split the address by ':' and take the first 3 parts for /64 prefix
-	parts := self.mycelium_config.mycelium_ip6.split(':')
+	parts := self.mycelium_ip6.split(':')
 	if parts.len < 3 {
-		return error('Invalid Mycelium IPv6 address format: ${self.mycelium_config.mycelium_ip6}')
+		return error('Invalid Mycelium IPv6 address format: ${self.mycelium_ip6}')
 	}
 
 	// Reconstruct the prefix (first 3 parts)
@@ -369,7 +309,7 @@ fn (mut self HeroPods) mycelium_get_link_local_address(interface_name string) !s
 // Thread Safety:
 // This is called from container.stop() and container.delete() which are serialized per container.
 fn (mut self HeroPods) mycelium_cleanup_container(container_name string) ! {
-	if !self.mycelium_config.enabled {
+	if !self.mycelium_enabled {
 		return
 	}
 
@@ -414,9 +354,9 @@ fn (mut self HeroPods) mycelium_cleanup_container(container_name string) ! {
 //
 // Returns the public key and IPv6 address of the Mycelium node
 pub fn (mut self HeroPods) mycelium_inspect() !mycelium.MyceliumInspectResult {
-	if !self.mycelium_config.enabled {
+	if !self.mycelium_enabled {
 		return error('Mycelium is not enabled')
 	}
 
-	return mycelium.inspect(key_file_path: self.mycelium_config.key_path)!
+	return mycelium.inspect(key_file_path: self.mycelium_key_path)!
 }

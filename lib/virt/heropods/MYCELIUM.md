@@ -1,5 +1,24 @@
 # Mycelium IPv6 Overlay Network Integration for HeroPods
 
+## Prerequisites
+
+**Mycelium must be installed on your system before using this feature.** HeroPods does not install Mycelium automatically.
+
+### Installing Mycelium
+
+Download and install Mycelium from the official repository:
+
+- **GitHub**: <https://github.com/threefoldtech/mycelium>
+- **Releases**: <https://github.com/threefoldtech/mycelium/releases>
+
+For detailed installation instructions, see the [Mycelium documentation](https://github.com/threefoldtech/mycelium/tree/master/docs).
+
+After installation, verify that the `mycelium` command is available:
+
+```bash
+mycelium -V
+```
+
 ## Overview
 
 HeroPods now supports Mycelium IPv6 overlay networking, providing end-to-end encrypted IPv6 connectivity for containers across the internet.
@@ -18,7 +37,7 @@ Mycelium is an IPv6 overlay network that provides:
 ### Components
 
 1. **mycelium.v** - Core Mycelium integration logic
-   - Installation and service management
+   - Service management (start/stop)
    - Container IPv6 configuration
    - veth pair creation for IPv6 routing
 
@@ -61,11 +80,7 @@ All parameters are **required** when enabling Mycelium:
     version:'v0.5.6'
     ipv6_range:'400::/7'
     key_path:'~/hero/cfg/priv_key.bin'
-    peers:[
-        'tcp://185.69.166.8:9651',
-        'quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651',
-        'tcp://65.109.18.113:9651'
-    ]
+    peers:'tcp://185.69.166.8:9651,quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651,tcp://65.109.18.113:9651'
 ```
 
 ### Configuration Parameters
@@ -75,7 +90,7 @@ All parameters are **required**:
 - `version` (string): Mycelium version to install (e.g., 'v0.5.6')
 - `ipv6_range` (string): Mycelium IPv6 address range (e.g., '400::/7')
 - `key_path` (string): Path to Mycelium private key (e.g., '~/hero/cfg/priv_key.bin')
-- `peers` (array of strings): Array of Mycelium peer addresses
+- `peers` (string): Comma-separated list of Mycelium peer addresses (e.g., 'tcp://185.69.166.8:9651,quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651')
 
 ### Default Public Peers
 
@@ -111,10 +126,7 @@ See `examples/virt/heropods/container_mycelium.heroscript` for a complete exampl
     version:'v0.5.6'
     ipv6_range:'400::/7'
     key_path:'~/hero/cfg/priv_key.bin'
-    peers:[
-        'tcp://185.69.166.8:9651',
-        'quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651'
-    ]
+    peers:'tcp://185.69.166.8:9651,quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651'
 
 // Create and start container
 !!heropods.container_new

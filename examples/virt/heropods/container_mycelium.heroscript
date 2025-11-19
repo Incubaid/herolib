@@ -28,18 +28,7 @@
     version:'v0.5.6'
     ipv6_range:'400::/7'
     key_path:'~/hero/cfg/priv_key.bin'
-    peers:[
-        'tcp://185.69.166.8:9651',
-        'quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651',
-        'tcp://65.109.18.113:9651',
-        'quic://[2a01:4f9:5a:1042::2]:9651',
-        'tcp://5.78.122.16:9651',
-        'quic://[2a01:4ff:1f0:8859::1]:9651',
-        'tcp://5.223.43.251:9651',
-        'quic://[2a01:4ff:2f0:3621::1]:9651',
-        'tcp://142.93.217.194:9651',
-        'quic://[2400:6180:100:d0::841:2001]:9651'
-    ]
+    peers:'tcp://185.69.166.8:9651,quic://[2a02:1802:5e:0:ec4:7aff:fe51:e36b]:9651,tcp://65.109.18.113:9651,quic://[2a01:4f9:5a:1042::2]:9651,tcp://5.78.122.16:9651,quic://[2a01:4ff:1f0:8859::1]:9651,tcp://5.223.43.251:9651,quic://[2a01:4ff:2f0:3621::1]:9651,tcp://142.93.217.194:9651,quic://[2400:6180:100:d0::841:2001]:9651'
 
 // Step 3: Create a new Alpine Linux container
 // Alpine includes basic IPv6 networking tools
@@ -87,7 +76,7 @@
 // This doesn't require special capabilities
 !!heropods.container_exec
     name:'mycelium_container'
-    cmd:'nc -6 -zv -w 3 400:8f3a:8d0e:3503:db8e:6a02:2e9:83dd 80 2>&1 || echo "nc test completed"'
+    cmd:'nc -6 -zv -w 3 400:8f3a:8d0e:3503:db8e:6a02:2e9:83dd 80 2>&1 || echo nc test completed'
     stdout:true
 
 // Step 7: Show Mycelium-specific information
@@ -95,7 +84,7 @@
 // Display the container's Mycelium IPv6 address
 !!heropods.container_exec
     name:'mycelium_container'
-    cmd:'ip -6 addr show | grep "400:" || echo "No Mycelium IPv6 address found"'
+    cmd:'ip -6 addr show | grep 400: || echo No Mycelium IPv6 address found'
     stdout:true
 
 // Show IPv6 neighbors (if any)
