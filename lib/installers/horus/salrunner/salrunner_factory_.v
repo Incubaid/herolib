@@ -144,7 +144,7 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut other_actions := plbook.find(filter: 'salrunner.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install', 'build'] {
+		if other_action.name in ['destroy', 'install', 'build', 'start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
@@ -163,12 +163,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action salrunner.build')
 				salrunner_obj.build()!
 			}
-		}
-		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
-			mut p := other_action.params
-			name := p.get('name')!
-			mut salrunner_obj := get(name: name)!
-			console.print_debug('action object:\n${salrunner_obj}')
 			if other_action.name == 'start' {
 				console.print_debug('install action salrunner.${other_action.name}')
 				salrunner_obj.start()!

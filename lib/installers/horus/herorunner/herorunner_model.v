@@ -14,10 +14,10 @@ const default = true
 @[heap]
 pub struct Herorunner {
 pub mut:
-	name         string = 'default'
-	binary_path  string = os.join_path(os.home_dir(), 'hero/bin/herorunner')
-	redis_addr   string = '127.0.0.1:6379'
-	log_level    string = 'info'
+	name        string = 'default'
+	binary_path string = os.join_path(os.home_dir(), 'hero/bin/herorunner')
+	redis_addr  string = '127.0.0.1:6379'
+	log_level   string = 'info'
 }
 
 // your checking & initialization code if needed

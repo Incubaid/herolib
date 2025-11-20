@@ -20,8 +20,7 @@ import incubaid.herolib.installers.lang.python
 import os
 
 @if args.startupmanager
-fn startupcmd () ![]startupmanager.ZProcessNewArgs{
-	mut installer := get()!
+fn (self &${args.classname}) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 	//THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// res << startupmanager.ZProcessNewArgs{
@@ -36,8 +35,7 @@ fn startupcmd () ![]startupmanager.ZProcessNewArgs{
 	
 }
 
-fn running() !bool {
-	mut installer := get()!
+fn (self &${args.classname}) running_check() !bool {
 	//THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// this checks health of ${args.name}
 	// curl http://localhost:3333/api/v1/s --oauth2-bearer 1234 works
@@ -58,19 +56,19 @@ fn running() !bool {
 	return false
 }
 
-fn start_pre()!{
+fn (self &${args.classname}) start_pre() ! {
 	
 }
 
-fn start_post()!{
+fn (self &${args.classname}) start_post() ! {
 	
 }
 
-fn stop_pre()!{
+fn (self &${args.classname}) stop_pre() ! {
 	
 }
 
-fn stop_post()!{
+fn (self &${args.classname}) stop_post() ! {
 	
 }
 
@@ -80,7 +78,7 @@ fn stop_post()!{
 
 @if args.cat == .installer
 // checks if a certain version or above is installed
-fn installed() !bool {
+fn (self &${args.classname}) installed() !bool {
 	//THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// res := os.execute('??{osal.profile_path_source_and()!} ${args.name} version')
 	// if res.exit_code != 0 {
@@ -111,7 +109,14 @@ fn upload() ! {
 
 }
 
-fn install() ! {
+
+^^[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
+}
+
+fn (mut self ${args.classname}) install(args InstallArgs) ! {
 	console.print_header('install ${args.name}')
 	//THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// mut url := ''
@@ -143,7 +148,7 @@ fn install() ! {
 }
 
 @if args.build
-fn build() ! {
+fn (mut self ${args.classname}) build() ! {
 	//url := 'https://github.com/threefoldtech/${args.name}'
 
 	// make sure we install base on the node
@@ -174,7 +179,8 @@ fn build() ! {
 }
 @end
 
-fn destroy() ! {
+fn (mut self ${args.classname}) destroy() ! {
+	self.stop()!
 
 	// mut systemdfactory := systemd.new()!
 	// systemdfactory.destroy("zinit")!

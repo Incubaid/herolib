@@ -11,7 +11,7 @@ import os
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut cfg := get()!
 	mut res := []startupmanager.ZProcessNewArgs{}
-	
+
 	res << startupmanager.ZProcessNewArgs{
 		name: 'redis'
 		cmd:  'redis-server ${configfilepath(cfg)}'
@@ -37,9 +37,9 @@ fn start_pre() ! {
 	if running()! {
 		return
 	}
-	
+
 	mut cfg := get()!
-	
+
 	// Ensure data directory exists with proper permissions before configuring
 	osal.execute_silent('mkdir -p ${cfg.datadir}')!
 	if core.is_linux()! {
@@ -47,13 +47,13 @@ fn start_pre() ! {
 		osal.execute_silent('chown -R redis:redis ${cfg.datadir}')!
 		osal.execute_silent('chmod 755 ${cfg.datadir}')!
 	}
-	
+
 	// Configure redis before starting (applies template)
 	configure()!
-	
+
 	// Kill any existing redis processes
 	osal.process_kill_recursive(name: 'redis-server')!
-	
+
 	// On macOS, start redis with daemonize (not via startupmanager)
 	if core.platform()! == .osx {
 		osal.exec(cmd: 'redis-server ${configfilepath(cfg)} --daemonize yes')!
@@ -108,9 +108,9 @@ pub fn redis_install(args RedisInstall) ! {
 		console.print_debug('Redis already running on port ${args.port}')
 		return
 	}
-	
+
 	console.print_header('install redis')
-	
+
 	// Install Redis package if not already installed
 	if !installed()! {
 		if core.is_linux()! {
@@ -119,12 +119,12 @@ pub fn redis_install(args RedisInstall) ! {
 			osal.package_install('redis')! // macOS, Alpine, Arch, etc.
 		}
 	}
-	
+
 	// Create data directory with correct permissions
 	osal.execute_silent('mkdir -p ${args.datadir}')!
 	osal.execute_silent('chown -R redis:redis ${args.datadir}') or {}
 	osal.execute_silent('chmod 755 ${args.datadir}') or {}
-	
+
 	// Configure and start Redis
 	start(args)!
 }
@@ -145,10 +145,10 @@ pub fn start(args RedisInstall) ! {
 		console.print_debug('Redis already running on port ${args.port}')
 		return
 	}
-	
+
 	// Write Redis configuration file
 	configure_with_args(args)!
-	
+
 	// Kill any existing Redis processes (including package auto-started ones)
 	osal.process_kill_recursive(name: 'redis-server')!
 
@@ -172,7 +172,7 @@ pub fn start(args RedisInstall) ! {
 			osal.exec(cmd: 'redis-server ${configfilepath(args)} --daemonize yes')!
 		}
 	}
-	
+
 	// Wait for Redis to be ready
 	for _ in 0 .. 100 {
 		if check(args) {
@@ -181,7 +181,7 @@ pub fn start(args RedisInstall) ! {
 		}
 		time.sleep(100)
 	}
-	
+
 	return error('Redis did not start properly after 10 seconds - could not ping on port ${args.port}')
 }
 

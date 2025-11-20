@@ -14,7 +14,7 @@ const default = true
 @[heap]
 pub struct Coordinator {
 pub mut:
-	name        string = 'coordinator'
+	name        string = 'default'
 	binary_path string = os.join_path(os.home_dir(), 'hero/bin/coordinator')
 	redis_addr  string = '127.0.0.1:6379'
 	http_port   int    = 8081

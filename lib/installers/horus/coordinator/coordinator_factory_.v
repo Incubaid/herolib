@@ -154,13 +154,13 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut other_actions := plbook.find(filter: 'coordinator.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install', 'build'] {
+		if other_action.name in ['destroy', 'install', 'build', 'start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
 			mut coordinator_obj := get(name: name)!
 			console.print_debug('action object:\n${coordinator_obj}')
-			
+
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action coordinator.destroy')
 				coordinator_obj.destroy()!
@@ -173,12 +173,6 @@ pub fn play(mut plbook PlayBook) ! {
 				console.print_debug('install action coordinator.build')
 				coordinator_obj.build()!
 			}
-		}
-		if other_action.name in ['start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
-			mut p := other_action.params
-			name := p.get('name')!
-			mut coordinator_obj := get(name: name)!
-			console.print_debug('action object:\n${coordinator_obj}')
 			if other_action.name == 'start' {
 				console.print_debug('install action coordinator.${other_action.name}')
 				coordinator_obj.start()!
