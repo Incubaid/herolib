@@ -153,11 +153,12 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut other_actions := plbook.find(filter: 'supervisor.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install', 'build', 'start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
+		if other_action.name in ['destroy', 'install', 'build', 'start', 'stop', 'restart',
+			'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
-			mut supervisor_obj := get(name: name)!
+			mut supervisor_obj := get(name: name, create: true)!
 			console.print_debug('action object:\n${supervisor_obj}')
 
 			if other_action.name == 'destroy' || reset {
@@ -177,7 +178,7 @@ pub fn play(mut plbook PlayBook) ! {
 			'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
-			mut supervisor_obj := get(name: name)!
+			mut supervisor_obj := get(name: name, create: true)!
 			console.print_debug('action object:\n${supervisor_obj}')
 			if other_action.name == 'start' {
 				console.print_debug('install action supervisor.${other_action.name}')
