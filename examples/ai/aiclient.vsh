@@ -10,8 +10,21 @@ mut cl := client.new()!
 // 	max_completion_tokens: 1024
 // )!
 
-response := cl.llms.llm_embed_local.embed(input: [
-	'The food was delicious and the waiter..',
-])!
+response := cl.llms.llm_maverick.chat_completion(
+	message:               'Explain quantum computing in simple terms'
+	temperature:           0.5
+	max_completion_tokens: 1024
+)!
 
 println(response)
+
+// response := cl.llms.llm_embed_local.embed(input: [
+// 	'The food was delicious and the waiter..',
+// ])!
+
+// response2 := cl.llms.llm_embed.embed(input: [
+// 	'The food was delicious and the waiter..',
+// ])!
+
+
+println(response2)

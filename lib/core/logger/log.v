@@ -14,7 +14,7 @@ pub mut:
 	logtype   LogType
 }
 
-pub fn (mut l Logger) log(args_ LogItemArgs) ! {
+pub fn (mut l Logger) log(args_ LogItemArgs) !LogItem {
 	mut args := args_
 
 	t := args.timestamp or {
@@ -66,6 +66,13 @@ pub fn (mut l Logger) log(args_ LogItemArgs) ! {
 	// Also write to console if enabled
 	if l.console_output {
 		l.write_to_console(args, t)!
+	}
+
+	return LogItem{
+		timestamp: t
+		cat:       args.cat
+		log:       args.log
+		logtype:   args.logtype
 	}
 }
 
