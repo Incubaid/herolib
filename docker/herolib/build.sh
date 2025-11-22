@@ -5,8 +5,8 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$SCRIPT_DIR"
 
 # Copy installation files
-cp ../../install_v.sh ./scripts/install_v.sh
-cp ../../install_herolib.vsh ./scripts/install_herolib.vsh
+cp ../../scripts/install_v.sh ./scripts/install_v.sh
+cp ../../scripts/install_herolib.vsh ./scripts/install_herolib.vsh
 
 # Docker image and container names
 DOCKER_IMAGE_NAME="herolib"

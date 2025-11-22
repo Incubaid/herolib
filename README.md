@@ -14,7 +14,7 @@ Herolib is an opinionated library primarily used by ThreeFold to automate cloud 
 The Hero tool can be installed with a single command:
 
 ```bash
-curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_hero.sh | bash
+curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_hero.sh | bash
 ```
 
 Hero will be installed in:
@@ -35,11 +35,11 @@ The Hero tool can be used to work with git, build documentation, interact with H
 For development purposes, use the automated installation script:
 
 ```bash
-curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
 
 #do not forget to do the following this makes sure vtest and vrun exists
-cd ~/code/github/incubaid/herolib
+cd ~/code/github/incubaid/herolib/scripts
 v install_herolib.vsh
 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
@@ -51,7 +51,7 @@ v install_herolib.vsh
 ```
 V & HeroLib Installer Script
 
-Usage: ~/code/github/incubaid/herolib/install_v.sh [options]
+Usage: ~/code/github/incubaid/herolib/scripts/install_v.sh [options]
 
 Options:
   -h, --help     Show this help message
@@ -61,12 +61,12 @@ Options:
   --herolib      Install our herolib
 
 Examples:
-  ~/code/github/incubaid/herolib/install_v.sh
-  ~/code/github/incubaid/herolib/install_v.sh --reset
-  ~/code/github/incubaid/herolib/install_v.sh --remove
-  ~/code/github/incubaid/herolib/install_v.sh --analyzer
-  ~/code/github/incubaid/herolib/install_v.sh --herolib
-  ~/code/github/incubaid/herolib/install_v.sh --reset --analyzer # Fresh install of both
+  ~/code/github/incubaid/herolib/scripts/install_v.sh
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --reset
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --remove
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --analyzer
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --herolib
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --reset --analyzer # Fresh install of both
 ```
 
 ## Features
@@ -175,46 +175,3 @@ To generate documentation locally:
 cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
-
-## Export Behavior - Cross-Collection Assets
-
-When exporting collections, Atlas now automatically handles cross-collection references:
-
-### Pages
-If a page in Collection A links to a page in Collection B:
-- The target page is copied to Collection A's export directory
-- Filename is renamed to avoid conflicts: `collectionb_pagename.md`
-- The link is updated to reference the local file
-
-### Images and Files
-Images and files referenced from other collections are:
-- Copied to the `img/` subdirectory of the exporting collection
-- Renamed with cross-collection prefix: `othercol_filename.ext`
-- Image/file references in pages are updated to the new paths
-
-### Result
-The exported collection directory is **self-contained**:
-```
-destination/
-  collectiona/
-    .collection
-    page1.md
-    collectionb_intro.md      # Copied from Collection B
-    img/
-      logo.png                # Local image
-      collectionc_logo.png    # Copied from Collection C
-```
-
-### Metadata Export
-
-Metadata is now exported separately using the `destination_meta` parameter:
-
-```heroscript
-!!atlas.export
-  destination: './output'
-  destination_meta: './metadata'  # Saves JSON metadata files here
-  include: true
-  redis: true
-```
-
-This exports collection metadata to: `./metadata/collection1.json`, `./metadata/collection2.json`, etc.

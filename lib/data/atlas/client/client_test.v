@@ -524,7 +524,7 @@ fn test_get_page_links_success() {
 	assert links.len == 2
 	assert links[0].target_item_name == 'logo.png'
 	assert links[0].target_collection_name == 'testcollection'
-	assert links[0].is_image_link == true
+	assert links[0].file_type == .image
 }
 
 // Test get_page_links - no links

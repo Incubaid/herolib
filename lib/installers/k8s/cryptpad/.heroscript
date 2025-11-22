@@ -1,10 +1,10 @@
 !!hero_code.generate_installer
     name:'cryptpad'
     classname:'CryptpadServer'
-    singleton:0            //there can only be 1 object in the globals, is called 'default'
-    templates:1            //are there templates for the installer
-    default:0              //can we create a default when the factory is used
+    singleton:0            
+    default:0
     title:''
-    supported_platforms:'' //osx, ... (empty means all)
-    reset:0                 // regenerate all, dangerous !!!
-    startupmanager:0      //not managed by a startup manager
+    supported_platforms:''
+    startupmanager:0
+	hasconfig:1
+    build:0
