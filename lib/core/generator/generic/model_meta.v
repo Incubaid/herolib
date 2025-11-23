@@ -113,7 +113,11 @@ fn (mut m ModuleMeta) check() ! {
 	}
 	mut module_path := m.path.replace('/', '.')
 	if module_path.contains('incubaid.herolib.lib.') {
+		// Path is inside lib/ directory (e.g., lib/installers/horus/coordinator)
 		module_path = module_path.split('incubaid.herolib.lib.')[1]
+	} else if module_path.contains('incubaid.herolib.') {
+		// Path is directly under herolib root (e.g., zeko)
+		module_path = module_path.split('incubaid.herolib.')[1]
 	} else {
 		return error('path should be inside incubaid.herolib, so that module_path can be determined, now is: ${m.path}')
 	}

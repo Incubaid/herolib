@@ -166,7 +166,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'start' {
 				console.print_debug('install action osirisrunner.${other_action.name}')
-				osirisrunner_obj.start()!
+				osirisrunner_obj.start(reset: reset)!
 			}
 			if other_action.name == 'stop' {
 				console.print_debug('install action osirisrunner.${other_action.name}')
@@ -174,7 +174,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'restart' {
 				console.print_debug('install action osirisrunner.${other_action.name}')
-				osirisrunner_obj.restart()!
+				osirisrunner_obj.restart(reset: reset)!
 			}
 			if other_action.name == 'start_pre' {
 				console.print_debug('install action osirisrunner.${other_action.name}')
@@ -233,7 +233,7 @@ pub fn (mut self Osirisrunner) reload() ! {
 	self = obj_init(self)!
 }
 
-pub fn (mut self Osirisrunner) start() ! {
+pub fn (mut self Osirisrunner) start(args StartArgs) ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -247,7 +247,7 @@ pub fn (mut self Osirisrunner) start() ! {
 
 	self.start_pre()!
 
-	for zprocess in self.startupcmd()! {
+	for zprocess in self.startupcmd(args)! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: osirisrunner starting with ${zprocess.startuptype}...')
@@ -271,7 +271,7 @@ pub fn (mut self Osirisrunner) start() ! {
 pub fn (mut self Osirisrunner) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
-	self.start()!
+	self.start(reset: false)!
 }
 
 pub fn (mut self Osirisrunner) stop() ! {
@@ -284,10 +284,10 @@ pub fn (mut self Osirisrunner) stop() ! {
 	self.stop_post()!
 }
 
-pub fn (mut self Osirisrunner) restart() ! {
+pub fn (mut self Osirisrunner) restart(args StartArgs) ! {
 	switch(self.name)
 	self.stop()!
-	self.start()!
+	self.start(args)!
 }
 
 pub fn (mut self Osirisrunner) running() !bool {

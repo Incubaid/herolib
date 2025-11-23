@@ -9,13 +9,22 @@ import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.develop.gittools
 import os
 
-fn (self &Coordinator) startupcmd() ![]startupmanager.ZProcessNewArgs {
+@[params]
+pub struct StartArgs {
+pub mut:
+	reset bool
+}
+
+fn (self &Coordinator) startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 
+	reset := args.reset
+
 	res << startupmanager.ZProcessNewArgs{
-		name: 'coordinator'
-		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr} --api-http-port ${self.http_port} --api-ws-port ${self.ws_port}'
-		env:  {
+		name:  'coordinator'
+		cmd:   '${self.binary_path} --redis-addr ${self.redis_addr} --api-http-port ${self.http_port} --api-ws-port ${self.ws_port}'
+		reset: reset
+		env:   {
 			'HOME':           os.home_dir()
 			'RUST_LOG':       self.log_level
 			'RUST_LOG_STYLE': 'never'

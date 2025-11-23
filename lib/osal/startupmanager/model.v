@@ -22,6 +22,7 @@ pub mut:
 	oneshot     bool
 	start       bool = true
 	restart     bool = true // whether the process should be restarted on failure
+	reset       bool   // if true, will delete and recreate existing service; if false, will skip if config matches or error if config differs
 	description string // not used in zinit
 	startuptype StartupManagerType
 }

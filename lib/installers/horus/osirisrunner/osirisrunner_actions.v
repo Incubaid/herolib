@@ -9,8 +9,16 @@ import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.develop.gittools
 import os
 
-fn (self &Osirisrunner) startupcmd() ![]startupmanager.ZProcessNewArgs {
+@[params]
+pub struct StartArgs {
+pub mut:
+	reset bool
+}
+
+fn (self &Osirisrunner) startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
+
+	reset := args.reset
 
 	// Ensure redis_addr has the redis:// prefix
 	redis_url := if self.redis_addr.starts_with('redis://') {
@@ -20,9 +28,10 @@ fn (self &Osirisrunner) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	}
 
 	res << startupmanager.ZProcessNewArgs{
-		name: 'runner_osiris'
-		cmd:  '${self.binary_path} --redis-url ${redis_url} 12002'
-		env:  {
+		name:  'runner_osiris'
+		cmd:   '${self.binary_path} --redis-url ${redis_url} 12002'
+		reset: reset
+		env:   {
 			'HOME':           os.home_dir()
 			'RUST_LOG':       self.log_level
 			'RUST_LOG_STYLE': 'never'
