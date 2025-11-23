@@ -1,4 +1,4 @@
-	module flow
+module flow
 
 // Flow represents a signing flow
 @[heap]

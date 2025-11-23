@@ -9,7 +9,7 @@ pub fn (mut c Coordinator) run() ! {
 }
 
 // Run a single step, including error and next steps
-pub fn (mut c Coordinator) run_step(mut step &Step) ! {
+pub fn (mut c Coordinator) run_step(mut step Step) ! {
 	// Initialize step
 	step.status = .running
 	step.started_at = ostime.now().unix_milli()
@@ -17,8 +17,8 @@ pub fn (mut c Coordinator) run_step(mut step &Step) ! {
 
 	// Log step start
 	step.log(
-		logtype:   .stdout
-		log: 'Step "${step.name}" started'
+		logtype: .stdout
+		log:     'Step "${step.name}" started'
 	)!
 
 	// Execute main step function
@@ -30,8 +30,8 @@ pub fn (mut c Coordinator) run_step(mut step &Step) ! {
 		step.store_redis()!
 
 		step.log(
-			logtype:   .error
-			log: 'Step "${step.name}" failed: ${err.msg()}'
+			logtype: .error
+			log:     'Step "${step.name}" failed: ${err.msg()}'
 		)!
 
 		// Run error steps if any
@@ -53,8 +53,8 @@ pub fn (mut c Coordinator) run_step(mut step &Step) ! {
 	step.store_redis()!
 
 	step.log(
-		logtype:   .stdout
-		log: 'Step "${step.name}" completed successfully'
+		logtype: .stdout
+		log:     'Step "${step.name}" completed successfully'
 	)!
 
 	// Run next steps if any

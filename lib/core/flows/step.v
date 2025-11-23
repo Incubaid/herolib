@@ -16,7 +16,7 @@ pub enum StepStatus {
 pub struct Step {
 pub mut:
 	status      StepStatus = .pending
-	started_at  i64  // Unix timestamp
+	started_at  i64 // Unix timestamp
 	finished_at i64
 	error_msg   string
 	name        string
@@ -44,11 +44,10 @@ pub fn (mut s Step) log(l logger.LogItemArgs) ! {
 	s.logs << l2
 }
 
-
 pub fn (mut s Step) store_redis() ! {
 	if mut redis := s.coordinator.redis {
 		key := 'flow:${s.coordinator.name}:${s.name}'
-		
+
 		redis.hset(key, 'name', s.name)!
 		redis.hset(key, 'description', s.description)!
 		redis.hset(key, 'status', s.status.str())!
@@ -57,12 +56,11 @@ pub fn (mut s Step) store_redis() ! {
 		redis.hset(key, 'started_at', s.started_at.str())!
 		redis.hset(key, 'finished_at', s.finished_at.str())!
 		redis.hset(key, 'json', s.to_json()!)!
-		
+
 		// Set expiration to 24 hours
 		redis.expire(key, 86400)!
 	}
 }
-
 
 @[json: id]
 pub struct StepJSON {

@@ -3,11 +3,9 @@ module testdata
 import time
 import os
 
-const (
-	app_version = '1.0.0'
-	max_users = 1000
-	default_timeout = 30
-)
+const app_version = '1.0.0'
+const max_users = 1000
+const default_timeout = 30
 
 // User represents an application user
 // It stores all information related to a user
@@ -18,9 +16,9 @@ pub:
 	email    string
 	username string
 pub mut:
-	active   bool
-	created  string
-	updated  string
+	active  bool
+	created string
+	updated string
 }
 
 // Profile represents user profile information
@@ -33,7 +31,7 @@ mut:
 	followers int
 	following int
 pub mut:
-	verified  bool
+	verified bool
 }
 
 // Settings represents user settings
@@ -46,6 +44,6 @@ mut:
 }
 
 struct InternalConfig {
-	debug    bool
+	debug     bool
 	log_level int
 }

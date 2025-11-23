@@ -71,10 +71,6 @@ pub fn (parser CodeParser) list_interfaces(module: string = '') []code.Interface
 }
 
 // list_methods_on_struct returns all methods (receiver functions) for a struct
-// 
-// Args:
-//   struct_name string - name of the struct
-//   module string - optional module filter
 pub fn (parser CodeParser) list_methods_on_struct(struct_name: string, module: string = '') []code.Function {
 	mut methods := []code.Function{}
 
@@ -119,31 +115,4 @@ pub fn (parser CodeParser) list_constants(module: string = '') []code.Const {
 	}
 
 	return consts
-}
-
-// get_module_stats calculates statistics for a module
-pub fn (parser CodeParser) get_module_stats(module: string) ModuleStats {
-	mut stats := ModuleStats{}
-
-	file_paths := parser.list_files_in_module(module)
-	stats.file_count = file_paths.len
-
-	for _, parsed_file in parser.parsed_files {
-		if parsed_file.module_name != module {
-			continue
-		}
-
-		stats.struct_count += parsed_file.vfile.structs().len
-		stats.function_count += parsed_file.vfile.functions().len
-		stats.const_count += parsed_file.vfile.consts.len
-
-		// Count interfaces
-		for item in parsed_file.vfile.items {
-			if item is code.Interface {
-				stats.interface_count++
-			}
-		}
-	}
-
-	return stats
 }

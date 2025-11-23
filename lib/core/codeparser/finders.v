@@ -2,22 +2,7 @@ module codeparser
 
 import incubaid.herolib.core.code
 
-// SearchContext provides context for a found item
-pub struct SearchContext {
-pub:
-	file_path   string
-	module_name string
-	line_number int // optional, 0 if unknown
-}
-
 // find_struct searches for a struct by name
-// 
-// Args:
-//   name string - struct name to find
-//   module string - optional module filter
-// Returns:
-//   Struct - if found
-//   error - if not found
 pub fn (parser CodeParser) find_struct(name: string, module: string = '') !code.Struct {
 	for _, parsed_file in parser.parsed_files {
 		if module != '' && parsed_file.module_name != module {
@@ -36,13 +21,6 @@ pub fn (parser CodeParser) find_struct(name: string, module: string = '') !code.
 }
 
 // find_function searches for a function by name
-// 
-// Args:
-//   name string - function name to find
-//   module string - optional module filter
-// Returns:
-//   Function - if found
-//   error - if not found
 pub fn (parser CodeParser) find_function(name: string, module: string = '') !code.Function {
 	for _, parsed_file in parser.parsed_files {
 		if module != '' && parsed_file.module_name != module {
@@ -78,14 +56,6 @@ pub fn (parser CodeParser) find_interface(name: string, module: string = '') !co
 }
 
 // find_method searches for a method on a struct
-// 
-// Args:
-//   struct_name string - name of the struct
-//   method_name string - name of the method
-//   module string - optional module filter
-// Returns:
-//   Function - if found
-//   error - if not found
 pub fn (parser CodeParser) find_method(struct_name: string, method_name: string, module: string = '') !code.Function {
 	methods := parser.list_methods_on_struct(struct_name, module)
 
@@ -105,7 +75,7 @@ pub fn (parser CodeParser) find_module(module_name: string) !ParsedModule {
 	}
 
 	file_paths := parser.modules[module_name]
-	
+
 	mut stats := ModuleStats{}
 	for file_path in file_paths {
 		if parsed_file := parser.parsed_files[file_path] {

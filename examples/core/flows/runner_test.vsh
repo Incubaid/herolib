@@ -45,16 +45,16 @@ fn test_basic_flow() ! {
 	redis.flushdb()!
 
 	mut coordinator := flows.new(
-		name: 'test_basic_flow',
-		redis: redis,
-		ai: none
+		name:  'test_basic_flow'
+		redis: redis
+		ai:    none
 	)!
 
 	// Step 1: Initialize
 	mut step1 := coordinator.step_new(
-		name: 'initialize'
+		name:        'initialize'
 		description: 'Initialize test environment'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Step 1: Initializing...')
 			s.context['init_time'] = ourtime.now().str()
 		}
@@ -62,9 +62,9 @@ fn test_basic_flow() ! {
 
 	// Step 2: Process
 	mut step2 := coordinator.step_new(
-		name: 'process'
+		name:        'process'
 		description: 'Process data'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Step 2: Processing...')
 			s.context['processed'] = 'true'
 		}
@@ -72,9 +72,9 @@ fn test_basic_flow() ! {
 
 	// Step 3: Finalize
 	mut step3 := coordinator.step_new(
-		name: 'finalize'
+		name:        'finalize'
 		description: 'Finalize results'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Step 3: Finalizing...')
 			s.context['status'] = 'completed'
 		}
@@ -102,16 +102,16 @@ fn test_error_handling() ! {
 	redis.flushdb()!
 
 	mut coordinator := flows.new(
-		name: 'test_error_flow',
-		redis: redis,
-		ai: none
+		name:  'test_error_flow'
+		redis: redis
+		ai:    none
 	)!
 
 	// Error step
 	mut error_recovery := coordinator.step_new(
-		name: 'error_recovery'
+		name:        'error_recovery'
 		description: 'Recover from error'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Error Step: Executing recovery...')
 			s.context['recovered'] = 'true'
 		}
@@ -119,9 +119,9 @@ fn test_error_handling() ! {
 
 	// Main step that fails
 	mut main_step := coordinator.step_new(
-		name: 'failing_step'
+		name:        'failing_step'
 		description: 'This step will fail'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✗ Main Step: Intentionally failing...')
 			return error('Simulated error for testing')
 		}
@@ -130,9 +130,7 @@ fn test_error_handling() ! {
 	main_step.error_step_add(error_recovery)
 
 	// Run and expect error
-	coordinator.run() or {
-		println('  ✓ Error caught as expected: ${err.msg()}')
-	}
+	coordinator.run() or { println('  ✓ Error caught as expected: ${err.msg()}') }
 
 	// Verify error state in Redis
 	error_state := coordinator.get_step_state('failing_step')!
@@ -150,41 +148,41 @@ fn test_multiple_next_steps() ! {
 	redis.flushdb()!
 
 	mut coordinator := flows.new(
-		name: 'test_parallel_steps',
-		redis: redis,
-		ai: none
+		name:  'test_parallel_steps'
+		redis: redis
+		ai:    none
 	)!
 
 	// Parent step
 	mut parent := coordinator.step_new(
-		name: 'parent_step'
+		name:        'parent_step'
 		description: 'Parent step with multiple children'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Parent Step: Executing...')
 		}
 	)!
 
 	// Child steps
 	mut child1 := coordinator.step_new(
-		name: 'child_step_1'
+		name:        'child_step_1'
 		description: 'First child'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Child Step 1: Executing...')
 		}
 	)!
 
 	mut child2 := coordinator.step_new(
-		name: 'child_step_2'
+		name:        'child_step_2'
 		description: 'Second child'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Child Step 2: Executing...')
 		}
 	)!
 
 	mut child3 := coordinator.step_new(
-		name: 'child_step_3'
+		name:        'child_step_3'
 		description: 'Third child'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Child Step 3: Executing...')
 		}
 	)!
@@ -209,15 +207,15 @@ fn test_redis_state() ! {
 	redis.flushdb()!
 
 	mut coordinator := flows.new(
-		name: 'test_redis_state',
-		redis: redis,
-		ai: none
+		name:  'test_redis_state'
+		redis: redis
+		ai:    none
 	)!
 
 	mut step1 := coordinator.step_new(
-		name: 'redis_test_step'
+		name:        'redis_test_step'
 		description: 'Test Redis state storage'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Executing step with context...')
 			s.context['user'] = 'test_user'
 			s.context['action'] = 'test_action'
@@ -257,16 +255,16 @@ fn test_complex_flow() ! {
 	redis.flushdb()!
 
 	mut coordinator := flows.new(
-		name: 'test_complex_flow',
-		redis: redis,
-		ai: none
+		name:  'test_complex_flow'
+		redis: redis
+		ai:    none
 	)!
 
 	// Step 1: Validate
 	mut validate := coordinator.step_new(
-		name: 'validate_input'
+		name:        'validate_input'
 		description: 'Validate input parameters'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Validating input...')
 			s.context['validated'] = 'true'
 		}
@@ -274,9 +272,9 @@ fn test_complex_flow() ! {
 
 	// Step 2: Transform (next step after validate)
 	mut transform := coordinator.step_new(
-		name: 'transform_data'
+		name:        'transform_data'
 		description: 'Transform input data'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Transforming data...')
 			s.context['transformed'] = 'true'
 		}
@@ -284,9 +282,9 @@ fn test_complex_flow() ! {
 
 	// Step 3a: Save to DB (next step after transform)
 	mut save_db := coordinator.step_new(
-		name: 'save_to_database'
+		name:        'save_to_database'
 		description: 'Save data to database'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Saving to database...')
 			s.context['saved'] = 'true'
 		}
@@ -294,9 +292,9 @@ fn test_complex_flow() ! {
 
 	// Step 3b: Send notification (next step after transform)
 	mut notify := coordinator.step_new(
-		name: 'send_notification'
+		name:        'send_notification'
 		description: 'Send notification'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Sending notification...')
 			s.context['notified'] = 'true'
 		}
@@ -304,9 +302,9 @@ fn test_complex_flow() ! {
 
 	// Step 4: Cleanup (final step)
 	mut cleanup := coordinator.step_new(
-		name: 'cleanup'
+		name:        'cleanup'
 		description: 'Cleanup resources'
-		f: fn (mut s flows.Step) ! {
+		f:           fn (mut s flows.Step) ! {
 			println('  ✓ Cleaning up...')
 			s.context['cleaned'] = 'true'
 		}

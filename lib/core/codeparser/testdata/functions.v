@@ -16,12 +16,12 @@ pub fn create_user(email string, username string) !User {
 		return error('username cannot be empty')
 	}
 	return User{
-		id: 1
-		email: email
+		id:       1
+		email:    email
 		username: username
-		active: true
-		created: time.now().str()
-		updated: time.now().str()
+		active:   true
+		created:  time.now().str()
+		updated:  time.now().str()
 	}
 }
 
@@ -31,12 +31,12 @@ pub fn get_user(user_id int) ?User {
 		return none
 	}
 	return User{
-		id: user_id
-		email: 'user_${user_id}@example.com'
+		id:       user_id
+		email:    'user_${user_id}@example.com'
 		username: 'user_${user_id}'
-		active: true
-		created: '2024-01-01'
-		updated: '2024-01-01'
+		active:   true
+		created:  '2024-01-01'
+		updated:  '2024-01-01'
 	}
 }
 

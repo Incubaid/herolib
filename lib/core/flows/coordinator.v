@@ -33,7 +33,7 @@ pub mut:
 
 pub fn new(args CoordinatorArgs) !Coordinator {
 	ai := args.ai
-	
+
 	return Coordinator{
 		name:   args.name
 		logger: logger.new(path: '/tmp/flowlogger')!
@@ -41,7 +41,6 @@ pub fn new(args CoordinatorArgs) !Coordinator {
 		redis:  args.redis
 	}
 }
-
 
 @[params]
 pub struct StepNewArgs {
