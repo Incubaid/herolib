@@ -194,8 +194,8 @@ fn test_prd_list() ! {
 	}
 	// Clear any existing PRDs before running the test
 	existing_prds := db_prd.list()!
-	for prd_id in existing_prds {
-		db_prd.delete[ProductRequirementsDoc](u32(prd_id))!
+	for prd in existing_prds {
+		db_prd.delete(prd.id)!
 	}
 
 	// Create multiple PRDs
