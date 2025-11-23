@@ -28,13 +28,9 @@ pub fn new(args ArgsGet) !&ElementChat {
 	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&ElementChat {
+pub fn get(args ArgsGet) !&ElementChat {
 	mut context := base.context()!
-	mut args := args_
-
-	if args.name == 'element_chat' && element_chat_default != '' {
-		args.name = element_chat_default
-	}
+	element_chat_default = args.name
 	if args.fromdb || args.name !in element_chat_global {
 		mut r := context.redis()!
 		if r.hexists('context:element_chat', args.name)! {
