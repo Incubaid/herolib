@@ -2,7 +2,7 @@ module heropods
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.virt.crun
-import incubaid.herolib.installers.virt.herorunner as herorunner_installer
+import incubaid.herolib.installers.virt.crun_installer
 import os
 
 // ContainerImageType defines the available container base images
@@ -92,8 +92,8 @@ pub fn (mut self HeroPods) container_new(args ContainerNewArgs) !&Container {
 
 	// Ensure crun is installed on host
 	if !osal.cmd_exists('crun') {
-		mut herorunner := herorunner_installer.new()!
-		herorunner.install()!
+		mut crun_inst := crun_installer.get()!
+		crun_inst.install(reset: false)!
 	}
 
 	// Create container struct but don't create the actual container in crun yet

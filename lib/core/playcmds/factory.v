@@ -14,6 +14,11 @@ import incubaid.herolib.osal.tmux
 import incubaid.herolib.installers.base
 import incubaid.herolib.installers.lang.vlang
 import incubaid.herolib.installers.lang.herolib
+import incubaid.herolib.installers.horus.coordinator
+import incubaid.herolib.installers.horus.supervisor
+import incubaid.herolib.installers.horus.herorunner
+import incubaid.herolib.installers.horus.osirisrunner
+import incubaid.herolib.installers.horus.salrunner
 import incubaid.herolib.installers.virt.podman
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.builder
@@ -78,6 +83,13 @@ pub fn run(args_ PlayArgs) ! {
 	gitea.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
+
+	// Horus
+	coordinator.play(mut plbook)!
+	supervisor.play(mut plbook)!
+	herorunner.play(mut plbook)!
+	osirisrunner.play(mut plbook)!
+	salrunner.play(mut plbook)!
 
 	if args.emptycheck {
 		// Ensure we did not leave any actions un‑processed
