@@ -27,6 +27,7 @@ pub:
 	structs     []StructJSON
 	functions   []FunctionJSON
 	interfaces  []InterfaceJSON
+	enums       []EnumJSON
 	constants   []ConstJSON
 }
 
@@ -54,6 +55,14 @@ pub:
 	description string
 }
 
+pub struct EnumJSON {
+pub:
+	name        string
+	is_pub      bool
+	value_count int
+	description string
+}
+
 pub struct ConstJSON {
 pub:
 	name  string
@@ -67,6 +76,7 @@ pub mut:
 	total_structs    int
 	total_functions  int
 	total_interfaces int
+	total_enums      int
 }
 
 // to_json exports the complete code structure to JSON
@@ -140,6 +150,17 @@ pub fn (parser CodeParser) to_json(module_name string) !string {
 					}
 				}
 
+				// Build enums JSON
+				mut enums_json := []EnumJSON{}
+				for enum_ in vfile.enums() {
+					enums_json << EnumJSON{
+						name:        enum_.name
+						is_pub:      enum_.is_pub
+						value_count: enum_.values.len
+						description: enum_.description
+					}
+				}
+
 				// Build constants JSON
 				mut consts_json := []ConstJSON{}
 				for const_ in vfile.consts {
@@ -156,6 +177,7 @@ pub fn (parser CodeParser) to_json(module_name string) !string {
 					structs:     structs_json
 					functions:   functions_json
 					interfaces:  interfaces_json
+					enums:       enums_json
 					constants:   consts_json
 				}
 
@@ -172,6 +194,7 @@ pub fn (parser CodeParser) to_json(module_name string) !string {
 				result.summary.total_structs += structs_json.len
 				result.summary.total_functions += functions_json.len
 				result.summary.total_interfaces += interfaces_json.len
+				result.summary.total_enums += enums_json.len
 			}
 		}
 
@@ -179,12 +202,6 @@ pub fn (parser CodeParser) to_json(module_name string) !string {
 		result.modules[mod_name] = module_json
 		result.summary.total_modules++
 	}
-
-	// mut total_files := 0
-	// for module in result.modules.values() {
-	// 	total_files += module.stats.file_count
-	// }
-	// result.summary.total_files = total_files
 
 	return json.encode_pretty(result)
 }

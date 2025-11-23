@@ -77,7 +77,7 @@ fn copy_directory(src string, dst string) ! {
 fn test_module_parsing() {
 	console.print_header('Test 1: Module and File Parsing')
 
-	mut myparser := new('/tmp/codeparsertest', recursive: true)!
+	mut myparser := new(path: '/tmp/codeparsertest', recursive: true)!
 	myparser.parse()!
 
 	v_files := myparser.list_files()
@@ -148,7 +148,7 @@ fn test_struct_parsing() {
 fn test_function_parsing() {
 	console.print_header('Test 3: Function Parsing')
 
-	mut myparser := new('/tmp/codeparsertest', recursive: true)!
+	mut myparser := new(path: '/tmp/codeparsertest', recursive: true)!
 	myparser.parse()!
 
 	mut functions := []code.Function{}
@@ -296,7 +296,7 @@ fn test_visibility_modifiers() {
 fn test_method_parsing() {
 	console.print_header('Test 7: Method Parsing')
 
-	mut myparser := new('/tmp/codeparsertest', recursive: true)!
+	mut myparser := new(path: '/tmp/codeparsertest', recursive: true)!
 	myparser.parse()!
 
 	mut methods := []code.Function{}
