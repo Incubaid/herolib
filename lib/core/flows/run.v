@@ -9,7 +9,7 @@ pub fn (mut c Coordinator) run() ! {
 }
 
 // Run a single step, including error and next steps
-pub fn (mut c Coordinator) run_step(mut step Step) ! {
+pub fn (mut c Coordinator) run_step(mut step &Step) ! {
 	// Initialize step
 	step.status = .running
 	step.started_at = ostime.now().unix_milli()
@@ -17,8 +17,8 @@ pub fn (mut c Coordinator) run_step(mut step Step) ! {
 
 	// Log step start
 	step.log(
-		level:   .info
-		message: 'Step "${step.name}" started'
+		logtype:   .stdout
+		log: 'Step "${step.name}" started'
 	)!
 
 	// Execute main step function
@@ -30,13 +30,16 @@ pub fn (mut c Coordinator) run_step(mut step Step) ! {
 		step.store_redis()!
 
 		step.log(
-			level:   .error
-			message: 'Step "${step.name}" failed: ${err.msg()}'
+			logtype:   .error
+			log: 'Step "${step.name}" failed: ${err.msg()}'
 		)!
 
 		// Run error steps if any
 		if step.error_steps.len > 0 {
-			for mut error_step in step.error_steps {
+			for error_step_name in step.error_steps {
+				mut error_step := c.steps[error_step_name] or {
+					return error('Error step "${error_step_name}" not found in coordinator "${c.name}"')
+				}
 				c.run_step(mut error_step)!
 			}
 		}
@@ -50,13 +53,16 @@ pub fn (mut c Coordinator) run_step(mut step Step) ! {
 	step.store_redis()!
 
 	step.log(
-		level:   .info
-		message: 'Step "${step.name}" completed successfully'
+		logtype:   .stdout
+		log: 'Step "${step.name}" completed successfully'
 	)!
 
 	// Run next steps if any
 	if step.next_steps.len > 0 {
-		for mut next_step in step.next_steps {
+		for next_step_name in step.next_steps {
+			mut next_step := c.steps[next_step_name] or {
+				return error('Next step "${next_step_name}" not found in coordinator "${c.name}"')
+			}
 			c.run_step(mut next_step)!
 		}
 	}
@@ -64,7 +70,7 @@ pub fn (mut c Coordinator) run_step(mut step Step) ! {
 
 // Get step state from redis
 pub fn (c Coordinator) get_step_state(step_name string) !map[string]string {
-	if redis := c.redis {
+	if mut redis := c.redis {
 		return redis.hgetall('flow:${c.name}:${step_name}')!
 	}
 	return error('Redis not configured')
@@ -73,7 +79,7 @@ pub fn (c Coordinator) get_step_state(step_name string) !map[string]string {
 // Get all steps state from redis (for UI dashboard)
 pub fn (c Coordinator) get_all_steps_state() ![]map[string]string {
 	mut states := []map[string]string{}
-	if redis := c.redis {
+	if mut redis := c.redis {
 		pattern := 'flow:${c.name}:*'
 		keys := redis.keys(pattern)!
 		for key in keys {
@@ -85,7 +91,7 @@ pub fn (c Coordinator) get_all_steps_state() ![]map[string]string {
 }
 
 pub fn (c Coordinator) clear_redis() ! {
-	if redis := c.redis {
+	if mut redis := c.redis {
 		pattern := 'flow:${c.name}:*'
 		keys := redis.keys(pattern)!
 		for key in keys {

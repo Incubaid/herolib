@@ -19,16 +19,29 @@ pub mut:
 	current_step string // links to steps dict
 	steps        map[string]&Step
 	logger       logger.Logger
-	ai           aiclient.AIClient
+	ai           ?aiclient.AIClient
 	redis        ?&redisclient.Redis
 }
 
-pub fn new() !Coordinator {
+@[params]
+pub struct CoordinatorArgs {
+pub mut:
+	name  string @[required]
+	redis ?&redisclient.Redis
+	ai    ?aiclient.AIClient = none
+}
+
+pub fn new(args CoordinatorArgs) !Coordinator {
+	ai := args.ai
+	
 	return Coordinator{
+		name:   args.name
 		logger: logger.new(path: '/tmp/flowlogger')!
-		ai:     aiclient.new()!
+		ai:     ai
+		redis:  args.redis
 	}
 }
+
 
 @[params]
 pub struct StepNewArgs {
@@ -37,8 +50,8 @@ pub mut:
 	description string
 	f           fn (mut s Step) ! @[required]
 	context     map[string]string
-	error_steps []Step
-	next_steps  []Step
+	error_steps []string
+	next_steps  []string
 	error       string
 	params      paramsparser.Params
 }
