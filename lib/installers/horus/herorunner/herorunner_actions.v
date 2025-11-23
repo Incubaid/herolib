@@ -12,9 +12,16 @@ import os
 fn (self &Herorunner) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 
+	// Ensure redis_addr has the redis:// prefix
+	redis_url := if self.redis_addr.starts_with('redis://') {
+		self.redis_addr
+	} else {
+		'redis://${self.redis_addr}'
+	}
+
 	res << startupmanager.ZProcessNewArgs{
 		name: 'herorunner'
-		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr}'
+		cmd:  '${self.binary_path} --redis-url ${redis_url} 12001'
 		env:  {
 			'HOME':           os.home_dir()
 			'RUST_LOG':       self.log_level

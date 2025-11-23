@@ -13,9 +13,16 @@ import os
 fn (self &Supervisor) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 
+	// Ensure redis_addr has the redis:// prefix
+	redis_url := if self.redis_addr.starts_with('redis://') {
+		self.redis_addr
+	} else {
+		'redis://${self.redis_addr}'
+	}
+
 	res << startupmanager.ZProcessNewArgs{
 		name: 'supervisor'
-		cmd:  '${self.binary_path} --redis-addr ${self.redis_addr} --api-http-port ${self.http_port} --api-ws-port ${self.ws_port}'
+		cmd:  '${self.binary_path} --redis-url ${redis_url} --port ${self.http_port} --admin-secret mysecret'
 		env:  {
 			'HOME':           os.home_dir()
 			'RUST_LOG':       self.log_level
@@ -28,12 +35,14 @@ fn (self &Supervisor) startupcmd() ![]startupmanager.ZProcessNewArgs {
 
 fn (self &Supervisor) running_check() !bool {
 	// Check if the process is running by checking the HTTP port
+	// The supervisor returns 405 for GET requests (requires POST), so we check if we get any response
 	res := osal.exec(
-		cmd:         'curl -fsSL http://127.0.0.1:${self.http_port} || exit 1'
+		cmd:         'curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:${self.http_port}'
 		stdout:      false
 		raise_error: false
 	)!
-	return res.exit_code == 0
+	// Any HTTP response code (including 405) means the server is running
+	return res.output.len > 0 && res.output.int() > 0
 }
 
 fn (self &Supervisor) start_pre() ! {
