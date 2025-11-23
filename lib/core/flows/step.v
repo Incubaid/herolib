@@ -3,8 +3,20 @@ module flows
 import incubaid.herolib.data.paramsparser
 import incubaid.herolib.core.logger
 
+pub enum StepStatus {
+	pending
+	running
+	success
+	error
+	skipped
+}
+
 pub struct Step {
 pub mut:
+	status      StepStatus = .pending
+	started_at  i64  // Unix timestamp
+	finished_at i64
+	error_msg   string
 	name        string
 	description string
 	main_step   fn (mut s Step) ! @[required]

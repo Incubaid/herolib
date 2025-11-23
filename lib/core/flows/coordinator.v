@@ -10,14 +10,17 @@ import incubaid.herolib.core.logger
 import incubaid.herolib.ai.client as aiclient
 import incubaid.herolib.core.redisclient
 import incubaid.herolib.data.paramsparser
+import incubaid.herolib.core.texttools
 
+@[heap]
 pub struct Coordinator {
 pub mut:
-	name   string
-	steps  map[string]Step
-	logger logger.Logger
-	ai     aiclient.AIClient
-	redis  ?&redisclient.Redis
+	name         string
+	current_step string // links to steps dict
+	steps        map[string]&Step
+	logger       logger.Logger
+	ai           aiclient.AIClient
+	redis        ?&redisclient.Redis
 }
 
 pub fn new() !Coordinator {
@@ -41,8 +44,8 @@ pub mut:
 }
 
 // add step to it
-pub fn (mut c Coordinator) step_new(args StepNewArgs) !Step {
-	return Step{
+pub fn (mut c Coordinator) step_new(args StepNewArgs) !&Step {
+	mut s := Step{
 		coordinator: &c
 		name:        args.name
 		description: args.description
@@ -51,5 +54,15 @@ pub fn (mut c Coordinator) step_new(args StepNewArgs) !Step {
 		next_steps:  args.next_steps
 		error:       args.error
 		params:      args.params
+	}
+	s.name = texttools.name_fix(s.name)
+	c.steps[s.name] = &s
+	c.current_step = s.name
+	return &s
+}
+
+pub fn (mut c Coordinator) step_current() !&Step {
+	return c.steps[c.current_step] or {
+		return error('Current step "${c.current_step}" not found in coordinator "${c.name}"')
 	}
 }

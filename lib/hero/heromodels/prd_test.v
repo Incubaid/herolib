@@ -188,14 +188,8 @@ fn test_prd_list() ! {
 	mut mydb := db.new_test()!
 	// Clear the test database to ensure clean state
 	mydb.redis.flushdb()!
-
 	mut db_prd := DBPrd{
 		db: &mydb
-	}
-	// Clear any existing PRDs before running the test
-	existing_prds := db_prd.list()!
-	for prd_id in existing_prds {
-		db_prd.delete[ProductRequirementsDoc](u32(prd_id))!
 	}
 
 	// Create multiple PRDs
