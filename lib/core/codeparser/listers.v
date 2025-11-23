@@ -2,28 +2,27 @@ module codeparser
 
 import incubaid.herolib.core.code
 
-// list_modules returns all module names found in the codebase
+// list_modules returns a list of all parsed module names
 pub fn (parser CodeParser) list_modules() []string {
 	return parser.modules.keys()
 }
 
-// list_files returns all parsed file paths
 pub fn (parser CodeParser) list_files() []string {
 	return parser.parsed_files.keys()
 }
 
 // list_files_in_module returns all file paths in a specific module
-pub fn (parser CodeParser) list_files_in_module(module: string) []string {
-	return parser.modules[module] or { []string{} }
+pub fn (parser CodeParser) list_files_in_module(module_name string) []string {
+	return parser.modules[module_name] or { []string{} }
 }
 
 // list_structs returns all structs in the codebase (optionally filtered by module)
-pub fn (parser CodeParser) list_structs(module: string = '') []code.Struct {
+pub fn (parser CodeParser) list_structs(module_name string) []code.Struct {
 	mut structs := []code.Struct{}
 
 	for _, parsed_file in parser.parsed_files {
 		// Skip if module filter is provided and doesn't match
-		if module != '' && parsed_file.module_name != module {
+		if module_name != '' && parsed_file.module_name != module_name {
 			continue
 		}
 
@@ -35,11 +34,11 @@ pub fn (parser CodeParser) list_structs(module: string = '') []code.Struct {
 }
 
 // list_functions returns all functions in the codebase (optionally filtered by module)
-pub fn (parser CodeParser) list_functions(module: string = '') []code.Function {
+pub fn (parser CodeParser) list_functions(module_name string) []code.Function {
 	mut functions := []code.Function{}
 
 	for _, parsed_file in parser.parsed_files {
-		if module != '' && parsed_file.module_name != module {
+		if module_name != '' && parsed_file.module_name != module_name {
 			continue
 		}
 
@@ -51,11 +50,11 @@ pub fn (parser CodeParser) list_functions(module: string = '') []code.Function {
 }
 
 // list_interfaces returns all interfaces in the codebase (optionally filtered by module)
-pub fn (parser CodeParser) list_interfaces(module: string = '') []code.Interface {
+pub fn (parser CodeParser) list_interfaces(module_name string) []code.Interface {
 	mut interfaces := []code.Interface{}
 
 	for _, parsed_file in parser.parsed_files {
-		if module != '' && parsed_file.module_name != module {
+		if module_name != '' && parsed_file.module_name != module_name {
 			continue
 		}
 
@@ -71,13 +70,14 @@ pub fn (parser CodeParser) list_interfaces(module: string = '') []code.Interface
 }
 
 // list_methods_on_struct returns all methods (receiver functions) for a struct
-pub fn (parser CodeParser) list_methods_on_struct(struct_name: string, module: string = '') []code.Function {
+pub fn (parser CodeParser) list_methods_on_struct(struct_name string, module_name string) []code.Function {
 	mut methods := []code.Function{}
 
-	functions := parser.list_functions(module)
+	functions := parser.list_functions(module_name)
 	for func in functions {
 		// Check if function has a receiver of the matching type
-		if func.receiver.typ.symbol().contains(struct_name) {
+		receiver_type := func.receiver.typ.symbol()
+		if receiver_type.contains(struct_name) {
 			methods << func
 		}
 	}
@@ -86,11 +86,11 @@ pub fn (parser CodeParser) list_methods_on_struct(struct_name: string, module: s
 }
 
 // list_imports returns all unique imports used in the codebase (optionally filtered by module)
-pub fn (parser CodeParser) list_imports(module: string = '') []code.Import {
+pub fn (parser CodeParser) list_imports(module_name string) []code.Import {
 	mut imports := map[string]code.Import{}
 
 	for _, parsed_file in parser.parsed_files {
-		if module != '' && parsed_file.module_name != module {
+		if module_name != '' && parsed_file.module_name != module_name {
 			continue
 		}
 
@@ -103,11 +103,11 @@ pub fn (parser CodeParser) list_imports(module: string = '') []code.Import {
 }
 
 // list_constants returns all constants in the codebase (optionally filtered by module)
-pub fn (parser CodeParser) list_constants(module: string = '') []code.Const {
+pub fn (parser CodeParser) list_constants(module_name string) []code.Const {
 	mut consts := []code.Const{}
 
 	for _, parsed_file in parser.parsed_files {
-		if module != '' && parsed_file.module_name != module {
+		if module_name != '' && parsed_file.module_name != module_name {
 			continue
 		}
 

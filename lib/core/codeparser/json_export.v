@@ -5,18 +5,18 @@ import incubaid.herolib.core.code
 
 // JSON export structures
 pub struct CodeParserJSON {
-pub:
+pub mut:
 	root_dir string
 	modules  map[string]ModuleJSON
 	summary  SummaryJSON
 }
 
 pub struct ModuleJSON {
-pub:
-	name      string
-	files     map[string]FileJSON
-	stats     ModuleStats
-	imports   []string
+pub mut:
+	name    string
+	files   map[string]FileJSON
+	stats   ModuleStats
+	imports []string
 }
 
 pub struct FileJSON {
@@ -61,7 +61,7 @@ pub:
 }
 
 pub struct SummaryJSON {
-pub:
+pub mut:
 	total_files      int
 	total_modules    int
 	total_structs    int
@@ -70,23 +70,23 @@ pub:
 }
 
 // to_json exports the complete code structure to JSON
-// 
+//
 // Args:
-//   module - optional module filter (if empty, exports all modules)
+//   module_name - optional module filter (if empty, exports all modules)
 // Returns:
 //   JSON string representation
-pub fn (parser CodeParser) to_json(module: string = '') !string {
+pub fn (parser CodeParser) to_json(module_name string) !string {
 	mut result := CodeParserJSON{
 		root_dir: parser.root_dir
 		modules:  map[string]ModuleJSON{}
 		summary:  SummaryJSON{}
 	}
 
-	modules_to_process := if module != '' {
-		if module in parser.modules {
-			[module]
+	modules_to_process := if module_name != '' {
+		if module_name in parser.modules {
+			[module_name]
 		} else {
-			return error('module \'${module}\' not found')
+			return error('module \'${module_name}\' not found')
 		}
 	} else {
 		parser.list_modules()
@@ -180,13 +180,11 @@ pub fn (parser CodeParser) to_json(module: string = '') !string {
 		result.summary.total_modules++
 	}
 
-	result.summary.total_files = result.modules.values().map(it.stats.file_count).sum()
+	// mut total_files := 0
+	// for module in result.modules.values() {
+	// 	total_files += module.stats.file_count
+	// }
+	// result.summary.total_files = total_files
 
-	return json.encode(result)
-}
-
-// to_json_pretty exports to pretty-printed JSON
-pub fn (parser CodeParser) to_json_pretty(module: string = '') !string {
-	json_str := parser.to_json(module)!
-	return json.encode_pretty(json.decode(map[string]interface{}, json_str)!)
+	return json.encode_pretty(result)
 }

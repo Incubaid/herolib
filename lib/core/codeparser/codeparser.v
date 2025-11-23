@@ -2,17 +2,6 @@ module codeparser
 
 import incubaid.herolib.core.code
 import incubaid.herolib.core.pathlib
-// import incubaid.herolib.ui.console
-// import os
-
-@[params]
-pub struct ParserOptions {
-pub:
-	path             string @[required]
-	recursive        bool = true
-	exclude_patterns []string
-	include_patterns []string = ['*.v']
-}
 
 // ParseError represents an error that occurred while parsing a file
 pub struct ParseError {
@@ -54,57 +43,80 @@ pub mut:
 	parse_errors []ParseError
 }
 
-// new creates a CodeParser and scans the given root directory
-@[params]
-pub fn new(args ParserOptions) !CodeParser {
-	mut parser := CodeParser{
-		root_dir:     args.path
-		options:      args
-		parsed_files: map[string]ParsedFile{}
-		modules:      map[string][]string{}
+// scan_directory recursively walks the directory and identifies all V files
+// Files are stored but not parsed until parse() is called
+fn (mut parser CodeParser) scan_directory() ! {
+	mut root := pathlib.get_dir(path: parser.root_dir, create: false)!
+
+	if !root.exists() {
+		return error('root directory does not exist: ${parser.root_dir}')
 	}
-	parser.scan_directory()!
-	return parser
-}
 
-// Accessor properties for backward compatibility
-pub fn (parser CodeParser) files() map[string]code.VFile {
-	mut result := map[string]code.VFile{}
-	for _, parsed_file in parser.parsed_files {
-		result[parsed_file.path] = parsed_file.vfile
+	// Use pathlib's recursive listing capability
+	mut items := root.list(recursive: parser.options.recursive)!
+
+	for item in items.paths {
+		// Skip non-V files
+		if !item.path.ends_with('.v') {
+			continue
+		}
+
+		// Skip generated files (ending with _.v)
+		if item.path.ends_with('_.v') {
+			continue
+		}
+
+		// Check exclude patterns
+		should_skip := parser.options.exclude_patterns.any(item.path.contains(it))
+		if should_skip {
+			continue
+		}
+
+		// Store file path for lazy parsing
+		parsed_file := ParsedFile{
+			path:        item.path
+			module_name: ''
+			vfile:       code.VFile{}
+		}
+		parser.parsed_files[item.path] = parsed_file
 	}
-	return result
 }
 
-pub fn (parser CodeParser) errors() []ParseError {
-	return parser.parse_errors
+// parse processes all V files that were scanned and parses them
+pub fn (mut parser CodeParser) parse() ! {
+	for file_path, _ in parser.parsed_files {
+		if parser.parsed_files[file_path].vfile.mod == '' {
+			// Only parse if not already parsed
+			parser.parse_file(file_path)!
+		}
+	}
 }
 
-// parse_file parses a single V file and adds it to the index (public wrapper)
-pub fn (mut parser CodeParser) parse_file(file_path string) {
+// parse_file parses a single V file and adds it to the index
+pub fn (mut parser CodeParser) parse_file(file_path string) ! {
 	mut file := pathlib.get_file(path: file_path) or {
 		parser.parse_errors << ParseError{
 			file_path: file_path
-			error:     err.msg()
+			error:     'Failed to access file: ${err.msg()}'
 		}
-		return
+		return error('Failed to access file: ${err.msg()}')
 	}
 
 	content := file.read() or {
 		parser.parse_errors << ParseError{
 			file_path: file_path
-			error:     err.msg()
+			error:     'Failed to read file: ${err.msg()}'
 		}
-		return
+		return error('Failed to read file: ${err.msg()}')
 	}
 
 	// Parse the V file
 	vfile := code.parse_vfile(content) or {
 		parser.parse_errors << ParseError{
 			file_path: file_path
-			error:     err.msg()
+			error:     'Parse error: ${err.msg()}'
 		}
-		return
+		return error('Parse error: ${err.msg()}')
 	}
 
 	parsed_file := ParsedFile{
@@ -119,27 +131,8 @@ pub fn (mut parser CodeParser) parse_file(file_path string) {
 	if vfile.mod !in parser.modules {
 		parser.modules[vfile.mod] = []string{}
 	}
-	parser.modules[vfile.mod] << file_path
-}
-
-// parse processes all V files that were scanned
-pub fn (mut parser CodeParser) parse() ! {
-	for file_path, _ in parser.parsed_files {
-		parser.parse_file(file_path)
-	}
-}
-
-// get_module_stats calculates statistics for a module
-pub fn (parser CodeParser) get_module_stats(module string) ModuleStats {
-	// TODO: Fix this function
-	return ModuleStats{}
-}
-
-// error adds a new parsing error to the list
-fn (mut parser CodeParser) error(file_path string, msg string) {
-	parser.parse_errors << ParseError{
-		file_path: file_path
-		error:     msg
+	if file_path !in parser.modules[vfile.mod] {
+		parser.modules[vfile.mod] << file_path
 	}
 }
 

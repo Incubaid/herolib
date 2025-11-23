@@ -2,26 +2,28 @@ module codeparser
 
 import incubaid.herolib.core.code
 
-// list_modules returns a list of all parsed module names
-pub fn (parser CodeParser) list_modules() []string {
-	return parser.modules.keys()
-}
-
-// get_module_stats returns statistics for a given module
+// get_module_stats calculates statistics for a module
 pub fn (parser CodeParser) get_module_stats(module_name string) ModuleStats {
 	mut stats := ModuleStats{}
-	if file_paths := parser.modules[module_name] {
-		stats.file_count = file_paths.len
-		for file_path in file_paths {
-			if parsed_file := parser.parsed_files[file_path] {
-				vfile := parsed_file.vfile
-				stats.struct_count += vfile.structs().len
-				stats.function_count += vfile.functions().len
-				stats.const_count += vfile.consts.len
-				stats.interface_count += vfile.interfaces().len
+
+	file_paths := parser.modules[module_name] or { []string{} }
+
+	for file_path in file_paths {
+		if parsed_file := parser.parsed_files[file_path] {
+			stats.file_count++
+			stats.struct_count += parsed_file.vfile.structs().len
+			stats.function_count += parsed_file.vfile.functions().len
+
+			for item in parsed_file.vfile.items {
+				if item is code.Interface {
+					stats.interface_count++
+				}
 			}
+
+			stats.const_count += parsed_file.vfile.consts.len
 		}
 	}
+
 	return stats
 }
 
@@ -77,11 +79,11 @@ pub fn (p CodeParser) all_enums() []code.Enum {
 	return all
 }
 
-// all_interfaces returns all interfaces from all parsed files
-pub fn (p CodeParser) all_interfaces() []code.Interface {
-	mut all := []code.Interface{}
-	for _, file in p.parsed_files {
-		all << file.vfile.interfaces()
-	}
-	return all
-}
+// // all_interfaces returns all interfaces from all parsed files
+// pub fn (p CodeParser) all_interfaces() []code.Interface {
+// 	mut all := []code.Interface{}
+// 	for _, file in p.parsed_files {
+// 		all << file.vfile.interfaces()
+// 	}
+// 	return all
+// }
