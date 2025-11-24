@@ -1,4 +1,4 @@
-module codewalker
+module heroprompt
 
 import os
 
@@ -80,99 +80,6 @@ pub struct DirItem {
 pub:
 	name string
 	typ  string
-}
-
-// list_directory lists the contents of a directory.
-// - base_path: workspace base path
-// - rel_path: relative path from base (or absolute path)
-// Returns a list of DirItem with name and type (file/directory).
-pub fn list_directory(base_path string, rel_path string) ![]DirItem {
-	dir := resolve_path(base_path, rel_path)
-	if dir.len == 0 {
-		return error('base_path not set')
-	}
-	entries := os.ls(dir) or { return error('cannot list directory') }
-	mut out := []DirItem{}
-	for e in entries {
-		full := os.join_path(dir, e)
-		if os.is_dir(full) {
-			out << DirItem{
-				name: e
-				typ:  'directory'
-			}
-		} else if os.is_file(full) {
-			out << DirItem{
-				name: e
-				typ:  'file'
-			}
-		}
-	}
-	return out
-}
-
-// list_directory_filtered lists the contents of a directory with ignore filtering applied.
-// - base_path: workspace base path
-// - rel_path: relative path from base (or absolute path)
-// - ignore_matcher: IgnoreMatcher to filter out ignored files/directories
-// Returns a list of DirItem with name and type (file/directory), filtered by ignore patterns.
-pub fn list_directory_filtered(base_path string, rel_path string, ignore_matcher &IgnoreMatcher) ![]DirItem {
-	dir := resolve_path(base_path, rel_path)
-	if dir.len == 0 {
-		return error('base_path not set')
-	}
-	entries := os.ls(dir) or { return error('cannot list directory') }
-	mut out := []DirItem{}
-	for e in entries {
-		full := os.join_path(dir, e)
-
-		// Calculate relative path from base_path for ignore checking
-		mut check_path := if rel_path.len > 0 {
-			if rel_path.ends_with('/') { rel_path + e } else { rel_path + '/' + e }
-		} else {
-			e
-		}
-
-		// For directories, also check with trailing slash
-		is_directory := os.is_dir(full)
-		mut should_ignore := ignore_matcher.is_ignored(check_path)
-		if is_directory && !should_ignore {
-			// Also check directory pattern with trailing slash
-			should_ignore = ignore_matcher.is_ignored(check_path + '/')
-		}
-
-		// Check if this entry should be ignored
-		if should_ignore {
-			continue
-		}
-
-		if is_directory {
-			out << DirItem{
-				name: e
-				typ:  'directory'
-			}
-		} else if os.is_file(full) {
-			out << DirItem{
-				name: e
-				typ:  'file'
-			}
-		}
-	}
-	return out
-}
-
-// list_files_recursive recursively lists all files in a directory
-pub fn list_files_recursive(root string) []string {
-	mut out := []string{}
-	entries := os.ls(root) or { return out }
-	for e in entries {
-		fp := os.join_path(root, e)
-		if os.is_dir(fp) {
-			out << list_files_recursive(fp)
-		} else if os.is_file(fp) {
-			out << fp
-		}
-	}
-	return out
 }
 
 // build_file_tree_fs builds a file system tree for given root directories

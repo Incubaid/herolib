@@ -4,7 +4,7 @@ import os
 import incubaid.herolib.core.pathlib
 
 fn test_parse_basic() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===FILE:file1.txt===\nline1\nline2\n===END==='
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 1
@@ -12,7 +12,7 @@ fn test_parse_basic() {
 }
 
 fn test_parse_multiple_files() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===FILE:file1.txt===\nline1\n===FILE:file2.txt===\nlineA\nlineB\n===END==='
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 2
@@ -21,7 +21,7 @@ fn test_parse_multiple_files() {
 }
 
 fn test_parse_empty_file_block() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===FILE:empty.txt===\n===END==='
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 1
@@ -29,8 +29,8 @@ fn test_parse_empty_file_block() {
 }
 
 fn test_parse_consecutive_end_and_file() {
-	mut cw := new(CodeWalkerArgs{})!
-	test_content := '===FILE:file1.txt===\ncontent1\n===END===\n===FILE:file2.txt===\ncontent2\n===END==='
+	mut cw := new()
+	test_content := '===FILE:file1.txt ===\ncontent1\n===END===\n=== file2.txt===\ncontent2\n===END==='
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 2
 	assert fm.content['file1.txt'] == 'content1'
@@ -38,8 +38,8 @@ fn test_parse_consecutive_end_and_file() {
 }
 
 fn test_parse_content_before_first_file_block() {
-	mut cw := new(CodeWalkerArgs{})!
-	test_content := 'unexpected content\n===FILE:file1.txt===\ncontent\n===END==='
+	mut cw := new()
+	test_content := 'unexpected content\n===FILE:file1.txt===\ncontent\n====='
 	// This should ideally log an error but still parse the file
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 1
@@ -49,7 +49,7 @@ fn test_parse_content_before_first_file_block() {
 }
 
 fn test_parse_content_after_end() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===FILE:file1.txt===\ncontent\n===END===\nmore unexpected content'
 	// Implementation chooses to ignore content after END but return parsed content
 	fm := cw.parse(test_content)!
@@ -58,7 +58,7 @@ fn test_parse_content_after_end() {
 }
 
 fn test_parse_invalid_filename_line() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '======\ncontent\n===END==='
 	cw.parse(test_content) or {
 		assert err.msg().contains('Invalid filename, < 1 chars')
@@ -68,7 +68,7 @@ fn test_parse_invalid_filename_line() {
 }
 
 fn test_parse_file_ending_without_end() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===FILE:file1.txt===\nline1\nline2'
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 1
@@ -76,14 +76,14 @@ fn test_parse_file_ending_without_end() {
 }
 
 fn test_parse_empty_content() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := ''
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 0
 }
 
 fn test_parse_only_end_at_start() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===END==='
 	cw.parse(test_content) or {
 		assert err.msg().contains('END found at start, not good.')
@@ -93,7 +93,7 @@ fn test_parse_only_end_at_start() {
 }
 
 fn test_parse_mixed_file_and_filechange() {
-	mut cw2 := new(CodeWalkerArgs{})!
+	mut cw2 := new()!
 	test_content2 := '===FILE:file.txt===\nfull\n===FILECHANGE:file.txt===\npartial\n===END==='
 	fm2 := cw2.parse(test_content2)!
 	assert fm2.content.len == 1
@@ -103,7 +103,7 @@ fn test_parse_mixed_file_and_filechange() {
 }
 
 fn test_parse_empty_block_between_files() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===FILE:file1.txt===\ncontent1\n===FILE:file2.txt===\n===END===\n===FILE:file3.txt===\ncontent3\n===END==='
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 3
@@ -113,7 +113,7 @@ fn test_parse_empty_block_between_files() {
 }
 
 fn test_parse_multiple_empty_blocks() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	test_content := '===FILE:file1.txt===\n===END===\n===FILE:file2.txt===\n===END===\n===FILE:file3.txt===\ncontent3\n===END==='
 	fm := cw.parse(test_content)!
 	assert fm.content.len == 3
@@ -123,7 +123,7 @@ fn test_parse_multiple_empty_blocks() {
 }
 
 fn test_parse_filename_end_reserved() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	// Legacy header 'END' used as filename should error when used as header for new block
 	test_content := '===file1.txt===\ncontent1\n===END===\n===END===\ncontent2\n===END==='
 	cw.parse(test_content) or {
@@ -204,7 +204,7 @@ fn test_ignore_level_scoped() ! {
 	mut okf := pathlib.get_file(path: os.join_path(sub.path, 'ok.txt'), create: true)!
 	okf.write('OK')!
 
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	mut fm := cw.filemap_get(path: root.path)!
 
 	// sub/dist/a.txt should be ignored
@@ -235,14 +235,14 @@ fn test_ignore_level_scoped_gitignore() ! {
 	mut appf := pathlib.get_file(path: os.join_path(svc.path, 'app.txt'), create: true)!
 	appf.write('app')!
 
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	mut fm := cw.filemap_get(path: root.path)!
 	assert 'svc/logs/out.txt' !in fm.content.keys()
 	assert fm.content['svc/app.txt'] == 'app'
 }
 
 fn test_parse_filename_end_reserved_legacy() {
-	mut cw := new(CodeWalkerArgs{})!
+	mut cw := new()
 	// Legacy header 'END' used as filename should error when used as header for new block
 	test_content := '===file1.txt===\ncontent1\n===END===\n===END===\ncontent2\n===END==='
 	cw.parse(test_content) or {

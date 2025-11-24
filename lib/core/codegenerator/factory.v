@@ -1,5 +1,7 @@
 module codegenerator
 
+import incubaid.herolib.core.codeparser
+
 @[params]
 pub struct GeneratorOptions {
 pub:
@@ -10,18 +12,16 @@ pub:
 }
 
 pub fn new(args GeneratorOptions) !CodeGenerator {
-	import incubaid.herolib.core.codeparser
-	
 	mut parser := codeparser.new(
 		path:      args.parser_path
 		recursive: args.recursive
 	)!
-	
+
 	parser.parse()!
 
 	return CodeGenerator{
 		parser:     parser
 		output_dir: args.output_dir
-		format:    args.format
+		format:     args.format
 	}
 }

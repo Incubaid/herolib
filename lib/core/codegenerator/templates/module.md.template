@@ -1,0 +1,5 @@
+# Module: ${module_name}
+
+This module provides functionality for code generation and documentation.
+
+**Location:** `${module_name.replace('.', '/')}`

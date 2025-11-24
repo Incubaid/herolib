@@ -2,7 +2,6 @@ module pathlib
 
 import os
 import regex
-// import incubaid.herolib.core.smartid
 import incubaid.herolib.ui.console
 
 @[params]
@@ -38,6 +37,7 @@ pub mut:
 // example see https://github.com/incubaid/herolib/blob/development/examples/core/pathlib/examples/list/path_list.v
 //
 // e.g. p.list(regex:[r'.*\.v$'])!  //notice the r in front of string, this is regex for all files ending with .v
+// e.g.
 //
 // ```
 // please note links are ignored for walking over dirstructure (for files and dirs)

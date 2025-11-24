@@ -1,13 +1,6 @@
 module codewalker
 
-// A minimal gitignore-like matcher used by CodeWalker
-// Supports:
-// - Directory patterns ending with '/': ignores any path that has this segment prefix
-// - Extension patterns like '*.pyc' or '*.<ext>'
-// - Simple substrings and '*' wildcards
-// - Lines starting with '#' are comments; empty lines ignored
-// No negation support for simplicity
-
+// Default ignore patterns based on .gitignore conventions
 const default_gitignore = '
 .git/
 .svn/
@@ -54,27 +47,29 @@ Thumbs.db
 '
 
 struct IgnoreRule {
-	base    string // relative dir from source root where the ignore file lives ('' means global)
-	pattern string
+	base    string // Directory where ignore file was found
+	pattern string // Ignore pattern
 }
 
+// IgnoreMatcher checks if paths should be ignored
 pub struct IgnoreMatcher {
 pub mut:
 	rules []IgnoreRule
 }
 
+// gitignore_matcher_new creates matcher with default patterns
 pub fn gitignore_matcher_new() IgnoreMatcher {
 	mut m := IgnoreMatcher{}
 	m.add_content(default_gitignore)
 	return m
 }
 
-// Add raw .gitignore-style content as global (root-scoped) rules
+// add_content adds global (root-scoped) ignore patterns
 pub fn (mut m IgnoreMatcher) add_content(content string) {
 	m.add_content_with_base('', content)
 }
 
-// Add raw .gitignore/.heroignore-style content scoped to base_rel
+// add_content_with_base adds ignore patterns scoped to base directory
 pub fn (mut m IgnoreMatcher) add_content_with_base(base_rel string, content string) {
 	mut base := base_rel.replace('\\', '/').trim('/').to_lower()
 	for raw_line in content.split_into_lines() {
@@ -89,7 +84,7 @@ pub fn (mut m IgnoreMatcher) add_content_with_base(base_rel string, content stri
 	}
 }
 
-// Very simple glob/substring-based matching with directory scoping
+// is_ignored checks if path matches any ignore pattern
 pub fn (m IgnoreMatcher) is_ignored(relpath string) bool {
 	mut path := relpath.replace('\\', '/').trim_left('/')
 	path_low := path.to_lower()
@@ -99,31 +94,29 @@ pub fn (m IgnoreMatcher) is_ignored(relpath string) bool {
 			continue
 		}
 
-		// Determine subpath relative to base
+		// Scope pattern to base directory
 		mut sub := path_low
 		if rule.base != '' {
 			base := rule.base
 			if sub == base {
-				// path equals the base dir; ignore rules apply to entries under base, not the base itself
 				continue
 			}
 			if sub.starts_with(base + '/') {
 				sub = sub[(base.len + 1)..]
 			} else {
-				continue // rule not applicable for this path
+				continue
 			}
 		}
 
-		// Directory pattern (relative to base)
+		// Directory pattern
 		if pat.ends_with('/') {
-			mut dirpat := pat.trim_right('/')
-			dirpat = dirpat.trim_left('/').to_lower()
+			mut dirpat := pat.trim_right('/').trim_left('/').to_lower()
 			if sub == dirpat || sub.starts_with(dirpat + '/') || sub.contains('/' + dirpat + '/') {
 				return true
 			}
 			continue
 		}
-		// Extension pattern *.ext
+		// Extension pattern
 		if pat.starts_with('*.') {
 			ext := pat.all_after_last('.').to_lower()
 			if sub.ends_with('.' + ext) {
@@ -131,7 +124,7 @@ pub fn (m IgnoreMatcher) is_ignored(relpath string) bool {
 			}
 			continue
 		}
-		// Simple wildcard * anywhere -> sequential contains match
+		// Wildcard matching
 		if pat.contains('*') {
 			mut parts := pat.to_lower().split('*')
 			mut idx := 0
@@ -152,7 +145,7 @@ pub fn (m IgnoreMatcher) is_ignored(relpath string) bool {
 			}
 			continue
 		}
-		// Fallback: substring match (case-insensitive) on subpath
+		// Substring match
 		if sub.contains(pat.to_lower()) {
 			return true
 		}

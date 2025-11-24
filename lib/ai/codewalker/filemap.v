@@ -2,14 +2,16 @@ module codewalker
 
 import incubaid.herolib.core.pathlib
 
+// FileMap represents parsed file structure with content and changes
 pub struct FileMap {
 pub mut:
-	source         string
-	content        map[string]string
-	content_change map[string]string
-	errors         []FMError
+	source         string            // Source path or origin
+	content        map[string]string // Full file content by path
+	content_change map[string]string // Partial/change content by path
+	errors         []FMError         // Parse errors encountered
 }
 
+// content generates formatted string representation
 pub fn (mut fm FileMap) content() string {
 	mut out := []string{}
 	for filepath, filecontent in fm.content {
@@ -24,7 +26,7 @@ pub fn (mut fm FileMap) content() string {
 	return out.join_lines()
 }
 
-// write in new location, all will be overwritten, will only work with full files, not changes
+// export writes all FILE content to destination directory
 pub fn (mut fm FileMap) export(path string) ! {
 	for filepath, filecontent in fm.content {
 		dest := '${path}/${filepath}'
@@ -33,7 +35,7 @@ pub fn (mut fm FileMap) export(path string) ! {
 	}
 }
 
-@[PARAMS]
+@[params]
 pub struct WriteParams {
 	path        string
 	v_test      bool = true
@@ -41,29 +43,31 @@ pub struct WriteParams {
 	python_test bool
 }
 
-// update the files as found in the folder and update them or create
+// write updates files in destination directory (creates or overwrites)
 pub fn (mut fm FileMap) write(path string) ! {
 	for filepath, filecontent in fm.content {
 		dest := '${path}/${filepath}'
-		// In future: validate language-specific formatting/tests before overwrite
 		mut filepathtowrite := pathlib.get_file(path: dest, create: true)!
 		filepathtowrite.write(filecontent)!
 	}
-	// TODO: phase 2, work with morphe to integrate change in the file
 }
 
+// get retrieves file content by path
 pub fn (fm FileMap) get(relpath string) !string {
 	return fm.content[relpath] or { return error('File not found: ${relpath}') }
 }
 
+// set stores file content by path
 pub fn (mut fm FileMap) set(relpath string, content string) {
 	fm.content[relpath] = content
 }
 
+// delete removes file from content map
 pub fn (mut fm FileMap) delete(relpath string) {
 	fm.content.delete(relpath)
 }
 
+// find returns all paths matching prefix
 pub fn (fm FileMap) find(path string) []string {
 	mut result := []string{}
 	for filepath, _ in fm.content {
