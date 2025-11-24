@@ -1,8 +1,5 @@
-# regex
 
-## basic regex utilities
-
-### escape_regex_chars
+## escape_regex_chars
 
 Escapes special regex metacharacters in a string to make it safe for use in regex patterns.
 
@@ -96,12 +93,4 @@ mut text_out2 := ri.replace(text: text, dedent: true) or { panic(err) }
 // if dryrun is true then will not replace but just show
 ri.replace_in_dir(path:"/tmp/mypath",extensions:["md"])!
 
-```
-
-## Testing
-
-Run regex conversion tests:
-
-```bash
-vtest ~/code/github/incubaid/herolib/lib/core/texttools/regext/regex_convert_test.v
 ```

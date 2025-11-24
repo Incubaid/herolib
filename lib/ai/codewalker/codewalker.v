@@ -5,7 +5,7 @@ import incubaid.herolib.core.pathlib
 // CodeWalker walks directories and parses file content
 pub struct CodeWalker {
 pub mut:
-	ignorematcher IgnoreMatcher
+	scoped_ignore ScopedIgnore
 }
 
 @[params]
@@ -39,36 +39,39 @@ fn (mut cw CodeWalker) filemap_get_from_path(path string, content_read bool) !Fi
 		return error('Directory "${path}" does not exist')
 	}
 
-	mut files := dir.list(ignore_default: false)!
 	mut fm := FileMap{
 		source: path
 	}
 
-	// Collect ignore patterns from .gitignore and .heroignore with scoping
-	for mut p in files.paths {
-		if p.is_file() {
-			name := p.name()
-			if name == '.gitignore' || name == '.heroignore' {
-				content := p.read() or { '' }
-				if content != '' {
-					rel := p.path_relative(path) or { '' }
-					base_rel := if rel.contains('/') { rel.all_before_last('/') } else { '' }
-					cw.ignorematcher.add_content_with_base(base_rel, content)
-				}
-			}
-		}
+	// Load .gitignore and .heroignore files first to build scoped ignores
+	cw.scoped_ignore = ScopedIgnore{}
+	cw.load_ignore_files(path)!
+
+	// Combine default patterns with custom ignore patterns
+	mut ignore_patterns := get_default_ignore_patterns()
+
+	// Add any root-level custom patterns
+	if '/' in cw.scoped_ignore.patterns {
+		ignore_patterns << cw.scoped_ignore.patterns['/']
 	}
 
-	for mut file in files.paths {
+	// List all files using pathlib with both default and custom ignore patterns
+	mut file_list := dir.list(
+		recursive:      true
+		ignore_default: true
+		regex_ignore:   ignore_patterns
+	)!
+
+	// Process files with additional scoped ignore checking
+	for mut file in file_list.paths {
 		if file.is_file() {
-			name := file.name()
-			if name == '.gitignore' || name == '.heroignore' {
-				continue
-			}
 			relpath := file.path_relative(path)!
-			if cw.ignorematcher.is_ignored(relpath) {
+
+			// Check scoped ignore patterns (from .gitignore/.heroignore in subdirectories)
+			if cw.scoped_ignore.is_ignored(relpath) {
 				continue
 			}
+
 			if content_read {
 				content := file.read()!
 				fm.content[relpath] = content
@@ -77,7 +80,41 @@ fn (mut cw CodeWalker) filemap_get_from_path(path string, content_read bool) !Fi
 			}
 		}
 	}
+
 	return fm
+}
+
+// load_ignore_files reads .gitignore and .heroignore files and builds scoped patterns
+fn (mut cw CodeWalker) load_ignore_files(root_path string) ! {
+	mut root := pathlib.get(root_path)
+	if !root.is_dir() {
+		return
+	}
+
+	// List all files to find ignore files
+	mut all_files := root.list(
+		recursive:      true
+		ignore_default: false
+	)!
+
+	for mut p in all_files.paths {
+		if p.is_file() {
+			name := p.name()
+			if name == '.gitignore' || name == '.heroignore' {
+				relpath := p.path_relative(root_path)!
+				// Get the directory containing this ignore file
+				mut scope := relpath
+				if scope.contains('/') {
+					scope = scope.all_before_last('/')
+				} else {
+					scope = ''
+				}
+
+				content := p.read()!
+				cw.scoped_ignore.add_for_scope(scope, content)
+			}
+		}
+	}
 }
 
 // parse_header robustly extracts block type and filename from header line

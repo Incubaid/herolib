@@ -2,9 +2,9 @@ module codewalker
 
 // new creates a CodeWalker instance with default ignore patterns
 pub fn new() CodeWalker {
-	mut cw := CodeWalker{}
-	cw.ignorematcher = gitignore_matcher_new()
-	return cw
+	return CodeWalker{
+		scoped_ignore: ScopedIgnore{}
+	}
 }
 
 // filemap creates FileMap from path or content (convenience function)
