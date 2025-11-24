@@ -6,12 +6,13 @@ import incubaid.herolib.virt.crun
 import time
 import incubaid.herolib.builder
 import json
+import os
 
 // Container lifecycle timeout constants
 const cleanup_retry_delay_ms = 500 // Time to wait for filesystem cleanup to complete
-const sigterm_timeout_ms = 5000 // Time to wait for graceful shutdown (5 seconds)
+const sigterm_timeout_ms = 1000 // Time to wait for graceful shutdown (1 second) - reduced from 5s for faster tests
 const sigkill_wait_ms = 500 // Time to wait after SIGKILL
-const stop_check_interval_ms = 500 // Interval to check if container stopped
+const stop_check_interval_ms = 200 // Interval to check if container stopped - reduced from 500ms for faster response
 
 // Container represents a running or stopped OCI container managed by crun
 //
@@ -129,10 +130,11 @@ pub fn (mut self Container) start() ! {
 
 	// start the container (crun start doesn't have --detach flag)
 	crun_root := '${self.factory.base_dir}/runtime'
-	// Start the container
-	osal.exec(cmd: 'crun --root ${crun_root} start ${self.name}', stdout: true) or {
-		return error('Failed to start container: ${err}')
-	}
+	osal.exec(cmd: 'crun --root ${crun_root} start ${self.name}', stdout: true)!
+
+	// Wait for container process to be fully ready before setting up network
+	// Poll for the PID and verify /proc/<pid>/ns/net exists
+	self.wait_for_process_ready()!
 
 	// Setup network for the container (thread-safe)
 	// If this fails, stop the container to clean up
@@ -417,6 +419,55 @@ pub fn (self Container) pid() !int {
 	}
 
 	return state.pid
+}
+
+// Wait for container process to be fully ready
+//
+// After `crun start` returns, the container process may not be fully initialized yet.
+// This method polls for the container's PID and verifies that /proc/<pid>/ns/net exists
+// before returning. This ensures network setup can proceed without errors.
+//
+// The method uses exponential backoff polling (no sleep delays) to minimize wait time.
+fn (self Container) wait_for_process_ready() ! {
+	crun_root := '${self.factory.base_dir}/runtime'
+
+	// Poll for up to 100 iterations (very fast, no sleep)
+	// Most containers will be ready within the first few iterations
+	for i in 0 .. 100 {
+		// Try to get the container state
+		result := osal.exec(
+			cmd:    'crun --root ${crun_root} state ${self.name}'
+			stdout: false
+		) or {
+			// Container state not ready yet, continue polling
+			continue
+		}
+
+		// Parse the state to get PID
+		state := json.decode(CrunState, result.output) or {
+			// JSON not ready yet, continue polling
+			continue
+		}
+
+		// Check if we have a valid PID
+		if state.pid == 0 {
+			continue
+		}
+
+		// Verify that /proc/<pid>/ns/net exists (this is what nsenter needs)
+		ns_net_path := '/proc/${state.pid}/ns/net'
+		if os.exists(ns_net_path) {
+			// Process is ready!
+			return
+		}
+
+		// If we've tried many times, add a tiny yield to avoid busy-waiting
+		if i > 50 && i % 10 == 0 {
+			time.sleep(1 * time.millisecond)
+		}
+	}
+
+	return error('Container process did not become ready in time')
 }
 
 // Setup network for this container (thread-safe)

@@ -52,7 +52,7 @@ fn obj_init(mycfg_ HeroPods) !HeroPods {
 
 	// Normalize base_dir from environment variable if not set
 	if mycfg.base_dir == '' {
-		mycfg.base_dir = os.getenv_opt('CONTAINERS_DIR') or { os.home_dir() + '/.containers' }
+		mycfg.base_dir = os.getenv_opt('CONTAINERS_DIR') or { os.home_dir() + '/.heropods/default' }
 	}
 
 	// Validate: warn if podman is requested but not available

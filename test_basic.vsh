@@ -170,8 +170,7 @@ lib/clients
 lib/core
 lib/develop
 lib/hero/heromodels
-// lib/vfs The vfs folder is not exists on the development branch, so we need to uncomment it after merging this PR https://github.com/incubaid/herolib/pull/68
-// lib/crypt
+lib/virt/heropods
 '
 
 // the following tests have no prio and can be ignored
