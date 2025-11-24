@@ -45,50 +45,121 @@ if path.is_link() { /* is symlink */ }
 
 ## 3. File Listing and Filtering
 
-```v
-// List all files in a directory (recursive by default)
-mut dir := pathlib.get('/some/dir')
-mut pathlist := dir.list()!
+### 3.1 Regex-Based Filtering
 
-// List only files matching specific extensions using regex
-mut pathlist_images := dir.list(
-    regex: [r'.*\.png$', r'.*\.jpg$', r'.*\.svg$', r'.*\.jpeg$'],
+```v
+import incubaid.herolib.core.pathlib
+
+mut dir := pathlib.get('/some/code/project')
+
+// Include files matching regex pattern (e.g., all V files)
+mut v_files := dir.list(
+    regex: [r'.*\.v$']
+)!
+
+// Multiple regex patterns (OR logic)
+mut source_files := dir.list(
+    regex: [r'.*\.v$', r'.*\.ts$', r'.*\.go$']
+)!
+
+// Exclude certain patterns
+mut no_tests := dir.list(
+    regex: [r'.*\.v$'],
+    regex_ignore: [r'.*_test\.v$']
+)!
+
+// Ignore both default patterns and custom ones
+mut important_files := dir.list(
+    regex: [r'.*\.v$'],
+    regex_ignore: [r'.*_test\.v$', r'.*\.bak$']
+)!
+```
+
+### 3.2 Simple String-Based Filtering
+
+```v
+import incubaid.herolib.core.pathlib
+
+mut dir := pathlib.get('/some/project')
+
+// Include files/dirs containing string in name
+mut config_files := dir.list(
+    contains: ['config']
+)!
+
+// Multiple contains patterns (OR logic)
+mut important := dir.list(
+    contains: ['main', 'core', 'config'],
     recursive: true
 )!
 
+// Exclude files containing certain strings
+mut no_backups := dir.list(
+    contains_ignore: ['.bak', '.tmp', '.backup']
+)!
+
+// Combine contains with exclude
+mut python_but_no_cache := dir.list(
+    contains: ['.py'],
+    contains_ignore: ['__pycache__', '.pyc']
+)!
+```
+
+### 3.3 Advanced Filtering Options
+
+```v
+import incubaid.herolib.core.pathlib
+
+mut dir := pathlib.get('/some/project')
+
 // List only directories
-mut pathlist_dirs := dir.list(
+mut dirs := dir.list(
     dirs_only: true,
     recursive: true
 )!
 
 // List only files
-mut pathlist_files := dir.list(
+mut files := dir.list(
     files_only: true,
-    recursive: false  // only in current directory
+    recursive: false
 )!
 
-// Include symlinks in the results
-mut pathlist_with_links := dir.list(
+// Include symlinks
+mut with_links := dir.list(
+    regex: [r'.*\.conf$'],
     include_links: true
 )!
 
-// Don't ignore hidden files (those starting with . or _)
-mut pathlist_all := dir.list(
-    ignore_default: false
+// Don't ignore hidden files (starting with . or _)
+mut all_files := dir.list(
+    ignore_default: false,
+    recursive: true
+)!
+
+// Non-recursive (only in current directory)
+mut immediate := dir.list(
+    recursive: false
 )!
 
 // Access the resulting paths
-for path in pathlist.paths {
-    println(path.path)
+for path in dirs.paths {
+    println('${path.name()}')
 }
-
-// Perform operations on all paths in the list
-pathlist.copy('/destination/dir')!
-pathlist.delete()!
 ```
 
-## 4. Common File Operations
+## 4. Path Operations on Lists
+
+```v
+mut pathlist := dir.list(regex: [r'.*\.tmp$'])!
+
+// Delete all files matching filter
+pathlist.delete()!
+
+// Copy all files to destination
+pathlist.copy('/backup/location')!
+```
+
+## 5. Common File Operations
 
 ```v
 // Empty a directory
@@ -107,67 +178,117 @@ mut path := pathlib.get_dir(
 mut wd := pathlib.get_wd()
 ```
 
-## Features
+## 6. Path Scanning with Filters and Executors
 
-The module handles common edge cases:
+Path scanning processes directory trees with custom filter and executor functions.
 
-- Automatically expands ~ to home directory
-- Creates parent directories as needed
-- Provides proper error handling with V's result type
-- Checks path existence and type
-- Handles both absolute and relative paths
+### 6.1 Basic Scanner Usage
 
-## Path Object Structure
+```v
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.paramsparser
+
+// Define a filter function (return true to continue processing)
+fn my_filter(mut path pathlib.Path, mut params paramsparser.Params) !bool {
+    // Skip files larger than 1MB
+    size := path.size()!
+    return size < 1_000_000
+}
+
+// Define an executor function (process the file)
+fn my_executor(mut path pathlib.Path, mut params paramsparser.Params) !paramsparser.Params {
+    if path.is_file() {
+        content := path.read()!
+        println('Processing: ${path.name()} (${content.len} bytes)')
+    }
+    return params
+}
+
+// Run the scan
+mut root := pathlib.get_dir(path: '/source/dir')!
+mut params := paramsparser.new_params()
+root.scan(mut params, [my_filter], [my_executor])!
+```
+
+### 6.2 Scanner with Multiple Filters and Executors
+
+```v
+import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.paramsparser
+
+// Filter 1: Skip hidden files
+fn skip_hidden(mut path pathlib.Path, mut params paramsparser.Params) !bool {
+    return !path.name().starts_with('.')
+}
+
+// Filter 2: Only process V files
+fn only_v_files(mut path pathlib.Path, mut params paramsparser.Params) !bool {
+    if path.is_file() {
+        return path.extension() == 'v'
+    }
+    return true
+}
+
+// Executor 1: Count lines
+fn count_lines(mut path pathlib.Path, mut params paramsparser.Params) !paramsparser.Params {
+    if path.is_file() {
+        content := path.read()!
+        lines := content.split_into_lines().len
+        params.set('total_lines', (params.get_default('total_lines', '0').int() + lines).str())
+    }
+    return params
+}
+
+// Executor 2: Print file info
+fn print_info(mut path pathlib.Path, mut params paramsparser.Params) !paramsparser.Params {
+    if path.is_file() {
+        size := path.size()!
+        println('${path.name()}: ${int(size)} bytes')
+    }
+    return params
+}
+
+// Run scan with all filters and executors
+mut root := pathlib.get_dir(path: '/source/code')!
+mut params := paramsparser.new_params()
+root.scan(mut params, [skip_hidden, only_v_files], [count_lines, print_info])!
+
+total := params.get('total_lines')!
+println('Total lines: ${total}')
+```
+
+## 7. Sub-path Getters and Checkers
+
+```v
+// Get a sub-path with name fixing and case-insensitive matching
+path.sub_get(name: 'mysub_file.md', name_fix_find: true, name_fix: true)!
+
+// Check if a sub-path exists
+path.sub_exists(name: 'my_sub_dir')!
+
+// File operations
+path.file_exists('file.txt')              // bool
+path.file_exists_ignorecase('File.Txt')   // bool
+path.file_get('file.txt')!                // Path
+path.file_get_ignorecase('File.Txt')!     // Path
+path.file_get_new('new.txt')!             // Get or create
+
+// Directory operations
+path.dir_exists('mydir')                  // bool
+path.dir_get('mydir')!                    // Path
+path.dir_get_new('newdir')!               // Get or create
+
+// Symlink operations
+path.link_exists('mylink')                // bool
+path.link_get('mylink')!                  // Path
+```
+
+## 8. Path Object Structure
 
 Each Path object contains:
 
 - `path`: The actual path string
-- `cat`: Category (file/dir/link)
-- `exist`: Existence status
+- `cat`: Category (file/dir/linkfile/linkdir)
+- `exist`: Existence status (yes/no/unknown)
 
 This provides a safe and convenient API for all file system operations in V.
-
-## 5. Sub-path Getters and Checkers
-
-The `pathlib` module provides methods to get and check for the existence of sub-paths (files, directories, and links) within a given path.
-
-```v
-// Get a sub-path (file or directory) with various options
-path.sub_get(name:"mysub_file.md", name_fix_find:true, name_fix:true)!
-
-// Check if a sub-path exists
-path.sub_exists(name:"my_sub_dir")!
-
-// Check if a file exists
-path.file_exists("my_file.txt")
-
-// Check if a file exists (case-insensitive)
-path.file_exists_ignorecase("My_File.txt")
-
-// Get a file as a Path object
-path.file_get("another_file.txt")!
-
-// Get a file as a Path object (case-insensitive)
-path.file_get_ignorecase("Another_File.txt")!
-
-// Get a file, create if it doesn't exist
-path.file_get_new("new_file.txt")!
-
-// Check if a link exists
-path.link_exists("my_link")
-
-// Check if a link exists (case-insensitive)
-path.link_exists_ignorecase("My_Link")
-
-// Get a link as a Path object
-path.link_get("some_link")!
-
-// Check if a directory exists
-path.dir_exists("my_directory")
-
-// Get a directory as a Path object
-path.dir_get("another_directory")!
-
-// Get a directory, create if it doesn't exist
-path.dir_get_new("new_directory")!
-```
