@@ -8,6 +8,8 @@ import time
 import os
 import incubaid.herolib.core.playcmds
 
+name := 'kristof1'
+
 user := os.environ()['HETZNER_USER'] or {
 	println('HETZNER_USER not set')
 	exit(1)
@@ -20,7 +22,7 @@ passwd := os.environ()['HETZNER_PASSWORD'] or {
 hs := '
 !!hetznermanager.configure
 	user:"${user}"
-	whitelist:"2111181, 2392178, 2545053, 2542166, 2550508, 2550378,2550253"
+	whitelist:"2521602,2555487"
 	password:"${passwd}"
 	sshkey:"kristof"
 '
@@ -40,16 +42,15 @@ mut cl := hetznermanager.get()!
 
 println(cl.servers_list()!)
 
-// mut serverinfo := cl.server_info_get(name: 'kristof2')!
+mut serverinfo := cl.server_info_get(name: 'kristof1')!
 
-// println(serverinfo)
+println(serverinfo)
 
-// cl.server_reset(name:"kristof2",wait:true)!
+// cl.server_reset(name: 'kristof2', wait: true)!
 
-// don't forget to specify the keyname needed
-// cl.server_rescue(name:"kristof2",wait:true, hero_install:true,sshkey_name:"kristof")!
+// cl.server_rescue(name: 'kristof1', wait: true, hero_install: true)!
 
-// mut ks:=cl.keys_get()!
+// mut ks := cl.keys_get()!
 // println(ks)
 
 // console.print_header('SSH login')
@@ -57,12 +58,12 @@ println(cl.servers_list()!)
 // mut n := b.node_new(ipaddr: serverinfo.server_ip)!
 
 // this will put hero in debug mode on the system
-// n.hero_install(compile:true)!
+// n.hero_install(compile: true)!
 
-// n.shell("")!
+// n.shell('')!
 
-// cl.ubuntu_install(name: 'kristof2', wait: true, hero_install: true)!
+cl.ubuntu_install(name: name, wait: true, hero_install: true)!
 // cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550378, name: 'kristof21', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550508, name: 'kristof22', wait: true, hero_install: true)!
-cl.ubuntu_install(id: 2550253, name: 'kristof23', wait: true, hero_install: true)!
+// cl.ubuntu_install(id: 2550253, name: 'kristof23', wait: true, hero_install: true)!
