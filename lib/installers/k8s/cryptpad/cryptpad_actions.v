@@ -60,7 +60,7 @@ fn install() ! {
 
 	// 4. Apply the YAML files using kubernetes client
 	console.print_info('Applying Gateway YAML file to the cluster...')
-	res1 := k8s.apply_yaml('/tmp/tfgw-cryptpad.yaml')!
+	res1 := k8s.apply_yaml(installer.tfgw_cryptpad_path)!
 	if !res1.success {
 		return error('Failed to apply tfgw-cryptpad.yaml: ${res1.stderr}')
 	}
@@ -72,7 +72,7 @@ fn install() ! {
 
 	// 6. Apply Cryptpad YAML
 	console.print_info('Applying Cryptpad YAML file to the cluster...')
-	res2 := k8s.apply_yaml('/tmp/cryptpad.yaml')!
+	res2 := k8s.apply_yaml(installer.cryptpad_path)!
 	if !res2.success {
 		return error('Failed to apply cryptpad.yaml: ${res2.stderr}')
 	}
