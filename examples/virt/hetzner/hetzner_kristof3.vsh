@@ -8,7 +8,7 @@ import time
 import os
 import incubaid.herolib.core.playcmds
 
-name := 'kristof1'
+name := 'kristof3'
 
 user := os.environ()['HETZNER_USER'] or {
 	println('HETZNER_USER not set')

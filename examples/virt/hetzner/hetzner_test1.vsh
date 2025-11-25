@@ -8,7 +8,7 @@ import time
 import os
 import incubaid.herolib.core.playcmds
 
-name := 'kristof1'
+name := 'test1'
 
 user := os.environ()['HETZNER_USER'] or {
 	println('HETZNER_USER not set')
@@ -22,7 +22,7 @@ passwd := os.environ()['HETZNER_PASSWORD'] or {
 hs := '
 !!hetznermanager.configure
 	user:"${user}"
-	whitelist:"2521602,2555487,2573047"
+	whitelist:"2575034"
 	password:"${passwd}"
 	sshkey:"kristof"
 '

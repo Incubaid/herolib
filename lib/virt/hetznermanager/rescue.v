@@ -193,7 +193,7 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 	console.print_debug('server ${serverinfo.server_name} is reacheable over ssh, lets now install hero if asked for.')
 
 	if args.hero_install {
-		n.exec_silent('apt update && apt install -y mc redis')!
+		n.exec_silent('apt update && apt install -y mc redis libpq5 libpq-dev')!
 		n.hero_install(compile: args.hero_install_compile)!
 	}
 
