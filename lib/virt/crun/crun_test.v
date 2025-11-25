@@ -1,6 +1,6 @@
 module crun
 
-import json
+import x.json2
 
 fn test_factory_creation() {
 	mut configs := map[string]&CrunConfig{}
@@ -15,21 +15,26 @@ fn test_json_generation() {
 	json_str := config.to_json()!
 
 	// Parse back to verify structure
-	parsed := json.decode(map[string]json.Any, json_str)!
+	parsed := json2.decode[json2.Any](json_str)!
+	parsed_map := parsed.as_map()
 
-	assert parsed['ociVersion']! as string == '1.0.2'
+	oci_version := parsed_map['ociVersion']!
+	assert oci_version.str() == '1.0.2'
 
-	process := parsed['process']! as map[string]json.Any
-	assert process['terminal']! as bool == true
+	process := parsed_map['process']!
+	process_map := process.as_map()
+	terminal := process_map['terminal']!
+	assert terminal.bool() == true
 }
 
 fn test_configuration_methods() {
 	mut configs := map[string]&CrunConfig{}
 	mut config := new(mut configs, name: 'test')!
 
+	// Set configuration (methods don't return self for chaining)
 	config.set_command(['/bin/echo', 'hello'])
-		.set_working_dir('/tmp')
-		.set_hostname('test-host')
+	config.set_working_dir('/tmp')
+	config.set_hostname('test-host')
 
 	assert config.spec.process.args == ['/bin/echo', 'hello']
 	assert config.spec.process.cwd == '/tmp'
@@ -58,17 +63,24 @@ fn test_heropods_compatibility() {
 
 	// The default config should match heropods template structure
 	json_str := config.to_json()!
-	parsed := json.decode(map[string]json.Any, json_str)!
+	parsed := json2.decode[json2.Any](json_str)!
+	parsed_map := parsed.as_map()
 
 	// Check key fields match template
-	assert parsed['ociVersion']! as string == '1.0.2'
+	oci_version := parsed_map['ociVersion']!
+	assert oci_version.str() == '1.0.2'
 
-	process := parsed['process']! as map[string]json.Any
-	assert process['noNewPrivileges']! as bool == true
+	process := parsed_map['process']!
+	process_map := process.as_map()
+	no_new_privs := process_map['noNewPrivileges']!
+	assert no_new_privs.bool() == true
 
-	capabilities := process['capabilities']! as map[string]json.Any
-	bounding := capabilities['bounding']! as []json.Any
-	assert 'CAP_AUDIT_WRITE' in bounding.map(it as string)
-	assert 'CAP_KILL' in bounding.map(it as string)
-	assert 'CAP_NET_BIND_SERVICE' in bounding.map(it as string)
+	capabilities := process_map['capabilities']!
+	capabilities_map := capabilities.as_map()
+	bounding := capabilities_map['bounding']!
+	bounding_array := bounding.arr()
+	bounding_strings := bounding_array.map(it.str())
+	assert 'CAP_AUDIT_WRITE' in bounding_strings
+	assert 'CAP_KILL' in bounding_strings
+	assert 'CAP_NET_BIND_SERVICE' in bounding_strings
 }

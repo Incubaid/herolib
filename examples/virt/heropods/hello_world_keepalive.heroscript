@@ -1,0 +1,75 @@
+#!/usr/bin/env hero
+
+// ============================================================================
+// HeroPods Keep-Alive Feature Test - Alpine Container
+// ============================================================================
+//
+// This script demonstrates the keep_alive feature with an Alpine container.
+//
+// Test Scenario:
+// Alpine's default CMD is /bin/sh, which exits immediately when run
+// non-interactively (no stdin). This makes it perfect for testing keep_alive:
+//
+// 1. Container starts with CMD=["/bin/sh"]
+// 2. /bin/sh exits immediately (exit code 0)
+// 3. HeroPods detects the successful exit
+// 4. HeroPods recreates the container with keep-alive command
+// 5. Container remains running and accepts exec commands
+//
+// This demonstrates the core keep_alive functionality:
+// - Detecting when a container's entrypoint/cmd exits
+// - Checking the exit code
+// - Injecting a keep-alive process on successful exit
+// - Allowing subsequent exec commands
+//
+// ============================================================================
+
+// Step 1: Configure HeroPods instance
+!!heropods.configure
+    name:'hello_world'
+    reset:true
+    use_podman:true
+
+// Step 2: Create a container with Alpine 3.20 image
+// Using custom image type to automatically download from Docker Hub
+!!heropods.container_new
+    name:'alpine_test_keepalive'
+    image:'custom'
+    custom_image_name:'alpine_test'
+    docker_url:'docker.io/library/alpine:3.20'
+
+// Step 3: Start the container with keep_alive enabled
+// Alpine's CMD is /bin/sh which exits immediately when run non-interactively.
+// With keep_alive:true, HeroPods will:
+// 1. Start the container with /bin/sh
+// 2. Wait for /bin/sh to exit (which happens immediately)
+// 3. Detect the successful exit (exit code 0)
+// 4. Recreate the container with a keep-alive command (tail -f /dev/null)
+// 5. The container will then remain running and accept exec commands
+!!heropods.container_start
+    name:'alpine_test_keepalive'
+    keep_alive:true
+
+// Step 4: Execute a simple hello world command
+!!heropods.container_exec
+    name:'alpine_test_keepalive'
+    cmd:'echo Hello World from HeroPods'
+    stdout:true
+
+// Step 5: Display OS information
+!!heropods.container_exec
+    name:'alpine_test_keepalive'
+    cmd:'cat /etc/os-release'
+    stdout:true
+
+// Step 6: Show running processes
+!!heropods.container_exec
+    name:'alpine_test_keepalive'
+    cmd:'ps aux'
+    stdout:true
+
+// Step 7: Verify Alpine version
+!!heropods.container_exec
+    name:'alpine_test_keepalive'
+    cmd:'cat /etc/alpine-release'
+    stdout:true
