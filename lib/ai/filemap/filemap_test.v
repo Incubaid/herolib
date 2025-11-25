@@ -9,6 +9,24 @@ fn test_parse_header_file() {
 	assert name == 'main.v'
 }
 
+fn test_parse_header_file2() {
+	kind, name := parse_header('===FILE:main.v ===')!
+	assert kind == BlockKind.file
+	assert name == 'main.v'
+}
+
+fn test_parse_header_file3() {
+	kind, name := parse_header('===   FILE:main.v   ===')!
+	assert kind == BlockKind.file
+	assert name == 'main.v'
+}
+
+fn test_parse_header_file4() {
+	kind, name := parse_header('==   FILE: main.v   =====')!
+	assert kind == BlockKind.file
+	assert name == 'main.v'
+}
+
 fn test_parse_header_filechange() {
 	kind, name := parse_header('===FILECHANGE:utils/helper.v===')!
 	assert kind == BlockKind.filechange

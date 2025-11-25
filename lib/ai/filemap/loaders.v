@@ -48,12 +48,19 @@ fn filemap_get_from_content(content string) !FileMap {
 
 	for line in content.split_into_lines() {
 		linenr += 1
-		line_trimmed := line.trim_space()
+		parsed_kind, parsed_name := parse_header(line)! // Call parse_header with the raw line
 
-		kind, name := parse_header(line_trimmed)!
+		mut is_a_header_line := false
+		if parsed_kind == .file || parsed_kind == .filechange {
+			is_a_header_line = true
+		} else if parsed_kind == .end && line.trim_space().to_lower() == '===end===' {
+			// This is explicitly an END header
+			is_a_header_line = true
+		}
 
-		match kind {
-			.end {
+		if is_a_header_line {
+			// Handle the header line (logic similar to current .file, .filechange, and .end blocks)
+			if parsed_kind == .end { // It's the explicit ===END===
 				if filename == '' {
 					if had_any_block {
 						fm.errors << FMError{
@@ -79,8 +86,7 @@ fn filemap_get_from_content(content string) !FileMap {
 					block = []string{}
 					current_kind = .end
 				}
-			}
-			.file, .filechange {
+			} else { // It's a FILE or FILECHANGE header
 				// Flush previous block if any
 				if filename != '' {
 					match current_kind {
@@ -89,26 +95,22 @@ fn filemap_get_from_content(content string) !FileMap {
 						else {}
 					}
 				}
-				filename = name
-				current_kind = kind
+				filename = parsed_name
+				current_kind = parsed_kind
 				block = []string{}
 				had_any_block = true
 			}
-		}
-
-		// Accumulate non-header lines
-		if kind == .end || kind == .file || kind == .filechange {
-			continue
-		}
-
-		if filename == '' && line_trimmed.len > 0 {
-			fm.errors << FMError{
-				message:  "Content before first FILE block: '${line}'"
-				linenr:   linenr
-				category: 'parse'
+		} else {
+			// This is a content line (parse_header returned .end, but it wasn't '===END===')
+			if filename == '' && line.trim_space().len > 0 {
+				fm.errors << FMError{
+					message:  "Content before first FILE block: '${line}'"
+					linenr:   linenr
+					category: 'parse'
+				}
+			} else if filename != '' {
+				block << line
 			}
-		} else if filename != '' {
-			block << line
 		}
 	}
 
