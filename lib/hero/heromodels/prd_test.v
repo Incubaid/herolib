@@ -191,6 +191,11 @@ fn test_prd_list() ! {
 	mut db_prd := DBPrd{
 		db: &mydb
 	}
+	// Clear any existing PRDs before running the test
+	existing_prds := db_prd.list()!
+	for prd in existing_prds {
+		db_prd.delete(prd.id)!
+	}
 
 	// Create multiple PRDs
 	for i in 0 .. 3 {
