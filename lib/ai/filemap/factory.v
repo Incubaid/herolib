@@ -1,4 +1,4 @@
-module codewalker
+module filemap
 
 @[params]
 pub struct FileMapArgs {

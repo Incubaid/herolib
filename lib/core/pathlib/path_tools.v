@@ -354,6 +354,7 @@ pub fn (path Path) parent_find_advanced(tofind string, stop string) ![]Path {
 			return found_paths
 		}
 	}
+	return found_paths
 }
 
 // delete

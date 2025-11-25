@@ -1,4 +1,4 @@
-module codewalker
+module filemap
 
 import incubaid.herolib.core.pathlib
 

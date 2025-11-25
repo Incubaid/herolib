@@ -1,4 +1,4 @@
-# CodeWalker Module
+# filemap Module
 
 Parse directories or formatted strings into file maps with automatic ignore pattern support.
 
@@ -15,9 +15,9 @@ Parse directories or formatted strings into file maps with automatic ignore patt
 ### From Directory Path
 
 ```v
-import incubaid.herolib.lib.ai.codewalker
+import incubaid.herolib.lib.ai.filemap
 
-mut cw := codewalker.new()
+mut cw := filemap.new()
 mut fm := cw.filemap_get(path: '/path/to/project')!
 
 // Iterate files
@@ -39,7 +39,7 @@ pub fn help() {}
 ===END===
 '
 
-mut cw := codewalker.new()
+mut cw := filemap.new()
 mut fm := cw.parse(content_str)!
 
 println(fm.get('main.v')!)

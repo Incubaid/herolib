@@ -1,4 +1,4 @@
-module codewalker
+module filemap
 
 // parse_header robustly extracts block type and filename from header line
 // Handles variable `=` count, spaces, and case-insensitivity

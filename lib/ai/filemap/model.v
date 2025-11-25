@@ -1,4 +1,4 @@
-module codewalker
+module filemap
 
 // BlockKind defines the type of block in parsed content
 pub enum BlockKind {
