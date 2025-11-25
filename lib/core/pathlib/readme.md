@@ -1,7 +1,5 @@
 # Pathlib Module
 
-The pathlib module provides a robust way to handle file system operations. Here's a comprehensive overview of how to use it:
-
 ## 1. Basic Path Creation
 
 ```v

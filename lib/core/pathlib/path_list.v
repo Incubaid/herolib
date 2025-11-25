@@ -1,7 +1,6 @@
 module pathlib
 
 import os
-import regex
 import incubaid.herolib.ui.console
 import incubaid.herolib.core.texttools.regext
 
@@ -55,47 +54,16 @@ pub mut:
 //   dir.list(filter: ['*.txt', 'config*'], filter_ignore: ['*.bak'])!
 //   dir.list(regex: [r'.*test.*'], regex_ignore: [r'.*_test\.v$'])!
 pub fn (mut path Path) list(args_ ListArgs) !PathList {
-	mut r := []regex.RE{}
-
-	// Add regex patterns
-	for regexstr in args_.regex {
-		mut re := regex.regex_opt(regexstr) or {
-			return error("cannot create regex for:'${regexstr}'")
-		}
-		r << re
-	}
-
-	// Convert wildcard filters to regex and add
-	for filter_pattern in args_.filter {
-		regex_pattern := regext.wildcard_to_regex(filter_pattern)
-		mut re := regex.regex_opt(regex_pattern) or {
-			return error("cannot create regex from filter:'${filter_pattern}'")
-		}
-		r << re
-	}
-
-	mut r_ignore := []regex.RE{}
-
-	// Add regex ignore patterns
-	for regexstr in args_.regex_ignore {
-		mut re := regex.regex_opt(regexstr) or {
-			return error("cannot create ignore regex for:'${regexstr}'")
-		}
-		r_ignore << re
-	}
-
-	// Convert wildcard ignore filters to regex and add
-	for filter_pattern in args_.filter_ignore {
-		regex_pattern := regext.wildcard_to_regex(filter_pattern)
-		mut re := regex.regex_opt(regex_pattern) or {
-			return error("cannot create ignore regex from filter:'${filter_pattern}'")
-		}
-		r_ignore << re
-	}
+	// Create matcher from the list arguments - handles all regex and wildcard conversions
+	matcher := regext.new(
+		regex:         args_.regex
+		regex_ignore:  args_.regex_ignore
+		filter:        args_.filter
+		filter_ignore: args_.filter_ignore
+	)!
 
 	mut args := ListArgsInternal{
-		regex:          r
-		regex_ignore:   r_ignore
+		matcher:        matcher
 		recursive:      args_.recursive
 		ignore_default: args_.ignore_default
 		dirs_only:      args_.dirs_only
@@ -113,8 +81,7 @@ pub fn (mut path Path) list(args_ ListArgs) !PathList {
 @[params]
 pub struct ListArgsInternal {
 mut:
-	regex          []regex.RE
-	regex_ignore   []regex.RE
+	matcher        regext.Matcher
 	recursive      bool = true
 	ignore_default bool = true
 	dirs_only      bool
@@ -173,35 +140,8 @@ fn (mut path Path) list_internal(args ListArgsInternal) ![]Path {
 			}
 		}
 
-		// Check exclude patterns
-		mut ignore_this := false
-		for r_ignore in args.regex_ignore {
-			if r_ignore.matches_string(item) {
-				ignore_this = true
-				break
-			}
-		}
-
-		if ignore_this {
-			continue
-		}
-
-		// Check include patterns
-		mut include_this := false
-
-		if args.regex.len == 0 {
-			include_this = true
-		} else {
-			for r in args.regex {
-				if r.matches_string(item) {
-					include_this = true
-					break
-				}
-			}
-		}
-
-		// Add to results if matches and not dirs_only
-		if include_this && !args.dirs_only {
+		// Use matcher to check if file matches include/exclude patterns
+		if args.matcher.match(item) && !args.dirs_only {
 			if !args.files_only || new_path.is_file() {
 				all_list << new_path
 			}
