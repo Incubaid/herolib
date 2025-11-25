@@ -15,8 +15,8 @@ pub mut:
 // new creates a new database connection
 pub fn Database.new(host string, port int) !Database {
 	mut db := Database{
-		host: host
-		port: port
+		host:      host
+		port:      port
 		connected: false
 	}
 	return db
@@ -36,7 +36,7 @@ pub fn (mut db Database) disconnect() ! {
 }
 
 // query executes a database query
-pub fn (db &Database) query(sql string) ![]map[string]string {
+pub fn (db &Database) query(ssql string) ![]map[string]string {
 	if !db.connected {
 		return error('database not connected')
 	}

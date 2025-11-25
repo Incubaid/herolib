@@ -27,7 +27,7 @@ mut:
 // Create a new matcher from arguments
 //
 // Parameters:
-//   - regex: Include if matches regex pattern (e.g., $r'.*\.v'$)
+//   - regex: Include if matches regex pattern (e.g., $r'.*\.v'$')
 //   - regex_ignore: Exclude if matches regex pattern
 //   - filter: Include if matches wildcard pattern (e.g., $r'*.txt'$, $r'test*'$, $r'config'$)
 //   - filter_ignore: Exclude if matches wildcard pattern
@@ -56,9 +56,23 @@ pub fn new(args_ MatcherArgs) !Matcher {
 
 	// Convert wildcard filters to regex and add separately
 	for filter_pattern in args_.filter {
+		mut has_wildcards_in_original_filter := false
+		for r in filter_pattern.runes() {
+			if r == `*` || r == `?` {
+				has_wildcards_in_original_filter = true
+				break
+			}
+		}
+
 		regex_pattern := wildcard_to_regex(filter_pattern)
 		mut re := regex.regex_opt(regex_pattern) or {
 			return error("cannot create regex from filter:'${filter_pattern}'")
+		}
+
+		// Explicitly set f_ms and f_me flags for exact matches if no wildcards were in the original pattern
+		if !has_wildcards_in_original_filter {
+			re.flag |= regex.f_ms // Match string start
+			re.flag |= regex.f_me // Match string end
 		}
 		filter_include << re
 	}
@@ -75,6 +89,7 @@ pub fn new(args_ MatcherArgs) !Matcher {
 
 	// Convert wildcard ignore filters to regex and add
 	for filter_pattern in args_.filter_ignore {
+		// For ignore patterns, no special f_ms/f_me flags are needed, default wildcard_to_regex behavior is sufficient
 		regex_pattern := wildcard_to_regex(filter_pattern)
 		mut re := regex.regex_opt(regex_pattern) or {
 			return error("cannot create ignore regex from filter:'${filter_pattern}'")

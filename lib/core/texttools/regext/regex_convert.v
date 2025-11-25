@@ -19,40 +19,26 @@ pub fn escape_regex_chars(s string) string {
 	return result
 }
 
-// wildcard_to_regex converts a wildcard pattern to a regex pattern
-// Conversion rules:
-// - `*` becomes `.*` (matches any sequence)
-// - literal text is escaped (special regex chars are backslash-escaped)
-// - patterns without `*` return a substring matcher
-//
-// Examples:
-//   "*.txt" -> ".*\.txt" (matches any filename ending with .txt)
-//   "test*" -> "test.*" (matches anything starting with test)
-//   "config" -> ".*config.*" (matches anything containing config)
-//   "file.log" -> ".*file\.log.*" (matches anything containing file.log)
-pub fn wildcard_to_regex(pattern string) string {
-	if !pattern.contains('*') {
-		// No wildcards: match substring anywhere
-		return '.*' + escape_regex_chars(pattern) + '.*'
-	}
-
-	mut result := ''
-	mut i := 0
-	for i < pattern.len {
-		if pattern[i] == `*` {
-			result += '.*'
-			i++
-		} else {
-			// Find next * or end of string
-			mut j := i
-			for j < pattern.len && pattern[j] != `*` {
-				j++
+// wildcard_to_regex converts a wildcard pattern (e.g., "*.txt") to a regex pattern.
+// This function does not add implicit ^ and $ anchors, allowing for substring matches.
+fn wildcard_to_regex(wildcard_pattern string) string {
+	mut regex_pattern := ''
+	for i, r in wildcard_pattern.runes() {
+		match r {
+			`*` {
+				regex_pattern += '.*'
 			}
-			// Escape special regex chars in literal part
-			literal := pattern[i..j]
-			result += escape_regex_chars(literal)
-			i = j
+			`?` {
+				regex_pattern += '.'
+			}
+			`.`, `+`, `(`, `)`, `[`, `]`, `{`, `}`, `^`, `$`, `\\`, `|` {
+				// Escape regex special characters
+				regex_pattern += '\\' + r.str()
+			}
+			else {
+				regex_pattern += r.str()
+			}
 		}
 	}
-	return result
+	return regex_pattern
 }
