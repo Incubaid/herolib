@@ -1,5 +1,7 @@
 module codewalker
 
+import arrays
+
 // Default ignore patterns based on .gitignore conventions
 const default_gitignore = '
 .git/
@@ -45,3 +47,11 @@ Thumbs.db
 *.temp
 *.log
 '
+
+pub fn find_ignore_patterns() []string {
+	mut patterns := default_gitignore.split_into_lines()
+	patterns.sort()
+	patterns = arrays.uniq(patterns)
+	
+	return patterns
+}

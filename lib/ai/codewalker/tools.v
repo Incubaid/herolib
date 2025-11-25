@@ -2,38 +2,8 @@ module codewalker
 
 import incubaid.herolib.core.pathlib
 
-// CodeWalker walks directories and parses file content
-pub struct CodeWalker {
-pub mut:
-	scoped_ignore ScopedIgnore
-}
-
-@[params]
-pub struct FileMapArgs {
-pub mut:
-	path         string
-	content      string
-	content_read bool = true // If false, file content not read from disk
-}
-
-// parse extracts FileMap from formatted content string
-pub fn (mut cw CodeWalker) parse(content string) !FileMap {
-	return cw.filemap_get_from_content(content)
-}
-
-// filemap_get creates FileMap from path or content string
-pub fn (mut cw CodeWalker) filemap_get(args FileMapArgs) !FileMap {
-	if args.path != '' {
-		return cw.filemap_get_from_path(args.path, args.content_read)!
-	} else if args.content != '' {
-		return cw.filemap_get_from_content(args.content)!
-	} else {
-		return error('Either path or content must be provided')
-	}
-}
-
 // filemap_get_from_path reads directory and creates FileMap, respecting ignore patterns
-fn (mut cw CodeWalker) filemap_get_from_path(path string, content_read bool) !FileMap {
+fn filemap_get_from_path(path string, content_read bool) !FileMap {
 	mut dir := pathlib.get(path)
 	if !dir.exists() || !dir.is_dir() {
 		return error('Directory "${path}" does not exist')
@@ -43,17 +13,7 @@ fn (mut cw CodeWalker) filemap_get_from_path(path string, content_read bool) !Fi
 		source: path
 	}
 
-	// Load .gitignore and .heroignore files first to build scoped ignores
-	cw.scoped_ignore = ScopedIgnore{}
-	cw.load_ignore_files(path)!
-
-	// Combine default patterns with custom ignore patterns
-	mut ignore_patterns := get_default_ignore_patterns()
-
-	// Add any root-level custom patterns
-	if '/' in cw.scoped_ignore.patterns {
-		ignore_patterns << cw.scoped_ignore.patterns['/']
-	}
+	
 
 	// List all files using pathlib with both default and custom ignore patterns
 	mut file_list := dir.list(
