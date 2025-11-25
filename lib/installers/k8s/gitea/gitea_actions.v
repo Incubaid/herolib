@@ -1,4 +1,4 @@
-module cryptpad
+module gitea
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
@@ -11,19 +11,19 @@ const deployment_check_interval_seconds = 2
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
-fn installed() !bool {
+pub fn installed() !bool {
 	installer := get()!
 	mut k8s := installer.kube_client
 
-	// Try to get the cryptpad deployment
+	// Try to get the gitea deployment
 	deployments := k8s.get_deployments(installer.namespace) or {
 		// If we can't get deployments, it's not running
 		return false
 	}
 
-	// Check if cryptpad deployment exists
+	// Check if gitea deployment exists
 	for deployment in deployments {
-		if deployment.name == 'cryptpad' {
+		if deployment.name == 'gitea' {
 			return true
 		}
 	}
@@ -40,13 +40,13 @@ fn ulist_get() !ulist.UList {
 // uploads to S3 server if configured
 fn upload() ! {
 	// installers.upload(
-	//     cmdname: 'cryptpad'
-	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/cryptpad'
+	//     cmdname: 'gitea'
+	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/gitea'
 	// )!
 }
 
 fn install() ! {
-	console.print_header('Installing CryptPad...')
+	console.print_header('Installing Gitea...')
 
 	// Get installer config to access namespace
 	installer := get()!
@@ -58,27 +58,39 @@ fn install() ! {
 	kubectl_installed()!
 	console.print_info('kubectl is installed and configured.')
 
-	// 4. Apply the YAML files using kubernetes client
+	// 2. Apply the YAML files using kubernetes client
 	console.print_info('Applying Gateway YAML file to the cluster...')
-	res1 := k8s.apply_yaml(installer.tfgw_cryptpad_path)!
+	res1 := k8s.apply_yaml('/tmp/gitea/tfgw-gitea.yaml')!
 	if !res1.success {
-		return error('Failed to apply tfgw-cryptpad.yaml: ${res1.stderr}')
+		return error('Failed to apply tfgw-gitea.yaml: ${res1.stderr}')
 	}
 	console.print_info('Gateway YAML file applied successfully.')
 
-	// 5. Verify TFGW deployments
-	verify_tfgw_deployment(tfgw_name: 'cryptpad-main', namespace: installer.namespace)!
-	verify_tfgw_deployment(tfgw_name: 'cryptpad-sandbox', namespace: installer.namespace)!
+	// 3. Verify TFGW deployment
+	verify_tfgw_deployment(tfgw_name: 'gitea', namespace: installer.namespace)!
 
-	// 6. Apply Cryptpad YAML
-	console.print_info('Applying Cryptpad YAML file to the cluster...')
-	res2 := k8s.apply_yaml(installer.cryptpad_path)!
-	if !res2.success {
-		return error('Failed to apply cryptpad.yaml: ${res2.stderr}')
+	// 4. Apply PostgreSQL YAML if postgres is selected
+	if installer.db_type == 'postgres' {
+		console.print_info('Applying PostgreSQL YAML file to the cluster...')
+		res_postgres := k8s.apply_yaml('/tmp/gitea/postgres.yaml')!
+		if !res_postgres.success {
+			return error('Failed to apply postgres.yaml: ${res_postgres.stderr}')
+		}
+		console.print_info('PostgreSQL YAML file applied successfully.')
+
+		// Verify PostgreSQL pod is ready
+		verify_postgres_pod(namespace: installer.namespace)!
 	}
-	console.print_info('Cryptpad YAML file applied successfully.')
 
-	// 7. Verify deployment status
+	// 5. Apply Gitea App YAML
+	console.print_info('Applying Gitea App YAML file to the cluster...')
+	res2 := k8s.apply_yaml('/tmp/gitea/gitea.yaml')!
+	if !res2.success {
+		return error('Failed to apply gitea.yaml: ${res2.stderr}')
+	}
+	console.print_info('Gitea App YAML file applied successfully.')
+
+	// 6. Verify deployment status
 	console.print_info('Verifying deployment status...')
 	mut is_running := false
 	for i in 0 .. max_deployment_retries {
@@ -86,14 +98,15 @@ fn install() ! {
 			is_running = true
 			break
 		}
-		console.print_info('Waiting for CryptPad deployment to be ready... (${i + 1}/${max_deployment_retries})')
+		console.print_info('Waiting for Gitea deployment to be ready... (${i + 1}/${max_deployment_retries})')
 		time.sleep(deployment_check_interval_seconds * time.second)
 	}
 
 	if is_running {
-		console.print_header('CryptPad installation successful!')
+		console.print_header('Gitea installation successful!')
+		console.print_header('You can access Gitea at https://${installer.hostname}.gent01.grid.tf')
 	} else {
-		return error('CryptPad deployment failed to start.')
+		return error('Gitea deployment failed to start.')
 	}
 }
 
@@ -102,8 +115,46 @@ fn install() ! {
 struct VerifyTfgwDeployment {
 pub mut:
 	tfgw_name string // tfgw serivce generating the FQDN
-	namespace string // namespace name for cryptpad deployments/services
-	retry     int = 30
+	namespace string // namespace name for gitea deployments/services
+}
+
+// params for verifying postgres pod is ready
+@[params]
+struct VerifyPostgresPod {
+pub mut:
+	namespace string // namespace name for postgres pod
+}
+
+// Function for verifying postgres pod is ready
+fn verify_postgres_pod(args VerifyPostgresPod) ! {
+	console.print_info('Verifying PostgreSQL pod is ready...')
+	installer := get()!
+	mut k8s := installer.kube_client
+	mut is_ready := false
+
+	for i in 0 .. max_deployment_retries {
+		// Check if postgres pod exists and is running
+		result := k8s.kubectl_exec(
+			command: 'get pod ${installer.db_host} -n ${args.namespace} -o jsonpath="{.status.phase}"'
+		) or {
+			console.print_info('Waiting for PostgreSQL pod to be created... (${i + 1}/${max_deployment_retries})')
+			time.sleep(deployment_check_interval_seconds * time.second)
+			continue
+		}
+
+		if result.success && result.stdout == 'Running' {
+			is_ready = true
+			break
+		}
+		console.print_info('Waiting for PostgreSQL pod to be ready... (${i + 1}/${max_deployment_retries})')
+		time.sleep(deployment_check_interval_seconds * time.second)
+	}
+
+	if !is_ready {
+		console.print_stderr('PostgreSQL pod failed to become ready.')
+		return error('PostgreSQL pod failed to become ready.')
+	}
+	console.print_info('PostgreSQL pod is ready.')
 }
 
 // Function for verifying the generating of of the FQDN using tfgw crd
@@ -113,13 +164,13 @@ fn verify_tfgw_deployment(args VerifyTfgwDeployment) ! {
 	mut k8s := installer.kube_client
 	mut is_fqdn_generated := false
 
-	for i in 0 .. args.retry {
+	for i in 0 .. max_deployment_retries {
 		// Use kubectl_exec for custom resource (TFGW) with jsonpath
 		result := k8s.kubectl_exec(
 			command: 'get tfgw ${args.tfgw_name} -n ${args.namespace} -o jsonpath="{.status.fqdn}"'
 		) or {
-			console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
-			time.sleep(2 * time.second)
+			console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${max_deployment_retries})')
+			time.sleep(deployment_check_interval_seconds * time.second)
 			continue
 		}
 
@@ -127,8 +178,8 @@ fn verify_tfgw_deployment(args VerifyTfgwDeployment) ! {
 			is_fqdn_generated = true
 			break
 		}
-		console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
-		time.sleep(2 * time.second)
+		console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${max_deployment_retries})')
+		time.sleep(deployment_check_interval_seconds * time.second)
 	}
 
 	if !is_fqdn_generated {
@@ -146,7 +197,7 @@ fn verify_tfgw_deployment(args VerifyTfgwDeployment) ! {
 }
 
 fn destroy() ! {
-	console.print_header('Destroying CryptPad...')
+	console.print_header('Destroying Gitea...')
 	installer := get()!
 	mut k8s := installer.kube_client
 

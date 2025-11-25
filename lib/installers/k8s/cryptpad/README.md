@@ -31,6 +31,16 @@ installer.install()!
 
 ## Usage
 
+### Running the Installer
+
+You can run the installer directly from the command line using the example script:
+
+```bash
+./examples/installers/k8s/cryptpad.vsh
+```
+
+This will install CryptPad with the default settings. To customize the installation, you can edit the `cryptpad.vsh` file.
+
 ### Create an Instance
 
 ```v

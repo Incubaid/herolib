@@ -164,7 +164,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'start' {
 				console.print_debug('install action herorunner.${other_action.name}')
-				herorunner_obj.start()!
+				herorunner_obj.start(reset: reset)!
 			}
 			if other_action.name == 'stop' {
 				console.print_debug('install action herorunner.${other_action.name}')
@@ -172,7 +172,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'restart' {
 				console.print_debug('install action herorunner.${other_action.name}')
-				herorunner_obj.restart()!
+				herorunner_obj.restart(reset: reset)!
 			}
 			if other_action.name == 'start_pre' {
 				console.print_debug('install action herorunner.${other_action.name}')
@@ -231,7 +231,7 @@ pub fn (mut self Herorunner) reload() ! {
 	self = obj_init(self)!
 }
 
-pub fn (mut self Herorunner) start() ! {
+pub fn (mut self Herorunner) start(args StartArgs) ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -245,7 +245,7 @@ pub fn (mut self Herorunner) start() ! {
 
 	self.start_pre()!
 
-	for zprocess in self.startupcmd()! {
+	for zprocess in self.startupcmd(args)! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: herorunner starting with ${zprocess.startuptype}...')
@@ -269,7 +269,7 @@ pub fn (mut self Herorunner) start() ! {
 pub fn (mut self Herorunner) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
-	self.start()!
+	self.start(reset: false)!
 }
 
 pub fn (mut self Herorunner) stop() ! {
@@ -282,10 +282,10 @@ pub fn (mut self Herorunner) stop() ! {
 	self.stop_post()!
 }
 
-pub fn (mut self Herorunner) restart() ! {
+pub fn (mut self Herorunner) restart(args StartArgs) ! {
 	switch(self.name)
 	self.stop()!
-	self.start()!
+	self.start(args)!
 }
 
 pub fn (mut self Herorunner) running() !bool {

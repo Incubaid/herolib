@@ -20,19 +20,29 @@ import incubaid.herolib.installers.lang.python
 import os
 
 @if args.startupmanager
-fn (self &${args.classname}) startupcmd() ![]startupmanager.ZProcessNewArgs {
+^^[params]
+pub struct StartArgs {
+pub mut:
+	reset bool
+}
+
+fn (self &${args.classname}) startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
+
+	reset := args.reset
+
 	//THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// res << startupmanager.ZProcessNewArgs{
 	// 	name: '${args.name}'
 	// 	cmd: '${args.name} server'
+	//  reset: reset
 	// 	env: {
 	// 		'HOME': '/root'
-	// 	}	
+	// 	}
 	// }
 
 	return res
-	
+
 }
 
 fn (self &${args.classname}) running_check() !bool {
@@ -57,21 +67,20 @@ fn (self &${args.classname}) running_check() !bool {
 }
 
 fn (self &${args.classname}) start_pre() ! {
-	
+
 }
 
 fn (self &${args.classname}) start_post() ! {
-	
+
 }
 
 fn (self &${args.classname}) stop_pre() ! {
-	
+
 }
 
 fn (self &${args.classname}) stop_post() ! {
-	
-}
 
+}
 @end
 
 //////////////////// following actions are not specific to instance of the object

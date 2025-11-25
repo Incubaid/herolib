@@ -178,11 +178,12 @@ pub fn play(mut plbook PlayBook) ! {
 			'stop_post'] {
 			mut p := other_action.params
 			name := p.get('name')!
+			reset := p.get_default_false('reset')
 			mut supervisor_obj := get(name: name, create: true)!
 			console.print_debug('action object:\n${supervisor_obj}')
 			if other_action.name == 'start' {
 				console.print_debug('install action supervisor.${other_action.name}')
-				supervisor_obj.start()!
+				supervisor_obj.start(reset: reset)!
 			}
 			if other_action.name == 'stop' {
 				console.print_debug('install action supervisor.${other_action.name}')
@@ -190,7 +191,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'restart' {
 				console.print_debug('install action supervisor.${other_action.name}')
-				supervisor_obj.restart()!
+				supervisor_obj.restart(reset: reset)!
 			}
 			if other_action.name == 'start_pre' {
 				console.print_debug('install action supervisor.${other_action.name}')
@@ -249,7 +250,7 @@ pub fn (mut self Supervisor) reload() ! {
 	self = obj_init(self)!
 }
 
-pub fn (mut self Supervisor) start() ! {
+pub fn (mut self Supervisor) start(args StartArgs) ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -265,7 +266,7 @@ pub fn (mut self Supervisor) start() ! {
 
 	self.start_pre()!
 
-	for zprocess in self.startupcmd()! {
+	for zprocess in self.startupcmd(args)! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: supervisor starting with ${zprocess.startuptype}...')
@@ -289,7 +290,7 @@ pub fn (mut self Supervisor) start() ! {
 pub fn (mut self Supervisor) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
-	self.start()!
+	self.start(reset: false)!
 }
 
 pub fn (mut self Supervisor) stop() ! {
@@ -302,10 +303,10 @@ pub fn (mut self Supervisor) stop() ! {
 	self.stop_post()!
 }
 
-pub fn (mut self Supervisor) restart() ! {
+pub fn (mut self Supervisor) restart(args StartArgs) ! {
 	switch(self.name)
 	self.stop()!
-	self.start()!
+	self.start(args)!
 }
 
 pub fn (mut self Supervisor) running() !bool {

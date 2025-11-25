@@ -166,7 +166,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'start' {
 				console.print_debug('install action salrunner.${other_action.name}')
-				salrunner_obj.start()!
+				salrunner_obj.start(reset: reset)!
 			}
 			if other_action.name == 'stop' {
 				console.print_debug('install action salrunner.${other_action.name}')
@@ -174,7 +174,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'restart' {
 				console.print_debug('install action salrunner.${other_action.name}')
-				salrunner_obj.restart()!
+				salrunner_obj.restart(reset: reset)!
 			}
 			if other_action.name == 'start_pre' {
 				console.print_debug('install action salrunner.${other_action.name}')
@@ -233,7 +233,7 @@ pub fn (mut self Salrunner) reload() ! {
 	self = obj_init(self)!
 }
 
-pub fn (mut self Salrunner) start() ! {
+pub fn (mut self Salrunner) start(args StartArgs) ! {
 	switch(self.name)
 	if self.running()! {
 		return
@@ -247,7 +247,7 @@ pub fn (mut self Salrunner) start() ! {
 
 	self.start_pre()!
 
-	for zprocess in self.startupcmd()! {
+	for zprocess in self.startupcmd(args)! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: salrunner starting with ${zprocess.startuptype}...')
@@ -271,7 +271,7 @@ pub fn (mut self Salrunner) start() ! {
 pub fn (mut self Salrunner) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
-	self.start()!
+	self.start(reset: false)!
 }
 
 pub fn (mut self Salrunner) stop() ! {
@@ -284,10 +284,10 @@ pub fn (mut self Salrunner) stop() ! {
 	self.stop_post()!
 }
 
-pub fn (mut self Salrunner) restart() ! {
+pub fn (mut self Salrunner) restart(args StartArgs) ! {
 	switch(self.name)
 	self.stop()!
-	self.start()!
+	self.start(args)!
 }
 
 pub fn (mut self Salrunner) running() !bool {

@@ -195,7 +195,7 @@ pub fn play(mut plbook PlayBook) ! {
             @if args.startupmanager
             if other_action.name == "start"{
                 console.print_debug("install action ${args.name}.??{other_action.name}")
-                ${args.name}_obj.start()!
+                ${args.name}_obj.start(reset: reset)!
             }
             if other_action.name == "stop"{
                 console.print_debug("install action ${args.name}.??{other_action.name}")
@@ -203,7 +203,7 @@ pub fn play(mut plbook PlayBook) ! {
             }
             if other_action.name == "restart"{
                 console.print_debug("install action ${args.name}.??{other_action.name}")
-                ${args.name}_obj.restart()!
+                ${args.name}_obj.restart(reset: reset)!
             }
             if other_action.name == "start_pre"{
                 console.print_debug("install action ${args.name}.??{other_action.name}")
@@ -273,10 +273,11 @@ pub fn (mut self ${args.classname}) reload() ! {
 @end
 
 @if args.startupmanager
-pub fn (mut self ${args.classname}) start() ! {
+pub fn (mut self ${args.classname}) start(args StartArgs) ! {
     @if ! args.singleton
     switch(self.name)
     @end
+
     if self.running()!{
         return
     }
@@ -289,7 +290,7 @@ pub fn (mut self ${args.classname}) start() ! {
 
     self.start_pre()!
 
-    for zprocess in self.startupcmd()!{
+    for zprocess in self.startupcmd(args)!{
         mut sm:=startupmanager_get(zprocess.startuptype)!
 
         console.print_debug('installer: ${args.name} starting with ??{zprocess.startuptype}...')
@@ -314,7 +315,7 @@ pub fn (mut self ${args.classname}) start() ! {
 pub fn (mut self ${args.classname}) install_start(args InstallArgs) ! {
     switch(self.name)
     self.install(args)!
-    self.start()!
+    self.start(reset: false)!
 }
 
 pub fn (mut self ${args.classname}) stop() ! {
@@ -327,10 +328,10 @@ pub fn (mut self ${args.classname}) stop() ! {
     self.stop_post()!
 }
 
-pub fn (mut self ${args.classname}) restart() ! {
+pub fn (mut self ${args.classname}) restart(args StartArgs) ! {
     switch(self.name)
     self.stop()!
-    self.start()!
+    self.start(args)!
 }
 
 pub fn (mut self ${args.classname}) running() !bool {
