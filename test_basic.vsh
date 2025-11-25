@@ -200,6 +200,7 @@ virt/kubernetes/
 if in_github_actions() {
 	println('**** WE ARE IN GITHUB ACTION')
 	tests_ignore += '\nosal/tmux\n'
+	tests_ignore += '\nvirt/heropods\n' // Requires root for network bridge operations (ip link add)
 }
 
 tests_error := '
