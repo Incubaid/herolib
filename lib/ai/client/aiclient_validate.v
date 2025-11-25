@@ -10,11 +10,10 @@ pub fn validate_vlang_content(path pathlib.Path) !string {
 	// Use `v fmt -check` to validate V language syntax
 	// If there are any formatting issues, `v fmt -check` will return a non-zero exit code
 	// and print the issues to stderr.
-	res := os.system('v fmt -check ${path.str()}')
+	res := os.system('v fmt -check "${path.str()}" 2>/dev/null')
 	if res != 0 {
-		return 'V language syntax validation failed. Please check the file for errors.'
+		return 'V language syntax validation failed. File has formatting or syntax errors.'
 	}
-	// TODO: do 'v filepath' d and check if errors return, if no, then remove the compiled binary if its there, if it goes wrong do same
 	return '' // empty means no error
 }
 
