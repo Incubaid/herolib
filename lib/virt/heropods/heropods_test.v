@@ -1,7 +1,6 @@
 module heropods
 
 import incubaid.herolib.core
-import incubaid.herolib.osal.core as osal
 import os
 
 // Simplified test suite for HeroPods container management
@@ -50,8 +49,8 @@ fn test_heropods_initialization() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
-		use_podman: true // Skip default image setup in tests
+		reset:      false // Don't reset to avoid race conditions with parallel tests
+		use_podman: true  // Skip default image setup in tests
 	)!
 
 	assert hp.base_dir != ''
@@ -73,8 +72,8 @@ fn test_custom_network_config() ! {
 
 	mut hp := new(
 		name:        test_name
-		reset:       true
-		use_podman:  true // Skip default image setup in tests
+		reset:       false // Don't reset to avoid race conditions with parallel tests
+		use_podman:  true  // Skip default image setup in tests
 		bridge_name: 'testbr0'
 		subnet:      '192.168.100.0/24'
 		gateway_ip:  '192.168.100.1'
@@ -100,7 +99,7 @@ fn test_container_creation_with_docker_image() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
+		reset:      false // Don't reset to avoid race conditions with parallel tests
 		use_podman: true
 	)!
 
@@ -139,7 +138,7 @@ fn test_container_lifecycle() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
+		reset:      false // Don't reset to avoid race conditions with parallel tests
 		use_podman: true
 	)!
 
@@ -151,8 +150,8 @@ fn test_container_lifecycle() ! {
 		docker_url:        'docker.io/library/alpine:3.20'
 	)!
 
-	// Test start
-	container.start()!
+	// Test start with keep_alive to prevent Alpine's /bin/sh from exiting immediately
+	container.start(keep_alive: true)!
 	status := container.status()!
 	assert status == .running
 
@@ -184,7 +183,7 @@ fn test_container_exec() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
+		reset:      false // Don't reset to avoid race conditions with parallel tests
 		use_podman: true
 	)!
 
@@ -196,7 +195,8 @@ fn test_container_exec() ! {
 		docker_url:        'docker.io/library/alpine:3.20'
 	)!
 
-	container.start()!
+	// Start with keep_alive to prevent Alpine's /bin/sh from exiting immediately
+	container.start(keep_alive: true)!
 	defer {
 		container.stop() or {}
 		container.delete() or {}
@@ -229,7 +229,7 @@ fn test_network_ip_allocation() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
+		reset:      false // Don't reset to avoid race conditions with parallel tests
 		use_podman: true
 	)!
 
@@ -267,7 +267,7 @@ fn test_ipv4_connectivity() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
+		reset:      false // Don't reset to avoid race conditions with parallel tests
 		use_podman: true
 	)!
 
@@ -279,7 +279,8 @@ fn test_ipv4_connectivity() ! {
 		docker_url:        'docker.io/library/alpine:3.20'
 	)!
 
-	container.start()!
+	// Start with keep_alive to prevent Alpine's /bin/sh from exiting immediately
+	container.start(keep_alive: true)!
 	defer {
 		container.stop() or {}
 		container.delete() or {}
@@ -315,7 +316,7 @@ fn test_container_deletion() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
+		reset:      false // Don't reset to avoid race conditions with parallel tests
 		use_podman: true
 	)!
 
@@ -327,8 +328,8 @@ fn test_container_deletion() ! {
 		docker_url:        'docker.io/library/alpine:3.20'
 	)!
 
-	// Start container (allocates IP)
-	container.start()!
+	// Start container with keep_alive to prevent Alpine's /bin/sh from exiting immediately
+	container.start(keep_alive: true)!
 
 	// Verify IP is allocated
 	assert container_name in hp.network_config.allocated_ips

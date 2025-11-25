@@ -171,6 +171,7 @@ lib/core
 lib/develop
 lib/hero/heromodels
 lib/virt/heropods
+lib/virt/crun
 '
 
 // the following tests have no prio and can be ignored

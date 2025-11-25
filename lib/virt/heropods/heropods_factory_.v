@@ -254,8 +254,12 @@ pub fn play(mut plbook PlayBook) ! {
 		mut hp := get(name: heropods_name)!
 
 		container_name := p.get('name')!
+		keep_alive := p.get_default_false('keep_alive')
+
 		mut container := hp.get(name: container_name)!
-		container.start()!
+		container.start(
+			keep_alive: keep_alive
+		)!
 
 		action.done = true
 	}

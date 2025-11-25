@@ -112,8 +112,8 @@ fn test_network_bridge_setup() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
-		use_podman: true // Skip default image setup in tests
+		reset:      false // Don't reset to avoid race conditions with parallel tests
+		use_podman: true  // Skip default image setup in tests
 	)!
 
 	bridge_name := hp.network_config.bridge_name
@@ -144,8 +144,8 @@ fn test_network_nat_rules() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
-		use_podman: true // Skip default image setup in tests
+		reset:      false // Don't reset to avoid race conditions with parallel tests
+		use_podman: true  // Skip default image setup in tests
 	)!
 
 	// Verify NAT rules exist for the subnet
@@ -164,8 +164,8 @@ fn test_ip_allocation_sequential() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
-		use_podman: true // Skip default image setup in tests
+		reset:      false // Don't reset to avoid race conditions with parallel tests
+		use_podman: true  // Skip default image setup in tests
 	)!
 
 	// Allocate multiple IPs
@@ -202,18 +202,34 @@ fn test_ip_pool_management() ! {
 
 	mut hp := new(
 		name:       test_name
-		reset:      true
-		use_podman: true // Skip default image setup in tests
+		reset:      false // Don't reset to avoid race conditions with parallel tests
+		use_podman: true  // Skip default image setup in tests
 	)!
 
-	// Create and start 3 containers
-	mut container1 := hp.container_new(name: 'pool_test1_${os.getpid()}', image: .alpine_3_20)!
-	mut container2 := hp.container_new(name: 'pool_test2_${os.getpid()}', image: .alpine_3_20)!
-	mut container3 := hp.container_new(name: 'pool_test3_${os.getpid()}', image: .alpine_3_20)!
+	// Create and start 3 containers with custom Alpine image
+	mut container1 := hp.container_new(
+		name:              'pool_test1_${os.getpid()}'
+		image:             .custom
+		custom_image_name: 'alpine_pool1'
+		docker_url:        'docker.io/library/alpine:3.20'
+	)!
+	mut container2 := hp.container_new(
+		name:              'pool_test2_${os.getpid()}'
+		image:             .custom
+		custom_image_name: 'alpine_pool2'
+		docker_url:        'docker.io/library/alpine:3.20'
+	)!
+	mut container3 := hp.container_new(
+		name:              'pool_test3_${os.getpid()}'
+		image:             .custom
+		custom_image_name: 'alpine_pool3'
+		docker_url:        'docker.io/library/alpine:3.20'
+	)!
 
-	container1.start()!
-	container2.start()!
-	container3.start()!
+	// Start with keep_alive to prevent Alpine's /bin/sh from exiting immediately
+	container1.start(keep_alive: true)!
+	container2.start(keep_alive: true)!
+	container3.start(keep_alive: true)!
 
 	// Get allocated IPs
 	ip1 := hp.network_config.allocated_ips[container1.name]
@@ -228,8 +244,13 @@ fn test_ip_pool_management() ! {
 	assert container2.name !in hp.network_config.allocated_ips
 
 	// Create new container - should reuse freed IP2
-	mut container4 := hp.container_new(name: 'pool_test4_${os.getpid()}', image: .alpine_3_20)!
-	container4.start()!
+	mut container4 := hp.container_new(
+		name:              'pool_test4_${os.getpid()}'
+		image:             .custom
+		custom_image_name: 'alpine_pool4'
+		docker_url:        'docker.io/library/alpine:3.20'
+	)!
+	container4.start(keep_alive: true)!
 
 	ip4 := hp.network_config.allocated_ips[container4.name]
 	assert ip4 == ip2, 'Should reuse freed IP: ${ip2} vs ${ip4}'
@@ -259,8 +280,8 @@ fn test_custom_bridge_config() ! {
 
 	mut hp := new(
 		name:        test_name
-		reset:       true
-		use_podman:  true // Skip default image setup in tests
+		reset:       false // Don't reset to avoid race conditions with parallel tests
+		use_podman:  true  // Skip default image setup in tests
 		bridge_name: custom_bridge
 		subnet:      '172.20.0.0/24'
 		gateway_ip:  '172.20.0.1'

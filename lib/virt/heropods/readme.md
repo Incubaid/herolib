@@ -38,7 +38,8 @@ mut container := hp.container_new(
 )!
 
 // Start the container (creates and starts it)
-container.start()!
+// Use keep_alive for containers with short-lived entrypoints
+container.start(keep_alive: true)!
 
 // Execute commands
 result := container.exec(cmd: 'ls -la /')!
@@ -72,7 +73,7 @@ mut container := hp.container_new(
     image:             .alpine_3_20
 )!
 
-container.start()!
+container.start(keep_alive: true)!
 ```
 
 ### Using HeroScript
@@ -91,6 +92,7 @@ container.start()!
 
 !!heropods.container_start
     name:'my_container'
+    keep_alive:true
 
 !!heropods.container_exec
     name:'my_container'
@@ -127,15 +129,51 @@ HeroPods supports Mycelium for end-to-end encrypted IPv6 connectivity:
 
 !!heropods.container_start
     name:'ipv6_container'
+    keep_alive:true
 
 // Container now has both IPv4 and IPv6 (Mycelium) connectivity
 ```
 
 See [MYCELIUM.md](./MYCELIUM.md) for detailed Mycelium configuration.
 
+### Keep-Alive Feature
+
+The `keep_alive` parameter keeps containers running after their entrypoint exits successfully. This is useful for:
+
+- **Short-lived entrypoints**: Containers whose entrypoint performs initialization then exits (e.g., Alpine's `/bin/sh`)
+- **Interactive containers**: Containers you want to exec into after startup
+- **Service containers**: Containers that need to stay alive for background tasks
+
+**How it works**:
+1. Container starts with its original ENTRYPOINT and CMD (OCI-compliant)
+2. HeroPods waits for the entrypoint to complete
+3. If entrypoint exits with code 0 (success), a keep-alive process is injected
+4. If entrypoint fails (non-zero exit), container stops and error is returned
+
+**Example**:
+```v
+// Alpine's default CMD is /bin/sh which exits immediately
+mut container := hp.container_new(
+    name:              'my_alpine'
+    image:             .custom
+    custom_image_name: 'alpine_3_20'
+    docker_url:        'docker.io/library/alpine:3.20'
+)!
+
+// Without keep_alive: container would exit immediately
+// With keep_alive: container stays running for exec commands
+container.start(keep_alive: true)!
+
+// Now you can exec into the container
+result := container.exec(cmd: 'echo "Hello!"')!
+```
+
+**Note**: If you see a warning about "bare shell CMD", use `keep_alive: true` when starting the container.
+
 ## Features
 
 - **Container Lifecycle**: create, start, stop, delete, exec
+- **Keep-Alive Support**: Keep containers running after entrypoint exits
 - **IPv4 Bridge Networking**: Automatic IP allocation with NAT
 - **IPv6 Mycelium Overlay**: End-to-end encrypted peer-to-peer networking
 - **Image Management**: Pull Docker images via Podman or use built-in images
