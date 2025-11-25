@@ -393,8 +393,9 @@ pub fn (mut self Container) stop() ! {
 		self.factory.logger.log(
 			cat:     'container'
 			log:     'Failed to send SIGTERM (container may already be stopped): ${err}'
-			logtype: .stdout
+			logtype: .error
 		) or {}
+		osal.Job{}
 	}
 
 	// Wait up to sigterm_timeout_ms for graceful shutdown
@@ -435,6 +436,7 @@ pub fn (mut self Container) stop() ! {
 			log:     'Failed to send SIGKILL: ${err}'
 			logtype: .error
 		) or {}
+		osal.Job{}
 	}
 
 	// Wait for SIGKILL to take effect
@@ -508,19 +510,25 @@ pub fn (mut self Container) delete() ! {
 			log:     'Failed to delete container from crun: ${err}'
 			logtype: .error
 		) or {}
+		osal.Job{}
 	}
-
-	// Remove from factory's container cache only after all cleanup is complete
-	if self.name in self.factory.containers {
-		self.factory.containers.delete(self.name)
-	}
-
-	self.factory.logger.log(
-		cat:     'container'
-		log:     'Container ${self.name} deleted'
-		logtype: .stdout
-	) or {}
 }
+
+// Remove from factory's container cache only after all cleanup is complete
+// if self.name in self.factory.containers {
+// 	self.factory.containers.delete(self.name)
+// }
+
+// self.factory.logger.log(
+// 	cat:     'container'
+// 	log:     'Container ${self.name} deleted'
+// 	logtype: .stdout
+// ) or {}
+// if true {
+// 	panic('implement')
+// }
+
+// }
 
 // Execute command inside the container
 pub fn (mut self Container) exec(cmd_ osal.Command) !string {

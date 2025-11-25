@@ -3,6 +3,7 @@ module heropods
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.clients.mycelium
 import crypto.sha256
+import time
 
 // Initialize Mycelium for HeroPods
 //
@@ -212,6 +213,7 @@ fn (mut self HeroPods) mycelium_setup_container(container_name string, container
 			log:     'Warning: Failed to enable IPv6 forwarding: ${err}'
 			logtype: .error
 		) or {}
+		osal.Job{}
 	}
 
 	// Get the link-local address of the host end of the veth pair
