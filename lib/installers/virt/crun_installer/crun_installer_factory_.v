@@ -1,0 +1,170 @@
+module crun_installer
+
+import incubaid.herolib.core.base
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.ui.console
+import json
+
+__global (
+	crun_installer_global  map[string]&CrunInstaller
+	crun_installer_default string
+)
+
+/////////FACTORY
+
+@[params]
+pub struct ArgsGet {
+pub mut:
+	name   string = 'default'
+	fromdb bool // will load from filesystem
+	create bool // default will not create if not exist
+}
+
+pub fn new(args ArgsGet) !&CrunInstaller {
+	mut obj := CrunInstaller{
+		name: args.name
+	}
+	set(obj)!
+	return get(name: args.name)!
+}
+
+pub fn get(args ArgsGet) !&CrunInstaller {
+	mut context := base.context()!
+	crun_installer_default = args.name
+	if args.fromdb || args.name !in crun_installer_global {
+		mut r := context.redis()!
+		if r.hexists('context:crun_installer', args.name)! {
+			data := r.hget('context:crun_installer', args.name)!
+			if data.len == 0 {
+				print_backtrace()
+				return error('CrunInstaller with name: ${args.name} does not exist, prob bug.')
+			}
+			mut obj := json.decode(CrunInstaller, data)!
+			set_in_mem(obj)!
+		} else {
+			if args.create {
+				new(args)!
+			} else {
+				print_backtrace()
+				return error("CrunInstaller with name '${args.name}' does not exist")
+			}
+		}
+		return get(name: args.name)! // no longer from db nor create
+	}
+	return crun_installer_global[args.name] or {
+		print_backtrace()
+		return error('could not get config for crun_installer with name:${args.name}')
+	}
+}
+
+// register the config for the future
+pub fn set(o CrunInstaller) ! {
+	mut o2 := set_in_mem(o)!
+	crun_installer_default = o2.name
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hset('context:crun_installer', o2.name, json.encode(o2))!
+}
+
+// does the config exists?
+pub fn exists(args ArgsGet) !bool {
+	mut context := base.context()!
+	mut r := context.redis()!
+	return r.hexists('context:crun_installer', args.name)!
+}
+
+pub fn delete(args ArgsGet) ! {
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hdel('context:crun_installer', args.name)!
+}
+
+@[params]
+pub struct ArgsList {
+pub mut:
+	fromdb bool // will load from filesystem
+}
+
+// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+pub fn list(args ArgsList) ![]&CrunInstaller {
+	mut res := []&CrunInstaller{}
+	mut context := base.context()!
+	if args.fromdb {
+		// reset what is in mem
+		crun_installer_global = map[string]&CrunInstaller{}
+		crun_installer_default = ''
+	}
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:crun_installer')!
+
+		for name in l {
+			res << get(name: name, fromdb: true)!
+		}
+		return res
+	} else {
+		// load from memory
+		for _, client in crun_installer_global {
+			res << client
+		}
+	}
+	return res
+}
+
+// only sets in mem, does not set as config
+fn set_in_mem(o CrunInstaller) !CrunInstaller {
+	mut o2 := obj_init(o)!
+	crun_installer_global[o2.name] = &o2
+	crun_installer_default = o2.name
+	return o2
+}
+
+pub fn play(mut plbook PlayBook) ! {
+	if !plbook.exists(filter: 'crun_installer.') {
+		return
+	}
+	mut install_actions := plbook.find(filter: 'crun_installer.configure')!
+	if install_actions.len > 0 {
+		for mut install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+			install_action.done = true
+		}
+	}
+	mut other_actions := plbook.find(filter: 'crun_installer.')!
+	for mut other_action in other_actions {
+		if other_action.name in ['destroy', 'install', 'build'] {
+			mut p := other_action.params
+			name := p.get_default('name', 'default')!
+			reset := p.get_default_false('reset')
+			mut crun_installer_obj := get(name: name)!
+			console.print_debug('action object:\n${crun_installer_obj}')
+
+			if other_action.name == 'destroy' || reset {
+				console.print_debug('install action crun_installer.destroy')
+				crun_installer_obj.destroy()!
+			}
+			if other_action.name == 'install' {
+				console.print_debug('install action crun_installer.install')
+				crun_installer_obj.install(reset: reset)!
+			}
+		}
+		other_action.done = true
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// load from disk and make sure is properly intialized
+pub fn (mut self CrunInstaller) reload() ! {
+	switch(self.name)
+	self = obj_init(self)!
+}
+
+// switch instance to be used for crun_installer
+pub fn switch(name string) {
+	crun_installer_default = name
+}

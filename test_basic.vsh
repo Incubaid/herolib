@@ -170,8 +170,8 @@ lib/clients
 lib/core
 lib/develop
 lib/hero/heromodels
-// lib/vfs The vfs folder is not exists on the development branch, so we need to uncomment it after merging this PR https://github.com/incubaid/herolib/pull/68
-// lib/crypt
+lib/virt/heropods
+lib/virt/crun
 '
 
 // the following tests have no prio and can be ignored
@@ -201,6 +201,7 @@ virt/kubernetes/
 if in_github_actions() {
 	println('**** WE ARE IN GITHUB ACTION')
 	tests_ignore += '\nosal/tmux\n'
+	tests_ignore += '\nvirt/heropods\n' // Requires root for network bridge operations (ip link add)
 }
 
 tests_error := '

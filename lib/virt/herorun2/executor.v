@@ -3,6 +3,7 @@ module herorun2
 import incubaid.herolib.osal.tmux
 import incubaid.herolib.osal.sshagent
 import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core.texttools
 import time
 import os
 
@@ -49,9 +50,6 @@ pub fn new_executor(args ExecutorArgs) !Executor {
 	// Initialize tmux properly
 	mut t := tmux.new(sessionid: args.container_id)!
 
-	// Initialize Hetzner manager properly
-	mut hetzner := hetznermanager.get() or { hetznermanager.new()! }
-
 	return Executor{
 		node:         node
 		container_id: args.container_id
@@ -61,7 +59,6 @@ pub fn new_executor(args ExecutorArgs) !Executor {
 		session_name: args.container_id
 		window_name:  'main'
 		agent:        agent
-		hetzner:      hetzner
 	}
 }
 

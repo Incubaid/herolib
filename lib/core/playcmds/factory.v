@@ -6,6 +6,7 @@ import incubaid.herolib.biz.bizmodel
 import incubaid.herolib.threefold.incatokens
 import incubaid.herolib.web.site
 import incubaid.herolib.virt.hetznermanager
+import incubaid.herolib.virt.heropods
 import incubaid.herolib.web.docusaurus
 import incubaid.herolib.clients.openai
 import incubaid.herolib.clients.giteaclient
@@ -18,6 +19,9 @@ import incubaid.herolib.installers.horus.supervisor
 import incubaid.herolib.installers.horus.herorunner
 import incubaid.herolib.installers.horus.osirisrunner
 import incubaid.herolib.installers.horus.salrunner
+import incubaid.herolib.installers.virt.podman
+import incubaid.herolib.installers.infra.gitea
+import incubaid.herolib.builder
 
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands
@@ -53,6 +57,9 @@ pub fn run(args_ PlayArgs) ! {
 	// Tmux actions
 	tmux.play(mut plbook)!
 
+	// Builder actions (nodes and commands)
+	builder.play(mut plbook)!
+
 	// Business model (e.g. currency, bizmodel)
 	bizmodel.play(mut plbook)!
 
@@ -67,10 +74,13 @@ pub fn run(args_ PlayArgs) ! {
 	docusaurus.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	hetznermanager.play2(mut plbook)!
+	heropods.play(mut plbook)!
 
 	base.play(mut plbook)!
 	herolib.play(mut plbook)!
 	vlang.play(mut plbook)!
+	podman.play(mut plbook)!
+	gitea.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
 

@@ -1,13 +1,13 @@
 
 !!hero_code.generate_installer
-    name:'herorunner'
-    classname:'HeroRunner'
+    name:'crun_installer'
+    classname:'CrunInstaller'
     singleton:0
     templates:0
     default:1
-    title:''
+    title:'crun container runtime installer'
     supported_platforms:''
     reset:0
     startupmanager:0
-	hasconfig:0
-    build:0
+	hasconfig:1
+    build:1
