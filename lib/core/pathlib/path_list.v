@@ -79,7 +79,7 @@ pub fn (mut path Path) list(args_ ListArgs) !PathList {
 }
 
 @[params]
-pub struct ListArgsInternal {
+struct ListArgsInternal {
 mut:
 	matcher        regext.Matcher
 	recursive      bool = true

@@ -49,6 +49,58 @@ pattern5 := regext.wildcard_to_regex("*test*file*")
 // Result: ".*test.*file.*"
 ```
 
+## Regex Group Finders
+
+### find_sid
+
+Extracts unique `sid` values from a given text. A `sid` is identified by the pattern `sid:XXXXXX`, where `XXXXXX` can be alphanumeric characters.
+
+```v
+import incubaid.herolib.core.texttools.regext
+
+text := `
+!!action.something sid:aa733
+
+sid:aa733
+
+...sid:aa733 ss
+
+...sid:rrrrrr ss
+sid:997
+
+   sid:s d
+sid:s_d
+`
+
+r := regext.find_sid(text)
+// Result: ['aa733', 'aa733', 'aa733', '997']
+```
+
+### find_simple_vars
+
+Extracts simple variable names enclosed in curly braces, e.g., `{var_name}`, from a given text. Variable names can contain letters, numbers, and underscores.
+
+```v
+import incubaid.herolib.core.texttools.regext
+
+text := `
+!!action.something {sid}
+
+sid:aa733
+
+{a}
+
+...sid:rrrrrr ss {a_sdsdsdsd_e__f_g}
+sid:997
+
+   sid:s d
+sid:s_d
+`
+
+r := regext.find_simple_vars(text)
+// Result: ['sid', 'a', 'a_sdsdsdsd_e__f_g']
+```
+
 ## regex replacer
 
 Tool to flexibly replace elements in file(s) or text.

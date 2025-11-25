@@ -104,7 +104,7 @@ Parser handles variations:
 
 ```
 ===FILE:name.txt===     // Standard
-= = FILE : name.txt = = // Extra spaces
+== FILE : name.txt ==   
 ===file:name.txt===     // Lowercase
 ==FILE:name.txt==       // Different = count
 ```
@@ -125,8 +125,7 @@ if fm.errors.len > 0 {
 
 ## Ignore Patterns
 
-- Respects `.gitignore` and `.heroignore` in any directory
-- Patterns are scoped to the directory that contains them
+- Respects `.gitignore` and `.heroignore` in any parent directory
 - Default patterns include `.git/`, `node_modules/`, `*.pyc`, etc.
 - Use `/` suffix for directory patterns: `dist/`
 - Use `*` for wildcards: `*.log`
