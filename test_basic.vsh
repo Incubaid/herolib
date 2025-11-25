@@ -189,6 +189,7 @@ core/playcmds
 doctree/
 jina/
 params_reflection_test.v
+regex_convert_test.v
 python/
 rust_test.v
 rclone/
