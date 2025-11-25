@@ -1,6 +1,7 @@
 module code
 
 pub struct Const {
+pub mut:
 	name  string
 	value string
 }

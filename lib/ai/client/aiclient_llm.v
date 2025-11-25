@@ -5,14 +5,16 @@ import os
 
 pub struct AIClientLLMs {
 pub mut:
-	llm_maverick &openai.OpenAI
-	llm_qwen     &openai.OpenAI
-	llm_120b     &openai.OpenAI
-	llm_best     &openai.OpenAI
-	llm_flash    &openai.OpenAI
-	llm_pro      &openai.OpenAI
-	llm_morph    &openai.OpenAI
-	llm_embed    &openai.OpenAI
+	llm_maverick    &openai.OpenAI
+	llm_qwen        &openai.OpenAI
+	llm_120b        &openai.OpenAI
+	llm_best        &openai.OpenAI
+	llm_flash       &openai.OpenAI
+	llm_pro         &openai.OpenAI
+	llm_morph       &openai.OpenAI
+	llm_embed       &openai.OpenAI
+	llm_local       &openai.OpenAI
+	llm_embed_local &openai.OpenAI
 }
 
 // Initialize all LLM clients
@@ -71,7 +73,7 @@ pub fn llms_init() !AIClientLLMs {
 		name:          'pro'
 		api_key:       openrouter_key
 		url:           'https://api.openrouter.ai/api/v1'
-		model_default: 'google/gemini-2.5-pro'
+		model_default: 'google/gemini-3.0-pro'
 	}
 	openai.set(pro_client)!
 
@@ -91,14 +93,30 @@ pub fn llms_init() !AIClientLLMs {
 	}
 	openai.set(embed_client)!
 
+	mut local_client := openai.OpenAI{
+		name:          'local'
+		url:           'http://localhost:1234/v1'
+		model_default: 'google/gemma-3-12b'
+	}
+	openai.set(local_client)!
+
+	mut local_embed_client := openai.OpenAI{
+		name:          'embedlocal'
+		url:           'http://localhost:1234/v1'
+		model_default: 'text-embedding-nomic-embed-text-v1.5:2'
+	}
+	openai.set(local_embed_client)!
+
 	return AIClientLLMs{
-		llm_maverick: openai.get(name: 'maverick')!
-		llm_qwen:     openai.get(name: 'qwen')!
-		llm_120b:     openai.get(name: 'llm_120b')!
-		llm_best:     openai.get(name: 'best')!
-		llm_flash:    openai.get(name: 'flash')!
-		llm_pro:      openai.get(name: 'pro')!
-		llm_morph:    openai.get(name: 'morph')!
-		llm_embed:    openai.get(name: 'embed')!
+		llm_maverick:    openai.get(name: 'maverick')!
+		llm_qwen:        openai.get(name: 'qwen')!
+		llm_120b:        openai.get(name: 'llm_120b')!
+		llm_best:        openai.get(name: 'best')!
+		llm_flash:       openai.get(name: 'flash')!
+		llm_pro:         openai.get(name: 'pro')!
+		llm_morph:       openai.get(name: 'morph')!
+		llm_embed:       openai.get(name: 'embed')!
+		llm_local:       openai.get(name: 'local')!
+		llm_embed_local: openai.get(name: 'embedlocal')!
 	}
 }

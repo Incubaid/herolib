@@ -168,6 +168,7 @@ println(map_representation["key1"]) // Output: value1
 Combine two `Params` objects, with values from the merged object overriding existing keys.
 
 ```v
+
 mut params1 := paramsparser.new("color:red size:small")!
 params2 := paramsparser.new("size:large material:wood")!
 

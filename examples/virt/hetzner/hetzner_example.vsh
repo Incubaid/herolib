@@ -38,7 +38,7 @@ mut cl := hetznermanager.get()!
 // 	println('test cache, first time slow then fast')
 // }
 
-// println(cl.servers_list()!)
+println(cl.servers_list()!)
 
 // mut serverinfo := cl.server_info_get(name: 'kristof2')!
 

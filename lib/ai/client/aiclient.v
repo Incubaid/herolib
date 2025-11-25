@@ -1,7 +1,5 @@
 module client
 
-import incubaid.herolib.core.pathlib
-
 @[heap]
 pub struct AIClient {
 pub mut:
