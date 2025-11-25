@@ -1,0 +1,27 @@
+#!/usr/bin/env hero
+
+// Step 1: Configure HeroPods instance
+!!heropods.configure
+    name:'simple_demo'
+    reset:false
+    use_podman:true
+
+
+// Step 2: Create a container with hero binary
+!!heropods.container_new
+    name:'simple_container'
+    image:'custom'
+    custom_image_name:'hero_container'
+    docker_url:'docker.io/threefolddev/hero-container:latest'
+
+// Step 3: Start the container with keep_alive enabled
+// This will run the entrypoint, wait for it to complete, then inject a keep-alive process
+!!heropods.container_start
+    name:'simple_container'
+    keep_alive:true
+
+// Step 4: Execute hero command inside the container
+!!heropods.container_exec
+    name:'simple_container'
+    cmd:'hero -help'
+    stdout:true

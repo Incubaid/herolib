@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&CoreDNS {
 			data := r.hget('context:coredns', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('CoreDNS with name: coredns does not exist, prob bug.')
+				return error('CoreDNS with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(CoreDNS, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&CoreDNS {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("CoreDNS with name 'coredns' does not exist")
+				return error("CoreDNS with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return coredns_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for coredns with name:coredns')
+		return error('could not get config for coredns with name:${args.name}')
 	}
 }
 

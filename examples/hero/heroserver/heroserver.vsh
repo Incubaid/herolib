@@ -5,7 +5,7 @@ import incubaid.herolib.schemas.openrpc
 import os
 
 // 1. Create a new server instance
-mut server := heroserver.new(port: 8080)!
+mut server := heroserver.new(port: 8081, auth_enabled: false)!
 
 // 2. Create and register your OpenRPC handlers
 //    These handlers must conform to the `openrpc.OpenRPCHandler` interface.

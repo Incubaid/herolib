@@ -25,16 +25,15 @@ fn play_core(mut plbook PlayBook) ! {
 
 	for mut action_ in plbook.find(filter: 'play.*')! {
 		if action_.name == 'include' {
-			mut action := *action_
-			mut toreplace := action.params.get_default('replace', '')!
-			mut playrunpath := action.params.get_default('path', '')!
+			mut toreplace := action_.params.get_default('replace', '')!
+			mut playrunpath := action_.params.get_default('path', '')!
 			if playrunpath.len == 0 {
-				action.name = 'pull'
+				action_.name = 'pull'
 				mypath := gittools.path(
 					path:      playrunpath
-					git_url:   action.params.get_default('git_url', '')!
-					git_reset: action.params.get_default_false('git_reset')
-					git_pull:  action.params.get_default_false('git_pull')
+					git_url:   action_.params.get_default('git_url', '')!
+					git_reset: action_.params.get_default_false('git_reset')
+					git_pull:  action_.params.get_default_false('git_pull')
 				)!
 				playrunpath = mypath.path
 			}
@@ -58,7 +57,7 @@ fn play_core(mut plbook PlayBook) ! {
 			included_paths[playrunpath] = true
 			plbook.add(path: playrunpath, replace: toreplacedict)!
 
-			action.done = true
+			action_.done = true
 		}
 		if action_.name == 'echo' {
 			content := action_.params.get_default('content', "didn't find content")!

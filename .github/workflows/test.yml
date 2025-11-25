@@ -24,7 +24,7 @@ jobs:
         run: |
           # Updating man-db takes a long time on every run. We don't need it
           sudo apt-get remove -y --purge man-db
-          ./install_v.sh
+          ./scripts/install_v.sh
 
       - name: Setup Herolib from current branch
         run: |

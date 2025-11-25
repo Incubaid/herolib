@@ -1,0 +1,10 @@
+{
+  "disable_custom_urls": true,
+  "default_server_config": {
+    "m.homeserver": {
+      "base_url": "https://@{config_values.matrix_hostname}.gent01.grid.tf",
+      "server_name": "@{config_values.matrix_hostname}.gent01.grid.tf"
+    }
+  },
+  "brand": "@{config_values.element_brand}"
+}

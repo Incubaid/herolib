@@ -39,7 +39,7 @@ pub fn get(args ArgsGet) !&GiteaServer {
 			data := r.hget('context:gitea', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('GiteaServer with name: gitea does not exist, prob bug.')
+				return error('GiteaServer with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(GiteaServer, data)!
 			set_in_mem(obj)!
@@ -48,14 +48,14 @@ pub fn get(args ArgsGet) !&GiteaServer {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("GiteaServer with name 'gitea' does not exist")
+				return error("GiteaServer with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return gitea_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for gitea with name:gitea')
+		return error('could not get config for gitea with name:${args.name}')
 	}
 }
 

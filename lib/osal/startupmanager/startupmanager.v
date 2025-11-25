@@ -16,19 +16,34 @@ pub fn get(cat StartupManagerType) !StartupManager {
 	mut sm := StartupManager{
 		cat: cat
 	}
-	if sm.cat == .auto {
-		// Try to get a ZinitRPC client and check if it can discover RPC methods.
-		// This implies the zinit daemon is running and accessible via its socket.
-		mut zinit_client_test := zinit.get(create: true)! // 'create:true' ensures a client object is initiated even if the socket isn't active.
-		if _ := zinit_client_test.rpc_discover() {
-			sm.cat = .zinit
-		} else {
-			sm.cat = .screen
+	match sm.cat {
+		.zinit {
+			mut zinit_client_test := zinit.get(create: true)! // 'create:true' ensures a client object is initiated even if the socket isn't active.
+
+			if _ := zinit_client_test.rpc_discover() {
+				sm.cat = .zinit
+			} else {
+				return error('zinit not found ${err}')
+			}
 		}
-	}
-	if sm.cat == .unknown {
-		print_backtrace()
-		return error("can't determine startup manager type, need to be a known one.")
+		.auto {
+			// Try to get a ZinitRPC client and check if it can discover RPC methods.
+			// This implies the zinit daemon is running and accessible via its socket.
+			// Since it's auto doesn't insist and die if it can't find zinit.
+			mut zinit_client_test := zinit.get(create: true)! // 'create:true' ensures a client object is initiated even if the socket isn't active.
+			if _ := zinit_client_test.rpc_discover() {
+				sm.cat = .zinit
+			} else {
+				sm.cat = .screen
+			}
+		}
+		.unknown {
+			print_backtrace()
+			return error("can't determine startup manager type, need to be a known one.")
+		}
+		else {
+			return sm
+		}
 	}
 	return sm
 }
@@ -87,18 +102,76 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 				shutdown_timeout: 0            // Default, or add to ZProcessNewArgs if needed
 			}
 
+			// Check if service already exists
+			existing_service := zinit_client.service_get(args.name) or { zinit.ServiceConfig{} }
+
+			// Smart service creation logic based on reset flag
+			if existing_service.exec.len > 0 {
+				// Service exists - check if configuration matches
+				configs_match := existing_service.exec == service_config.exec
+					&& existing_service.test == service_config.test
+					&& existing_service.oneshot == service_config.oneshot
+					&& existing_service.dir == service_config.dir
+					&& existing_service.log == service_config.log
+					&& existing_service.after.len == service_config.after.len
+					&& existing_service.env.len == service_config.env.len
+
+				if configs_match {
+					// Configuration is the same - idempotent, just skip creation
+					console.print_debug('startupmanager: service ${args.name} already exists with same configuration, skipping creation.')
+					// If start is requested and service is not running, start it
+					if args.start {
+						status := zinit_client.service_status(args.name) or {
+							console.print_debug('startupmanager: failed to get status of ${args.name}: ${err}')
+							zinit.ServiceStatus{}
+						}
+						if status.state != 'Running' {
+							console.print_debug('startupmanager: service ${args.name} is not running, starting it...')
+							zinit_client.service_monitor(args.name) or {
+								console.print_debug('startupmanager: failed to monitor service ${args.name}: ${err}')
+							}
+						}
+					}
+					return
+				} else {
+					// Configuration is different
+					if !args.reset {
+						// reset is false - return error to protect user customizations
+						return error('service ${args.name} already exists with different configuration. Use reset:true to overwrite it.')
+					}
+					// reset is true - delete and recreate
+					console.print_debug('startupmanager: service ${args.name} exists with different configuration, recreating (reset:true)...')
+					// Stop the service first
+					zinit_client.service_stop(args.name) or {
+						console.print_debug('startupmanager: failed to stop service ${args.name}: ${err}')
+					}
+					// Forget (stop monitoring) the service
+					zinit_client.service_forget(args.name) or {
+						console.print_debug('startupmanager: failed to forget service ${args.name}: ${err}')
+					}
+					// Delete the service configuration
+					zinit_client.service_delete(args.name) or {
+						console.print_debug('startupmanager: failed to delete service ${args.name}: ${err}')
+					}
+				}
+			}
+
 			// Create the service configuration file in zinit
 			zinit_client.service_create(args.name, service_config) or {
 				return error('startupmanager: failed to create zinit service ${args.name}: ${err}')
+			}
+
+			// If 'start' is true, monitor and start the service immediately after creation
+			if args.start {
+				// Monitor loads the config and starts monitoring the service
+				zinit_client.service_monitor(args.name) or {
+					return error('startupmanager: failed to monitor zinit service ${args.name}: ${err}')
+				}
 			}
 		}
 		else {
 			panic('to implement, startup manager only support screen & systemd for now: ${mycat}')
 		}
-	}
-	// If 'start' is true, also monitor and start the service
-	if args.start {
-		sm.start(args.name)!
 	}
 }
 
@@ -123,11 +196,6 @@ pub fn (mut sm StartupManager) start(name string) ! {
 			mut zinit_client := zinit.get()! // Get the already configured zinit client
 			zinit_client.service_start(name) or {
 				return error('startupmanager: Failed to start zinit service ${name}: ${err}')
-			}
-			// Monitor loads the config, if it's new it starts it.
-			// If the service is already managed, this will bring it back up.
-			zinit_client.service_monitor(name) or {
-				return error('startupmanager: Failed to monitor zinit service ${name}: ${err}')
 			}
 		}
 		else {

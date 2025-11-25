@@ -146,17 +146,17 @@ pub fn generate(args_ GenerateArgs) ! {
 			description: 'Are there builders for the installers (compilation)'
 		)!
 	}
-
-	// args.reset = myconsole.ask_yesno(
-	// 	description: 'Reset, overwrite code.'
-	// 	question:    'This will overwrite all files in your existing dir, be carefule?'
-	// )!
+	meta.path = args.path
+	println(meta)
 	create_heroscript(meta)!
 	generate_exec(args.path, true)!
 }
 
 pub fn create_heroscript(args ModuleMeta) ! {
 	mut script := ''
+	if args.path == '' {
+		return error('no path provided to create heroscript')
+	}
 	if args.cat == .installer {
 		script = "
 !!hero_code.generate_installer
@@ -205,8 +205,7 @@ pub fn create_heroscript(args ModuleMeta) ! {
 			'1'
 		} else {
 			'0'
-		}}
-	}"
+		}}"
 	}
 	if !os.exists(args.path) {
 		os.mkdir(args.path)!

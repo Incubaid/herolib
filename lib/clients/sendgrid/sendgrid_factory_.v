@@ -37,7 +37,7 @@ pub fn get(args ArgsGet) !&SendGrid {
 			data := r.hget('context:sendgrid', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('SendGrid with name: sendgrid does not exist, prob bug.')
+				return error('SendGrid with name: ${args.name} does not exist, prob bug.')
 			}
 			mut obj := json.decode(SendGrid, data)!
 			set_in_mem(obj)!
@@ -46,14 +46,14 @@ pub fn get(args ArgsGet) !&SendGrid {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("SendGrid with name 'sendgrid' does not exist")
+				return error("SendGrid with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
 	return sendgrid_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for sendgrid with name:sendgrid')
+		return error('could not get config for sendgrid with name:${args.name}')
 	}
 }
 

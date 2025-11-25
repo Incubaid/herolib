@@ -1,0 +1,9 @@
+[global]
+allow_registration = @{config_values.allow_registration}
+allow_federation = @{config_values.allow_federation}
+port = @{config_values.conduit_port}
+server_name = "@{config_values.matrix_hostname}.gent01.grid.tf"
+address = "0.0.0.0"
+database_backend = "@{config_values.database_backend}"
+database_path = "@{config_values.database_path}"
+log = "@{config_values.log_level}"

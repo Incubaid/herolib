@@ -237,12 +237,21 @@ pub fn (t Type) empty_value() string {
 
 // parse_type parses a type string into a Type struct
 pub fn parse_type(type_str string) Type {
-	println('Parsing type string: "${type_str}"')
-	mut type_str_trimmed := type_str.trim_space()
+	mut type_str_cleaned := type_str.trim_space()
+
+	// Remove inline comments
+	if type_str_cleaned.contains('//') {
+		type_str_cleaned = type_str_cleaned.all_before('//').trim_space()
+	}
+
+	// Remove default values
+	if type_str_cleaned.contains('=') {
+		type_str_cleaned = type_str_cleaned.all_before('=').trim_space()
+	}
 
 	// Handle struct definitions by extracting just the struct name
-	if type_str_trimmed.contains('struct ') {
-		lines := type_str_trimmed.split_into_lines()
+	if type_str_cleaned.contains('struct ') {
+		lines := type_str_cleaned.split_into_lines()
 		for line in lines {
 			if line.contains('struct ') {
 				mut struct_name := ''
@@ -252,76 +261,74 @@ pub fn parse_type(type_str string) Type {
 					struct_name = line.all_after('struct ').all_before('{')
 				}
 				struct_name = struct_name.trim_space()
-				println('Extracted struct name: "${struct_name}"')
 				return Object{struct_name}
 			}
 		}
 	}
 
 	// Check for simple types first
-	if type_str_trimmed == 'string' {
+	if type_str_cleaned == 'string' {
 		return String{}
-	} else if type_str_trimmed == 'bool' || type_str_trimmed == 'boolean' {
+	} else if type_str_cleaned == 'bool' || type_str_cleaned == 'boolean' {
 		return Boolean{}
-	} else if type_str_trimmed == 'int' {
+	} else if type_str_cleaned == 'int' {
 		return Integer{}
-	} else if type_str_trimmed == 'u8' {
+	} else if type_str_cleaned == 'u8' {
 		return Integer{
 			bytes:  8
 			signed: false
 		}
-	} else if type_str_trimmed == 'u16' {
+	} else if type_str_cleaned == 'u16' {
 		return Integer{
 			bytes:  16
 			signed: false
 		}
-	} else if type_str_trimmed == 'u32' {
+	} else if type_str_cleaned == 'u32' {
 		return Integer{
 			bytes:  32
 			signed: false
 		}
-	} else if type_str_trimmed == 'u64' {
+	} else if type_str_cleaned == 'u64' {
 		return Integer{
 			bytes:  64
 			signed: false
 		}
-	} else if type_str_trimmed == 'i8' {
+	} else if type_str_cleaned == 'i8' {
 		return Integer{
 			bytes: 8
 		}
-	} else if type_str_trimmed == 'i16' {
+	} else if type_str_cleaned == 'i16' {
 		return Integer{
 			bytes: 16
 		}
-	} else if type_str_trimmed == 'i32' {
+	} else if type_str_cleaned == 'i32' {
 		return Integer{
 			bytes: 32
 		}
-	} else if type_str_trimmed == 'i64' {
+	} else if type_str_cleaned == 'i64' {
 		return Integer{
 			bytes: 64
 		}
 	}
 
 	// Check for array types
-	if type_str_trimmed.starts_with('[]') {
-		elem_type := type_str_trimmed.all_after('[]')
+	if type_str_cleaned.starts_with('[]') {
+		elem_type := type_str_cleaned.all_after('[]')
 		return Array{parse_type(elem_type)}
 	}
 
 	// Check for map types
-	if type_str_trimmed.starts_with('map[') && type_str_trimmed.contains(']') {
-		value_type := type_str_trimmed.all_after(']')
+	if type_str_cleaned.starts_with('map[') && type_str_cleaned.contains(']') {
+		value_type := type_str_cleaned.all_after(']')
 		return Map{parse_type(value_type)}
 	}
 
 	// Check for result types
-	if type_str_trimmed.starts_with('!') {
-		result_type := type_str_trimmed.all_after('!')
+	if type_str_cleaned.starts_with('!') {
+		result_type := type_str_cleaned.all_after('!')
 		return Result{parse_type(result_type)}
 	}
 
 	// If no other type matches, treat as an object/struct type
-	println('Treating as object type: "${type_str_trimmed}"')
-	return Object{type_str_trimmed}
+	return Object{type_str_cleaned}
 }

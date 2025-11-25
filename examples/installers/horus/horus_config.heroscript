@@ -1,0 +1,60 @@
+// Horus Configuration Heroscript
+// This file demonstrates how to configure all Horus components using heroscript
+
+// Configure Coordinator
+!!coordinator.configure
+    name:'default'
+    binary_path:'/hero/var/bin/coordinator'
+    redis_addr:'127.0.0.1:6379'
+    http_port:8081
+    ws_port:9653
+    log_level:'info'
+    repo_path:'/root/code/git.ourworld.tf/herocode/horus'
+
+// Configure Supervisor
+!!supervisor.configure
+    name:'default'
+    binary_path:'/hero/var/bin/supervisor'
+    redis_addr:'127.0.0.1:6379'
+    http_port:8082
+    ws_port:9654
+    log_level:'info'
+    repo_path:'/root/code/git.ourworld.tf/herocode/horus'
+
+// Configure Hero Runner
+!!herorunner.configure
+    name:'default'
+    binary_path:'/hero/var/bin/herorunner'
+    redis_addr:'127.0.0.1:6379'
+    log_level:'info'
+    repo_path:'/root/code/git.ourworld.tf/herocode/horus'
+
+// Configure Osiris Runner
+!!osirisrunner.configure
+    name:'default'
+    binary_path:'/hero/var/bin/runner_osiris'
+    redis_addr:'127.0.0.1:6379'
+    log_level:'info'
+    repo_path:'/root/code/git.ourworld.tf/herocode/horus'
+
+// Configure SAL Runner
+!!salrunner.configure
+    name:'default'
+    binary_path:'/hero/var/bin/runner_sal'
+    redis_addr:'127.0.0.1:6379'
+    log_level:'info'
+    repo_path:'/root/code/git.ourworld.tf/herocode/horus'
+
+// Install all components
+!!herocoordinator.install
+!!supervisor.install
+!!herorunner.install
+!!osirisrunner.install
+!!salrunner.install
+
+// Start all services
+!!herocoordinator.start name:'default'
+!!supervisor.start name:'default'
+!!herorunner.start name:'default'
+!!osirisrunner.start name:'default'
+!!salrunner.start name:'default'

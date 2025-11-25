@@ -188,6 +188,15 @@ pub fn (mut server HeroServer) doc_handler(mut ctx Context, handler_type string)
 		return ctx.server_error('Failed to generate documentation: ${err}')
 	}
 
+	// Create server info for navbar
+	server_info := HomePageData{
+		base_url:     get_base_url_from_context(ctx)
+		handlers:     server.handlers
+		auth_enabled: server.auth_enabled
+		host:         server.host
+		port:         server.port
+	}
+
 	// Load and process the HTML template using the literal path
 	html_content := $tmpl('templates/doc.html')
 

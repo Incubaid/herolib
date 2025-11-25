@@ -14,7 +14,7 @@ Herolib is an opinionated library primarily used by ThreeFold to automate cloud 
 The Hero tool can be installed with a single command:
 
 ```bash
-curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_hero.sh | bash
+curl https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_hero.sh | bash
 ```
 
 Hero will be installed in:
@@ -35,11 +35,11 @@ The Hero tool can be used to work with git, build documentation, interact with H
 For development purposes, use the automated installation script:
 
 ```bash
-curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/install_v.sh' > /tmp/install_v.sh
+curl 'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_v.sh' > /tmp/install_v.sh
 bash /tmp/install_v.sh --analyzer --herolib 
 
 #do not forget to do the following this makes sure vtest and vrun exists
-cd ~/code/github/incubaid/herolib
+cd ~/code/github/incubaid/herolib/scripts
 v install_herolib.vsh
 
 # IMPORTANT: Start a new shell after installation for paths to be set correctly
@@ -51,7 +51,7 @@ v install_herolib.vsh
 ```
 V & HeroLib Installer Script
 
-Usage: ~/code/github/incubaid/herolib/install_v.sh [options]
+Usage: ~/code/github/incubaid/herolib/scripts/install_v.sh [options]
 
 Options:
   -h, --help     Show this help message
@@ -61,12 +61,12 @@ Options:
   --herolib      Install our herolib
 
 Examples:
-  ~/code/github/incubaid/herolib/install_v.sh
-  ~/code/github/incubaid/herolib/install_v.sh --reset
-  ~/code/github/incubaid/herolib/install_v.sh --remove
-  ~/code/github/incubaid/herolib/install_v.sh --analyzer
-  ~/code/github/incubaid/herolib/install_v.sh --herolib
-  ~/code/github/incubaid/herolib/install_v.sh --reset --analyzer # Fresh install of both
+  ~/code/github/incubaid/herolib/scripts/install_v.sh
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --reset
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --remove
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --analyzer
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --herolib
+  ~/code/github/incubaid/herolib/scripts/install_v.sh --reset --analyzer # Fresh install of both
 ```
 
 ## Features
@@ -175,7 +175,3 @@ To generate documentation locally:
 cd ~/code/github/incubaid/herolib
 bash doc.sh
 ```
-
-<!-- Security scan triggered at 2025-09-02 01:58:41 -->
-
-<!-- Security scan triggered at 2025-09-09 05:33:18 -->

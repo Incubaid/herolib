@@ -165,8 +165,16 @@ pub fn (file VFile) structs() []Struct {
 	return file.items.filter(it is Struct).map(it as Struct)
 }
 
+pub fn (file VFile) enums() []Enum {
+	return file.items.filter(it is Enum).map(it as Enum)
+}
+
+pub fn (file VFile) interfaces() []Interface {
+	return file.items.filter(it is Interface).map(it as Interface)
+}
+
 // parse_vfile parses V code into a VFile struct
-// It extracts the module name, imports, constants, structs, and functions
+// It extracts the module name, imports, constants, structs, functions, enums and interfaces
 pub fn parse_vfile(code string) !VFile {
 	mut vfile := VFile{
 		content: code
@@ -195,7 +203,7 @@ pub fn parse_vfile(code string) !VFile {
 	// Extract constants
 	vfile.consts = parse_consts(code) or { []Const{} }
 
-	// Split code into chunks for parsing structs and functions
+	// Split code into chunks for parsing structs, functions, enums, and interfaces
 	mut chunks := []string{}
 	mut current_chunk := ''
 	mut brace_count := 0
@@ -211,9 +219,12 @@ pub fn parse_vfile(code string) !VFile {
 			continue
 		}
 
-		// Check for struct or function start
+		// Check for struct, enum, interface or function start
 		if (trimmed.starts_with('struct ') || trimmed.starts_with('pub struct ')
-			|| trimmed.starts_with('fn ') || trimmed.starts_with('pub fn ')) && !in_struct_or_fn {
+			|| trimmed.starts_with('enum ') || trimmed.starts_with('pub enum ')
+			|| trimmed.starts_with('interface ')
+			|| trimmed.starts_with('pub interface ') || trimmed.starts_with('fn ')
+			|| trimmed.starts_with('pub fn ')) && !in_struct_or_fn {
 			in_struct_or_fn = true
 			current_chunk = comment_block.join('\n')
 			if current_chunk != '' {
@@ -238,7 +249,7 @@ pub fn parse_vfile(code string) !VFile {
 			continue
 		}
 
-		// Add line to current chunk if we're inside a struct or function
+		// Add line to current chunk if we're inside a struct, enum, interface or function
 		if in_struct_or_fn {
 			current_chunk += '\n' + line
 
@@ -249,7 +260,7 @@ pub fn parse_vfile(code string) !VFile {
 				brace_count -= line.count('}')
 			}
 
-			// Check if we've reached the end of the struct or function
+			// Check if we've reached the end
 			if brace_count == 0 {
 				chunks << current_chunk
 				current_chunk = ''
@@ -269,6 +280,16 @@ pub fn parse_vfile(code string) !VFile {
 				continue
 			}
 			vfile.items << struct_obj
+		} else if trimmed.contains('enum ') || trimmed.contains('pub enum ') {
+			// Parse enum
+			enum_obj := parse_enum(chunk) or {
+				// Skip invalid enums
+				continue
+			}
+			vfile.items << enum_obj
+		} else if trimmed.contains('interface ') || trimmed.contains('pub interface ') {
+			// Parse interface - TODO: implement when needed
+			continue
 		} else if trimmed.contains('fn ') || trimmed.contains('pub fn ') {
 			// Parse function
 			fn_obj := parse_function(chunk) or {

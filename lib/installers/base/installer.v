@@ -59,7 +59,7 @@ pub fn install(args_ InstallArgs) ! {
 	} else if pl == .alpine {
 		console.print_header(' - Alpine prepare')
 		osal.package_refresh()!
-		osal.package_install('git,curl,mc,tmux,screen,git-lfs,redis-server')!
+		osal.package_install('git,curl,mc,tmux,screen,git-lfs,redis')!
 	} else if pl == .arch {
 		console.print_header(' - Arch prepare')
 		osal.package_refresh()!

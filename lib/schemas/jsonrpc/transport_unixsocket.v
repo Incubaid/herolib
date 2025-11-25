@@ -33,8 +33,6 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		// Close the socket explicitly
 		unix.shutdown(socket.sock.handle)
 		socket.close() or {}
-		print_backtrace()
-		console.print_debug('The server did not close the socket, we did timeout or there was other error.')
 	}
 
 	// Set timeout if specified
@@ -78,17 +76,13 @@ pub fn (mut t UnixSocketTransport) send(request string, params SendParams) !stri
 		// Append the newly read data to the total response
 		res_total << res[..n]
 
-		// here we need to check we are at end
-		if res.bytestr().contains('\n') {
+		// Check if we have received a complete response (ends with newline)
+		if res_total.bytestr().contains('\n') {
 			break
 		}
 	}
 	unix.shutdown(socket.sock.handle)
 	socket.close() or {}
-
-	// println(res_total.bytestr().trim_space())
-
-	// println(19)
 
 	// Convert response to string and trim whitespace
 	mut response := res_total.bytestr().trim_space()

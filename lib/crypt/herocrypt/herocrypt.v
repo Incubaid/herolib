@@ -16,8 +16,25 @@ pub fn new(url_ string) !&HeroCrypt {
 	if url == '' {
 		url = 'localhost:6381'
 	}
-	mut redis := redisclient.new(url)!
-	redis.ping()!
+	mut redis := redisclient.new(url) or {
+		return error('Failed to connect to HeroDB at ${url}.
+
+HeroCrypt requires HeroDB (Redis with AGE encryption extensions) to be running.
+
+To start HeroDB:
+  1. Clone the repository:
+     hero git clone https://git.ourworld.tf/herocode/herodb
+  2. Run the server:
+     ~/code/git.ourworld.tf/herocode/herodb/run.sh
+
+Original error: ${err}')
+	}
+	redis.ping() or {
+		return error('Connected to ${url} but failed to ping HeroDB.
+Please ensure HeroDB is running and accessible.
+
+Original error: ${err}')
+	}
 	return &HeroCrypt{
 		redis_client: redis
 	}

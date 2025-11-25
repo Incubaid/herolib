@@ -42,7 +42,7 @@ pub mut:
 	warning     string
 	clear       bool
 	reset       bool
-	default     bool
+	default     bool             = true
 	validation  fn (string) bool = fn (s string) bool {
 		return true
 	}

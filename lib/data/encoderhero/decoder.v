@@ -21,6 +21,7 @@ fn decode_struct[T](_ T, data string) !T {
 
 	$if T is $struct {
 		obj_name := texttools.snake_case(T.name.all_after_last('.'))
+		obj_name2 := texttools.name_fix(T.name.all_after_last('.'))
 
 		// Define possible action name formats to try
 		action_names_to_try := [
@@ -28,6 +29,10 @@ fn decode_struct[T](_ T, data string) !T {
 			'configure.${obj_name}',
 			'${obj_name}.define',
 			'${obj_name}.configure',
+			'define.${obj_name2}',
+			'configure.${obj_name2}',
+			'${obj_name2}.define',
+			'${obj_name2}.configure',
 		]
 
 		mut found_action_name := ''
@@ -47,7 +52,7 @@ fn decode_struct[T](_ T, data string) !T {
 		}
 
 		if found_action_name == '' {
-			return error('Data does not contain expected action format for ${obj_name}\nData: ${data}')
+			return error('Data does not contain expected action format for obj:${obj_name} or obj:${obj_name2}\nData: ${data}')
 		}
 
 		if actions.len > 1 {

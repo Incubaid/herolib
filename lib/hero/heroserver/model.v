@@ -31,7 +31,7 @@ pub struct HeroServer {
 mut:
 	port            int
 	host            string
-	crypto_client   &herocrypt.HeroCrypt
+	crypto_client   ?&herocrypt.HeroCrypt       // Optional - only needed when auth_enabled is true
 	sessions        map[string]Session          // sessionkey -> Session
 	handlers        map[string]&openrpc.Handler // handlertype -> handler
 	challenges      map[string]AuthChallenge
