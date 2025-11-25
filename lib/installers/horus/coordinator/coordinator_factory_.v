@@ -176,7 +176,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'start' {
 				console.print_debug('install action coordinator.${other_action.name}')
-				coordinator_obj.start()!
+				coordinator_obj.start(reset: reset)!
 			}
 			if other_action.name == 'stop' {
 				console.print_debug('install action coordinator.${other_action.name}')
@@ -184,7 +184,7 @@ pub fn play(mut plbook PlayBook) ! {
 			}
 			if other_action.name == 'restart' {
 				console.print_debug('install action coordinator.${other_action.name}')
-				coordinator_obj.restart()!
+				coordinator_obj.restart(reset: reset)!
 			}
 			if other_action.name == 'start_pre' {
 				console.print_debug('install action coordinator.${other_action.name}')
@@ -244,7 +244,7 @@ pub fn (mut self Coordinator) reload() ! {
 	self = obj_init(self)!
 }
 
-pub fn (mut self Coordinator) start() ! {
+pub fn (mut self Coordinator) start(args StartArgs) ! {
 	switch(self.name)
 
 	if self.running()! {
@@ -260,7 +260,7 @@ pub fn (mut self Coordinator) start() ! {
 	self.configure()!
 
 	self.start_pre()!
-	for zprocess in self.startupcmd()! {
+	for zprocess in self.startupcmd(args)! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: coordinator starting with ${zprocess.startuptype}...')
@@ -284,7 +284,7 @@ pub fn (mut self Coordinator) start() ! {
 pub fn (mut self Coordinator) install_start(args InstallArgs) ! {
 	switch(self.name)
 	self.install(args)!
-	self.start()!
+	self.start(reset: false)!
 }
 
 pub fn (mut self Coordinator) stop() ! {
@@ -297,10 +297,10 @@ pub fn (mut self Coordinator) stop() ! {
 	self.stop_post()!
 }
 
-pub fn (mut self Coordinator) restart() ! {
+pub fn (mut self Coordinator) restart(args StartArgs) ! {
 	switch(self.name)
 	self.stop()!
-	self.start()!
+	self.start(args)!
 }
 
 pub fn (mut self Coordinator) running() !bool {

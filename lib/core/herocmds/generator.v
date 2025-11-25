@@ -71,12 +71,20 @@ fn cmd_generator_execute(cmd Command) ! {
 	// Handle "." as current working directory
 	if path == '.' {
 		path = os.getwd()
-	} else {
+	} else if path != '' {
 		// Expand home directory
 		path = path.replace('~', os.home_dir())
 
+		// Convert relative paths to absolute paths
+		if !os.is_abs_path(path) {
+			path = os.join_path(os.getwd(), path)
+		}
+
+		// Resolve to real path (handles symlinks and normalizes path)
+		path = os.real_path(path)
+
 		// Validate that path exists
-		if path != '' && !os.exists(path) {
+		if !os.exists(path) {
 			return error('Path does not exist: ${path}')
 		}
 	}

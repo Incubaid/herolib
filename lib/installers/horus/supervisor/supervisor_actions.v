@@ -10,8 +10,16 @@ import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.develop.gittools
 import os
 
-fn (self &Supervisor) startupcmd() ![]startupmanager.ZProcessNewArgs {
+@[params]
+pub struct StartArgs {
+pub mut:
+	reset bool
+}
+
+fn (self &Supervisor) startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
+
+	reset := args.reset
 
 	// Ensure redis_addr has the redis:// prefix
 	redis_url := if self.redis_addr.starts_with('redis://') {
@@ -21,9 +29,10 @@ fn (self &Supervisor) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	}
 
 	res << startupmanager.ZProcessNewArgs{
-		name: 'supervisor'
-		cmd:  '${self.binary_path} --redis-url ${redis_url} --port ${self.http_port} --admin-secret mysecret'
-		env:  {
+		name:  'supervisor'
+		cmd:   '${self.binary_path} --redis-url ${redis_url} --port ${self.http_port} --admin-secret mysecret'
+		reset: reset
+		env:   {
 			'HOME':           os.home_dir()
 			'RUST_LOG':       self.log_level
 			'RUST_LOG_STYLE': 'never'

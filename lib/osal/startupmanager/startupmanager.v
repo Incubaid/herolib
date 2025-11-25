@@ -105,20 +105,54 @@ pub fn (mut sm StartupManager) new(args ZProcessNewArgs) ! {
 			// Check if service already exists
 			existing_service := zinit_client.service_get(args.name) or { zinit.ServiceConfig{} }
 
-			// If service exists, stop monitoring, stop, and delete it first
+			// Smart service creation logic based on reset flag
 			if existing_service.exec.len > 0 {
-				console.print_debug('startupmanager: service ${args.name} already exists, cleaning up...')
-				// Stop the service first
-				zinit_client.service_stop(args.name) or {
-					console.print_debug('startupmanager: failed to stop service ${args.name}: ${err}')
-				}
-				// Forget (stop monitoring) the service
-				zinit_client.service_forget(args.name) or {
-					console.print_debug('startupmanager: failed to forget service ${args.name}: ${err}')
-				}
-				// Delete the service configuration
-				zinit_client.service_delete(args.name) or {
-					console.print_debug('startupmanager: failed to delete service ${args.name}: ${err}')
+				// Service exists - check if configuration matches
+				configs_match := existing_service.exec == service_config.exec
+					&& existing_service.test == service_config.test
+					&& existing_service.oneshot == service_config.oneshot
+					&& existing_service.dir == service_config.dir
+					&& existing_service.log == service_config.log
+					&& existing_service.after.len == service_config.after.len
+					&& existing_service.env.len == service_config.env.len
+
+				if configs_match {
+					// Configuration is the same - idempotent, just skip creation
+					console.print_debug('startupmanager: service ${args.name} already exists with same configuration, skipping creation.')
+					// If start is requested and service is not running, start it
+					if args.start {
+						status := zinit_client.service_status(args.name) or {
+							console.print_debug('startupmanager: failed to get status of ${args.name}: ${err}')
+							zinit.ServiceStatus{}
+						}
+						if status.state != 'Running' {
+							console.print_debug('startupmanager: service ${args.name} is not running, starting it...')
+							zinit_client.service_monitor(args.name) or {
+								console.print_debug('startupmanager: failed to monitor service ${args.name}: ${err}')
+							}
+						}
+					}
+					return
+				} else {
+					// Configuration is different
+					if !args.reset {
+						// reset is false - return error to protect user customizations
+						return error('service ${args.name} already exists with different configuration. Use reset:true to overwrite it.')
+					}
+					// reset is true - delete and recreate
+					console.print_debug('startupmanager: service ${args.name} exists with different configuration, recreating (reset:true)...')
+					// Stop the service first
+					zinit_client.service_stop(args.name) or {
+						console.print_debug('startupmanager: failed to stop service ${args.name}: ${err}')
+					}
+					// Forget (stop monitoring) the service
+					zinit_client.service_forget(args.name) or {
+						console.print_debug('startupmanager: failed to forget service ${args.name}: ${err}')
+					}
+					// Delete the service configuration
+					zinit_client.service_delete(args.name) or {
+						console.print_debug('startupmanager: failed to delete service ${args.name}: ${err}')
+					}
 				}
 			}
 
