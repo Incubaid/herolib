@@ -15,14 +15,14 @@ fn test_comprehensive_code_parsing() {
 	console.print_lf(1)
 
 	// Run all tests
-	test_module_parsing()
-	test_struct_parsing()
-	test_function_parsing()
-	test_imports_and_modules()
-	test_type_system()
-	test_visibility_modifiers()
-	test_method_parsing()
-	test_constants_parsing()
+	check_module_parsing()!
+	check_struct_parsing()
+	check_function_parsing()!
+	check_imports_and_modules()
+	check_type_system()
+	check_visibility_modifiers()
+	check_method_parsing()!
+	check_constants_parsing()
 
 	console.print_green('✓ All comprehensive tests passed!')
 	console.print_lf(1)
@@ -74,7 +74,7 @@ fn copy_directory(src string, dst string) ! {
 	}
 }
 
-fn test_module_parsing() {
+fn check_module_parsing() ! {
 	console.print_header('Test 1: Module and File Parsing')
 
 	mut myparser := new(path: '/tmp/codeparsertest', recursive: true)!
@@ -98,7 +98,7 @@ fn test_module_parsing() {
 	console.print_lf(1)
 }
 
-fn test_struct_parsing() {
+fn check_struct_parsing() {
 	console.print_header('Test 2: Struct Parsing')
 
 	models_file := os.join_path('/tmp/codeparsertest', 'models.v')
@@ -145,7 +145,7 @@ fn test_struct_parsing() {
 	console.print_lf(1)
 }
 
-fn test_function_parsing() {
+fn check_function_parsing() ! {
 	console.print_header('Test 3: Function Parsing')
 
 	mut myparser := new(path: '/tmp/codeparsertest', recursive: true)!
@@ -191,7 +191,7 @@ fn test_function_parsing() {
 	console.print_lf(1)
 }
 
-fn test_imports_and_modules() {
+fn check_imports_and_modules() {
 	console.print_header('Test 4: Imports and Module Names')
 
 	models_file := os.join_path('/tmp/codeparsertest', 'models.v')
@@ -222,7 +222,7 @@ fn test_imports_and_modules() {
 	console.print_lf(1)
 }
 
-fn test_type_system() {
+fn check_type_system() {
 	console.print_header('Test 5: Type System')
 
 	models_file := os.join_path('/tmp/codeparsertest', 'models.v')
@@ -257,7 +257,7 @@ fn test_type_system() {
 	console.print_lf(1)
 }
 
-fn test_visibility_modifiers() {
+fn check_visibility_modifiers() {
 	console.print_header('Test 6: Visibility Modifiers')
 
 	models_file := os.join_path('/tmp/codeparsertest', 'models.v')
@@ -293,7 +293,7 @@ fn test_visibility_modifiers() {
 	console.print_lf(1)
 }
 
-fn test_method_parsing() {
+fn check_method_parsing() ! {
 	console.print_header('Test 7: Method Parsing')
 
 	mut myparser := new(path: '/tmp/codeparsertest', recursive: true)!
@@ -327,7 +327,7 @@ fn test_method_parsing() {
 	console.print_lf(1)
 }
 
-fn test_constants_parsing() {
+fn check_constants_parsing() {
 	console.print_header('Test 8: Constants Parsing')
 
 	models_file := os.join_path('/tmp/codeparsertest', 'models.v')
