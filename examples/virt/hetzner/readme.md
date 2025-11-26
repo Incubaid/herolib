@@ -1,7 +1,9 @@
 
 ## to get started 
 
-make sure you have hero_secrets loaded
+This script is run from your own computer or a VM on which you develop.
+
+Make sure you have hero_secrets loaded
 
 ```bash
 hero git pull  https://git.threefold.info/despiegk/hero_secrets
@@ -22,7 +24,12 @@ keys available:
 - kristof (ED25519 256)
 - maxime (ED25519 256)
 
-## hetzner info
+you can select another key in the script
+
+> still to do, support our example key which is installed using mysecrets.sh
+
+
+## hetzner troubleshoot info
 
 get the login passwd from: 
 
