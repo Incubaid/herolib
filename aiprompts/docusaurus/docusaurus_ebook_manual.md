@@ -61,7 +61,7 @@ The `docusaurus.add` directive defines an individual Docusaurus site (your ebook
 ```heroscript
 !!docusaurus.add
     name:"tfgrid_tech_ebook"
-    git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"
+    git_url:"https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"
     git_reset:true // Reset Git repository before pulling
     git_pull:true // Pull latest changes
     git_root:"/tmp/git_clones" // Optional: specify a root directory for git clones
@@ -227,7 +227,7 @@ This powerful feature allows you to pull markdown content and assets from other 
 
 ```heroscript
 !!site.import
-    url:'https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/collections/cloud_reinvented'
+    url:'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/cloud_reinvented'
     dest:'cloud_reinvented' // Destination subdirectory within your Docusaurus docs folder
     replace:'NAME:MyName, URGENCY:red' // Optional: comma-separated key:value pairs for text replacement
 ```

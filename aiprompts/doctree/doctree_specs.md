@@ -1,3 +1,5 @@
+> NOTE: Atlas is the default document collections/export pipeline used by the current Docusaurus integration (see `lib/data/atlas/client`). The Doctree module described here is an alternative/legacy export mechanism that still exists but is not the primary path. Use Atlas by default unless you explicitly need Doctree.
+
 # Doctree Export Specification
 
 ## Overview
