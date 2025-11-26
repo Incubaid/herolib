@@ -4,7 +4,7 @@ set -e
 
 os_name="$(uname -s)"
 arch_name="$(uname -m)"
-version='1.0.36'
+version='1.0.38'
 
 # Detect Linux distribution type
 linux_type=""
