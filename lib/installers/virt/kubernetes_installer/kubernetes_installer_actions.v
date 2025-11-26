@@ -335,13 +335,13 @@ fn destroy() ! {
 	// Stop K3s if running
 	osal.process_kill_recursive(name: 'k3s')!
 
-	// Get configuration to find data directory
-	mut cfg := get() or {
+	// Get configuration to find data directory, or use default
+	data_dir := if cfg := get() {
+		cfg.data_dir
+	} else {
 		console.print_debug('No configuration found, using default paths')
-		KubernetesInstaller{}
+		'/var/lib/rancher/k3s'
 	}
-
-	data_dir := if cfg.data_dir != '' { cfg.data_dir } else { '/var/lib/rancher/k3s' }
 
 	// Clean up network interfaces
 	cleanup_network()!
