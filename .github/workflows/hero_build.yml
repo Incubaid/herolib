@@ -78,13 +78,6 @@ jobs:
           v -w -d use_openssl -enable-globals -cc clang cli/hero.v -o cli/hero-${{ matrix.target }}
           fi
 
-      - name: Upload glibc binary
-        if: runner.os == 'Linux'
-        uses: actions/upload-artifact@v4
-        with:
-          name: hero-${{ matrix.target }}
-          path: cli/hero-${{ matrix.target }}
-
       - name: Upload musl binary
         if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
