@@ -35,9 +35,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # We do the workaround as described here https://github.com/Incubaid/herolib?tab=readme-ov-file#tcc-compiler-error-on-macos
-      # gcc and clang also don't work on macOS due to https://github.com/vlang/v/issues/25467
-      # We can change the compiler or remove this when one is fixed
       - name: Setup V & Herolib
         id: setup
         shell: bash
@@ -53,39 +50,28 @@ jobs:
           echo "Herolib symlink created to $(pwd)/lib"
         timeout-minutes: 10
 
-      # We can't make static builds for Linux easily, since we link to libql
-      # (Postgres) and this has no static version available in the Alpine
-      # repos. Therefore we build dynamic binaries for both glibc and musl.
-      #
-      # Again we work around a bug limiting our choice of C compiler tcc won't
-      # work on Alpine due to https://github.com/vlang/v/issues/24866
-      # So always use gcc for Linux
-      #
-      # For macOS, we can only use tcc (see above), but then we hit issues using
-      # the garbage collector, so disable that
+      # For Linux, we build a static binary linked against musl on Alpine. For
+      # static linking, gcc is preferred
       - name: Build Hero
         timeout-minutes: 15
         run: |
-          set -e
+          set -ex
           if [ "${{ runner.os }}" = "Linux" ]; then
-            sudo apt-get install libpq-dev
-            # Build for glibc
-            v -w -d use_openssl -enable-globals -cc gcc cli/hero.v -o cli/hero-${{ matrix.target }}
-
             # Build for musl using Alpine in Docker
             docker run --rm \
             -v ${{ github.workspace }}/lib:/root/.vmodules/incubaid/herolib \
             -v ${{ github.workspace }}:/herolib \
             -w /herolib \
-            alpine \
+            alpine:3.22 \
             sh -c '
-              apk add --no-cache bash git build-base openssl-dev libpq-dev
+              set -ex
+              apk add --no-cache bash git build-base openssl-dev libpq-dev postgresql-dev openssl-libs-static
               cd v
               make clean
               make
               ./v symlink
               cd ..
-              v -w -d use_openssl -enable-globals -cc gcc cli/hero.v -o cli/hero-${{ matrix.target }}-musl
+              v -w -d use_openssl -enable-globals -cc gcc -cflags -static -ldflags "-lpgcommon_shlib -lpgport_shlib" cli/hero.v -o cli/hero-${{ matrix.target }}-musl
             '
 
           else
