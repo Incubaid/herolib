@@ -37,7 +37,7 @@ pub mut:
 // your checking & initialization code if needed
 fn obj_init(mycfg_ KubernetesInstaller) !KubernetesInstaller {
 	mut mycfg := mycfg_
-
+	
 	// Set default data directory if not provided
 	if mycfg.data_dir == '' {
 		mycfg.data_dir = os.join_path(os.home_dir(), 'hero/var/k3s')
@@ -60,10 +60,8 @@ fn obj_init(mycfg_ KubernetesInstaller) !KubernetesInstaller {
 		mycfg.token = rand.hex(32)
 	}
 
-	// Validate: join operations require token and master_url
-	if !mycfg.is_first_master && (mycfg.token == '' || mycfg.master_url == '') {
-		return error('Joining a cluster requires both token and master_url to be set')
-	}
+	// Note: Validation of token/master_url is done in the specific action functions
+	// (join_master, install_worker) where the context is clear
 
 	return mycfg
 }

@@ -54,6 +54,7 @@ fn (self &KubernetesInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
 
 	res << startupmanager.ZProcessNewArgs{
 		name: 'k3s_${self.name}'
+		startuptype: .systemd
 		cmd:  cmd
 		env:  {
 			'HOME': os.home_dir()
@@ -89,11 +90,10 @@ fn check_ubuntu() ! {
 	}
 
 	// Check /etc/os-release for Ubuntu
-	mut os_release := pathlib.get_file(path: '/etc/os-release') or {
+	content := os.read_file('/etc/os-release') or {
 		return error('Could not read /etc/os-release. Is this Ubuntu?')
 	}
-
-	content := os_release.read()!
+	
 	if !content.contains('Ubuntu') && !content.contains('ubuntu') {
 		return error('This installer requires Ubuntu. Current OS is not Ubuntu.')
 	}

@@ -5,6 +5,7 @@ import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.ui.console
 import json
 import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.osal.core as osal
 import time
 
 __global (
@@ -238,7 +239,12 @@ pub fn (mut self KubernetesInstaller) start() ! {
 		return error('K3s is not installed. Please run install_master, join_master, or install_worker first.')
 	}
 
-	configure()!
+	// Ensure data directory exists
+	osal.dir_ensure(self.data_dir)!
+	
+	// Create manifests directory for auto-apply
+	manifests_dir := '${self.data_dir}/server/manifests'
+	osal.dir_ensure(manifests_dir)!
 
 	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
