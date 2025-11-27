@@ -1,3 +1,5 @@
+> NOTE: This document is an example snapshot of a developer's filesystem layout for HeroDB/HeroModels. Paths under `/Users/despiegk/...` are illustrative only. For the current, authoritative structure always use the live repository tree (this checkout) and the modules under `lib/hero/heromodels` and `lib/hero/db`.
+
 <file_map>
 /Users/despiegk/code/github/incubaid/herolib
 ├── .github
