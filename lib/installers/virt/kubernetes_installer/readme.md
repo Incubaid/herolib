@@ -74,7 +74,7 @@ kubernetes_installer.play(heroscript: heroscript)!
 | `k3s_version` | string | 'v1.33.1' | K3s version to install |
 | `data_dir` | string | '~/hero/var/k3s' | Data directory for K3s |
 | `node_name` | string | hostname | Unique node identifier |
-| `mycelium_interface` | string | 'mycelium0' | Mycelium interface name |
+| `mycelium_interface` | string | auto-detected | Mycelium interface name (auto-detected from 400::/7 route) |
 | `token` | string | auto-generated | Cluster authentication token |
 | `master_url` | string | - | Master URL for joining (e.g., 'https://[ipv6]:6443') |
 | `node_ip` | string | auto-detected | Node IPv6 (auto-detected from Mycelium) |
@@ -121,17 +121,20 @@ This ensures K3s binds to the correct Mycelium IPv6 even if the server has other
 ### Cluster Setup
 
 **First Master:**
+
 - Uses `--cluster-init` flag
 - Auto-generates secure token
 - Configures IPv6 CIDRs: cluster=2001:cafe:42::/56, service=2001:cafe:43::/112
 - Generates join script for other nodes
 
 **Additional Masters:**
+
 - Joins with `--server <master_url>`
 - Requires token and master_url from first master
 - Provides HA for control plane
 
 **Workers:**
+
 - Joins as agent with `--server <master_url>`
 - Requires token and master_url from first master
 
@@ -149,24 +152,28 @@ The `destroy` action performs complete cleanup:
 ## Example Workflow
 
 1. **Install first master on server1:**
+
    ```bash
    hero run templates/examples.heroscript
    # Note the token and IPv6 address displayed
    ```
 
 2. **Join additional master on server2:**
+
    ```bash
    # Edit examples.heroscript Section 2 with token and master_url
    hero run templates/examples.heroscript
    ```
 
 3. **Add worker on server3:**
+
    ```bash
    # Edit examples.heroscript Section 3 with token and master_url
    hero run templates/examples.heroscript
    ```
 
 4. **Verify cluster:**
+
    ```bash
    kubectl get nodes
    kubectl get pods --all-namespaces
@@ -177,12 +184,14 @@ The `destroy` action performs complete cleanup:
 The kubeconfig is located at: `<data_dir>/server/cred/admin.kubeconfig`
 
 To use kubectl:
+
 ```bash
 export KUBECONFIG=~/hero/var/k3s/server/cred/admin.kubeconfig
 kubectl get nodes
 ```
 
 Or copy to default location:
+
 ```bash
 mkdir -p ~/.kube
 cp ~/hero/var/k3s/server/cred/admin.kubeconfig ~/.kube/config
@@ -191,16 +200,19 @@ cp ~/hero/var/k3s/server/cred/admin.kubeconfig ~/.kube/config
 ## Troubleshooting
 
 **K3s won't start:**
+
 - Check if Mycelium is running: `ip -6 addr show mycelium0`
 - Verify 400::/7 route exists: `ip -6 route | grep 400::/7`
 - Check logs: `journalctl -u k3s_* -f`
 
 **Can't join cluster:**
+
 - Verify token matches first master
 - Ensure master_url uses correct IPv6 in brackets: `https://[ipv6]:6443`
 - Check network connectivity over Mycelium: `ping6 <master_ipv6>`
 
 **Cleanup issues:**
+
 - Run destroy with sudo if needed
 - Manually check for remaining processes: `pgrep -f k3s`
 - Check for remaining mounts: `mount | grep k3s`

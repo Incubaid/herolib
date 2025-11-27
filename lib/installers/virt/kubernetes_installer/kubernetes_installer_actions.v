@@ -70,13 +70,10 @@ fn running() !bool {
 	// Check if k3s process is running
 	res := osal.exec(cmd: 'pgrep -f "k3s (server|agent)"', stdout: false, raise_error: false)!
 	if res.exit_code == 0 {
-		// Also check if kubectl can connect
-		kubectl_res := osal.exec(
-			cmd:         'kubectl get nodes'
-			stdout:      false
-			raise_error: false
-		)!
-		return kubectl_res.exit_code == 0
+		// K3s process is running, that's enough for basic check
+		// We don't check kubectl connectivity here as it might not be ready immediately
+		// and could hang if kubeconfig is not properly configured
+		return true
 	}
 	return false
 }
@@ -332,33 +329,91 @@ pub fn (self &KubernetesInstaller) generate_join_script() !string {
 fn destroy() ! {
 	console.print_header('Destroying K3s installation')
 
-	// Stop K3s if running
-	osal.process_kill_recursive(name: 'k3s')!
-
-	// Get configuration to find data directory, or use default
-	data_dir := if cfg := get() {
-		cfg.data_dir
+	// Get configuration to find data directory
+	// Try to get from current configuration, otherwise use common paths
+	mut data_dirs := []string{}
+	
+	if cfg := get() {
+		data_dirs << cfg.data_dir
+		console.print_debug('Found configured data directory: ${cfg.data_dir}')
 	} else {
-		console.print_debug('No configuration found, using default paths')
-		'/var/lib/rancher/k3s'
+		console.print_debug('No configuration found, will clean up common K3s paths')
 	}
+	
+	// Always add common K3s directories to ensure complete cleanup
+	data_dirs << '/var/lib/rancher/k3s'
+	data_dirs << '/root/hero/var/k3s'
 
-	// Clean up network interfaces
-	cleanup_network()!
+	// CRITICAL: Complete systemd service deletion FIRST before any other cleanup
+	// This prevents the service from auto-restarting during cleanup
+	
+	// Step 1: Stop and delete ALL k3s systemd services using startupmanager
+	console.print_header('Stopping and removing systemd services...')
+	
+	// Get systemd startup manager
+	mut sm := startupmanager_get(.systemd) or {
+		console.print_debug('Failed to get systemd manager: ${err}')
+		return error('Could not get systemd manager: ${err}')
+	}
+	
+	// List all k3s services
+	all_services := sm.list() or {
+		console.print_debug('Failed to list services: ${err}')
+		[]string{}
+	}
+	
+	// Filter and delete k3s services
+	for service_name in all_services {
+		if service_name.starts_with('k3s_') {
+			console.print_debug('Deleting systemd service: ${service_name}')
+			// Use startupmanager.delete() which properly stops, disables, and removes the service
+			sm.delete(service_name) or {
+				console.print_debug('Failed to delete service ${service_name}: ${err}')
+			}
+		}
+	}
+	
+	console.print_header('✓ Systemd services removed')
 
-	// Unmount kubelet mounts
+	// Step 2: Kill any remaining K3s processes
+	console.print_header('Killing any remaining K3s processes...')
+	osal.exec(cmd: 'killall -9 k3s 2>/dev/null || true', stdout: false, raise_error: false) or {
+		console.print_debug('No k3s processes to kill or killall failed')
+	}
+	
+	// Wait for processes to fully terminate
+	osal.exec(cmd: 'sleep 2', stdout: false) or {}
+
+	// Step 3: Unmount kubelet mounts (before network cleanup)
 	cleanup_mounts()!
 
-	// Remove data directory
-	if data_dir != '' {
-		console.print_header('Removing data directory: ${data_dir}')
-		osal.rm(data_dir)!
+	// Step 4: Clean up network interfaces (after processes are stopped)
+	cleanup_network()!
+
+	// Step 5: Remove data directories
+	console.print_header('Removing data directories...')
+	
+	// Remove all K3s data directories (deduplicated)
+	mut cleaned_dirs := map[string]bool{}
+	for data_dir in data_dirs {
+		if data_dir != '' && data_dir !in cleaned_dirs {
+			cleaned_dirs[data_dir] = true
+			console.print_debug('Removing data directory: ${data_dir}')
+			osal.exec(cmd: 'rm -rf ${data_dir}', stdout: false, raise_error: false) or {
+				console.print_debug('Failed to remove ${data_dir}: ${err}')
+			}
+		}
 	}
+	
+	// Also remove /etc/rancher which K3s creates
+	console.print_debug('Removing /etc/rancher')
+	osal.exec(cmd: 'rm -rf /etc/rancher', stdout: false, raise_error: false) or {}
 
-	// Clean up CNI
-	osal.exec(cmd: 'rm -rf /var/lib/cni/', stdout: false) or {}
+	// Step 6: Clean up CNI
+	console.print_header('Cleaning up CNI directories...')
+	osal.exec(cmd: 'rm -rf /var/lib/cni/', stdout: false, raise_error: false) or {}
 
-	// Clean up iptables rules
+	// Step 7: Clean up iptables rules
 	console.print_header('Cleaning up iptables rules')
 	osal.exec(
 		cmd:         'iptables-save | grep -v KUBE- | grep -v CNI- | grep -iv flannel | iptables-restore'
@@ -378,24 +433,59 @@ fn cleanup_network() ! {
 	console.print_header('Cleaning up network interfaces')
 
 	// Remove interfaces that are slaves of cni0
-	osal.exec(
-		cmd:         'ip link show | grep "master cni0" | awk -F: \'{print $2}\' | xargs -r -n1 ip link delete'
+	// Get the list first, then delete one by one
+	if veth_result := osal.exec(
+		cmd:         'ip link show | grep "master cni0" | awk -F: \'{print $2}\' | xargs'
 		stdout:      false
 		raise_error: false
-	) or {}
+	) {
+		if veth_result.output.trim_space() != '' {
+			veth_interfaces := veth_result.output.trim_space().split(' ')
+			for veth in veth_interfaces {
+				veth_trimmed := veth.trim_space()
+				if veth_trimmed != '' {
+					console.print_debug('Deleting veth interface: ${veth_trimmed}')
+					osal.exec(cmd: 'ip link delete ${veth_trimmed}', stdout: false, raise_error: false) or {
+						console.print_debug('Failed to delete ${veth_trimmed}, continuing...')
+					}
+				}
+			}
+		}
+	} else {
+		console.print_debug('No veth interfaces found or error getting list')
+	}
 
 	// Remove CNI-related interfaces
 	interfaces := ['cni0', 'flannel.1', 'flannel-v6.1', 'kube-ipvs0', 'flannel-wg', 'flannel-wg-v6']
 	for iface in interfaces {
-		osal.exec(cmd: 'ip link delete ${iface}', stdout: false, raise_error: false) or {}
+		console.print_debug('Deleting interface: ${iface}')
+		// Use timeout to prevent hanging, and redirect stderr to avoid blocking
+		osal.exec(cmd: 'timeout 5 ip link delete ${iface} 2>/dev/null || true', stdout: false, raise_error: false) or {
+			console.print_debug('Interface ${iface} not found or already deleted')
+		}
 	}
 
 	// Remove CNI namespaces
-	osal.exec(
-		cmd:         'ip netns show | grep cni- | xargs -r -n1 ip netns delete'
+	if ns_result := osal.exec(
+		cmd:         'ip netns show | grep cni- | xargs'
 		stdout:      false
 		raise_error: false
-	) or {}
+	) {
+		if ns_result.output.trim_space() != '' {
+			namespaces := ns_result.output.trim_space().split(' ')
+			for ns in namespaces {
+				ns_trimmed := ns.trim_space()
+				if ns_trimmed != '' {
+					console.print_debug('Deleting namespace: ${ns_trimmed}')
+					osal.exec(cmd: 'ip netns delete ${ns_trimmed}', stdout: false, raise_error: false) or {
+						console.print_debug('Failed to delete namespace ${ns_trimmed}')
+					}
+				}
+			}
+		}
+	} else {
+		console.print_debug('No CNI namespaces found')
+	}
 }
 
 fn cleanup_mounts() ! {
@@ -406,13 +496,29 @@ fn cleanup_mounts() ! {
 
 	for path in paths {
 		// Find all mounts under this path and unmount them
-		osal.exec(
-			cmd:         'mount | grep "${path}" | awk \'{print $3}\' | sort -r | xargs -r -n1 umount -f'
+		if mount_result := osal.exec(
+			cmd:         'mount | grep "${path}" | awk \'{print $3}\' | sort -r'
 			stdout:      false
 			raise_error: false
-		) or {}
+		) {
+			if mount_result.output.trim_space() != '' {
+				mount_points := mount_result.output.split_into_lines()
+				for mount_point in mount_points {
+					mp_trimmed := mount_point.trim_space()
+					if mp_trimmed != '' {
+						console.print_debug('Unmounting: ${mp_trimmed}')
+						osal.exec(cmd: 'umount -f ${mp_trimmed}', stdout: false, raise_error: false) or {
+							console.print_debug('Failed to unmount ${mp_trimmed}')
+						}
+					}
+				}
+			}
+		} else {
+			console.print_debug('No mounts found for ${path}')
+		}
 
 		// Remove the directory
+		console.print_debug('Removing directory: ${path}')
 		osal.exec(cmd: 'rm -rf ${path}', stdout: false, raise_error: false) or {}
 	}
 }

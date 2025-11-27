@@ -20,8 +20,8 @@ pub mut:
 	data_dir           string
 	// Unique node name/identifier
 	node_name          string
-	// Mycelium interface name (default: mycelium0)
-	mycelium_interface string = 'mycelium0'
+	// Mycelium interface name (auto-detected if not specified)
+	mycelium_interface string
 	// Cluster token for authentication (auto-generated if empty)
 	token              string
 	// Master URL for joining cluster (e.g., 'https://[ipv6]:6443')
@@ -54,6 +54,11 @@ fn obj_init(mycfg_ KubernetesInstaller) !KubernetesInstaller {
 		mycfg.node_name = if hostname != '' { hostname } else { 'k3s-node-${rand.hex(4)}' }
 	}
 
+	// Auto-detect Mycelium interface if not provided
+	if mycfg.mycelium_interface == '' {
+		mycfg.mycelium_interface = detect_mycelium_interface()!
+	}
+
 	// Generate token if not provided and this is the first master
 	if mycfg.token == '' && mycfg.is_first_master {
 		// Generate a secure random token
@@ -82,6 +87,33 @@ pub fn (self &KubernetesInstaller) get_mycelium_ipv6() !string {
 	return get_mycelium_ipv6_from_interface(self.mycelium_interface)!
 }
 
+// Auto-detect Mycelium interface by finding 400::/7 route
+fn detect_mycelium_interface() !string {
+	// Find all 400::/7 routes
+	route_result := osal.exec(
+		cmd:         'ip -6 route | grep "^400::/7"'
+		stdout:      false
+		raise_error: false
+	)!
+
+	if route_result.exit_code != 0 || route_result.output.trim_space() == '' {
+		return error('No Mycelium interface found (no 400::/7 route detected). Please ensure Mycelium is installed and running.')
+	}
+
+	// Parse interface name from route (format: "400::/7 dev <interface> ...")
+	route_line := route_result.output.trim_space()
+	parts := route_line.split(' ')
+	
+	for i, part in parts {
+		if part == 'dev' && i + 1 < parts.len {
+			iface := parts[i + 1]
+			return iface
+		}
+	}
+
+	return error('Could not parse Mycelium interface from route output: ${route_line}')
+}
+
 // Helper function to detect Mycelium IPv6 from interface
 fn get_mycelium_ipv6_from_interface(iface string) !string {
 	// Step 1: Find the 400::/7 route via the interface
@@ -95,8 +127,15 @@ fn get_mycelium_ipv6_from_interface(iface string) !string {
 		return error('No 400::/7 route found via interface ${iface}')
 	}
 
-	// Step 2: Extract next-hop IPv6 and get prefix (first 4 segments)
-	// Parse: "400::/7 via <nexthop> dev <iface> ..."
+	// Step 2: Get all global IPv6 addresses on the interface
+	addr_result := osal.exec(
+		cmd:    'ip -6 addr show dev ${iface} scope global | grep inet6 | awk \'{print $2}\' | cut -d/ -f1'
+		stdout: false
+	)!
+
+	ipv6_list := addr_result.output.split_into_lines()
+	
+	// Check if route has a next-hop (via keyword)
 	parts := route_line.split(' ')
 	mut nexthop := ''
 	for i, part in parts {
@@ -106,42 +145,47 @@ fn get_mycelium_ipv6_from_interface(iface string) !string {
 		}
 	}
 
-	if nexthop == '' {
-		return error('Could not extract next-hop from route: ${route_line}')
-	}
+	if nexthop != '' {
+		// Route has a next-hop: match by prefix (first 4 segments)
+		prefix_parts := nexthop.split(':')
+		if prefix_parts.len < 4 {
+			return error('Invalid IPv6 next-hop format: ${nexthop}')
+		}
+		prefix := prefix_parts[0..4].join(':')
 
-	// Get first 4 segments of IPv6 address (prefix)
-	prefix_parts := nexthop.split(':')
-	if prefix_parts.len < 4 {
-		return error('Invalid IPv6 next-hop format: ${nexthop}')
-	}
-	prefix := prefix_parts[0..4].join(':')
+		// Step 3: Match the one with the same prefix
+		for ip in ipv6_list {
+			ip_trimmed := ip.trim_space()
+			if ip_trimmed == '' {
+				continue
+			}
 
-	// Step 3: Get all global IPv6 addresses on the interface
-	addr_result := osal.exec(
-		cmd:    'ip -6 addr show dev ${iface} scope global | grep inet6 | awk \'{print $2}\' | cut -d/ -f1'
-		stdout: false
-	)!
-
-	ipv6_list := addr_result.output.split_into_lines()
-
-	// Step 4: Match the one with the same prefix
-	for ip in ipv6_list {
-		ip_trimmed := ip.trim_space()
-		if ip_trimmed == '' {
-			continue
+			ip_parts := ip_trimmed.split(':')
+			if ip_parts.len >= 4 {
+				ip_prefix := ip_parts[0..4].join(':')
+				if ip_prefix == prefix {
+					return ip_trimmed
+				}
+			}
 		}
 
-		ip_parts := ip_trimmed.split(':')
-		if ip_parts.len >= 4 {
-			ip_prefix := ip_parts[0..4].join(':')
-			if ip_prefix == prefix {
+		return error('No global IPv6 address found on ${iface} matching prefix ${prefix}')
+	} else {
+		// Direct route (no via): return the first IPv6 address in 400::/7 range
+		for ip in ipv6_list {
+			ip_trimmed := ip.trim_space()
+			if ip_trimmed == '' {
+				continue
+			}
+
+			// Check if IP is in 400::/7 range (starts with 4 or 5)
+			if ip_trimmed.starts_with('4') || ip_trimmed.starts_with('5') {
 				return ip_trimmed
 			}
 		}
-	}
 
-	return error('No global IPv6 address found on ${iface} matching prefix ${prefix}')
+		return error('No global IPv6 address found on ${iface} in 400::/7 range')
+	}
 }
 
 // called before start if done
