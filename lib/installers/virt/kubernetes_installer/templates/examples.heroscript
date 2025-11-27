@@ -24,7 +24,7 @@
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
     node_name:'master-1'
-    mycelium_interface:'mycelium0'
+    // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
 
 // Install as first master (will generate token and use --cluster-init)
 !!kubernetes_installer.install_master name:'k3s_master_1'
@@ -50,7 +50,7 @@
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
     node_name:'master-2'
-    mycelium_interface:'mycelium0'
+    // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
     token:'<TOKEN_FROM_FIRST_MASTER>'
     master_url:'https://[<MASTER_IPV6>]:6443'
 
@@ -73,7 +73,7 @@
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
     node_name:'worker-1'
-    mycelium_interface:'mycelium0'
+    // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
     token:'<TOKEN_FROM_FIRST_MASTER>'
     master_url:'https://[<MASTER_IPV6>]:6443'
 
