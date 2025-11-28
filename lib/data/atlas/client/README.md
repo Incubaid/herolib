@@ -17,8 +17,8 @@ AtlasClient provides methods to:
 ```v
 import incubaid.herolib.web.atlas_client
 
-// Create client
-mut client := atlas_client.new(export_dir: '/tmp/atlas_export')!
+// Create client, exports will be in $/hero/var/atlas_export by default
+mut client := atlas_client.new()!
 
 // List collections
 collections := client.list_collections()!
