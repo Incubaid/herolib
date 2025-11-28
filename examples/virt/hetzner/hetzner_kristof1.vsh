@@ -8,23 +8,33 @@ import time
 import os
 import incubaid.herolib.core.playcmds
 
-name := 'kristof1'
+// Server-specific configuration
+const server_name = 'kristof1'
+const server_whitelist = '2521602'
 
-user := os.environ()['HETZNER_USER'] or {
+// Load credentials from environment variables
+// Source hetzner_env.sh before running: source examples/virt/hetzner/hetzner_env.sh
+hetzner_user := os.environ()['HETZNER_USER'] or {
 	println('HETZNER_USER not set')
 	exit(1)
 }
-passwd := os.environ()['HETZNER_PASSWORD'] or {
+
+hetzner_passwd := os.environ()['HETZNER_PASSWORD'] or {
 	println('HETZNER_PASSWORD not set')
+	exit(1)
+}
+
+hetzner_sshkey_name := os.environ()['HETZNER_SSHKEY_NAME'] or {
+	println('HETZNER_SSHKEY_NAME not set')
 	exit(1)
 }
 
 hs := '
 !!hetznermanager.configure
-	user:"${user}"
-	whitelist:"2521602,2555487,2573047"
-	password:"${passwd}"
-	sshkey:"kristof"
+	user:"${hetzner_user}"
+	whitelist:"${server_whitelist}"
+	password:"${hetzner_passwd}"
+	sshkey:"${hetzner_sshkey_name}"
 '
 
 println(hs)
@@ -42,7 +52,7 @@ mut cl := hetznermanager.get()!
 
 println(cl.servers_list()!)
 
-mut serverinfo := cl.server_info_get(name: name)!
+mut serverinfo := cl.server_info_get(name: server_name)!
 
 println(serverinfo)
 
@@ -55,7 +65,7 @@ println(serverinfo)
 
 // console.print_header('SSH login')
 
-cl.ubuntu_install(name: name, wait: true, hero_install: true)!
+cl.ubuntu_install(name: server_name, wait: true, hero_install: true)!
 // cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550378, name: 'kristof21', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550508, name: 'kristof22', wait: true, hero_install: true)!
