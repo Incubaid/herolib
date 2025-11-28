@@ -93,5 +93,4 @@ pub fn play(mut plbook PlayBook) ! {
 	play_pages(mut plbook, mut website)!
 
 	console.print_green('Site configuration complete')
-
 }

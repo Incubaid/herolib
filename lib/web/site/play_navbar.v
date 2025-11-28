@@ -6,20 +6,6 @@ import incubaid.herolib.core.texttools
 import time
 import incubaid.herolib.ui.console
 
-
-
-// ============================================================
-// Internal structure for tracking category information
-// ============================================================
-struct CategoryInfo {
-pub mut:
-	name      string
-	label     string
-	position  int
-	nav_items []NavItem
-}
-
-
 // ============================================================
 // NAVBAR: Process navigation menu
 // ============================================================
@@ -54,9 +40,7 @@ fn play_navbar(mut plbook PlayBook, mut config SiteConfig) ! {
 	for mut action in navbar_item_actions {
 		mut p := action.params
 
-		label := p.get('label') or {
-			return error('!!site.navbar_item: must specify "label"')
-		}
+		label := p.get('label') or { return error('!!site.navbar_item: must specify "label"') }
 
 		mut item := MenuItem{
 			label:    label

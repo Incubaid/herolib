@@ -7,6 +7,30 @@ import time
 import incubaid.herolib.ui.console
 
 // ============================================================
+// Helper function: normalize name while preserving .md extension handling
+// ============================================================
+fn normalize_page_name(name string) string {
+	mut result := name
+	// Remove .md extension if present for processing
+	if result.ends_with('.md') {
+		result = result[0..result.len - 3]
+	}
+	// Apply name fixing
+	return texttools.name_fix(result)
+}
+
+// ============================================================
+// Internal structure for tracking category information
+// ============================================================
+struct CategoryInfo {
+pub mut:
+	name      string
+	label     string
+	position  int
+	nav_items []NavItem
+}
+
+// ============================================================
 // PAGES: Process pages and build navigation structure
 // ============================================================
 fn play_pages(mut plbook PlayBook, mut website Site) ! {
@@ -71,22 +95,16 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 			if page_src.contains(':') {
 				parts := page_src.split(':')
 				page_collection = texttools.name_fix(parts[0])
-				page_name = texttools.name_fix_keepext(parts[1])
+				page_name = normalize_page_name(parts[1])
 			} else {
 				// Use previously specified collection if available
 				if collection_current.len > 0 {
 					page_collection = collection_current
-					page_name = texttools.name_fix_keepext(page_src)
+					page_name = normalize_page_name(page_src)
 				} else {
 					return error('!!site.page: must specify source as "collection:page_name" in "src".\nGot src="${page_src}" with no collection previously set.\nEither specify "collection:page_name" or define a collection first.')
 				}
 			}
-
-			// Clean up page name (remove .md if present)
-			if page_name.ends_with('.md') {
-				page_name = page_name[0..page_name.len - 3]
-			}
-			page_name = texttools.name_fix(page_name)
 
 			// Validation
 			if page_name.len == 0 {
@@ -182,13 +200,4 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 	website.nav.my_sidebar = final_nav_items
 
 	console.print_green('Navigation structure built with ${website.pages.len} pages in ${categories.len} categories')
-}
-
-// -------- Internal Type for Tracking --------
-struct CategoryInfo {
-pub mut:
-	name      string
-	label     string
-	position  int
-	nav_items []NavItem
 }
