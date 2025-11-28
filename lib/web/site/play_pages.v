@@ -34,10 +34,10 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 				return error('!!site.page_category: must specify "name"')
 			}
 
-			category_name = texttools.name_fix(category_name)
+			category_name_fixed := texttools.name_fix(category_name)
 
 			// Get label (derive from name if not specified)
-			mut label := p.get_default('label', texttools.name_fix_snake_to_pascal(category_name))!
+			mut label := p.get_default('label', texttools.name_fix_snake_to_pascal(category_name_fixed))!
 			mut position := p.get_int_default('position', next_category_position)!
 
 			// Auto-increment position if using default
@@ -46,14 +46,15 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 			}
 
 			// Create and store category info
-			categories[category_name] = CategoryInfo{
-				name:      category_name
+			categories[category_name_fixed] = CategoryInfo{
+				name:      category_name_fixed
 				label:     label
 				position:  position
 				nav_items: []NavItem{}
 			}
 
-			category_current = category_name
+			category_current = category_name_fixed
+			console.print_item('Created page category: "${label}" (${category_name_fixed})')
 			action.done = true
 			continue
 		}
@@ -131,12 +132,63 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 					mut cat_info := categories[category_current]
 					cat_info.nav_items << nav_doc
 					categories[category_current] = cat_info
+					console.print_debug('Added page "${page_id}" to category "${category_current}"')
 				}
 			} else {
 				root_nav_items << nav_doc
+				console.print_debug('Added root page "${page_id}"')
 			}
 
 			action.done = true
 			continue
 		}
 	}
+
+	// ============================================================
+	// PASS 2: Build final navigation structure from categories
+	// ============================================================
+	console.print_item('Building navigation structure...')
+
+	mut final_nav_items := []NavItem{}
+
+	// Add root items first
+	for item in root_nav_items {
+		final_nav_items << item
+	}
+
+	// Sort categories by position and add them
+	mut sorted_categories := []CategoryInfo{}
+	for _, cat_info in categories {
+		sorted_categories << cat_info
+	}
+
+	// Sort by position
+	sorted_categories.sort(a.position < b.position)
+
+	// Convert categories to NavCat items and add to navigation
+	for cat_info in sorted_categories {
+		// Unwrap NavDoc items from cat_info.nav_items (they're already NavItem)
+		nav_cat := NavCat{
+			label:       cat_info.label
+			collapsible: true
+			collapsed:   false
+			items:       cat_info.nav_items
+		}
+		final_nav_items << nav_cat
+		console.print_debug('Added category to nav: "${cat_info.label}" with ${cat_info.nav_items.len} items')
+	}
+
+	// Update website navigation
+	website.nav.my_sidebar = final_nav_items
+
+	console.print_green('Navigation structure built with ${website.pages.len} pages in ${categories.len} categories')
+}
+
+// -------- Internal Type for Tracking --------
+struct CategoryInfo {
+pub mut:
+	name      string
+	label     string
+	position  int
+	nav_items []NavItem
+}
