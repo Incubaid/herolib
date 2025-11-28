@@ -60,9 +60,8 @@ mut n := b.node_new(ipaddr: serverinfo.server_ip)!
 // this will put hero in debug mode on the system
 // n.hero_install(compile: true)!
 
-n.shell('')!
-
 cl.ubuntu_install(name: name, wait: true, hero_install: true)!
+n.shell('')!
 // cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550378, name: 'kristof21', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550508, name: 'kristof22', wait: true, hero_install: true)!
