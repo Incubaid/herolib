@@ -88,7 +88,7 @@ os.write_file(hero_v_path, lines.join_lines()) or {
 os.rm('${hero_v_path}.backup') or { eprintln('Warning: Could not remove backup file: ${err}') }
 
 // Update version in install_hero.sh
-install_hero_path := '${ourdir}/install_hero.sh'
+install_hero_path := '${ourdir}/scripts/install_hero.sh'
 install_hero_content := os.read_file(install_hero_path) or {
 	eprintln('Error reading ${install_hero_path}: ${err}')
 	exit(1)

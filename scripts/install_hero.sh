@@ -4,7 +4,7 @@ set -e
 
 os_name="$(uname -s)"
 arch_name="$(uname -m)"
-version='1.0.36'
+version='1.0.38'
 
 # Detect Linux distribution type
 linux_type=""
@@ -17,19 +17,11 @@ fi
 # Base URL for GitHub releases
 base_url="https://github.com/incubaid/herolib/releases/download/v${version}"
 
-# Select the URL based on the platform
+# Select the URL based on the platform. For Linux we have a single static binary
 if [[ "$os_name" == "Linux" && "$arch_name" == "x86_64" ]]; then
-    if [[ "$linux_type" == "alpine" ]]; then
-        url="$base_url/hero-x86_64-linux-musl"
-    else
-        url="$base_url/hero-x86_64-linux"
-    fi
+    url="$base_url/hero-x86_64-linux-musl"
 elif [[ "$os_name" == "Linux" && "$arch_name" == "aarch64" ]]; then
-    if [[ "$linux_type" == "alpine" ]]; then
-        url="$base_url/hero-aarch64-linux-musl"
-    else
-        url="$base_url/hero-aarch64-linux"
-    fi
+    url="$base_url/hero-aarch64-linux-musl"
 elif [[ "$os_name" == "Darwin" && "$arch_name" == "arm64" ]]; then
     url="$base_url/hero-aarch64-apple-darwin"
 # elif [[ "$os_name" == "Darwin" && "$arch_name" == "x86_64" ]]; then

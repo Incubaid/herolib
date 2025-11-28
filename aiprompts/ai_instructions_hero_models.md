@@ -2,9 +2,9 @@
 
 ## Overview
 
-This document provides clear instructions for AI agents to create new HeroDB models similar to `message.v`. 
+This document provides clear instructions for AI agents to create new HeroDB models similar to `message.v`.
 These models are used to store structured data in Redis using the HeroDB system.
-The message.v can be found in `lib/hero/heromodels/message.v`.s
+The `message.v` example can be found in `lib/hero/heromodels/message.v`.
 
 ## Key Concepts
 
@@ -108,7 +108,7 @@ Add your model to the ModelsFactory struct in `factory.v`:
 ```v
 pub struct ModelsFactory {
 pub mut:
- messages DBCalendar
+ calendar DBCalendar
  // ... other models
 }
 ```
