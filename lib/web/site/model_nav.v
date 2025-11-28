@@ -5,7 +5,7 @@ import json
 // Top-level config
 pub struct NavConfig {
 pub mut:
-	mySidebar []NavItem
+	my_sidebar []NavItem
 	// myTopbar []NavItem //not used yet
 	// myFooter []NavItem //not used yet
 }
@@ -16,8 +16,8 @@ pub type NavItem = NavDoc | NavCat | NavLink
 // --------- DOC ITEM ----------
 pub struct NavDoc {
 pub:
-	id     string //is the page id
-	label  string
+	id    string // is the page id
+	label string
 }
 
 // --------- CATEGORY ----------
@@ -32,9 +32,9 @@ pub mut:
 // --------- LINK ----------
 pub struct NavLink {
 pub:
-	label        string
-	href         string
-	description  string
+	label       string
+	href        string
+	description string
 }
 
 // -------- JSON SERIALIZATION --------
@@ -42,17 +42,17 @@ pub:
 // NavItemJson is used for JSON export with type discrimination
 pub struct NavItemJson {
 pub mut:
-	type_field  string         @[json: 'type']
+	type_field string @[json: 'type']
 	// For doc
-	id          string         @[omitempty]
-	label       string         @[omitempty]
+	id    string @[omitempty]
+	label string @[omitempty]
 	// For link
-	href        string         @[omitempty]
-	description string         @[omitempty]
+	href        string @[omitempty]
+	description string @[omitempty]
 	// For category
 	collapsible bool
 	collapsed   bool
-	items       []NavItemJson  @[omitempty]
+	items       []NavItemJson @[omitempty]
 }
 
 // Convert a single NavItem to JSON-serializable format
@@ -60,9 +60,9 @@ fn nav_item_to_json(item NavItem) !NavItemJson {
 	return match item {
 		NavDoc {
 			NavItemJson{
-				type_field: 'doc'
-				id:         item.id
-				label:      item.label
+				type_field:  'doc'
+				id:          item.id
+				label:       item.label
 				collapsible: false
 				collapsed:   false
 			}
@@ -93,16 +93,14 @@ fn nav_item_to_json(item NavItem) !NavItemJson {
 	}
 }
 
-// Convert entire NavConfig sidebar to JSON-serializable array
-fn (nc NavConfig) sidebar_to_json() ![]NavItemJson {
+// Convert entire NavConfig sidebar to JSON string
+fn (nc NavConfig) sidebar_to_json() !string {
 	mut result := []NavItemJson{}
-	for item in nc.mySidebar {
+	for item in nc.my_sidebar {
 		result << nav_item_to_json(item)!
 	}
-	return result
+	return json.encode_pretty(result)
 }
-
-
 
 // // Convert entire NavConfig topbar to JSON-serializable array
 // fn (nc NavConfig) topbar_to_json() ![]NavItemJson {
@@ -122,7 +120,7 @@ fn (nc NavConfig) sidebar_to_json() ![]NavItemJson {
 // 	return result
 // }
 
-port topbar as formatted JSON string
+// port topbar as formatted JSON string
 // pub fn (nc NavConfig) jsondump_topbar() !string {
 // 	items := nc.topbar_to_json()!
 // 	return json.encode_pretty(items)

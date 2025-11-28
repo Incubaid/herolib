@@ -225,6 +225,75 @@ docs/
     path: "/tmp/docs-preview"
 ```
 
+## HeroScript Processing Order
+
+Atlas processes HeroScript actions in a fixed order. Each step depends on previous steps:
+
+1. **Site Configuration** (`!!site.config`) - Required
+   - Sets basic site metadata and URLs
+   
+2. **Metadata Overrides** (`!!site.config_meta`) - Optional
+   - Overrides specific SEO metadata
+   
+3. **Content Imports** (`!!site.import`) - Optional
+   - Defines external content imports
+   
+4. **Navigation Menu** (`!!site.navbar` + `!!site.navbar_item`) - Recommended
+   - Configures top navigation bar
+   
+5. **Footer** (`!!site.footer` + `!!site.footer_item`) - Recommended  
+   - Configures footer links
+   
+6. **Announcement Bar** (`!!site.announcement`) - Optional
+   - Configures optional announcement banner
+   
+7. **Publishing** (`!!site.publish` + `!!site.publish_dev`) - Optional
+   - Defines deployment destinations
+   
+8. **Pages** (`!!site.page_category` + `!!site.page`) - Recommended
+   - Defines content pages and navigation structure
+
+### Error Handling
+
+The play function validates parameters and provides helpful error messages:
+
+```/dev/null/error_example.txt#L1-4
+!!site.page: must specify source as "collection:page_name" in "src"
+Got src="invalid_page" with no collection previously set
+Either specify "collection:page_name" or define a collection first
+```
+
+### Best Practices for HeroScript
+
+```heroscript/example.heroscript#L1-20
+# 1. Always start with config
+!!site.config
+    name: "my_docs"
+    title: "My Documentation"
+
+# 2. Set up navigation 
+!!site.navbar title: "MyDocs"
+
+# 3. Define pages with reusable collection
+!!site.page_category name: "intro"
+
+!!site.page src: "guides:introduction"
+    title: "Getting Started"
+
+!!site.page src: "setup"          # Reuses "guides" collection
+    title: "Installation"
+
+!!site.page src: "tutorial"       # Still uses "guides"
+    title: "Tutorial"
+
+# 4. Change collection when needed
+!!site.page src: "api:reference"
+    title: "API Reference"
+
+!!site.page src: "endpoints"      # Now uses "api" collection
+    title: "Endpoints"
+```
+
 ## Factory Methods
 
 ### Create or Get a Site

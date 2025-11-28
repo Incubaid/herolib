@@ -1,11 +1,12 @@
 module site
 
+// Page represents a single documentation page
 pub struct Page {
 pub mut:
-	id string //unique identifier, by default as "collection:page_name", we can overrule this from play instructions if needed
-	title        string
-	description  string
-	draft        bool
-	hide_title   bool
-	src          string @[required] // always in format collection:page_name, can use the default collection if no : specified
+	id          string // Unique identifier: "collection:page_name"
+	title       string // Display title (optional, extracted from markdown if empty)
+	description string // Brief description for metadata
+	draft       bool   // Mark as draft (hidden from navigation)
+	hide_title  bool   // Hide the title when rendering
+	src         string // Source reference (same as id in this format)
 }
