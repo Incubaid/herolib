@@ -1,0 +1,53 @@
+#!/usr/bin/env hero
+# Basic single-section documentation site
+
+!!site.config
+    name: "simple_docs"
+    title: "Simple Documentation"
+    description: "A basic documentation site"
+    copyright: "© 2024 Example"
+    url: "https://docs.example.com"
+    base_url: "/"
+
+!!site.navbar
+    title: "Simple Docs"
+    logo_src: "img/logo.png"
+
+!!site.navbar_item
+    label: "Docs"
+    to: "/"
+    position: "left"
+
+!!site.navbar_item
+    label: "GitHub"
+    href: "https://github.com/example/repo"
+    position: "right"
+
+!!site.footer
+    style: "dark"
+
+!!site.footer_item
+    title: "Documentation"
+    label: "Getting Started"
+    to: "getting-started"
+
+!!site.footer_item
+    title: "Community"
+    label: "Discord"
+    href: "https://discord.gg/example"
+
+!!site.page src: "docs:introduction"
+    title: "Getting Started"
+    description: "Learn the basics"
+
+!!site.page src: "installation"
+    title: "Installation"
+    description: "How to install"
+
+!!site.page src: "usage"
+    title: "Usage Guide"
+    description: "How to use the system"
+
+!!site.page src: "faq"
+    title: "FAQ"
+    description: "Frequently asked questions"

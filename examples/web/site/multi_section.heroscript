@@ -1,0 +1,155 @@
+#!/usr/bin/env hero
+# Multi-section documentation with categories
+
+!!site.config
+    name: "multi_docs"
+    title: "Complete Documentation"
+    description: "Comprehensive documentation with multiple sections"
+    tagline: "Everything you need to know"
+    copyright: "© 2024 Tech Company"
+    url: "https://docs.techcompany.com"
+    base_url: "/docs"
+
+!!site.navbar
+    title: "Tech Documentation"
+    logo_src: "img/logo.svg"
+
+!!site.navbar_item
+    label: "Documentation"
+    to: "/"
+    position: "left"
+
+!!site.navbar_item
+    label: "API"
+    to: "api"
+    position: "left"
+
+!!site.navbar_item
+    label: "GitHub"
+    href: "https://github.com/techcompany"
+    position: "right"
+
+!!site.footer
+    style: "dark"
+
+!!site.footer_item
+    title: "Guides"
+    label: "Getting Started"
+    to: "getting-started"
+
+!!site.footer_item
+    title: "Guides"
+    label: "Installation"
+    to: "installation"
+
+!!site.footer_item
+    title: "Company"
+    label: "Website"
+    href: "https://techcompany.com"
+
+!!site.footer_item
+    title: "Legal"
+    label: "Privacy"
+    href: "https://techcompany.com/privacy"
+
+# ==================================================
+# Getting Started Section
+# ==================================================
+
+!!site.page_category
+    name: "getting_started"
+    label: "Getting Started"
+    position: 100
+
+!!site.page src: "docs:introduction"
+    title: "Introduction"
+    description: "What is this project?"
+
+!!site.page src: "installation"
+    title: "Installation"
+    description: "Get up and running"
+
+!!site.page src: "quickstart"
+    title: "Quick Start"
+    description: "Your first steps"
+
+# ==================================================
+# Core Concepts Section
+# ==================================================
+
+!!site.page_category
+    name: "concepts"
+    label: "Core Concepts"
+    position: 200
+
+!!site.page src: "concepts:architecture"
+    title: "Architecture"
+    description: "System design and architecture"
+
+!!site.page src: "components"
+    title: "Components"
+    description: "Main system components"
+
+!!site.page src: "data_flow"
+    title: "Data Flow"
+    description: "How data flows through the system"
+
+!!site.page src: "security"
+    title: "Security"
+    description: "Security considerations"
+
+# ==================================================
+# Advanced Topics Section
+# ==================================================
+
+!!site.page_category
+    name: "advanced"
+    label: "Advanced Topics"
+    position: 300
+
+!!site.page src: "advanced:performance"
+    title: "Performance Tuning"
+    description: "Optimize your system"
+
+!!site.page src: "scaling"
+    title: "Scaling"
+    description: "Scale to millions of users"
+
+!!site.page src: "deployment"
+    title: "Deployment"
+    description: "Deploy to production"
+
+# ==================================================
+# API Reference Section
+# ==================================================
+
+!!site.page_category
+    name: "api"
+    label: "API Reference"
+    position: 400
+
+!!site.page src: "api:overview"
+    title: "API Overview"
+    description: "API capabilities and base URLs"
+
+!!site.page src: "rest_api"
+    title: "REST API"
+    description: "Complete REST API documentation"
+
+!!site.page src: "graphql_api"
+    title: "GraphQL"
+    description: "GraphQL API documentation"
+
+!!site.page src: "webhooks"
+    title: "Webhooks"
+    description: "Implement webhooks in your app"
+
+# ==================================================
+# Publishing
+# ==================================================
+
+!!site.publish
+    path: "/var/www/html/docs"
+
+!!site.publish_dev
+    path: "/tmp/docs-preview"
