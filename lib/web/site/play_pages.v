@@ -138,10 +138,15 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 
 			website.pages[page_id] = page
 
-			// Create navigation item
+			// Create navigation item with human-readable label
+			nav_label := if page_title.len > 0 {
+				page_title
+			} else {
+				texttools.title_case(page_name)
+			}
 			nav_doc := NavDoc{
 				id:    page_id
-				label: if page_title.len > 0 { page_title } else { page_name }
+				label: nav_label
 			}
 
 			// Add to appropriate category or root
