@@ -22,7 +22,7 @@ fn play_announcement(mut plbook PlayBook, mut config SiteConfig) ! {
 		}
 
 		config.announcement = AnnouncementBar{
-			id:               p.get_default('id', 'announcement')!
+			// id:               p.get('id')!
 			content:          content
 			background_color: p.get_default('background_color', '#20232a')!
 			text_color:       p.get_default('text_color', '#fff')!

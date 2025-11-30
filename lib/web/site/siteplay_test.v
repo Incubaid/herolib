@@ -88,7 +88,6 @@ const test_heroscript = '
     href: "https://example.com/terms"
 
 !!site.announcement
-    id: "v2-release"
     content: "🎉 Version 2.0 is now available! Check out the new features."
     background_color: "#1a472a"
     text_color: "#fff"
@@ -189,12 +188,11 @@ fn test_site1() ! {
 	console.print_green('✓ Playbook created successfully')
 	console.lf()
 
-
 	// ========================================================
 	// TEST 2: Process site configuration
 	// ========================================================
 	console.print_item('TEST 2: Processing site.play()')
-	site.play(mut plbook)!
+	play(mut plbook)!
 	console.print_green('✓ Site configuration processed successfully')
 	console.lf()
 
@@ -214,7 +212,7 @@ fn test_site1() ! {
 
 	help_test_string('Site Name', config.name, 'test_docs')
 	help_test_string('Site Title', config.title, 'Test Documentation Site')
-	help_test_string('Site Description', config.description, 'A comprehensive test documentation site')
+	help_test_string('Site Description', config.description, 'Advanced test documentation')
 	help_test_string('Site Tagline', config.tagline, 'Testing everything')
 	help_test_string('Copyright', config.copyright, '© 2024 Test Organization')
 	help_test_string('Base URL', config.base_url, '/')
@@ -232,9 +230,199 @@ fn test_site1() ! {
 	console.lf()
 
 
+	// ========================================================
+	// TEST 5: Validate Menu Configuration
+	// ========================================================
+	console.print_header('Validating Menu Configuration')
+	mut menu := config.menu
+
+	help_test_string('Menu Title', menu.title, 'Test Documentation')
+	help_test_string('Menu Logo Alt', menu.logo_alt, 'Test Logo')
+	help_test_string('Menu Logo Src', menu.logo_src, 'img/logo.svg')
+	help_test_string('Menu Logo Src Dark', menu.logo_src_dark, 'img/logo-dark.svg')
+
+	assert menu.items.len == 4, 'Should have 4 navbar items, got ${menu.items.len}'
+	console.print_green('✓ Menu has 4 navbar items')
+
+	// Validate navbar items
+	help_test_navbar_item(menu.items[0], 'Getting Started', 'intro', '', 'left')
+	help_test_navbar_item(menu.items[1], 'API Reference', 'api', '', 'left')
+	help_test_navbar_item(menu.items[2], 'GitHub', '', 'https://github.com/example/test',
+		'right')
+	help_test_navbar_item(menu.items[3], 'Blog', '', 'https://blog.example.com', 'right')
+
+	console.lf()
+
+
+	// ========================================================
+	// TEST 6: Validate Footer Configuration
+	// ========================================================
+	console.print_header('Validating Footer Configuration')
+	mut footer := config.footer
+
+	help_test_string('Footer Style', footer.style, 'dark')
+	assert footer.links.len == 3, 'Should have 3 footer link groups, got ${footer.links.len}'
+	console.print_green('✓ Footer has 3 link groups')
+
+	// Validate footer structure
+	for link_group in footer.links {
+		console.print_item('Footer group: "${link_group.title}" has ${link_group.items.len} items')
+	}
+
+	// Detailed footer validation
+	mut doc_links := footer.links.filter(it.title == 'Documentation')
+	assert doc_links.len == 1, 'Should have 1 Documentation link group'
+	assert doc_links[0].items.len == 3, 'Documentation should have 3 items'
+	console.print_green('✓ Documentation footer: 3 items')
+
+	mut community_links := footer.links.filter(it.title == 'Community')
+	assert community_links.len == 1, 'Should have 1 Community link group'
+	assert community_links[0].items.len == 2, 'Community should have 2 items'
+	console.print_green('✓ Community footer: 2 items')
+
+	mut legal_links := footer.links.filter(it.title == 'Legal')
+	assert legal_links.len == 1, 'Should have 1 Legal link group'
+	assert legal_links[0].items.len == 2, 'Legal should have 2 items'
+	console.print_green('✓ Legal footer: 2 items')
+
+	console.lf()
+
+	// ========================================================
+	// TEST 7: Validate Announcement Bar
+	// ========================================================
+	console.print_header('Validating Announcement Bar')
+	mut announcement := config.announcement
+
+	help_test_string('Announcement Content', announcement.content, '🎉 Version 2.0 is now available! Check out the new features.')
+	help_test_string('Announcement BG Color', announcement.background_color, '#1a472a')
+	help_test_string('Announcement Text Color', announcement.text_color, '#fff')
+	assert announcement.is_closeable == true, 'Announcement should be closeable'
+	console.print_green('✓ Announcement bar configured correctly')
+
+	console.lf()
+
+
 }
 
 
+
+fn test_site2() ! {
+	console.print_header('Site Module Comprehensive Test')
+	console.lf()
+
+	mut plbook := playbook.new(text: test_heroscript)!
+	mut test_site := site.get(name: 'test_docs')!
+
+	// ========================================================
+	// TEST 8: Validate Pages
+	// ========================================================
+	console.print_header('Validating Pages')
+	mut pages := test_site.pages.clone()
+
+	assert pages.len == 13, 'Should have 13 pages, got ${pages.len}'
+	console.print_green('✓ Total pages: ${pages.len}')
+
+	// List and validate pages
+	mut page_ids := pages.keys()
+	page_ids.sort()
+
+	for page_id in page_ids {
+		mut page := pages[page_id]
+		console.print_debug('  Page: ${page_id} - "${page.title}"')
+	}
+
+	// Validate specific pages
+	assert 'guides:introduction' in pages, 'guides:introduction page not found'
+	console.print_green('✓ Found guides:introduction')
+
+	assert 'concepts:architecture' in pages, 'concepts:architecture page not found'
+	console.print_green('✓ Found concepts:architecture')
+
+	assert 'api:rest' in pages, 'api:rest page not found'
+	console.print_green('✓ Found api:rest')
+
+	console.lf()
+
+	// ========================================================
+	// TEST 9: Validate Navigation Structure
+	// ========================================================
+	console.print_header('Validating Navigation Structure')
+	mut sidebar := unsafe { test_site.nav.my_sidebar.clone() }
+
+	console.print_item('Navigation sidebar has ${sidebar.len} items')
+
+	// Count categories
+	mut category_count := 0
+	mut doc_count := 0
+
+	for item in sidebar {
+		match item {
+			NavCat {
+				category_count++
+				console.print_debug('  Category: "${item.label}" with ${item.items.len} sub-items')
+			}
+			NavDoc {
+				doc_count++
+				console.print_debug('  Doc: "${item.label}" (${item.id})')
+			}
+			NavLink {
+				console.print_debug('  Link: "${item.label}" -> ${item.href}')
+			}
+		}
+	}
+
+	assert category_count == 4, 'Should have 4 categories, got ${category_count}'
+	console.print_green('✓ Navigation has 4 categories')
+
+	// Validate category structure
+	for item in sidebar {
+		match item {
+			NavCat {
+				console.print_item('Category: "${item.label}"')
+				println('    Collapsible: ${item.collapsible}, Collapsed: ${item.collapsed}')
+				println('    Items: ${item.items.len}')
+
+				// Validate sub-items
+				for sub_item in item.items {
+					match sub_item {
+						NavDoc {
+							println('      - ${sub_item.label} (${sub_item.id})')
+						}
+						else {
+							println('      - Unexpected item type')
+						}
+					}
+				}
+			}
+			else {}
+		}
+	}
+
+	console.lf()
+
+
+	// ========================================================
+	// TEST 10: Validate Site Factory
+	// ========================================================
+	console.print_header('Validating Site Factory')
+
+	mut all_sites := list()
+	console.print_item('Total sites registered: ${all_sites.len}')
+	for site_name in all_sites {
+		console.print_debug('  - ${site_name}')
+	}
+
+	assert all_sites.contains('test_docs'), 'test_docs should be in sites list'
+	console.print_green('✓ test_docs found in factory')
+
+	assert exists(name: 'test_docs'), 'test_docs should exist'
+	console.print_green('✓ test_docs verified to exist')
+
+	console.lf()
+
+	// println(test_site)
+	// if true{panic("ss33")}
+}
 
 
 // ============================================================
