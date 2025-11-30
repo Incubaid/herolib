@@ -2,32 +2,31 @@ module site
 
 import json
 
-// Top-level config
+// ============================================================================
+// Sidebar Navigation Models (Domain Types)
+// ============================================================================
+
 pub struct SideBar {
 pub mut:
 	my_sidebar []NavItem
 }
 
-// -------- Variant Type --------
 pub type NavItem = NavDoc | NavCat | NavLink
 
-// --------- DOC ITEM ----------
 pub struct NavDoc {
 pub:
-	id    string // is the page id
+	id    string
 	label string
 }
 
-// --------- CATEGORY ----------
 pub struct NavCat {
 pub mut:
 	label       string
-	collapsible bool
+	collapsible bool = true
 	collapsed   bool
 	items       []NavItem
 }
 
-// --------- LINK ----------
 pub struct NavLink {
 pub:
 	label       string
@@ -35,67 +34,69 @@ pub:
 	description string
 }
 
-// -------- JSON SERIALIZATION --------
+// ============================================================================
+// JSON Serialization Struct (unified to avoid sum type _type field)
+// ============================================================================
 
-// NavItemJson is used for JSON export with type discrimination
-pub struct NavItemJson {
-pub mut:
-	type_field string @[json: 'type']
-	// For doc
-	id    string @[omitempty]
-	label string @[omitempty]
-	// For link
-	href        string @[omitempty]
-	description string @[omitempty]
-	// For category
-	collapsible bool
-	collapsed   bool
-	items       []NavItemJson @[omitempty]
+struct SidebarItem {
+	typ         string @[json: 'type']
+	id          string @[omitempty]
+	label       string
+	href        string        @[omitempty]
+	description string        @[omitempty]
+	collapsible bool          @[json: 'collapsible'; omitempty]
+	collapsed   bool          @[json: 'collapsed'; omitempty]
+	items       []SidebarItem @[omitempty]
 }
 
-// Convert a single NavItem to JSON-serializable format
-fn nav_item_to_json(item NavItem) !NavItemJson {
+// ============================================================================
+// JSON Serialization
+// ============================================================================
+
+pub fn (sb SideBar) sidebar_to_json() !string {
+	items := sb.my_sidebar.map(to_sidebar_item(it))
+	return json.encode_pretty(items)
+}
+
+fn to_sidebar_item(item NavItem) SidebarItem {
 	return match item {
-		NavDoc {
-			NavItemJson{
-				type_field:  'doc'
-				id:          item.id
-				label:       item.label
-				collapsible: false
-				collapsed:   false
-			}
-		}
-		NavLink {
-			NavItemJson{
-				type_field:  'link'
-				label:       item.label
-				href:        item.href
-				description: item.description
-				collapsible: false
-				collapsed:   false
-			}
-		}
-		NavCat {
-			mut json_items := []NavItemJson{}
-			for sub_item in item.items {
-				json_items << nav_item_to_json(sub_item)!
-			}
-			NavItemJson{
-				type_field:  'category'
-				label:       item.label
-				collapsible: item.collapsible
-				collapsed:   item.collapsed
-				items:       json_items
-			}
-		}
+		NavDoc { from_doc(item) }
+		NavLink { from_link(item) }
+		NavCat { from_category(item) }
 	}
 }
 
-// Convert entire NavConfig sidebar to JSON string
-pub fn (nc SideBar) sidebar_to_json() !string {
-	mut result := []NavItemJson{}
-	for item in nc.my_sidebar {
-		result << nav_item_to_json(item)!
+fn from_doc(doc NavDoc) SidebarItem {
+	return SidebarItem{
+		typ:   'doc'
+		id:    extract_page_id(doc.id)
+		label: doc.label
 	}
-	return json.encode_pretty(result)
+}
+
+fn from_link(link NavLink) SidebarItem {
+	return SidebarItem{
+		typ:         'link'
+		label:       link.label
+		href:        link.href
+		description: link.description
+	}
+}
+
+fn from_category(cat NavCat) SidebarItem {
+	return SidebarItem{
+		typ:         'category'
+		label:       cat.label
+		collapsible: cat.collapsible
+		collapsed:   cat.collapsed
+		items:       cat.items.map(to_sidebar_item(it))
+	}
+}
+
+fn extract_page_id(id string) string {
+	parts := id.split(':')
+	if parts.len == 2 {
+		return parts[1]
+	}
+	return id
 }
