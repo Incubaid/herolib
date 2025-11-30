@@ -3,11 +3,9 @@ module site
 import json
 
 // Top-level config
-pub struct NavConfig {
+pub struct SideBar {
 pub mut:
 	my_sidebar []NavItem
-	// myTopbar []NavItem //not used yet
-	// myFooter []NavItem //not used yet
 }
 
 // -------- Variant Type --------
@@ -94,50 +92,10 @@ fn nav_item_to_json(item NavItem) !NavItemJson {
 }
 
 // Convert entire NavConfig sidebar to JSON string
-pub fn (nc NavConfig) sidebar_to_json() !string {
+pub fn (nc SideBar) sidebar_to_json() !string {
 	mut result := []NavItemJson{}
 	for item in nc.my_sidebar {
 		result << nav_item_to_json(item)!
 	}
 	return json.encode_pretty(result)
 }
-
-// // Convert entire NavConfig topbar to JSON-serializable array
-// fn (nc NavConfig) topbar_to_json() ![]NavItemJson {
-// 	mut result := []NavItemJson{}
-// 	for item in nc.myTopbar {
-// 		result << nav_item_to_json(item)!
-// 	}
-// 	return result
-// }
-
-// // Convert entire NavConfig footer to JSON-serializable array
-// fn (nc NavConfig) footer_to_json() ![]NavItemJson {
-// 	mut result := []NavItemJson{}
-// 	for item in nc.myFooter {
-// 		result << nav_item_to_json(item)!
-// 	}
-// 	return result
-// }
-
-// port topbar as formatted JSON string
-// pub fn (nc NavConfig) jsondump_topbar() !string {
-// 	items := nc.topbar_to_json()!
-// 	return json.encode_pretty(items)
-// }
-
-// // Export footer as formatted JSON string
-// pub fn (nc NavConfig) jsondump_footer() !string {
-// 	items := nc.footer_to_json()!
-// 	return json.encode_pretty(items)
-// }
-
-// // Export all navigation as object with sidebar, topbar, footer
-// pub fn (nc NavConfig) jsondump_all() !string {
-// 	all_nav := map[string][]NavItemJson{
-// 		'sidebar': nc.sidebar_to_json()!
-// 		'topbar':  nc.topbar_to_json()!
-// 		'footer':  nc.footer_to_json()!
-// 	}
-// 	return json.encode_pretty(all_nav)
-// }

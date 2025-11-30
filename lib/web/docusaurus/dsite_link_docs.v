@@ -22,8 +22,5 @@ pub fn (mut docsite DocSite) link_docs() ! {
 
 	println(c)
 
-	if true{
-		panic('link_docs is not yet implemented')
-	}
-	// $dbg;
+	$dbg;
 }

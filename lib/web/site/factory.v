@@ -21,7 +21,12 @@ pub fn new(args FactoryArgs) !&Site {
 		return get(name: name)!
 	}
 
-	mut site := Site{}
+	mut site := Site{
+		nav: SideBar{}
+		siteconfig: SiteConfig{
+			name: name
+		}
+	}
 	sites_global[name] = &site
 	return get(name: name)!
 }
