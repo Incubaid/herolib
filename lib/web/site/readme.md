@@ -38,12 +38,161 @@ site.play(mut plbook)!
 mut mysite := site.get(name: 'my_docs')!
 
 // Print available pages
-pages_map := mysite.list_pages()
-for page_id, _ in pages_map {
-    console.print_item('Page: ${page_id}')
+for page_id, page in mysite.pages {
+    console.print_item('Page: ${page_id} - "${page.title}"')
 }
 
 println('Site has ${mysite.pages.len} pages')
+```
+
+---
+
+## API Reference
+
+### Site Factory
+
+Factory functions to create and retrieve site instances:
+
+```v
+// Create a new site
+mut mysite := site.new(name: 'my_docs')!
+
+// Get existing site
+mut mysite := site.get(name: 'my_docs')!
+
+// Check if site exists
+if site.exists(name: 'my_docs') {
+    println('Site exists')
+}
+
+// Get all site names
+site_names := site.list()  // Returns []string
+
+// Get default site (creates if needed)
+mut default := site.default()!
+```
+
+### Site Object Structure
+
+```v
+pub struct Site {
+pub mut:
+    pages      map[string]Page  // key: "collection:page_name"
+    nav        NavConfig        // Navigation sidebar
+    siteconfig SiteConfig       // Full configuration
+}
+```
+
+### Accessing Pages
+
+```v
+// Access all pages
+pages := mysite.pages  // map[string]Page
+
+// Get specific page
+page := mysite.pages['docs:introduction']
+
+// Page structure
+pub struct Page {
+pub mut:
+    id          string  // "collection:page_name"
+    title       string  // Display title
+    description string  // SEO metadata
+    draft       bool    // Hidden if true
+    hide_title  bool    // Don't show title in rendering
+    src         string  // Source reference
+}
+```
+
+### Navigation Structure
+
+```v
+// Access sidebar navigation
+sidebar := mysite.nav.my_sidebar  // []NavItem
+
+// NavItem is a sum type (can be one of three types):
+pub type NavItem = NavDoc | NavCat | NavLink
+
+// Navigation items:
+
+pub struct NavDoc {
+pub:
+    id    string  // page id
+    label string  // display name
+}
+
+pub struct NavCat {
+pub mut:
+    label       string
+    collapsible bool
+    collapsed   bool
+    items       []NavItem  // nested NavDoc/NavCat/NavLink
+}
+
+pub struct NavLink {
+pub:
+    label       string
+    href        string
+    description string
+}
+
+// Example: iterate navigation
+for item in mysite.nav.my_sidebar {
+    match item {
+        NavDoc {
+            println('Page: ${item.label} (${item.id})')
+        }
+        NavCat {
+            println('Category: ${item.label} (${item.items.len} items)')
+        }
+        NavLink {
+            println('Link: ${item.label} -> ${item.href}')
+        }
+    }
+}
+```
+
+### Site Configuration
+
+```v
+pub struct SiteConfig {
+pub mut:
+    // Core
+    name        string
+    title       string
+    description string
+    tagline     string
+    favicon     string
+    image       string
+    copyright   string
+
+    // URLs (Docusaurus)
+    url         string    // Full site URL
+    base_url    string    // Base path (e.g., "/" or "/docs/")
+    url_home    string    // Home page path
+
+    // SEO Metadata
+    meta_title  string    // SEO title override
+    meta_image  string    // OG image override
+
+    // Publishing
+    build_dest      []BuildDest  // Production destinations
+    build_dest_dev  []BuildDest  // Development destinations
+
+    // Navigation & Footer
+    footer      Footer
+    menu        Menu
+    announcement AnnouncementBar
+    
+    // Imports
+    imports     []ImportItem
+}
+
+pub struct BuildDest {
+pub mut:
+    path     string
+    ssh_name string
+}
 ```
 
 ---
@@ -179,7 +328,6 @@ Overrides specific metadata for SEO without changing core config.
 
 ```heroscript
 !!site.announcement
-    id: "new-release"
     content: "🎉 Version 2.0 is now available!"
     background_color: "#20232a"
     text_color: "#fff"
@@ -236,6 +384,11 @@ Overrides specific metadata for SEO without changing core config.
 - `description` - Page description
 - `draft` - Hide from navigation (default: false)
 - `hide_title` - Don't show title in page (default: false)
+
+**Category Parameters:**
+- `name` - Category identifier (required)
+- `label` - Display label (auto-generated from name if omitted)
+- `position` - Sort order (auto-incremented if omitted)
 
 ### 7. Content Imports
 
@@ -377,19 +530,3 @@ Files are processed in alphabetical order. Numeric prefixes ensure:
 - Pages build the final structure
 - Publishing configured last
 
----
-
-## Processing Order
-
-The Site module processes HeroScript in this strict order:
-
-1. Site Configuration
-2. Metadata Overrides
-3. Imports
-4. Navigation
-5. Footer
-6. Announcement
-7. Publishing
-8. Pages & Categories
-
-Each stage depends on previous stages completing successfully.

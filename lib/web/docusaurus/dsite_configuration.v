@@ -9,6 +9,7 @@ pub mut:
 	main         Main
 	navbar       Navbar
 	footer       Footer
+	sidebar_json_txt		 string //will hold the sidebar.json content
 	announcement AnnouncementBar
 }
 
@@ -78,7 +79,7 @@ pub mut:
 
 pub struct AnnouncementBar {
 pub mut:
-	id               string @[json: 'id']
+	// id               string @[json: 'id']
 	content          string @[json: 'content']
 	background_color string @[json: 'backgroundColor']
 	text_color       string @[json: 'textColor']
@@ -88,8 +89,9 @@ pub mut:
 // ... (struct definitions remain the same) ...
 
 // This function is now a pure transformer: site.SiteConfig -> docusaurus.Configuration
-fn new_configuration(site_cfg site.SiteConfig) !Configuration {
+fn new_configuration(mysite site.Site) !Configuration {
 	// Transform site.SiteConfig to docusaurus.Configuration
+	mut site_cfg := mysite.siteconfig
 	mut nav_items := []NavbarItem{}
 	for item in site_cfg.menu.items {
 		nav_items << NavbarItem{
@@ -115,6 +117,8 @@ fn new_configuration(site_cfg site.SiteConfig) !Configuration {
 			items: footer_items_mapped
 		}
 	}
+
+	sidebar_json_txt := mysite.nav.sidebar_to_json()!
 
 	cfg := Configuration{
 		main:         Main{
@@ -161,13 +165,15 @@ fn new_configuration(site_cfg site.SiteConfig) !Configuration {
 			links: footer_links
 		}
 		announcement: AnnouncementBar{
-			id:               site_cfg.announcement.id
+			// id:               site_cfg.announcement.id
 			content:          site_cfg.announcement.content
 			background_color: site_cfg.announcement.background_color
 			text_color:       site_cfg.announcement.text_color
 			is_closeable:     site_cfg.announcement.is_closeable
 		}
+		sidebar_json_txt: sidebar_json_txt
 	}
+
 	return config_fix(cfg)!
 }
 

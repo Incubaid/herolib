@@ -94,7 +94,7 @@ fn nav_item_to_json(item NavItem) !NavItemJson {
 }
 
 // Convert entire NavConfig sidebar to JSON string
-fn (nc NavConfig) sidebar_to_json() !string {
+pub fn (nc NavConfig) sidebar_to_json() !string {
 	mut result := []NavItemJson{}
 	for item in nc.my_sidebar {
 		result << nav_item_to_json(item)!

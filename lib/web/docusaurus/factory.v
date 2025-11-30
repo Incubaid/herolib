@@ -26,7 +26,7 @@ pub fn dsite_define(sitename string) ! {
 		name:         sitename
 		path_publish: pathlib.get_dir(path: '${path_build_}/build', create: true)!
 		path_build:   pathlib.get_dir(path: path_build_, create: true)!
-		config:       new_configuration(website.siteconfig)!
+		config:       new_configuration(website)!
 		website:      website
 	}
 
