@@ -77,7 +77,7 @@ fn (mut m BizModel) revenue_action(action Action) !Action {
 		product.has_revenue = true
 	}
 
-	mut margin := revenue.action(
+	_ := revenue.action(
 		name:   '${r.name}_margin'
 		descr:  'Margin for ${r.name}'
 		action: .substract

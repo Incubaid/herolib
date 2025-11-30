@@ -23,7 +23,7 @@ pub fn escape_regex_chars(s string) string {
 // This function does not add implicit ^ and $ anchors, allowing for substring matches.
 fn wildcard_to_regex(wildcard_pattern string) string {
 	mut regex_pattern := ''
-	for i, r in wildcard_pattern.runes() {
+	    for _, r in wildcard_pattern.runes() {
 		match r {
 			`*` {
 				regex_pattern += '.*'

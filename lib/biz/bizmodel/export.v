@@ -16,7 +16,7 @@ pub mut:
 
 pub fn (b BizModel) export(args ExportArgs) ! {
 	name := if args.name != '' { args.name } else { texttools.snake_case(args.title) }
-	path := pathlib.get_dir(
+	pathlib.get_dir(
 		path:   os.join_path(os.home_dir(), 'hero/var/bizmodel/exports/${name}')
 		create: true
 		empty:  true
@@ -52,7 +52,7 @@ pub fn (model BizModel) write_operational_plan(args ExportArgs) ! {
 	mut hr_page := pathlib.get_file(path: '${hr_dir.path}/human_resources.md')!
 	hr_page.template_write($tmpl('./templates/human_resources.md'), true)!
 
-	for key, employee in model.employees {
+	    for _, employee in model.employees {
 		mut employee_page := pathlib.get_file(
 			path: '${hr_dir.path}/${texttools.snake_case(employee.name)}.md'
 		)!
@@ -73,7 +73,7 @@ pub fn (model BizModel) write_operational_plan(args ExportArgs) ! {
 		}
 	}
 
-	for key, department in model.departments {
+	for _, department in model.departments {
 		dept := department
 		mut dept_page := pathlib.get_file(
 			path: '${depts_dir.path}/${texttools.snake_case(department.name)}.md'
@@ -94,7 +94,7 @@ pub fn (model BizModel) write_revenue_model(args ExportArgs) ! {
 	products_page.template_write('# Products', true)!
 
 	name1 := 'example'
-	for key, product in model.products {
+	for _, product in model.products {
 		mut product_page := pathlib.get_file(
 			path: '${products_dir.path}/${texttools.snake_case(product.name)}.md'
 		)!

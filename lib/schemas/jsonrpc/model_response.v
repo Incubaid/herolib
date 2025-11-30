@@ -251,7 +251,7 @@ pub fn new_response_generic[D](id int, result D) ResponseGeneric[D] {
 // Returns:
 //   - A ResponseGeneric object with result of type D, or an error if parsing fails
 pub fn decode_response_generic[D](data string) !ResponseGeneric[D] {
-	raw := json2.raw_decode(data)!
+	    raw := json2.decode[json2.Any](data)!
 	raw_map := raw.as_map()
 
 	// Validate that the response contains either result or error, but not both or neither

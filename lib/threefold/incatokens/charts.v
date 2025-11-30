@@ -28,7 +28,7 @@ pub fn (sim Simulation) generate_market_cap_chart() !echarts.EChartsOption {
 		curr:  sim.params.simulation.currency
 	)!
 
-	for name, scenario in sim.scenarios {
+	for name, _ in sim.scenarios {
 		mut mc_row := mc_sheet.row_new(
 			name:  'scenario_${name}_mc'
 			tags:  'scenario:${name} type:market_cap'

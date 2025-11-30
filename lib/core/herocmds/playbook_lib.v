@@ -164,7 +164,7 @@ pub fn plbook_run(cmd Command) !(&playbook.PlayBook, string) {
 		playbook.new(path: path)!
 	}
 
-	dagu := cmd.flags.get_bool('dagu') or { false }
+	_ := cmd.flags.get_bool('dagu') or { false }
 
 	playcmds.run(plbook: plbook)!
 

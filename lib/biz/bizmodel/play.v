@@ -22,7 +22,7 @@ pub fn play(mut plbook PlayBook) ! {
 	})
 
 	// play actions for each biz in plbook
-	for biz, actions in actions_by_biz {
+	    for biz, _ in actions_by_biz {
 		mut model := getset(biz)!
 		model.play(mut plbook)!
 	}

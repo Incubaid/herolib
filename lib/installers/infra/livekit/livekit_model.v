@@ -17,7 +17,7 @@ pub mut:
 	apikey     string
 	apisecret  string @[secret]
 	configpath string
-	nr         int = 0 // each specific instance onto this server needs to have a unique nr
+	nr         int // each specific instance onto this server needs to have a unique nr
 }
 
 fn obj_init(obj_ LivekitServer) !LivekitServer {

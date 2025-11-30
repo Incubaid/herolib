@@ -19,7 +19,7 @@ pub mut:
 	user     string = 'root'
 	port     int    = 5432
 	host     string = 'localhost'
-	password string = ''
+	    password string
 	dbname   string = 'postgres'
 }
 
@@ -52,8 +52,7 @@ pub fn heroscript_dumps(obj PostgresqlClient) !string {
 }
 
 pub fn heroscript_loads(heroscript string) !PostgresqlClient {
-	mut obj := encoderhero.decode[PostgresqlClient](heroscript)!
-	return PostgresqlClient{
-		db_: pg.DB{}
-	}
+	    mut client := encoderhero.decode[PostgresqlClient](heroscript)!
+	    client.db_ = pg.DB{}
+	    return client
 }

@@ -41,7 +41,7 @@ pub fn (mut sim Simulation) create_vesting_schedules() ! {
 	}
 
 	// Create total unlocked row
-	mut total_row := vesting_sheet.group2row(
+	_ := vesting_sheet.group2row(
 		name:          'total_unlocked'
 		include:       ['type:vesting']
 		tags:          'summary type:total_vesting'
