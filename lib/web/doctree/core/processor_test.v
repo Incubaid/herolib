@@ -158,7 +158,8 @@ fn test_find_links() {
 	assert links.len >= 2
 }
 
-fn test_find_links() {
+// Test with a valid link to ensure no errors are reported
+fn test_find_links_valid_link() {
 	// Setup
 	col_path := '${test_base}/link_test'
 	os.mkdir_all(col_path)!

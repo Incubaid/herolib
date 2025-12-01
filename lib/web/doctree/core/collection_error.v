@@ -1,7 +1,7 @@
 module core
 
 import crypto.md5
-import incubaid.herolib.ui.console
+
 
 pub enum CollectionErrorCategory {
 	circular_include

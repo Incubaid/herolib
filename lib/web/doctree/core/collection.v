@@ -2,10 +2,10 @@ module core
 
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.web.doctree as doctreetools
-import incubaid.herolib.develop.gittools
+
 import incubaid.herolib.data.paramsparser { Params }
 import incubaid.herolib.ui.console
-import os
+
 
 pub struct Session {
 pub mut:

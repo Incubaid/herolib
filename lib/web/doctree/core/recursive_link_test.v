@@ -2,7 +2,7 @@ module core
 
 import incubaid.herolib.core.pathlib
 import os
-import json
+
 
 const test_base = '/tmp/doctree_test'
 

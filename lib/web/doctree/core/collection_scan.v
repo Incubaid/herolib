@@ -1,10 +1,10 @@
 module core
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.web.doctree as doctreetools
-import incubaid.herolib.develop.gittools
-import incubaid.herolib.data.paramsparser
-import incubaid.herolib.ui.console
+
+
+
+
 import os
 
 ////////////SCANNING FUNCTIONS ?//////////////////////////////////////////////////////
