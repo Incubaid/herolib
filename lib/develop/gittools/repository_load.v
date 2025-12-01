@@ -19,7 +19,7 @@ pub fn (mut repo GitRepo) status_update(args StatusUpdateArgs) ! {
 	}
 
 	if args.reset || repo.last_load == 0 {
-		// console.print_debug('${repo.name} : Cache get')
+		// console.print_debug('${repo.name} : Cache Get')
 		repo.cache_get()!
 	}
 
@@ -30,6 +30,8 @@ pub fn (mut repo GitRepo) status_update(args StatusUpdateArgs) ! {
 	// Decide if a full load is needed.
 	if args.reset || repo.last_load == 0
 		|| current_time - repo.last_load >= repo.config.remote_check_period {
+		// console.print_debug("reload ${repo.name}:\n args reset:${args.reset}\n lastload:${repo.last_load}\n  currtime-lastload:${current_time- repo.last_load}\n period:${repo.config.remote_check_period}")
+		// $dbg;
 		repo.load_internal() or {
 			// Persist the error state to the cache
 			console.print_stderr('Failed to load repository ${repo.name} at ${repo.path()}: ${err}')
@@ -51,7 +53,8 @@ fn (mut repo GitRepo) load_internal() ! {
 
 	repo.exec('fetch --all') or {
 		repo.status.error = 'Failed to fetch updates: ${err}'
-		return error('Failed to fetch updates for ${repo.name} at ${repo.path()}: ${err}. Please check network connection and repository access.')
+		console.print_stderr('Failed to fetch updates for ${repo.name} at ${repo.path()}: ${err}. \nPlease check git repo source, network connection and repository access.')
+		return
 	}
 	repo.load_branches()!
 	repo.load_tags()!
