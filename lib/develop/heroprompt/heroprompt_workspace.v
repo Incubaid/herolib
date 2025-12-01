@@ -466,7 +466,7 @@ pub fn generate_random_workspace_name() string {
 		'script',
 		'ocean',
 		'phoenix',
-		'atlas',
+		'doctree',
 		'quest',
 		'shield',
 		'dragon',

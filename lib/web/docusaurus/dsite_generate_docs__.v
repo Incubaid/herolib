@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
-// import incubaid.herolib.data.atlas.client as atlas_client
+// import incubaid.herolib.data.doctree.client as doctree_client
 // import incubaid.herolib.web.site { Page, Section, Site }
 // import incubaid.herolib.data.markdown.tools as markdowntools
 // import incubaid.herolib.ui.console
@@ -24,7 +24,7 @@ import incubaid.herolib.core.pathlib
 // 	docs_path := '${c.path_build.path}/docs'
 
 // 	// Create the appropriate client based on configuration
-// 	mut client_instance := atlas_client.new(export_dir: c.atlas_dir)!
+// 	mut client_instance := doctree_client.new(export_dir: c.doctree_dir)!
 // 	mut client := IDocClient(client_instance)
 
 // 	mut gen := SiteGenerator{
@@ -378,8 +378,8 @@ import incubaid.herolib.core.pathlib
 // 		}
 // 	}
 
-// 	// STEP 5: Fix bare page references (from atlas self-contained exports)
-// 	// Atlas exports convert cross-collection links to simple relative links like "token_system2.md"
+// 	// STEP 5: Fix bare page references (from doctree self-contained exports)
+// 	// DocTree exports convert cross-collection links to simple relative links like "token_system2.md"
 // 	// We need to transform these to proper relative paths based on Docusaurus structure
 // 	for page_name, target_dir in page_to_path {
 // 		// Match links in the format ](page_name) or ](page_name.md)

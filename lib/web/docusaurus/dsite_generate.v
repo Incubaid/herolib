@@ -37,7 +37,7 @@ pub fn (mut docsite DocSite) generate() ! {
 	mut sidebar_file := pathlib.get_file(path: '${cfg_path}/sidebar.json', create: true)!
 	sidebar_file.write(docsite.config.sidebar_json_txt)!
 
-	docsite.link_docs()!
+	docsite.generate_docs()!
 
 	docsite.import()!
 }

@@ -39,7 +39,7 @@ pub fn play(mut plbook PlayBook) ! {
   path_build := p.get_default('path_build', '')!
   path_publish := p.get_default('path_publish', '')!
   reset := p.get_default_false('reset')
-  use_atlas := p.get_default_false('use_atlas')
+  use_doctree := p.get_default_false('use_doctree')
  }
 
  // Process 'docusaurus.add' actions to configure individual Docusaurus sites

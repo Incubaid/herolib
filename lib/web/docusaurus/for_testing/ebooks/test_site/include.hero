@@ -1,4 +1,4 @@
 !!docusaurus.define name:'test_site'
 
-!!atlas.export include:true
+!!doctree.export include:true
 

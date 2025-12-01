@@ -10,7 +10,7 @@ If links appear broken, check:
 
 1. The collection name is correct
 2. The page name matches the markdown filename (without `.md`)
-3. The collection is properly registered in the atlas
+3. The collection is properly registered in the doctree
 
 ### Page Not Found
 
@@ -29,11 +29,11 @@ Ensure the page is defined in your heroscript:
 
 ## Error Messages
 
-| Error | Solution |
-|-------|----------|
-| "Page not found" | Check page name spelling |
-| "Collection not found" | Verify atlas configuration |
-| "Link resolution failed" | Check link syntax |
+| Error                    | Solution                     |
+| ------------------------ | ---------------------------- |
+| "Page not found"         | Check page name spelling     |
+| "Collection not found"   | Verify doctree configuration |
+| "Link resolution failed" | Check link syntax            |
 
 ## Navigation
 

@@ -35,7 +35,7 @@ For any domain, **code and module-level docs are authoritative**:
 - Core install & usage: `herolib/README.md`, scripts under `scripts/`
 - Site module: `lib/web/site/ai_instructions.md`, `lib/web/site/readme.md`
 - Docusaurus module: `lib/web/docusaurus/README.md`, `lib/web/docusaurus/*.v`
-- Atlas client: `lib/data/atlas/client/README.md`
+- DocTree client: `lib/data/doctree/client/README.md`
 - HeroModels: `lib/hero/heromodels/*.v` + tests
 
 `aiprompts/` files **must not contradict** these. When in doubt, follow the code / module docs first and treat prompts as guidance.
@@ -47,7 +47,7 @@ For any domain, **code and module-level docs are authoritative**:
 - `herolib_core/` & `herolib_advanced/`  
   Per-module instructions for core/advanced HeroLib features.
 - `docusaurus/`  
-  AI manual for building Hero docs/ebooks with the Docusaurus + Site + Atlas pipeline.
+  AI manual for building Hero docs/ebooks with the Docusaurus + Site + DocTree pipeline.
 - `instructions/`  
   Active, higher-level instructions (e.g. HeroDB base filesystem).
 - `instructions_archive/`  
@@ -63,7 +63,7 @@ For any domain, **code and module-level docs are authoritative**:
 
 - Content under `instructions_archive/` is **kept for reference** and may describe older flows (e.g. older documentation or prompt pipelines).  
   Do **not** use it as a primary source for new work unless explicitly requested.
-- Some prompts mention **Doctree**; the current default docs pipeline uses **Atlas**. Doctree/`doctreeclient` is an alternative/legacy backend.
+- Some prompts mention **Doctree**; the current default docs pipeline uses **DocTree**. Doctree/`doctreeclient` is an alternative/legacy backend.
 
 ## Guidelines for AI Agents
 

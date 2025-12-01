@@ -25,10 +25,10 @@ The recommended structure for an ebook follows this pattern:
 
 ```
 my_ebook/
-├── scan.hero              # Atlas collection scanning
+├── scan.hero              # DocTree collection scanning
 ├── config.hero            # Site configuration
 ├── menus.hero             # Navbar and footer configuration
-├── include.hero           # Docusaurus define and atlas export
+├── include.hero           # Docusaurus define and doctree export
 ├── 1_intro.heroscript     # Page definitions (numbered for ordering)
 ├── 2_concepts.heroscript  # More page definitions
 └── 3_advanced.heroscript  # Additional pages
@@ -42,10 +42,10 @@ Defines which collections to scan for content:
 
 ```heroscript
 // Scan local collections
-!!atlas.scan path:"../../collections/my_collection"
+!!doctree.scan path:"../../collections/my_collection"
 
 // Scan remote collections from git
-!!atlas.scan git_url:"https://git.example.com/org/repo/src/branch/main/collections/docs"
+!!doctree.scan git_url:"https://git.example.com/org/repo/src/branch/main/collections/docs"
 ```
 
 #### `config.hero` - Site Configuration
@@ -113,7 +113,7 @@ Links to shared configuration or defines docusaurus directly:
 // Option 2: Define directly
 !!docusaurus.define name:'my_ebook'
 
-!!atlas.export include:true
+!!doctree.export include:true
 ```
 
 #### Page Definition Files (`*.heroscript`)
@@ -145,7 +145,7 @@ Define pages and categories:
 
 ## Collections
 
-Collections are directories containing markdown files. They're scanned by Atlas and referenced in page definitions.
+Collections are directories containing markdown files. They're scanned by DocTree and referenced in page definitions.
 
 ```
 collections/
@@ -189,16 +189,16 @@ The older approach using `!!docusaurus.add` is still supported but not recommend
 
 ## HeroScript Actions Reference
 
-### `!!atlas.scan`
+### `!!doctree.scan`
 
 Scans a directory for markdown collections:
 
 - `path` (string): Local path to scan
 - `git_url` (string): Git URL to clone and scan
-- `name` (string): Atlas instance name (default: `main`)
+- `name` (string): DocTree instance name (default: `main`)
 - `ignore` (list): Directory names to skip
 
-### `!!atlas.export`
+### `!!doctree.export`
 
 Exports scanned collections:
 
@@ -215,7 +215,7 @@ Configures the Docusaurus build environment:
 - `reset` (bool): Clean build directory before starting
 - `template_update` (bool): Update Docusaurus template
 - `install` (bool): Run `bun install`
-- `atlas_dir` (string): Atlas export directory
+- `doctree_dir` (string): DocTree export directory
 
 ### `!!site.config`
 
@@ -254,4 +254,4 @@ Defines a sidebar category:
 ## See Also
 
 - `lib/web/site` - Generic site configuration module
-- `lib/data/atlas` - Atlas collection management
+- `lib/data/doctree` - DocTree collection management

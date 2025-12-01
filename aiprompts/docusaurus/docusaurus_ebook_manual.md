@@ -8,10 +8,10 @@ The recommended directory structure for an ebook:
 
 ```
 my_ebook/
-├── scan.hero              # Atlas collection scanning
+├── scan.hero              # DocTree collection scanning
 ├── config.hero            # Site configuration
 ├── menus.hero             # Navbar and footer configuration
-├── include.hero           # Docusaurus define and atlas export
+├── include.hero           # Docusaurus define and doctree export
 ├── 1_intro.heroscript     # Page definitions (numbered for ordering)
 ├── 2_concepts.heroscript  # More page definitions
 └── 3_advanced.heroscript  # Additional pages
@@ -33,7 +33,7 @@ To effectively create ebooks with HeroLib, it's crucial to understand the interp
 
 * **HeroScript**: A concise scripting language used to define the structure, configuration, and content flow of your Docusaurus site. It acts as the declarative interface for the entire process. Files use `.hero` extension for configuration and `.heroscript` for page definitions.
 * **Docusaurus**: A popular open-source static site generator. HeroLib uses Docusaurus as the underlying framework to render your ebook content into a navigable website.
-* **Atlas**: HeroLib's document collection layer. Atlas scans and exports markdown "collections" and "pages" that Docusaurus consumes.
+* **DocTree**: HeroLib's document collection layer. DocTree scans and exports markdown "collections" and "pages" that Docusaurus consumes.
 
 ## 2. Setting Up a Docusaurus Project with HeroLib
 
@@ -53,8 +53,8 @@ The `docusaurus.define` HeroScript directive configures the global settings for 
     reset: true                      // clean build dir before building (optional)
     install: true                    // run bun install if needed (optional)
     template_update: true            // update the Docusaurus template (optional)
-    atlas_dir: "/tmp/atlas_export"   // where Atlas exports collections
-    use_atlas: true                  // use Atlas as content backend
+    doctree_dir: "/tmp/doctree_export"   // where DocTree exports collections
+    use_doctree: true                  // use DocTree as content backend
 ```
 
 **Arguments:**
@@ -65,8 +65,8 @@ The `docusaurus.define` HeroScript directive configures the global settings for 
 * `reset` (boolean, optional): If `true`, clean the build directory before starting.
 * `install` (boolean, optional): If `true`, run dependency installation (e.g., `bun install`).
 * `template_update` (boolean, optional): If `true`, update the Docusaurus template.
-* `atlas_dir` (string, optional): Directory where Atlas exports collections (used by the Atlas client in `lib/data/atlas/client`).
-* `use_atlas` (boolean, optional): If `true`, use the Atlas client as the content backend (default behavior).
+* `doctree_dir` (string, optional): Directory where DocTree exports collections (used by the DocTree client in `lib/data/doctree/client`).
+* `use_doctree` (boolean, optional): If `true`, use the DocTree client as the content backend (default behavior).
 
 ### 2.2. Adding a Docusaurus Site (`docusaurus.add`)
 
@@ -296,21 +296,21 @@ This is where you define the actual content pages and how they are organized int
   * `label` (string, required): The display name for the category in the sidebar.
   * `position` (int, optional): The order of the category in the sidebar (auto-incremented if omitted).
 * **`site.page`**:
-  * `src` (string, required): **Crucial for Atlas/collection integration.** Format: `collection_name:page_name` for the first page, or just `page_name` to reuse the previous collection.
+  * `src` (string, required): **Crucial for DocTree/collection integration.** Format: `collection_name:page_name` for the first page, or just `page_name` to reuse the previous collection.
   * `title` (string, optional): The title of the page. If not provided, HeroLib extracts it from the markdown `# Heading` or uses the page name.
   * `description` (string, optional): A short description for the page, used in frontmatter.
   * `hide_title` (boolean, optional): If `true`, the title will not be displayed on the page itself.
   * `draft` (boolean, optional): If `true`, the page will be hidden from navigation.
 
-### 3.7. Collections and Atlas/Doctree Integration
+### 3.7. Collections and DocTree/Doctree Integration
 
 The `site.page` directive's `src` parameter (`collection_name:page_name`) is the bridge to your content collections.
 
-**Current default: Atlas export**
+**Current default: DocTree export**
 
-1. **Collections**: Atlas exports markdown files into collections under an `export_dir` (see `lib/data/atlas/client`).
-2. **Export step**: A separate process (Atlas) writes the collections into `atlas_dir` (e.g., `/tmp/atlas_export`), following the `content/` + `meta/` structure.
-3. **Docusaurus consumption**: The Docusaurus module uses the Atlas client (`atlas_client`) to resolve `collection_name:page_name` into markdown content and assets when generating docs.
+1. **Collections**: DocTree exports markdown files into collections under an `export_dir` (see `lib/data/doctree/client`).
+2. **Export step**: A separate process (DocTree) writes the collections into `doctree_dir` (e.g., `/tmp/doctree_export`), following the `content/` + `meta/` structure.
+3. **Docusaurus consumption**: The Docusaurus module uses the DocTree client (`doctree_client`) to resolve `collection_name:page_name` into markdown content and assets when generating docs.
 
 **Alternative: Doctree/`doctreeclient`**
 
@@ -324,7 +324,7 @@ In older setups, or when explicitly configured, Doctree and `doctreeclient` can 
     ```
 
     This will pull the `collections` directory from the specified Git URL and make its contents available to Doctree.
-3. **Page Retrieval**: When `site.page` references `src:"my_collection:my_page"`, the client (`atlas_client` or `doctreeclient`, depending on configuration) fetches the content of `my_page.md` from the `my_collection` collection.
+3. **Page Retrieval**: When `site.page` references `src:"my_collection:my_page"`, the client (`doctree_client` or `doctreeclient`, depending on configuration) fetches the content of `my_page.md` from the `my_collection` collection.
 
 ## 4. Building and Developing Your Ebook
 

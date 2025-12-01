@@ -1,14 +1,14 @@
 #!/usr/bin/env -S vrun
 
-import incubaid.herolib.data.atlas
+import incubaid.herolib.data.doctree
 import incubaid.herolib.ui.console
 import os
 
 fn main() {
 	println('=== ATLAS DEBUG SCRIPT ===\n')
 
-	// Create and scan atlas
-	mut a := atlas.new(name: 'main')!
+	// Create and scan doctree
+	mut a := doctree.new(name: 'main')!
 
 	// Scan the collections
 	println('Scanning collections...\n')
@@ -29,7 +29,7 @@ fn main() {
 		path: '/Users/despiegk/code/git.ourworld.tf/tfgrid/docs_tfgrid4/collections/mycelium_cloud_tech'
 	)!
 
-	// Initialize atlas (post-scanning validation)
+	// Initialize doctree (post-scanning validation)
 	a.init_post()!
 
 	// Print all pages per collection
@@ -190,7 +190,7 @@ fn main() {
 	println('\n\n=== EXPORT AND FILE VERIFICATION TEST ===\n')
 
 	// Create export directory
-	export_path := '/tmp/atlas_debug_export'
+	export_path := '/tmp/doctree_debug_export'
 	if os.exists(export_path) {
 		os.rmdir_all(export_path)!
 	}

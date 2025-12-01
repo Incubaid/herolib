@@ -1,0 +1,34 @@
+module meta
+
+import os
+import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.core.texttools
+import time
+import incubaid.herolib.ui.console
+
+// ============================================================
+// ANNOUNCEMENT: Process announcement bar (optional)
+// ============================================================
+fn play_announcement(mut plbook PlayBook, mut config SiteConfig) ! {
+	mut announcement_actions := plbook.find(filter: 'site.announcement')!
+
+	if announcement_actions.len > 0 {
+		// Only process the first announcement action
+		mut action := announcement_actions[0]
+		mut p := action.params
+
+		content := p.get('content') or {
+			return error('!!site.announcement: must specify "content"')
+		}
+
+		config.announcement = AnnouncementBar{
+			// id:               p.get('id')!
+			content:          content
+			background_color: p.get_default('background_color', '#20232a')!
+			text_color:       p.get_default('text_color', '#fff')!
+			is_closeable:     p.get_default_true('is_closeable')
+		}
+
+		action.done = true
+	}
+}

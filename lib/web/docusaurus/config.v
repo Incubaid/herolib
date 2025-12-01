@@ -17,7 +17,7 @@ pub mut:
 	reset           bool
 	template_update bool
 	coderoot        string
-	atlas_dir 		string
+	doctree_dir 		string
 }
 
 @[params]
@@ -29,7 +29,7 @@ pub mut:
 	reset           bool
 	template_update bool
 	coderoot        string
-	atlas_dir string
+	doctree_dir string
 }
 
 // return the last know config
@@ -38,8 +38,8 @@ pub fn config() !DocusaurusConfig {
 		docusaurus_config << DocusaurusConfigParams{}
 	}
 	mut args := docusaurus_config[0] or { panic('bug in docusaurus config') }
-	if args.atlas_dir == '' {
-		return error('atlas_dir is not set')
+	if args.doctree_dir == '' {
+		return error('doctree_dir is not set')
 	}
 	if args.path_build == '' {
 		args.path_build = '${os.home_dir()}/hero/var/docusaurus/build'
@@ -58,7 +58,7 @@ pub fn config() !DocusaurusConfig {
 		install:         args.install
 		reset:           args.reset
 		template_update: args.template_update
-		atlas_dir:       args.atlas_dir
+		doctree_dir:       args.doctree_dir
 	}
 	if c.install {
 		install(c)!

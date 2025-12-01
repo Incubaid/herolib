@@ -73,7 +73,7 @@ pub mut:
 	port          int    = 3000
 	open          bool   = true // whether to open the browser automatically
 	watch_changes bool // whether to watch for changes in docs and rebuild automatically
-	skip_generate bool // whether to skip generation (useful when docs are pre-generated, e.g., from atlas)
+	skip_generate bool // whether to skip generation (useful when docs are pre-generated, e.g., from doctree)
 }
 
 pub fn (mut s DocSite) open(args DevArgs) ! {

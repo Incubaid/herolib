@@ -1,2 +1,2 @@
-!!atlas.scan path:"../../collections/test_collection"
+!!doctree.scan path:"../../collections/test_collection"
 

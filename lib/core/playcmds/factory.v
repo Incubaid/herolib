@@ -1,7 +1,7 @@
 module playcmds
 
 import incubaid.herolib.core.playbook { PlayBook }
-import incubaid.herolib.data.atlas
+import incubaid.herolib.data.doctree
 import incubaid.herolib.biz.bizmodel
 import incubaid.herolib.threefold.incatokens
 import incubaid.herolib.web.site
@@ -71,7 +71,7 @@ pub fn run(args_ PlayArgs) ! {
 	site.play(mut plbook)!
 
 	incatokens.play(mut plbook)!
-	atlas.play(mut plbook)!
+	doctree.play(mut plbook)!
 	docusaurus.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	hetznermanager.play2(mut plbook)!

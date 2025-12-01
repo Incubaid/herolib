@@ -75,7 +75,7 @@ After running the test:
 
 If links don't resolve:
 
-1. Check that the collection is registered in the atlas
+1. Check that the collection is registered in the doctree
 2. Verify page names match (no typos)
 3. Run with debug flag (`-d`) to see detailed output
 4. Check `~/hero/var/docusaurus/build/docs/` for generated files

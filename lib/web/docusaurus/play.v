@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.playbook { PlayBook }
-import incubaid.herolib.data.atlas
+import incubaid.herolib.data.doctree
 import incubaid.herolib.ui.console
 import os
 
@@ -24,7 +24,7 @@ fn process_define(mut plbook PlayBook) !&DocSite {
 	mut action := plbook.ensure_once(filter: 'docusaurus.define')!
 	p := action.params
 
-	atlas_dir := p.get_default('atlas_dir', '${os.home_dir()}/hero/var/atlas_export')!
+	doctree_dir := p.get_default('doctree_dir', '${os.home_dir()}/hero/var/doctree_export')!
 
 	config_set(
 		path_build:      p.get_default('path_build', '')!
@@ -32,13 +32,13 @@ fn process_define(mut plbook PlayBook) !&DocSite {
 		reset:           p.get_default_false('reset')
 		template_update: p.get_default_false('template_update')
 		install:         p.get_default_false('install')
-		atlas_dir:       atlas_dir
+		doctree_dir:       doctree_dir
 	)!
 
 	site_name := p.get('name') or { return error('docusaurus.define: "name" is required') }
-	atlas_name := p.get_default('atlas', 'main')!
+	doctree_name := p.get_default('doctree', 'main')!
 
-	export_atlas(atlas_name, atlas_dir)!
+	export_doctree(doctree_name, doctree_dir)!
 	dsite_define(site_name)!
 	action.done = true
 
@@ -77,11 +77,11 @@ fn process_dev(mut plbook PlayBook, mut dsite DocSite) ! {
 	action.done = true
 }
 
-fn export_atlas(name string, dir string) ! {
-	if !atlas.exists(name) {
+fn export_doctree(name string, dir string) ! {
+	if !doctree.exists(name) {
 		return
 	}
-	console.print_debug('Auto-exporting Atlas "${name}" to ${dir}')
-	mut a := atlas.get(name)!
+	console.print_debug('Auto-exporting DocTree "${name}" to ${dir}')
+	mut a := doctree.get(name)!
 	a.export(destination: dir, reset: true, include: true, redis: false)!
 }
