@@ -1,0 +1,16 @@
+!!site.config
+    name:"test_site"
+    title:"Link Resolution Test"
+    tagline:"Testing herolib documentation linking mechanism"
+    url:"http://localhost:3000"
+    url_home:"docs/"
+    base_url:"/test/"
+    favicon:"img/favicon.png"
+    copyright:"© 2024 Herolib Test"
+    default_collection:"test_collection"
+
+!!site.config_meta
+    description:"Test suite for verifying herolib documentation link resolution across multiple pages"
+    title:"Link Resolution Test - Herolib"
+    keywords:"herolib, docusaurus, testing, links, documentation"
+

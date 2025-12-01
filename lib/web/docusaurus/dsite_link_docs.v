@@ -11,6 +11,30 @@ import os
 // Doc Linking - Generate Docusaurus docs from Atlas collections
 // ============================================================================
 
+// get_first_doc_from_sidebar recursively finds the first doc ID in the sidebar.
+// Used to determine which page should get slug: / in frontmatter when url_home ends with "/".
+fn get_first_doc_from_sidebar(items []site.NavItem) string {
+	for item in items {
+		match item {
+			site.NavDoc {
+				return site.extract_page_id(item.id)
+			}
+			site.NavCat {
+				// Recursively search in category items
+				doc := get_first_doc_from_sidebar(item.items)
+				if doc.len > 0 {
+					return doc
+				}
+			}
+			site.NavLink {
+				// Skip links, we want docs
+				continue
+			}
+		}
+	}
+	return ''
+}
+
 // link_docs generates markdown files from site page definitions.
 // Pages are fetched from Atlas collections and written with frontmatter.
 pub fn (mut docsite DocSite) link_docs() ! {
@@ -23,8 +47,15 @@ pub fn (mut docsite DocSite) link_docs() ! {
 	mut client := atlas_client.new(export_dir: c.atlas_dir)!
 	mut errors := []string{}
 
+	// Determine if we need to set a docs landing page (when url_home ends with "/")
+	first_doc_page := if docsite.website.siteconfig.url_home.ends_with('/') {
+		get_first_doc_from_sidebar(docsite.website.nav.my_sidebar)
+	} else {
+		''
+	}
+
 	for _, page in docsite.website.pages {
-		process_page(mut client, docs_path, page, mut errors)
+		process_page(mut client, docs_path, page, first_doc_page, mut errors)
 	}
 
 	if errors.len > 0 {
@@ -51,7 +82,7 @@ fn report_errors(mut client atlas_client.AtlasClient, errors []string) ! {
 // Page Processing
 // ============================================================================
 
-fn process_page(mut client atlas_client.AtlasClient, docs_path string, page site.Page, mut errors []string) {
+fn process_page(mut client atlas_client.AtlasClient, docs_path string, page site.Page, first_doc_page string, mut errors []string) {
 	collection, page_name := parse_page_src(page.src) or {
 		errors << err.msg()
 		return
@@ -62,7 +93,10 @@ fn process_page(mut client atlas_client.AtlasClient, docs_path string, page site
 		return
 	}
 
-	write_page(docs_path, page_name, page, content) or {
+	// Check if this page is the docs landing page
+	is_landing_page := first_doc_page.len > 0 && page_name == first_doc_page
+
+	write_page(docs_path, page_name, page, content, is_landing_page) or {
 		errors << "Failed to write page '${page_name}': ${err.msg()}"
 		return
 	}
@@ -79,8 +113,8 @@ fn parse_page_src(src string) !(string, string) {
 	return parts[0], parts[1]
 }
 
-fn write_page(docs_path string, page_name string, page site.Page, content string) ! {
-	frontmatter := build_frontmatter(page, content)
+fn write_page(docs_path string, page_name string, page site.Page, content string, is_landing_page bool) ! {
+	frontmatter := build_frontmatter(page, content, is_landing_page)
 	final_content := frontmatter + '\n\n' + content
 
 	output_path := '${docs_path}/${page_name}.md'
@@ -97,13 +131,18 @@ fn copy_page_assets(mut client atlas_client.AtlasClient, docs_path string, colle
 // Frontmatter Generation
 // ============================================================================
 
-fn build_frontmatter(page site.Page, content string) string {
+fn build_frontmatter(page site.Page, content string, is_landing_page bool) string {
 	title := get_title(page, content)
 	description := get_description(page, title)
 
 	mut lines := ['---']
 	lines << "title: '${escape_yaml(title)}'"
 	lines << "description: '${escape_yaml(description)}'"
+
+	// Add slug: / for the docs landing page so /docs/ works directly
+	if is_landing_page {
+		lines << 'slug: /'
+	}
 
 	if page.draft {
 		lines << 'draft: true'

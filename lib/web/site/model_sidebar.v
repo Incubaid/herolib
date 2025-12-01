@@ -93,7 +93,9 @@ fn from_category(cat NavCat) SidebarItem {
 	}
 }
 
-fn extract_page_id(id string) string {
+// extract_page_id extracts the page name from a "collection:page_name" format.
+// If the id doesn't contain a colon, returns the id as-is.
+pub fn extract_page_id(id string) string {
 	parts := id.split(':')
 	if parts.len == 2 {
 		return parts[1]

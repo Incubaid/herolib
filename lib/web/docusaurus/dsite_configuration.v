@@ -6,11 +6,11 @@ import incubaid.herolib.web.site
 
 pub struct Configuration {
 pub mut:
-	main         Main
-	navbar       Navbar
-	footer       Footer
-	sidebar_json_txt		 string //will hold the sidebar.json content
-	announcement AnnouncementBar
+	main             Main
+	navbar           Navbar
+	footer           Footer
+	sidebar_json_txt string // will hold the sidebar.json content
+	announcement     AnnouncementBar
 }
 
 pub struct Main {
@@ -86,9 +86,7 @@ pub mut:
 	is_closeable     bool   @[json: 'isCloseable']
 }
 
-// ... (struct definitions remain the same) ...
-
-// This function is now a pure transformer: site.SiteConfig -> docusaurus.Configuration
+// This function is a pure transformer: site.SiteConfig -> docusaurus.Configuration
 fn new_configuration(mysite site.Site) !Configuration {
 	// Transform site.SiteConfig to docusaurus.Configuration
 	mut site_cfg := mysite.siteconfig
@@ -121,7 +119,7 @@ fn new_configuration(mysite site.Site) !Configuration {
 	sidebar_json_txt := mysite.nav.sidebar_to_json()!
 
 	cfg := Configuration{
-		main:         Main{
+		main:             Main{
 			title:          site_cfg.title
 			tagline:        site_cfg.tagline
 			favicon:        site_cfg.favicon
@@ -151,7 +149,7 @@ fn new_configuration(mysite site.Site) !Configuration {
 			copyright:      site_cfg.copyright
 			name:           site_cfg.name
 		}
-		navbar:       Navbar{
+		navbar:           Navbar{
 			title: site_cfg.menu.title
 			logo:  Logo{
 				alt:      site_cfg.menu.logo_alt
@@ -160,11 +158,11 @@ fn new_configuration(mysite site.Site) !Configuration {
 			}
 			items: nav_items
 		}
-		footer:       Footer{
+		footer:           Footer{
 			style: site_cfg.footer.style
 			links: footer_links
 		}
-		announcement: AnnouncementBar{
+		announcement:     AnnouncementBar{
 			// id:               site_cfg.announcement.id
 			content:          site_cfg.announcement.content
 			background_color: site_cfg.announcement.background_color
