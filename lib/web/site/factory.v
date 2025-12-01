@@ -22,7 +22,7 @@ pub fn new(args FactoryArgs) !&Site {
 	}
 
 	mut site := Site{
-		nav:        SideBar{}
+		nav: SideBar{}
 		siteconfig: SiteConfig{
 			name: name
 		}

@@ -2,34 +2,37 @@
 
 The Site module provides a structured way to define website configurations, navigation menus, pages, and sections using HeroScript. It's designed to work with static site generators like Docusaurus.
 
-## Purpose
-
-The Site module allows you to:
-
-- Define website structure and configuration in a declarative way using HeroScript
-- Organize pages into sections/categories
-- Configure navigation menus and footers
-- Manage page metadata (title, description, slug, etc.)
-- Support multiple content collections
-- Define build and publish destinations
 
 ## Quick Start
+
+### Minimal HeroScript Example
+
+```heroscript
+!!site.config
+    name: "my_docs"
+    title: "My Documentation"
+
+!!site.page src: "docs:introduction"
+    title: "Getting Started"
+
+!!site.page src: "setup"
+    title: "Installation"
+```
+
+### Processing with V Code
 
 ```v
 #!/usr/bin/env -S v -n -w -gc none -cg -cc tcc -d use_openssl -enable-globals run
 
-import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.playbook
 import incubaid.herolib.web.site
-import incubaid.herolib.core.playcmds
+import incubaid.herolib.ui.console
 
-// Clone or use existing repository with HeroScript files
-mysitepath := gittools.path(
-    git_url: 'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech'
-    git_pull: true
-)!
+// Process HeroScript file
+mut plbook := playbook.new(path: './site_config.heroscript')!
 
-// Process all HeroScript files in the path
-playcmds.run(heroscript_path: mysitepath.path)!
+// Execute site configuration
+site.play(mut plbook)!
 
 // Access the configured site
 mut mysite := site.get(name: 'my_docs')!
@@ -224,7 +227,7 @@ A logical group of pages. Pages reuse the collection once specified.
 
 ## HeroScript Syntax
 
-### Basic Configuration
+### 1. Site Configuration (Required)
 
 ```heroscript
 !!site.config
@@ -237,20 +240,49 @@ A logical group of pages. Pages reuse the collection once specified.
     copyright: "© 2024 My Organization"
     url: "https://docs.example.com"
     base_url: "/"
+    url_home: "/docs"
 ```
 
-### Navigation Menu
+**Parameters:**
+- `name` - Internal site identifier (default: 'default')
+- `title` - Main site title (shown in browser tab)
+- `description` - Site description for SEO
+- `tagline` - Short tagline/subtitle
+- `favicon` - Path to favicon image
+- `image` - Default OG image for social sharing
+- `copyright` - Copyright notice
+- `url` - Full site URL for Docusaurus
+- `base_url` - Base URL path (e.g., "/" or "/docs/")
+- `url_home` - Home page path
+
+### 2. Metadata Overrides (Optional)
+
+```heroscript
+!!site.config_meta
+    title: "My Docs - Technical Reference"
+    image: "img/tech-og.png"
+    description: "Technical documentation and API reference"
+```
+
+Overrides specific metadata for SEO without changing core config.
+
+### 3. Navigation Bar
 
 ```heroscript
 !!site.navbar
-    title: "My Site"
+    title: "My Documentation"
     logo_alt: "Site Logo"
     logo_src: "img/logo.svg"
     logo_src_dark: "img/logo-dark.svg"
 
 !!site.navbar_item
     label: "Documentation"
-    to: "docs/intro"
+    to: "intro"
+    position: "left"
+
+!!site.navbar_item
+    label: "API Reference"
+    to: "docs/api"
     position: "left"
 
 !!site.navbar_item
@@ -259,7 +291,13 @@ A logical group of pages. Pages reuse the collection once specified.
     position: "right"
 ```
 
-### Footer Configuration
+**Parameters:**
+- `label` - Display text (required)
+- `to` - Internal link
+- `href` - External URL
+- `position` - "left" or "right" in navbar
+
+### 4. Footer Configuration
 
 ```heroscript
 !!site.footer
@@ -273,19 +311,20 @@ A logical group of pages. Pages reuse the collection once specified.
 !!site.footer_item
     title: "Docs"
     label: "Getting Started"
-    href: "https://docs.example.com/getting-started"
+    to: "getting-started"
 
 !!site.footer_item
     title: "Community"
     label: "Discord"
     href: "https://discord.gg/example"
+
+!!site.footer_item
+    title: "Legal"
+    label: "Privacy"
+    href: "https://example.com/privacy"
 ```
 
-## Page Organization
-
-### Example 1: Simple Pages Without Categories
-
-When you don't need categories, pages are added sequentially. The collection only needs to be specified once, then it's reused for subsequent pages.
+### 5. Announcement Bar (Optional)
 
 ```heroscript
 !!site.announcement
@@ -295,34 +334,56 @@ When you don't need categories, pages are added sequentially. The collection onl
     is_closeable: true
 ```
 
-**Key Points:**
+### 6. Pages and Categories
 
-- First page specifies collection as `tech:introduction` (collection:page_name format)
-- Subsequent pages only need the page name (e.g., `vision`) - the `tech` collection is reused
-- If `title` is not specified, it will be extracted from the markdown file itself
-- Pages are ordered by their appearance in the HeroScript file
-- `slug` can be used to customize the URL path (e.g., `"/"` for homepage)
+#### Simple: Pages Without Categories
 
-### Example 2: Pages with Categories
+```heroscript
+!!site.page src: "guides:introduction"
+    title: "Getting Started"
+    description: "Introduction to the platform"
 
-Categories (sections) help organize pages into logical groups with their own navigation structure.
+!!site.page src: "installation"
+    title: "Installation"
+
+!!site.page src: "configuration"
+    title: "Configuration"
+```
+
+#### Advanced: Pages With Categories
 
 ```heroscript
 !!site.page_category
-    name: "first_principle_thinking"
-    label: "First Principle Thinking"
+    name: "basics"
+    label: "Getting Started"
 
-!!site.page src: "first_principle_thinking:hardware_badly_used"
-    description: "Hardware is not used properly, why it is important to understand hardware"
+!!site.page src: "guides:introduction"
+    title: "Introduction"
+    description: "Learn the basics"
 
-!!site.page src: "internet_risk"
-    description: "Internet risk, how to mitigate it, and why it is important"
+!!site.page src: "installation"
+    title: "Installation"
 
-!!site.page src: "onion_analogy"
-    description: "Compare onion with a computer, layers of abstraction"
+!!site.page src: "configuration"
+    title: "Configuration"
+
+!!site.page_category
+    name: "advanced"
+    label: "Advanced Topics"
+
+!!site.page src: "advanced:performance"
+    title: "Performance Tuning"
+
+!!site.page src: "scaling"
+    title: "Scaling Guide"
 ```
 
-**Key Points:**
+**Page Parameters:**
+- `src` - Source as `collection:page` (first page) or just `page_name` (reuse collection)
+- `title` - Page title (optional, extracted from markdown if not provided)
+- `description` - Page description
+- `draft` - Hide from navigation (default: false)
+- `hide_title` - Don't show title in page (default: false)
 
 **Category Parameters:**
 - `name` - Category identifier (required)
@@ -334,78 +395,113 @@ Categories (sections) help organize pages into logical groups with their own nav
 ```heroscript
 !!site.import
     url: "https://github.com/example/external-docs"
+    path: "/local/path/to/repo"
     dest: "external"
     replace: "PROJECT_NAME:My Project,VERSION:1.0.0"
     visible: true
 ```
 
-## Publish Destinations
+### 8. Publishing Destinations
 
 ```heroscript
 !!site.publish
     path: "/var/www/html/docs"
-    ssh_name: "production_server"
+    ssh_name: "production"
 
 !!site.publish_dev
     path: "/tmp/docs-preview"
 ```
 
-## Factory Methods
+---
 
-### Create or Get a Site
+## Common Patterns
 
-```v
-import incubaid.herolib.web.site
+### Pattern 1: Multi-Section Technical Documentation
 
-// Create a new site
-mut mysite := site.new(name: 'my_docs')!
+```heroscript
+!!site.config
+    name: "tech_docs"
+    title: "Technical Documentation"
 
-// Get an existing site
-mut mysite := site.get(name: 'my_docs')!
+!!site.page_category
+    name: "getting_started"
+    label: "Getting Started"
 
-// Get default site
-mut mysite := site.default()!
+!!site.page src: "docs:intro"
+    title: "Introduction"
 
-// Check if site exists
-if site.exists(name: 'my_docs') {
-    println('Site exists')
-}
+!!site.page src: "installation"
+    title: "Installation"
 
-// List all sites
-sites := site.list()
-println(sites)
+!!site.page_category
+    name: "concepts"
+    label: "Core Concepts"
+
+!!site.page src: "concepts:architecture"
+    title: "Architecture"
+
+!!site.page src: "components"
+    title: "Components"
+
+!!site.page_category
+    name: "api"
+    label: "API Reference"
+
+!!site.page src: "api:rest"
+    title: "REST API"
+
+!!site.page src: "graphql"
+    title: "GraphQL"
 ```
 
-### Using with PlayBook
+### Pattern 2: Simple Blog/Knowledge Base
 
-```v
-import incubaid.herolib.core.playbook
-import incubaid.herolib.web.site
+```heroscript
+!!site.config
+    name: "blog"
+    title: "Knowledge Base"
 
-// Create playbook from path
-mut plbook := playbook.new(path: '/path/to/heroscripts')!
+!!site.page src: "articles:first_post"
+    title: "Welcome to Our Blog"
 
-// Process site configuration
-site.play(mut plbook)!
+!!site.page src: "second_post"
+    title: "Understanding the Basics"
 
-// Access the configured site
-mut mysite := site.get(name: 'my_site')!
+!!site.page src: "third_post"
+    title: "Advanced Techniques"
 ```
 
-## Data Structures
+### Pattern 3: Project with External Imports
 
-### Site
+```heroscript
+!!site.config
+    name: "project_docs"
+    title: "Project Documentation"
 
-```v
-pub struct Site {
-pub mut:
-    pages      []Page
-    sections   []Section
-    siteconfig SiteConfig
-}
+!!site.import
+    url: "https://github.com/org/shared-docs"
+    dest: "shared"
+    visible: true
+
+!!site.page_category
+    name: "product"
+    label: "Product Guide"
+
+!!site.page src: "docs:overview"
+    title: "Overview"
+
+!!site.page src: "features"
+    title: "Features"
+
+!!site.page_category
+    name: "resources"
+    label: "Shared Resources"
+
+!!site.page src: "shared:common"
+    title: "Common Patterns"
 ```
 
-### Page
+---
 
 ## File Organization
 
