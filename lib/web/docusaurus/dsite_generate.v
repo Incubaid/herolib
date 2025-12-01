@@ -33,7 +33,11 @@ pub fn (mut docsite DocSite) generate() ! {
 	mut announcement_file := pathlib.get_file(path: '${cfg_path}/announcement.json', create: true)!
 	announcement_file.write(json.encode_pretty(docsite.config.announcement))!
 
-	docsite.generate_docs()!
+	// generate sidebar.json, now new way to drive docusaurus navigation
+	mut sidebar_file := pathlib.get_file(path: '${cfg_path}/sidebar.json', create: true)!
+	sidebar_file.write(docsite.config.sidebar_json_txt)!
+
+	docsite.link_docs()!
 
 	docsite.import()!
 }

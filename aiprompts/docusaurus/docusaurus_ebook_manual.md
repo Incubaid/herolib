@@ -2,13 +2,38 @@
 
 This manual provides a comprehensive guide on how to leverage HeroLib's Docusaurus integration, Doctree, and HeroScript to create and manage technical ebooks, optimized for AI-driven content generation and project management.
 
+## Quick Start - Recommended Ebook Structure
+
+The recommended directory structure for an ebook:
+
+```
+my_ebook/
+├── scan.hero              # Atlas collection scanning
+├── config.hero            # Site configuration
+├── menus.hero             # Navbar and footer configuration
+├── include.hero           # Docusaurus define and atlas export
+├── 1_intro.heroscript     # Page definitions (numbered for ordering)
+├── 2_concepts.heroscript  # More page definitions
+└── 3_advanced.heroscript  # Additional pages
+```
+
+**Running an ebook:**
+
+```bash
+# Start development server
+hero docs -d -p /path/to/my_ebook
+
+# Build for production
+hero docs -p /path/to/my_ebook
+```
+
 ## 1. Core Concepts
 
 To effectively create ebooks with HeroLib, it's crucial to understand the interplay of three core components:
 
-* **HeroScript**: A concise scripting language used to define the structure, configuration, and content flow of your Docusaurus site. It acts as the declarative interface for the entire process.
+* **HeroScript**: A concise scripting language used to define the structure, configuration, and content flow of your Docusaurus site. It acts as the declarative interface for the entire process. Files use `.hero` extension for configuration and `.heroscript` for page definitions.
 * **Docusaurus**: A popular open-source static site generator. HeroLib uses Docusaurus as the underlying framework to render your ebook content into a navigable website.
-* **Atlas (and Doctree)**: HeroLib's document collection layer. In the current pipeline, Atlas exports markdown "collections" and "pages" that Docusaurus consumes via the Atlas client. Doctree and `doctreeclient` are legacy/alternative ways to provide the same collections.
+* **Atlas**: HeroLib's document collection layer. Atlas scans and exports markdown "collections" and "pages" that Docusaurus consumes.
 
 ## 2. Setting Up a Docusaurus Project with HeroLib
 
@@ -246,32 +271,36 @@ This is where you define the actual content pages and how they are organized int
 
 ```heroscript
 // Define a category
-!!site.page_category path:'introduction' label:"Introduction to Ebook" position:10
+!!site.page_category name:'introduction' label:"Introduction to Ebook"
 
-// Define a page within that category, linking to Doctree content
-!!site.page path:'introduction' src:"my_doctree_collection:chapter_1_overview"
+// Define pages - first page specifies collection, subsequent pages reuse it
+!!site.page src:"my_collection:chapter_1_overview"
     title:"Chapter 1: Overview"
     description:"A brief introduction to the ebook's content."
-    position:1 // Order within the category
-    hide_title:true // Hide the title on the page itself
+
+!!site.page src:"chapter_2_basics"
+    title:"Chapter 2: Basics"
+
+// New category with new collection
+!!site.page_category name:'advanced' label:"Advanced Topics"
+
+!!site.page src:"advanced_collection:performance"
+    title:"Performance Tuning"
+    hide_title:true
 ```
 
 **Arguments:**
 
 * **`site.page_category`**:
-  * `path` (string, required): The path to the category directory within your Docusaurus `docs` folder (e.g., `introduction` will create `docs/introduction/_category_.json`).
+  * `name` (string, required): Category identifier (used internally).
   * `label` (string, required): The display name for the category in the sidebar.
-  * `position` (int, optional): The order of the category in the sidebar.
-  * `sitename` (string, optional): If you have multiple Docusaurus sites defined, specify which site this category belongs to. Defaults to the current site's name.
+  * `position` (int, optional): The order of the category in the sidebar (auto-incremented if omitted).
 * **`site.page`**:
-  * `src` (string, required): **Crucial for Doctree integration.** This specifies the source of the page content in the format `collection_name:page_name`. HeroLib will fetch the markdown content from the specified Doctree collection and page.
-  * `path` (string, required): The relative path and filename for the generated markdown file within your Docusaurus `docs` folder (e.g., `introduction/chapter_1.md`). If only a directory is provided (e.g., `introduction/`), the `page_name` from `src` will be used as the filename.
-  * `title` (string, optional): The title of the page. If not provided, HeroLib will attempt to extract it from the markdown content or use the `page_name`.
+  * `src` (string, required): **Crucial for Atlas/collection integration.** Format: `collection_name:page_name` for the first page, or just `page_name` to reuse the previous collection.
+  * `title` (string, optional): The title of the page. If not provided, HeroLib extracts it from the markdown `# Heading` or uses the page name.
   * `description` (string, optional): A short description for the page, used in frontmatter.
-  * `position` (int, optional): The order of the page within its category.
   * `hide_title` (boolean, optional): If `true`, the title will not be displayed on the page itself.
-  * `draft` (boolean, optional): If `true`, the page will be marked as a draft and not included in production builds.
-  * `title_nr` (int, optional): If set, HeroLib will re-number the markdown headings (e.g., `title_nr:3` will make `# Heading` become `### Heading`). Useful for consistent heading levels across imported content.
+  * `draft` (boolean, optional): If `true`, the page will be hidden from navigation.
 
 ### 3.7. Collections and Atlas/Doctree Integration
 

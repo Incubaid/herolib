@@ -31,10 +31,196 @@ mysitepath := gittools.path(
 // Process all HeroScript files in the path
 playcmds.run(heroscript_path: mysitepath.path)!
 
-// Get the configured site
-mut mysite := site.get(name: 'tfgrid_tech')!
-println(mysite)
+// Access the configured site
+mut mysite := site.get(name: 'my_docs')!
+
+// Print available pages
+for page_id, page in mysite.pages {
+    console.print_item('Page: ${page_id} - "${page.title}"')
+}
+
+println('Site has ${mysite.pages.len} pages')
 ```
+
+---
+
+## API Reference
+
+### Site Factory
+
+Factory functions to create and retrieve site instances:
+
+```v
+// Create a new site
+mut mysite := site.new(name: 'my_docs')!
+
+// Get existing site
+mut mysite := site.get(name: 'my_docs')!
+
+// Check if site exists
+if site.exists(name: 'my_docs') {
+    println('Site exists')
+}
+
+// Get all site names
+site_names := site.list()  // Returns []string
+
+// Get default site (creates if needed)
+mut default := site.default()!
+```
+
+### Site Object Structure
+
+```v
+pub struct Site {
+pub mut:
+    pages      map[string]Page  // key: "collection:page_name"
+    nav        NavConfig        // Navigation sidebar
+    siteconfig SiteConfig       // Full configuration
+}
+```
+
+### Accessing Pages
+
+```v
+// Access all pages
+pages := mysite.pages  // map[string]Page
+
+// Get specific page
+page := mysite.pages['docs:introduction']
+
+// Page structure
+pub struct Page {
+pub mut:
+    id          string  // "collection:page_name"
+    title       string  // Display title
+    description string  // SEO metadata
+    draft       bool    // Hidden if true
+    hide_title  bool    // Don't show title in rendering
+    src         string  // Source reference
+}
+```
+
+### Navigation Structure
+
+```v
+// Access sidebar navigation
+sidebar := mysite.nav.my_sidebar  // []NavItem
+
+// NavItem is a sum type (can be one of three types):
+pub type NavItem = NavDoc | NavCat | NavLink
+
+// Navigation items:
+
+pub struct NavDoc {
+pub:
+    id    string  // page id
+    label string  // display name
+}
+
+pub struct NavCat {
+pub mut:
+    label       string
+    collapsible bool
+    collapsed   bool
+    items       []NavItem  // nested NavDoc/NavCat/NavLink
+}
+
+pub struct NavLink {
+pub:
+    label       string
+    href        string
+    description string
+}
+
+// Example: iterate navigation
+for item in mysite.nav.my_sidebar {
+    match item {
+        NavDoc {
+            println('Page: ${item.label} (${item.id})')
+        }
+        NavCat {
+            println('Category: ${item.label} (${item.items.len} items)')
+        }
+        NavLink {
+            println('Link: ${item.label} -> ${item.href}')
+        }
+    }
+}
+```
+
+### Site Configuration
+
+```v
+pub struct SiteConfig {
+pub mut:
+    // Core
+    name        string
+    title       string
+    description string
+    tagline     string
+    favicon     string
+    image       string
+    copyright   string
+
+    // URLs (Docusaurus)
+    url         string    // Full site URL
+    base_url    string    // Base path (e.g., "/" or "/docs/")
+    url_home    string    // Home page path
+
+    // SEO Metadata
+    meta_title  string    // SEO title override
+    meta_image  string    // OG image override
+
+    // Publishing
+    build_dest      []BuildDest  // Production destinations
+    build_dest_dev  []BuildDest  // Development destinations
+
+    // Navigation & Footer
+    footer      Footer
+    menu        Menu
+    announcement AnnouncementBar
+    
+    // Imports
+    imports     []ImportItem
+}
+
+pub struct BuildDest {
+pub mut:
+    path     string
+    ssh_name string
+}
+```
+
+---
+
+## Core Concepts
+
+### Site
+A website configuration that contains pages, navigation structure, and metadata.
+
+### Page
+A single page with:
+- **ID**: `collection:page_name` format
+- **Title**: Display name (optional - extracted from markdown if not provided)
+- **Description**: SEO metadata
+- **Draft**: Hidden from navigation if true
+
+### Category (Section)
+Groups related pages together in the navigation sidebar. Automatically collapsed/expandable.
+
+### Collection
+A logical group of pages. Pages reuse the collection once specified.
+
+```heroscript
+!!site.page src: "tech:intro"          # Specifies collection "tech"
+!!site.page src: "benefits"             # Reuses collection "tech" 
+!!site.page src: "components"           # Still uses collection "tech"
+!!site.page src: "api:reference"       # Switches to collection "api"
+!!site.page src: "endpoints"            # Uses collection "api"
+```
+
+---
 
 ## HeroScript Syntax
 
@@ -102,21 +288,11 @@ println(mysite)
 When you don't need categories, pages are added sequentially. The collection only needs to be specified once, then it's reused for subsequent pages.
 
 ```heroscript
-!!site.page src: "mycelium_tech:introduction"
-    description: "Introduction to ThreeFold Technology"
-    slug: "/"
-
-!!site.page src: "vision"
-    description: "Our Vision for the Future Internet"
-
-!!site.page src: "what"
-    description: "What ThreeFold is Building"
-
-!!site.page src: "presentation"
-    description: "ThreeFold Technology Presentation"
-
-!!site.page src: "status"
-    description: "Current Development Status"
+!!site.announcement
+    content: "🎉 Version 2.0 is now available!"
+    background_color: "#20232a"
+    text_color: "#fff"
+    is_closeable: true
 ```
 
 **Key Points:**
@@ -148,63 +324,12 @@ Categories (sections) help organize pages into logical groups with their own nav
 
 **Key Points:**
 
-- `!!site.page_category` creates a new section/category
-- `name` is the internal identifier (snake_case)
-- `label` is the display name (automatically derived from `name` if not specified)
-- Category name is converted to title case: `first_principle_thinking` → "First Principle Thinking"
-- Once a category is defined, all subsequent pages belong to it until a new category is declared
-- Collection persistence works the same: specify once (e.g., `first_principle_thinking:hardware_badly_used`), then reuse
+**Category Parameters:**
+- `name` - Category identifier (required)
+- `label` - Display label (auto-generated from name if omitted)
+- `position` - Sort order (auto-incremented if omitted)
 
-### Example 3: Advanced Page Configuration
-
-```heroscript
-!!site.page_category
-    name: "components"
-    label: "System Components"
-    position: 100
-
-!!site.page src: "mycelium_tech:mycelium"
-    title: "Mycelium Network"
-    description: "Peer-to-peer overlay network"
-    slug: "mycelium-network"
-    position: 1
-    draft: false
-    hide_title: false
-
-!!site.page src: "fungistor"
-    title: "Fungistor Storage"
-    description: "Distributed storage system"
-    position: 2
-```
-
-**Available Page Parameters:**
-
-- `src`: Source reference as `collection:page_name` (required for first page in collection)
-- `title`: Page title (optional, extracted from markdown if not provided)
-- `description`: Page description for metadata
-- `slug`: Custom URL slug
-- `position`: Manual ordering (auto-incremented if not specified)
-- `draft`: Mark page as draft (default: false)
-- `hide_title`: Hide the page title in rendering (default: false)
-- `path`: Custom path for the page (defaults to category name)
-- `category`: Override the current category for this page
-
-## File Organization
-
-HeroScript files should be organized with numeric prefixes to control execution order:
-
-```
-docs/
-├── 0_config.heroscript       # Site configuration
-├── 1_menu.heroscript          # Navigation and footer
-├── 2_intro_pages.heroscript   # Introduction pages
-├── 3_tech_pages.heroscript    # Technical documentation
-└── 4_api_pages.heroscript     # API reference
-```
-
-**Important:** Files are processed in alphabetical order, so use numeric prefixes (0_, 1_, 2_, etc.) to ensure correct execution sequence.
-
-## Import External Content
+### 7. Content Imports
 
 ```heroscript
 !!site.import
@@ -282,47 +407,55 @@ pub mut:
 
 ### Page
 
-```v
-pub struct Page {
-pub mut:
-    name         string  // Page identifier
-    title        string  // Display title
-    description  string  // Page description
-    draft        bool    // Draft status
-    position     int     // Sort order
-    hide_title   bool    // Hide title in rendering
-    src          string  // Source as collection:page_name
-    path         string  // URL path (without page name)
-    section_name string  // Category/section name
-    title_nr     int     // Title numbering level
-    slug         string  // Custom URL slug
-}
+## File Organization
+
+### Recommended Ebook Structure
+
+The modern ebook structure uses `.hero` files for configuration and `.heroscript` files for page definitions:
+
+```
+my_ebook/
+├── scan.hero              # !!atlas.scan - collection scanning
+├── config.hero            # !!site.config - site configuration
+├── menus.hero             # !!site.navbar and !!site.footer
+├── include.hero           # !!docusaurus.define and !!atlas.export
+├── 1_intro.heroscript     # Page definitions (categories + pages)
+├── 2_concepts.heroscript  # More page definitions
+└── 3_advanced.heroscript  # Additional pages
 ```
 
-### Section
+### File Types
 
-```v
-pub struct Section {
-pub mut:
-    name     string  // Internal identifier
-    position int     // Sort order
-    path     string  // URL path
-    label    string  // Display name
-}
+- **`.hero` files**: Configuration files processed in any order
+- **`.heroscript` files**: Page definition files processed alphabetically
+
+Use numeric prefixes on `.heroscript` files to control page/category ordering in the sidebar.
+
+### Example scan.hero
+
+```heroscript
+!!atlas.scan path:"../../collections/my_collection"
 ```
 
-## Best Practices
+### Example include.hero
 
-1. **File Naming**: Use numeric prefixes (0_, 1_, 2_) to control execution order
-2. **Collection Reuse**: Specify collection once, then reuse for subsequent pages
-3. **Category Organization**: Group related pages under categories for better navigation
-4. **Title Extraction**: Let titles be extracted from markdown files when possible
-5. **Position Management**: Use automatic positioning unless you need specific ordering
-6. **Description**: Always provide descriptions for better SEO and navigation
-7. **Draft Status**: Use `draft: true` for work-in-progress pages
+```heroscript
+// Include shared configuration (optional)
+!!play.include path:'../../heroscriptall' replace:'SITENAME:my_ebook'
 
-## Complete Example
+// Or define directly
+!!docusaurus.define name:'my_ebook'
 
-See `examples/web/site/site_example.vsh` for a complete working example.
+!!atlas.export include:true
+```
 
-For a real-world example, check: <https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech>
+### Running an Ebook
+
+```bash
+# Development server
+hero docs -d -p /path/to/my_ebook
+
+# Build for production
+hero docs -p /path/to/my_ebook
+```
+

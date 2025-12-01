@@ -118,23 +118,23 @@ pub fn (s Sheet) data_get_as_string(args RowGetArgs) !string {
 	}
 	nryears := 5
 	err_pre := "Can't get data for sheet:${s.name} row:${args.rowname}.\n"
-	mut s2 := s
+	    mut s2 := s
 
 	if args.period_type == .year {
-		s2 = s.toyear(
-			name:          args.rowname
-			namefilter:    args.namefilter
-			includefilter: args.includefilter
-			excludefilter: args.excludefilter
-		)!
+		        s2 = *s.toyear(
+		            name:          args.rowname
+		            namefilter:    args.namefilter
+		            includefilter: args.includefilter
+		            excludefilter: args.excludefilter
+		        )!
 	}
 	if args.period_type == .quarter {
-		s2 = s.toquarter(
-			name:          args.rowname
-			namefilter:    args.namefilter
-			includefilter: args.includefilter
-			excludefilter: args.excludefilter
-		)!
+		        s2 = *s.toquarter(
+		            name:          args.rowname
+		            namefilter:    args.namefilter
+		            includefilter: args.includefilter
+		            excludefilter: args.excludefilter
+		        )!
 	}
 	mut out := ''
 

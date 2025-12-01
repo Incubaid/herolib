@@ -20,7 +20,7 @@ fn pad_right(s string, length int) string {
 pub struct PPrintArgs {
 pub mut:
 	group_months int = 1 // e.g. if 2 then will group by 2 months
-	nr_columns   int = 0 // number of columns to show in the table, 0 is all
+	nr_columns   int // number of columns to show in the table, 0 is all
 	description  bool // show description in the table
 	aggrtype     bool = true // show aggregate type in the table
 	tags         bool = true // show tags in the table
@@ -151,7 +151,7 @@ pub fn (mut s Sheet) pprint(args PPrintArgs) ! {
 		}
 		max_cols := data_start_index + args.nr_columns
 		mut new_all_rows := [][]string{}
-		for i, row in all_rows {
+		for _, row in all_rows {
 			if row.len > max_cols {
 				new_all_rows << row[0..max_cols]
 			} else {

@@ -13,7 +13,7 @@ import incubaid.herolib.installers.lang.python
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
-	mut installer := get()!
+	_ := get()!
 	mut res := []startupmanager.ZProcessNewArgs{}
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// res << startupmanager.ZProcessNewArgs{
@@ -28,7 +28,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 }
 
 fn running() !bool {
-	mut installer := get()!
+	_ := get()!
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// this checks health of erpnext
 	// curl http://localhost:3333/api/v1/s --oauth2-bearer 1234 works

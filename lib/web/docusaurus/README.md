@@ -2,100 +2,256 @@
 
 This module allows you to build and manage Docusaurus websites using a generic configuration layer provided by `lib/web/site`.
 
-### Workflow
-
-1. **Configure Your Site**: Define your site's metadata, navigation, footer, pages, and content sources using `!!site.*` actions in a `.heroscript` file. This creates a generic site definition.
-2. **Define Docusaurus Build**: Use `!!docusaurus.define` to specify build paths and other factory-level settings.
-3. **Link Site to Docusaurus**: Use `!!docusaurus.add` to link your generic site configuration to the Docusaurus factory. This tells HeroLib to build this specific site using Docusaurus.
-4. **Run Actions**: Use actions like `!!docusaurus.dev` or `!!docusaurus.build` to generate and serve your site.
-
 ### Hero Command (Recommended)
 
 For quick setup and development, use the hero command:
 
 ```bash
 # Start development server
-hero docs -d -path /path/to/your/site
+hero docs -d -p /path/to/your/ebook
 
 # Build for production
-hero docs -b -path /path/to/your/site
+hero docs -p /path/to/your/ebook
 
 # Build and publish
-hero docs -bp -path /path/to/your/site
+hero docs -bp -p /path/to/your/ebook
 ```
 
-### Example HeroScript
+---
+
+## Ebook Directory Structure
+
+The recommended structure for an ebook follows this pattern:
+
+```
+my_ebook/
+├── scan.hero              # Atlas collection scanning
+├── config.hero            # Site configuration
+├── menus.hero             # Navbar and footer configuration
+├── include.hero           # Docusaurus define and atlas export
+├── 1_intro.heroscript     # Page definitions (numbered for ordering)
+├── 2_concepts.heroscript  # More page definitions
+└── 3_advanced.heroscript  # Additional pages
+```
+
+### File Descriptions
+
+#### `scan.hero` - Scan Collections
+
+Defines which collections to scan for content:
 
 ```heroscript
+// Scan local collections
+!!atlas.scan path:"../../collections/my_collection"
 
-// Define the Docusaurus build environment, is optional
+// Scan remote collections from git
+!!atlas.scan git_url:"https://git.example.com/org/repo/src/branch/main/collections/docs"
+```
+
+#### `config.hero` - Site Configuration
+
+Core site settings:
+
+```heroscript
+!!site.config
+    name:"my_ebook"
+    title:"My Awesome Ebook"
+    tagline:"Documentation made easy"
+    url:"https://docs.example.com"
+    url_home:"docs/"
+    base_url:"/my_ebook/"
+    favicon:"img/favicon.png"
+    copyright:"© 2024 My Organization"
+    default_collection:"my_collection"
+
+!!site.config_meta
+    description:"Comprehensive documentation for my project"
+    title:"My Ebook - Documentation"
+    keywords:"docs, ebook, tutorial"
+```
+
+**Note:** When `url_home` ends with `/` (e.g., `docs/`), the first page in the sidebar automatically becomes the landing page. This means both `/docs/` and `/docs/intro` will work.
+
+#### `menus.hero` - Navigation Configuration
+
+```heroscript
+!!site.navbar
+    title:"My Ebook"
+
+!!site.navbar_item
+    label:"Documentation"
+    to:"docs/"
+    position:"left"
+
+!!site.navbar_item
+    label:"GitHub"
+    href:"https://github.com/myorg/myrepo"
+    position:"right"
+
+!!site.footer
+    style:"dark"
+
+!!site.footer_item
+    title:"Docs"
+    label:"Getting Started"
+    to:"docs/"
+
+!!site.footer_item
+    title:"Community"
+    label:"GitHub"
+    href:"https://github.com/myorg/myrepo"
+```
+
+#### `include.hero` - Docusaurus Setup
+
+Links to shared configuration or defines docusaurus directly:
+
+```heroscript
+// Option 1: Include shared configuration with variable replacement
+!!play.include path:'../../heroscriptall' replace:'SITENAME:my_ebook'
+
+// Option 2: Define directly
+!!docusaurus.define name:'my_ebook'
+
+!!atlas.export include:true
+```
+
+#### Page Definition Files (`*.heroscript`)
+
+Define pages and categories:
+
+```heroscript
+// Define a category
+!!site.page_category name:'getting_started' label:"Getting Started"
+
+// Define pages (first page specifies collection, subsequent pages reuse it)
+!!site.page src:"my_collection:intro"
+    title:"Introduction"
+
+!!site.page src:"installation"
+    title:"Installation Guide"
+
+!!site.page src:"configuration"
+    title:"Configuration"
+
+// New category
+!!site.page_category name:'advanced' label:"Advanced Topics"
+
+!!site.page src:"my_collection:performance"
+    title:"Performance Tuning"
+```
+
+---
+
+## Collections
+
+Collections are directories containing markdown files. They're scanned by Atlas and referenced in page definitions.
+
+```
+collections/
+├── my_collection/
+│   ├── .collection         # Marker file (empty)
+│   ├── intro.md
+│   ├── installation.md
+│   └── configuration.md
+└── another_collection/
+    ├── .collection
+    └── overview.md
+```
+
+Pages reference collections using `collection:page` format:
+
+```heroscript
+!!site.page src:"my_collection:intro"      # Specifies collection
+!!site.page src:"installation"              # Reuses previous collection
+!!site.page src:"another_collection:overview"  # Switches collection
+```
+
+---
+
+## Legacy Configuration
+
+The older approach using `!!docusaurus.add` is still supported but not recommended:
+
+```heroscript
 !!docusaurus.define
     path_build: "/tmp/docusaurus_build"
     path_publish: "/tmp/docusaurus_publish"
-    reset: 1
-    install: 1
-    template_update: 1
 
 !!docusaurus.add
     sitename:"my_site"
-    path:"./path/to/my/site/source"
-    path_publish: "/tmp/docusaurus_publish"                                                 //optional
-    git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"    //optional: can use git to pull the site source
-    git_root:"/tmp/code"                                                                    //optional: where to clone git repo
-    git_reset:1                                                                             //optional: reset git repo
-    git_pull:1                                                                              //optional: pull latest changes
-    play:true                                                                               //required when using git_url: process heroscript files from source path
+    path:"./path/to/site"
 
-
-// Run the development server
-!!docusaurus.dev site:"my_site" open:true watch_changes:true
-
+!!docusaurus.dev site:"my_site" open:true
 ```
 
-## see sites to define a site
+---
 
-the site needs to be defined following the generic site definition, see the `lib/web/site` module for more details.
+## HeroScript Actions Reference
 
-```heroscript
+### `!!atlas.scan`
 
-//Configure the site using the generic 'site' module
-!!site.config
-    name: "my_site"
-    title: "My Awesome Docs"
-    tagline: "The best docs ever"
-    url: "https://docs.example.com"
-    base_url: "/"
-    copyright: "Example Corp"
+Scans a directory for markdown collections:
 
-!!site.menu_item
-    label: "Homepage"
-    href: "https://example.com"
-    position: "right"
+- `path` (string): Local path to scan
+- `git_url` (string): Git URL to clone and scan
+- `name` (string): Atlas instance name (default: `main`)
+- `ignore` (list): Directory names to skip
 
-// ... add footer, pages, etc. using !!site.* actions ...
+### `!!atlas.export`
 
-```
+Exports scanned collections:
 
-### Heroscript Actions
+- `include` (bool): Include content in export (default: `true`)
+- `destination` (string): Export directory
 
-- `!!docusaurus.define`: Configures a Docusaurus factory instance.
-  - `name` (string): Name of the factory (default: `default`).
-  - `path_build` (string): Path to build the site.
-  - `path_publish` (string): Path to publish the final build.
-  - `reset` (bool): If `true`, clean the build directory before starting.
-  - `template_update` (bool): If `true`, update the Docusaurus template.
-  - `install` (bool): If `true`, run `bun install`.
+### `!!docusaurus.define`
 
-- `!!docusaurus.add`: Links a configured site to the Docusaurus factory.
-  - `site` (string, required): The name of the site defined in `!!site.config`.
-  - `path` (string, required): The local filesystem path to the site's source directory (e.g., for `static/` folder).
+Configures the Docusaurus build environment:
 
-- `!!docusaurus.dev`: Runs the Docusaurus development server.
-  - `site` (string, required): The name of the site to run.
-  - `host` (string): Host to bind to (default: `localhost`).
-  - `port` (int): Port to use (default: `3000`).
-  - `open` (bool): Open the site in a browser.
-  - `watch_changes` (bool): Watch for source file changes and auto-reload.
+- `name` (string, required): Site name (must match `!!site.config` name)
+- `path_build` (string): Build directory path
+- `path_publish` (string): Publish directory path
+- `reset` (bool): Clean build directory before starting
+- `template_update` (bool): Update Docusaurus template
+- `install` (bool): Run `bun install`
+- `atlas_dir` (string): Atlas export directory
 
-- `!!docusaurus.build`: Builds the static site for production.
-  - `site` (string, required): The name of the site to build.
+### `!!site.config`
+
+Core site configuration:
+
+- `name` (string, required): Unique site identifier
+- `title` (string): Site title
+- `tagline` (string): Site tagline
+- `url` (string): Full site URL
+- `base_url` (string): Base URL path (e.g., `/my_ebook/`)
+- `url_home` (string): Home page path (e.g., `docs/`)
+- `default_collection` (string): Default collection for pages
+- `favicon` (string): Favicon path
+- `copyright` (string): Copyright notice
+
+### `!!site.page`
+
+Defines a documentation page:
+
+- `src` (string, required): Source as `collection:page` or just `page` (reuses previous collection)
+- `title` (string): Page title
+- `description` (string): Page description
+- `draft` (bool): Hide from navigation
+- `hide_title` (bool): Don't show title on page
+
+### `!!site.page_category`
+
+Defines a sidebar category:
+
+- `name` (string, required): Category identifier
+- `label` (string): Display label
+- `position` (int): Sort order
+
+---
+
+## See Also
+
+- `lib/web/site` - Generic site configuration module
+- `lib/data/atlas` - Atlas collection management

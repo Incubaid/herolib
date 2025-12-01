@@ -10,7 +10,7 @@ fn (mut sim BizModel) pl_total() ! {
 
 	// sheet.pprint(nr_columns: 10)!
 
-	mut pl_total := sheet.group2row(
+	_ := sheet.group2row(
 		name:    'pl_summary'
 		include: ['pl']
 		tags:    'summary'

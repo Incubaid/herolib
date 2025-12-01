@@ -7,7 +7,7 @@ import incubaid.herolib.core.pathlib
 pub struct ExportCSVArgs {
 pub mut:
 	path          string
-	include_empty bool   = false // whether to include empty cells or not
+	include_empty bool // whether to include empty cells or not
 	separator     string = '|'   // separator character for CSV
 }
 

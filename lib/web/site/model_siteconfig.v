@@ -34,7 +34,7 @@ pub mut:
 // Announcement bar config structure
 pub struct AnnouncementBar {
 pub mut:
-	id               string @[json: 'id']
+	// id               string @[json: 'id']
 	content          string @[json: 'content']
 	background_color string @[json: 'backgroundColor']
 	text_color       string @[json: 'textColor']

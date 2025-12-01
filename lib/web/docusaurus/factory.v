@@ -15,7 +15,7 @@ pub fn dsite_define(sitename string) ! {
 	console.print_header('Add Docusaurus Site: ${sitename}')
 	mut c := config()!
 
-	path_publish := '${c.path_publish.path}/${sitename}'
+	_ := '${c.path_publish.path}/${sitename}'
 	path_build_ := '${c.path_build.path}'
 
 	// Get the site object after processing, this is the website which is a generic definition of a site
@@ -26,7 +26,7 @@ pub fn dsite_define(sitename string) ! {
 		name:         sitename
 		path_publish: pathlib.get_dir(path: '${path_build_}/build', create: true)!
 		path_build:   pathlib.get_dir(path: path_build_, create: true)!
-		config:       new_configuration(website.siteconfig)!
+		config:       new_configuration(website)!
 		website:      website
 	}
 
