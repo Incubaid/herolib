@@ -247,6 +247,20 @@ pub fn (mut c AtlasClient) get_collection_metadata(collection_name string) !Coll
 	return metadata
 }
 
+// get_page_links returns the links found in a page by reading the metadata
+pub fn (mut c AtlasClient) get_page_links(collection_name string, page_name string) ![]LinkMetadata {
+	// Get collection metadata
+	metadata := c.get_collection_metadata(collection_name)!
+	// Apply name normalization to page name
+	fixed_page_name := texttools.name_fix_no_ext(page_name)
+
+	// Find the page in metadata
+	if fixed_page_name in metadata.pages {
+		return metadata.pages[fixed_page_name].links
+	}
+	return error('page_not_found: Page "${page_name}" not found in collection metadata, for collection: "${collection_name}"')
+}
+
 // get_collection_errors returns the errors for a collection from metadata
 pub fn (mut c AtlasClient) get_collection_errors(collection_name string) ![]ErrorMetadata {
 	metadata := c.get_collection_metadata(collection_name)!
@@ -258,30 +272,6 @@ pub fn (mut c AtlasClient) has_errors(collection_name string) bool {
 	errors := c.get_collection_errors(collection_name) or { return false }
 	return errors.len > 0
 }
-
-pub fn (mut c AtlasClient) copy_pages(collection_name string, page_name string, destination_path string) ! {
-	// Get page links from metadata
-	links := c.get_page_links(collection_name, page_name)!
-
-	// Create img subdirectory
-	mut img_dest := pathlib.get_dir(path: '${destination_path}', create: true)!
-
-	// Copy only image links
-	for link in links {
-		if link.file_type != .page {
-			continue
-		}
-		if link.status == .external {
-			continue
-		}
-		// Get image path and copy
-		img_path := c.get_page_path(link.target_collection_name, link.target_item_name)!
-		mut src := pathlib.get_file(path: img_path)!
-		src.copy(dest: '${img_dest.path}/${src.name_fix_keepext()}')!
-		console.print_debug(' ********. Copied page: ${src.path} to ${img_dest.path}/${src.name_fix_keepext()}')
-	}
-}
-
 
 pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string, destination_path string) ! {
 	// Get page links from metadata

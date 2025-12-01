@@ -67,7 +67,9 @@ pub fn (mut node Node) hero_install(args HeroInstallArgs) ! {
 			todo << 'bash /tmp/install_v.sh --herolib '
 		}
 	}
-	node.exec_interactive(todo.join('\n'))!
+	// Use exec instead of exec_interactive since user interaction is not needed
+	// exec_interactive uses shell mode which replaces the process and never returns
+	node.exec(cmd: todo.join('\n'), stdout: true)!
 }
 
 @[params]

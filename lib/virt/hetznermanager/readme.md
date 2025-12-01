@@ -4,15 +4,55 @@ This module provides a V client for interacting with Hetzner's Robot API, allowi
 
 ## 1. Configuration
 
-Before using the module, you need to configure at least one client instance with your Hetzner Robot credentials. This is done using the `hetznermanager.configure` action in HeroScript. It's recommended to store your password in an environment variable for security.
+Before using the module, you need to configure at least one client instance with your Hetzner Robot credentials. It's recommended to store your credentials in environment variables for security.
+
+### 1.1 Environment Variables
+
+Create an environment file (e.g., `hetzner_env.sh`) with your credentials:
+
+```bash
+export HETZNER_USER="your-robot-username"    # Hetzner Robot API username
+export HETZNER_PASSWORD="your-password"      # Hetzner Robot API password
+export HETZNER_SSHKEY_NAME="my-key"          # Name of SSH key registered in Hetzner (NOT the key content)
+```
+
+Each script defines its own server name and whitelist at the top of the file.
+
+Source the env file before running your scripts:
+
+```bash
+source hetzner_env.sh
+./your_script.vsh
+```
+
+### 1.2 SSH Key Configuration
+
+**Important:** The `sshkey` parameter expects the **name** of an SSH key already registered in your Hetzner Robot account, not the actual key content.
+
+To register a new SSH key with Hetzner, use `key_create`:
+
+```hs
+!!hetznermanager.key_create
+    key_name: 'my-laptop-key'
+    data: 'ssh-ed25519 AAAAC3...'  # The actual public key content
+```
+
+Once registered, you can reference the key by name in `configure`:
+
+```hs
+!!hetznermanager.configure
+    sshkey: 'my-laptop-key'  # Reference the registered key by name
+```
+
+### 1.3 HeroScript Configuration
 
 ```hs
 !!hetznermanager.configure
  name:"main"
- user:"<your_robot_username>"
+ user:"${HETZNER_USER}"
  password:"${HETZNER_PASSWORD}"
- whitelist:"2111181, 2392178" // Optional: comma-separated list of server IDs to operate on
- sshkey: "name of sshkey as used with hetzner"
+ whitelist:"1234567"             // Server ID(s) specific to your script
+ sshkey:"${HETZNER_SSHKEY_NAME}"
 ```
 
 ## 2. Usage
@@ -61,7 +101,7 @@ HeroScript provides a simple, declarative way to execute server operations. You 
   * `user` (string): Hetzner Robot username.
   * `password` (string): Hetzner Robot password.
   * `whitelist` (string, optional): Comma-separated list of server IDs to restrict operations to.
-  * `sshkey` (string, optional): Default public SSH key to deploy in rescue mode.
+  * `sshkey` (string, optional): **Name** of an SSH key registered in your Hetzner account (not the key content).
 * `!!hetznermanager.server_rescue`: Activates the rescue system.
   * `instance` (string, optional): The client instance to use (defaults to 'default').
   * `server_name` or `id` (string/int): Identifies the target server.
