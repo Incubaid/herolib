@@ -33,7 +33,7 @@ put in .hero file and execute with hero or but shebang line on top of .hero scri
 
 !!atlas.scan git_url:"https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/tests"
 
-!!atlas.export 
+!!atlas.export destination: '/tmp/atlas_export' 
 
 ```
 

@@ -1,22 +1,31 @@
+# Hetzner Examples
 
-## to get started 
+## Quick Start
 
-This script is run from your own computer or a VM on which you develop.
+### 1. Configure Environment Variables
 
-Make sure you have hero_secrets loaded
+Copy `hetzner_env.sh` and fill in your credentials:
 
 ```bash
-hero git pull  https://git.threefold.info/despiegk/hero_secrets
-source ~/code/git.ourworld.tf/despiegk/hero_secrets/mysecrets.sh
+export HETZNER_USER="your-robot-username"   # Hetzner Robot API username
+export HETZNER_PASSWORD="your-password"     # Hetzner Robot API password
+export HETZNER_SSHKEY_NAME="my-key"         # Name of SSH key registered in Hetzner
 ```
 
-## to e.g. install test1
+Each script has its own server name and whitelist ID defined at the top.
 
-```
-~/code/github/incubaid/herolib/examples/virt/hetzner/hetzner_test1.vsh
+### 2. Run a Script
+
+```bash
+source hetzner_env.sh
+./hetzner_kristof2.vsh
 ```
 
-keys available:
+## SSH Keys
+
+The `HETZNER_SSHKEY_NAME` must be the **name** of an SSH key already registered in your Hetzner Robot account.
+
+Available keys in our Hetzner account:
 
 - hossnys (RSA 2048)
 - Jan De Landtsheer (ED25519 256)
@@ -24,17 +33,25 @@ keys available:
 - kristof (ED25519 256)
 - maxime (ED25519 256)
 
-you can select another key in the script
+To add a new key, use `key_create` in your script or the Hetzner Robot web interface.
 
-> still to do, support our example key which is installed using mysecrets.sh
+## Alternative: Using hero_secrets
 
-
-## hetzner troubleshoot info
-
-get the login passwd from: 
-
-https://robot.hetzner.com/preferences/index
+You can also use the shared secrets repository:
 
 ```bash
-curl -u "#ws+JdQtGCdL:..." https://robot-ws.your-server.de/server
+hero git pull https://git.threefold.info/despiegk/hero_secrets
+source ~/code/git.ourworld.tf/despiegk/hero_secrets/mysecrets.sh
+```
+
+## Troubleshooting
+
+### Get Robot API credentials
+
+Get your login credentials from: https://robot.hetzner.com/preferences/index
+
+### Test API access
+
+```bash
+curl -u "your-username:your-password" https://robot-ws.your-server.de/server
 ```

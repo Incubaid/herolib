@@ -40,4 +40,3 @@ RUN /tmp/install_herolib.vsh && \
 
 ENTRYPOINT ["/bin/bash"]
 CMD ["/bin/bash"]
-

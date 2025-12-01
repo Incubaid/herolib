@@ -4,6 +4,9 @@ import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.ui.console
 import json
+import incubaid.herolib.osal.startupmanager
+import incubaid.herolib.osal.core as osal
+import time
 
 __global (
 	kubernetes_installer_global  map[string]&KubernetesInstaller
@@ -125,21 +128,69 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'kubernetes_installer.configure')!
 	if install_actions.len > 0 {
-		return error("can't configure kubernetes_installer, because no configuration allowed for this installer.")
+		for mut install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+			install_action.done = true
+		}
 	}
 	mut other_actions := plbook.find(filter: 'kubernetes_installer.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install'] {
-			mut p := other_action.params
-			reset := p.get_default_false('reset')
+		mut p := other_action.params
+		name := p.get_default('name', 'default')!
+		reset := p.get_default_false('reset')
+		mut k8s_obj := get(name: name, create: true)!
+		console.print_debug('action object:\n${k8s_obj}')
+
+		if other_action.name in ['destroy', 'install', 'build'] {
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action kubernetes_installer.destroy')
-				destroy()!
+				k8s_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action kubernetes_installer.install')
-				install()!
+				k8s_obj.install(reset: reset)!
 			}
+		}
+		if other_action.name in ['start', 'stop', 'restart'] {
+			if other_action.name == 'start' {
+				console.print_debug('install action kubernetes_installer.${other_action.name}')
+				k8s_obj.start()!
+			}
+			if other_action.name == 'stop' {
+				console.print_debug('install action kubernetes_installer.${other_action.name}')
+				k8s_obj.stop()!
+			}
+			if other_action.name == 'restart' {
+				console.print_debug('install action kubernetes_installer.${other_action.name}')
+				k8s_obj.restart()!
+			}
+		}
+		// K3s-specific actions
+		if other_action.name in ['install_master', 'join_master', 'install_worker'] {
+			if other_action.name == 'install_master' {
+				console.print_debug('install action kubernetes_installer.install_master')
+				k8s_obj.install_master()!
+			}
+			if other_action.name == 'join_master' {
+				console.print_debug('install action kubernetes_installer.join_master')
+				k8s_obj.join_master()!
+			}
+			if other_action.name == 'install_worker' {
+				console.print_debug('install action kubernetes_installer.install_worker')
+				k8s_obj.install_worker()!
+			}
+		}
+		if other_action.name == 'get_kubeconfig' {
+			console.print_debug('install action kubernetes_installer.get_kubeconfig')
+			kubeconfig := k8s_obj.get_kubeconfig()!
+			console.print_header('Kubeconfig:\n${kubeconfig}')
+		}
+		if other_action.name == 'generate_join_script' {
+			console.print_debug('install action kubernetes_installer.generate_join_script')
+			script := k8s_obj.generate_join_script()!
+			console.print_header('Join Script:\n${script}')
 		}
 		other_action.done = true
 	}
@@ -149,10 +200,105 @@ pub fn play(mut plbook PlayBook) ! {
 //////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.StartupManager {
+	match cat {
+		.screen {
+			console.print_debug("installer: kubernetes_installer' startupmanager get screen")
+			return startupmanager.get(.screen)!
+		}
+		.zinit {
+			console.print_debug("installer: kubernetes_installer' startupmanager get zinit")
+			return startupmanager.get(.zinit)!
+		}
+		.systemd {
+			console.print_debug("installer: kubernetes_installer' startupmanager get systemd")
+			return startupmanager.get(.systemd)!
+		}
+		else {
+			console.print_debug("installer: kubernetes_installer' startupmanager get auto")
+			return startupmanager.get(.auto)!
+		}
+	}
+}
+
 // load from disk and make sure is properly intialized
 pub fn (mut self KubernetesInstaller) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
+}
+
+pub fn (mut self KubernetesInstaller) start() ! {
+	switch(self.name)
+	if self.running()! {
+		return
+	}
+
+	console.print_header('installer: kubernetes_installer start')
+
+	if !installed()! {
+		return error('K3s is not installed. Please run install_master, join_master, or install_worker first.')
+	}
+
+	// Ensure data directory exists
+	osal.dir_ensure(self.data_dir)!
+	
+	// Create manifests directory for auto-apply
+	manifests_dir := '${self.data_dir}/server/manifests'
+	osal.dir_ensure(manifests_dir)!
+
+	for zprocess in self.startupcmd()! {
+		mut sm := startupmanager_get(zprocess.startuptype)!
+
+		console.print_debug('installer: kubernetes_installer starting with ${zprocess.startuptype}...')
+
+		sm.new(zprocess)!
+
+		sm.start(zprocess.name)!
+	}
+
+	for _ in 0 .. 50 {
+		if self.running()! {
+			return
+		}
+		time.sleep(100 * time.millisecond)
+	}
+	return error('kubernetes_installer did not start properly.')
+}
+
+pub fn (mut self KubernetesInstaller) install_start(args InstallArgs) ! {
+	switch(self.name)
+	self.install(args)!
+	self.start()!
+}
+
+pub fn (mut self KubernetesInstaller) stop() ! {
+	switch(self.name)
+	for zprocess in self.startupcmd()! {
+		mut sm := startupmanager_get(zprocess.startuptype)!
+		sm.stop(zprocess.name)!
+	}
+}
+
+pub fn (mut self KubernetesInstaller) restart() ! {
+	switch(self.name)
+	self.stop()!
+	self.start()!
+}
+
+pub fn (mut self KubernetesInstaller) running() !bool {
+	switch(self.name)
+
+	// walk over the generic processes, if not running return
+	for zprocess in self.startupcmd()! {
+		if zprocess.startuptype != .screen {
+			mut sm := startupmanager_get(zprocess.startuptype)!
+			r := sm.running(zprocess.name)!
+			if r == false {
+				return false
+			}
+		}
+	}
+	return running()!
 }
 
 @[params]
@@ -170,6 +316,7 @@ pub fn (mut self KubernetesInstaller) install(args InstallArgs) ! {
 
 pub fn (mut self KubernetesInstaller) destroy() ! {
 	switch(self.name)
+	self.stop() or {}
 	destroy()!
 }
 
