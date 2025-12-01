@@ -3,7 +3,7 @@ module site
 import incubaid.herolib.core.texttools
 
 __global (
-	mywebsites map[string]&Site
+	websites map[string]&Site
 )
 
 @[params]
@@ -15,13 +15,7 @@ pub mut:
 pub fn new(args FactoryArgs) !&Site {
 	name := texttools.name_fix(args.name)
 
-	// Check if a site with this name already exists
-	if name in mywebsites {
-		// Return the existing site instead of creating a new one
-		return get(name: name)!
-	}
-
-	mywebsites[name] = &Site{
+	websites[name] = &Site{
 		siteconfig: SiteConfig{
 			name: name
 		}
@@ -31,17 +25,18 @@ pub fn new(args FactoryArgs) !&Site {
 
 pub fn get(args FactoryArgs) !&Site {
 	name := texttools.name_fix(args.name)
-	mut sc := mywebsites[name] or { return error('siteconfig with name "${name}" does not exist') }
+	mut sc := websites[name] or { return error('siteconfig with name "${name}" does not exist') }
 	return sc
 }
 
 pub fn exists(args FactoryArgs) bool {
 	name := texttools.name_fix(args.name)
-	return name in mywebsites
+	mut sc := websites[name] or { return false }
+	return true
 }
 
 pub fn default() !&Site {
-	if mywebsites.len == 0 {
+	if websites.len == 0 {
 		return new(name: 'default')!
 	}
 	return get()!
@@ -49,5 +44,5 @@ pub fn default() !&Site {
 
 // list returns all site names that have been created
 pub fn list() []string {
-	return mywebsites.keys()
+	return websites.keys()
 }
