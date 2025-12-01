@@ -3,7 +3,6 @@ module atlas
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.ui.console
-import os
 
 // Play function to process HeroScript actions for Atlas
 pub fn play(mut plbook PlayBook) ! {
@@ -67,7 +66,7 @@ pub fn play(mut plbook PlayBook) ! {
 	for mut action in export_actions {
 		mut p := action.params
 		name = p.get_default('name', 'main')!
-		destination := p.get_default('destination', '${os.home_dir()}/hero/var/atlas_export')!
+		destination := p.get_default('destination', '/tmp/atlas_export')!
 		reset := p.get_default_true('reset')
 		include := p.get_default_true('include')
 		redis := p.get_default_true('redis')
