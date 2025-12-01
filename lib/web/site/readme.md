@@ -505,28 +505,53 @@ Overrides specific metadata for SEO without changing core config.
 
 ## File Organization
 
-Organize HeroScript files with numeric prefixes to control execution order:
+### Recommended Ebook Structure
+
+The modern ebook structure uses `.hero` files for configuration and `.heroscript` files for page definitions:
 
 ```
-docs/
-├── 0_config.heroscript
-│   └── !!site.config and !!site.config_meta
-│
-├── 1_menu.heroscript
-│   └── !!site.navbar and !!site.footer
-│
-├── 2_pages.heroscript
-│   └── !!site.page_category and !!site.page actions
-│
-└── 3_publish.heroscript
-    └── !!site.publish destinations
+my_ebook/
+├── scan.hero              # !!atlas.scan - collection scanning
+├── config.hero            # !!site.config - site configuration
+├── menus.hero             # !!site.navbar and !!site.footer
+├── include.hero           # !!docusaurus.define and !!atlas.export
+├── 1_intro.heroscript     # Page definitions (categories + pages)
+├── 2_concepts.heroscript  # More page definitions
+└── 3_advanced.heroscript  # Additional pages
 ```
 
-**Why numeric prefixes?**
+### File Types
 
-Files are processed in alphabetical order. Numeric prefixes ensure:
-- Site config runs first
-- Navigation menu configures before pages
-- Pages build the final structure
-- Publishing configured last
+- **`.hero` files**: Configuration files processed in any order
+- **`.heroscript` files**: Page definition files processed alphabetically
+
+Use numeric prefixes on `.heroscript` files to control page/category ordering in the sidebar.
+
+### Example scan.hero
+
+```heroscript
+!!atlas.scan path:"../../collections/my_collection"
+```
+
+### Example include.hero
+
+```heroscript
+// Include shared configuration (optional)
+!!play.include path:'../../heroscriptall' replace:'SITENAME:my_ebook'
+
+// Or define directly
+!!docusaurus.define name:'my_ebook'
+
+!!atlas.export include:true
+```
+
+### Running an Ebook
+
+```bash
+# Development server
+hero docs -d -p /path/to/my_ebook
+
+# Build for production
+hero docs -p /path/to/my_ebook
+```
 
