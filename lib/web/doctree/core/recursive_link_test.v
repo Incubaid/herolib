@@ -2,14 +2,16 @@ module core
 
 import incubaid.herolib.core.pathlib
 import os
-
-
+import json
 const test_base = '/tmp/doctree_test'
 
 // Test recursive export with chained cross-collection links
 // Setup: Collection A links to B, Collection B links to C
 // Expected: When exporting A, it should include pages from B and C
 fn test_export_recursive_links() {
+
+	os.rmdir_all('${test_base}') or { }
+
 	// Create 3 collections with chained links
 	col_a_path := '${test_base}/recursive_export/col_a'
 	col_b_path := '${test_base}/recursive_export/col_b'
@@ -23,19 +25,19 @@ fn test_export_recursive_links() {
 	mut cfile_a := pathlib.get_file(path: '${col_a_path}/.collection', create: true)!
 	cfile_a.write('name:col_a')!
 	mut page_a := pathlib.get_file(path: '${col_a_path}/page_a.md', create: true)!
-	page_a.write('# Page A\\n\\nThis is page A.\\n\\n[Link to Page B](col_b:page_b)')!
+	page_a.write('# Page A\n\nThis is page A.\n\n[Link to Page B](col_b:page_b)')!
 
 	// Collection B: links to C
 	mut cfile_b := pathlib.get_file(path: '${col_b_path}/.collection', create: true)!
 	cfile_b.write('name:col_b')!
 	mut page_b := pathlib.get_file(path: '${col_b_path}/page_b.md', create: true)!
-	page_b.write('# Page B\\n\\nThis is page B with link to C.\\n\\n[Link to Page C](col_c:page_c)')!
+	page_b.write('# Page B\n\nThis is page B with link to C.\n\n[Link to Page C](col_c:page_c)')!
 
 	// Collection C: final page
 	mut cfile_c := pathlib.get_file(path: '${col_c_path}/.collection', create: true)!
 	cfile_c.write('name:col_c')!
 	mut page_c := pathlib.get_file(path: '${col_c_path}/page_c.md', create: true)!
-	page_c.write('# Page C\\n\\nThis is the final page in the chain.')!
+	page_c.write('# Page C\n\nThis is the final page in the chain.')!
 
 	// Create DocTree and add all collections
 	mut a := new()!
@@ -60,6 +62,15 @@ fn test_export_recursive_links() {
 	assert os.exists('${export_path}/content/col_a/page_b.md'), 'page_b.md from col_b should be included'
 	assert os.exists('${export_path}/content/col_a/page_c.md'), 'page_c.md from col_c should be included'
 
+	assert os.exists('${export_path}/content/col_b/page_a.md')==false, 'page_a.md should not be exported'
+	assert os.exists('${export_path}/content/col_b/page_b.md'), 'page_b.md from col_b should be included'
+	assert os.exists('${export_path}/content/col_a/page_c.md'), 'page_c.md from col_c should be included'	
+
+	assert os.exists('${export_path}/content/col_c/page_a.md')==false, 'page_a.md should not be exported'
+	assert os.exists('${export_path}/content/col_c/page_b.md')==false, 'page_b.md from col_b should not be included'
+	assert os.exists('${export_path}/content/col_c/page_c.md'), 'page_c.md from col_c should be included'	
+
+
 	// 3. Verify page content is correct
 	content_a := os.read_file('${export_path}/content/col_a/page_a.md')!
 	assert content_a.contains('# Page A'), 'page_a content should have title'
@@ -81,19 +92,17 @@ fn test_export_recursive_links() {
 	meta_content := os.read_file('${export_path}/meta/col_a.json')!
 	assert meta_content.len > 0, 'Metadata file should not be empty'
 
-	// // Parse metadata JSON and verify structure
-	// mut meta := json.decode(map[string]map[string]interface{}, meta_content) or {
-	// 	panic('Failed to parse metadata JSON: ${err}')
-	// }
-	// assert meta.len > 0, 'Metadata should have content'
-	// assert meta['name'] != none, 'Metadata should have name field'
+	// Parse metadata JSON and verify structure
+	mut meta := json.decode(DocTree, meta_content) or {
+		panic('Failed to parse metadata JSON: ${err}')
+	}
 
-	// 5. Verify that pages from B and C are NOT exported to separate col_b and col_c directories
-	// (they should only be in col_a directory)
-	meta_col_b_exists := os.exists('${export_path}/meta/col_b.json')
-	meta_col_c_exists := os.exists('${export_path}/meta/col_c.json')
-	assert !meta_col_b_exists, 'col_b metadata should not exist (pages copied to col_a)'
-	assert !meta_col_c_exists, 'col_c metadata should not exist (pages copied to col_a)'
+	assert meta.name != "", 'Metadata should have name field'
+
+	//check metadata for all collections exists
+	assert  os.exists('${export_path}/meta/col_a.json'), 'col_a metadata should exist'
+	assert  os.exists('${export_path}/meta/col_b.json'), 'col_b metadata should exist'
+	assert  os.exists('${export_path}/meta/col_c.json'), 'col_c metadata should exist'
 
 	// 6. Verify the recursive depth worked
 	// All three pages should be accessible through the exported col_a
@@ -118,12 +127,16 @@ fn test_export_recursive_links() {
 	println('  - Content verified for all pages')
 	println('  - Metadata validated')
 	println('  - Link chain preserved')
+
+
 }
 
 // Test recursive export with cross-collection images
 // Setup: Collection A links to image in Collection B
 // Expected: Image should be copied to col_a export directory
 fn test_export_recursive_with_images() {
+	os.rmdir_all('${test_base}') or { }
+
 	col_a_path := '${test_base}/recursive_img/col_a'
 	col_b_path := '${test_base}/recursive_img/col_b'
 
@@ -137,7 +150,7 @@ fn test_export_recursive_with_images() {
 	cfile_a.write('name:col_a')!
 
 	mut page_a := pathlib.get_file(path: '${col_a_path}/page_a.md', create: true)!
-	page_a.write('# Page A\\n\\n![Local Image](local.png)\\n\\n[Link to B](col_b:page_b)')!
+	page_a.write('# Page A\n\n![Local Image](local.png)\n\n[Link to B](col_b:page_b)')!
 
 	// Create local image
 	os.write_file('${col_a_path}/img/local.png', 'fake png data')!
@@ -147,7 +160,7 @@ fn test_export_recursive_with_images() {
 	cfile_b.write('name:col_b')!
 
 	mut page_b := pathlib.get_file(path: '${col_b_path}/page_b.md', create: true)!
-	page_b.write('# Page B\\n\\n![B Image](b_image.jpg)')!
+	page_b.write('# Page B\n\n![B Image](b_image.jpg)')!
 
 	// Create image in collection B
 	os.write_file('${col_b_path}/img/b_image.jpg', 'fake jpg data')!
@@ -163,6 +176,8 @@ fn test_export_recursive_with_images() {
 	// Verify pages exported
 	assert os.exists('${export_path}/content/col_a/page_a.md'), 'page_a should exist'
 	assert os.exists('${export_path}/content/col_a/page_b.md'), 'page_b from col_b should be included'
+
+	
 
 	// Verify images exported to col_a image directory
 	assert os.exists('${export_path}/content/col_a/img/local.png'), 'Local image should exist'

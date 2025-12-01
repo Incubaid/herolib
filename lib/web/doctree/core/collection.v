@@ -70,7 +70,7 @@ fn (mut c Collection) add_page(mut path pathlib.Path) ! {
 
 // Add an image to the collection
 fn (mut c Collection) add_file(mut p pathlib.Path) ! {
-	name := p.name_fix_no_ext() // keep extension
+	name := p.name_fix_keepext() // keep extension
 	if name in c.files {
 		return error('File ${name} already exists in collection ${c.name}')
 	}

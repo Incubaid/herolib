@@ -373,8 +373,5 @@ fn test_get_edit_url() {
 
 	// Get the page and collection edit URLs
 	page := col.page_get('test_page')!
-	// edit_url := page.get_edit_url()! // This method does not exist
 
-	// Assert the URLs are correct
-	// assert edit_url == 'https://github.com/test/repo/edit/main/test_page.md'
 }
