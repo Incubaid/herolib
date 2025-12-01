@@ -1,7 +1,6 @@
 module core
 
-import incubaid.herolib.web.doctree
-import incubaid.herolib.ui.console
+import incubaid.herolib.web.doctree as doctreetools
 
 pub enum LinkFileType {
 	page  // Default: link to another page
@@ -161,23 +160,10 @@ fn (mut p Page) parse_link_target(mut link Link) ! {
 
 	// Format: $collection:$pagename or $collection:$pagename.md
 	if target.contains(':') {
-		parts := target.split(':')
-		if parts.len >= 2 {
-			link.target_collection_name = doctree.name_fix(parts[0])
-			// For file links, use name without extension; for page links, normalize normally
-			if link.file_type == .file {
-				link.target_item_name = doctree.name_fix(parts[1])
-			} else {
-				link.target_item_name = normalize_page_name(parts[1])
-			}
-		}
+		link.target_collection_name, link.target_item_name = doctreetools.key_parse(target)!
 	} else {
 		// For file links, use name without extension; for page links, normalize normally
-		if link.file_type == .file {
-			link.target_item_name = doctree.name_fix(target).trim_space()
-		} else {
-			link.target_item_name = normalize_page_name(target).trim_space()
-		}
+		link.target_item_name = doctreetools.name_fix(target)
 		link.target_collection_name = p.collection.name
 	}
 
@@ -297,15 +283,4 @@ fn (mut p Page) filesystem_link_path(mut link Link) !string {
 	}
 
 	return target_path.path_relative(source_path.path)!
-}
-
-/////////////TOOLS//////////////////////////////////
-
-// Normalize page name (remove .md, apply name_fix)
-fn normalize_page_name(name string) string {
-	mut clean := name
-	if clean.ends_with('.md') {
-		clean = clean[0..clean.len - 3]
-	}
-	return doctree.name_fix(clean)
 }

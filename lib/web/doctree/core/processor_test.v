@@ -158,7 +158,7 @@ fn test_find_links() {
 	assert links.len >= 2
 }
 
-fn test_validate_links() {
+fn test_find_links() {
 	// Setup
 	col_path := '${test_base}/link_test'
 	os.mkdir_all(col_path)!
@@ -177,12 +177,11 @@ fn test_validate_links() {
 	mut a := new()!
 	a.add_collection(mut pathlib.get_dir(path: col_path)!)!
 
-	// Validate
-	a.validate_links()!
-
 	// Should have no errors
 	col := a.get_collection('test_col')!
 	assert col.errors.len == 0
+
+	a.export(destination: '${test_base}/export_links')!
 }
 
 fn test_validate_broken_links() {
@@ -201,7 +200,7 @@ fn test_validate_broken_links() {
 	a.add_collection(mut pathlib.get_dir(path: col_path)!)!
 
 	// Validate
-	a.validate_links()!
+	a.export(destination: '${test_base}/validate_broken_links')!
 
 	// Should have error
 	col := a.get_collection('test_col')!
@@ -294,14 +293,10 @@ fn test_cross_collection_links() {
 	a.add_collection(mut pathlib.get_dir(path: col1_path)!)!
 	a.add_collection(mut pathlib.get_dir(path: col2_path)!)!
 
-	// Validate - should pass
-	a.validate_links()!
-
 	col1 := a.get_collection('col1')!
 	assert col1.errors.len == 0
 
-	// Fix links - cross-collection links should NOT be rewritten
-	a.fix_links()!
+	a.export(destination: '${test_base}/export_cross')!
 
 	fixed := page1.read()!
 	assert fixed.contains('[Link to col2](col2:page2)') // Unchanged

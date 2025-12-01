@@ -13,7 +13,7 @@ pub mut:
 	redis       bool = true
 }
 
-// Export all collections
+// Export all collections and do all processing steps
 pub fn (mut a DocTree) export(args ExportArgs) ! {
 	mut dest := pathlib.get_dir(path: args.destination, create: true)!
 
@@ -21,8 +21,12 @@ pub fn (mut a DocTree) export(args ExportArgs) ! {
 		dest.empty()!
 	}
 
-	// Validate links before export to populate page.links
-	a.validate_links()!
+	// first make sure we have all links identified, in the pages itself
+	// and make sure we know the git info
+	for _, mut col in a.collections {
+		col.find_links()!
+		col.init_git_info()!
+	}
 
 	for _, mut col in a.collections {
 		col.export(
@@ -31,6 +35,10 @@ pub fn (mut a DocTree) export(args ExportArgs) ! {
 			include:     args.include
 			redis:       args.redis
 		)!
+	}
+
+	for _, mut col in a.collections {
+		col.fix_links()!
 	}
 }
 

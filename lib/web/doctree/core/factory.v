@@ -10,13 +10,13 @@ __global (
 )
 
 @[params]
-pub struct AtlasNewArgs {
+pub struct DocTreeNewArgs {
 pub mut:
 	name string = 'default'
 }
 
 // Create a new DocTree
-pub fn new(args AtlasNewArgs) !&DocTree {
+pub fn new(args DocTreeNewArgs) !&DocTree {
 	mut name := doctreetools.name_fix(args.name)
 
 	mut a := &DocTree{

@@ -42,7 +42,7 @@ put this in .hero file
 ## usage in herolib
 
 ```v
-import incubaid.herolib.data.doctree
+import incubaid.herolib.web.doctree
 
 // Create a new DocTree
 mut a := doctree.new(name: 'my_docs')!
@@ -320,7 +320,7 @@ mut a := doctree.new()!
 a.scan(path: './docs')!
 
 // Validate all links
-a.validate_links()!
+a.find_links()!
 
 // Check for errors
 for _, col in a.collections {
@@ -427,7 +427,7 @@ When `redis: true` is set during export, DocTree stores:
 ### Redis Usage Examples
 
 ```v
-import incubaid.herolib.data.doctree
+import incubaid.herolib.web.doctree
 import incubaid.herolib.core.base
 
 // Export with Redis metadata (default)
@@ -468,7 +468,7 @@ println('Logo image: ${img_path}')  // Output: img/logo.png
 Save collection metadata to JSON files for archival or cross-tool compatibility:
 
 ```v
-import incubaid.herolib.data.doctree
+import incubaid.herolib.web.doctree
 
 mut a := doctree.new(name: 'my_docs')!
 a.scan(path: './docs')!
@@ -507,7 +507,7 @@ Create a `.vsh` script to process DocTree operations:
 #!/usr/bin/env -S v -n -w -cg -gc none -cc tcc -d use_openssl -enable-globals run
 
 import incubaid.herolib.core.playbook
-import incubaid.herolib.data.doctree
+import incubaid.herolib.web.doctree
 
 // Define your HeroScript content
 heroscript := "

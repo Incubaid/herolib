@@ -41,7 +41,7 @@ fn (mut c Collection) init_pre() ! {
 }
 
 fn (mut c Collection) init_post() ! {
-	c.validate_links()!
+	c.find_links()!
 	c.init_git_info()!
 }
 
@@ -247,31 +247,6 @@ pub fn (c Collection) print_errors() {
 	}
 }
 
-// Validate all links in collection
-pub fn (mut c Collection) validate_links() ! {
-	for _, mut page in c.pages {
-		content := page.content(include: true)!
-		page.links = page.find_links(content)! // will walk over links see if errors and add errors
-	}
-}
-
-// Fix all links in collection (rewrite files)
-pub fn (mut c Collection) fix_links() ! {
-	for _, mut page in c.pages {
-		// Read original content
-		content := page.content()!
-
-		// Fix links
-		fixed_content := page.content_with_fixed_links()!
-
-		// Write back if changed
-		if fixed_content != content {
-			mut p := page.path()!
-			p.write(fixed_content)!
-		}
-	}
-}
-
 // Check if session can read this collection
 pub fn (c Collection) can_read(session Session) bool {
 	// If no ACL set, everyone can read
@@ -314,105 +289,4 @@ pub fn (c Collection) can_write(session Session) bool {
 	}
 
 	return false
-}
-
-// Detect git repository URL for a collection
-fn (mut c Collection) init_git_info() ! {
-	mut current_path := c.path()!
-
-	// Walk up directory tree to find .git
-	mut git_repo := current_path.parent_find('.git') or {
-		// No git repo found
-		return
-	}
-
-	if git_repo.path == '' {
-		panic('Unexpected empty git repo path')
-	}
-
-	mut gs := gittools.new()!
-	mut p := c.path()!
-	mut location := gs.gitlocation_from_path(p.path)!
-
-	r := os.execute_opt('cd ${p.path} && git branch --show-current')!
-
-	location.branch_or_tag = r.output.trim_space()
-
-	c.git_url = location.web_url()!
-}
-
-////////////SCANNING FUNCTIONS ?//////////////////////////////////////////////////////
-
-fn (mut c Collection) scan(mut dir pathlib.Path) ! {
-	mut entries := dir.list(recursive: false)!
-
-	for mut entry in entries.paths {
-		// Skip hidden files/dirs
-		if entry.name().starts_with('.') || entry.name().starts_with('_') {
-			continue
-		}
-
-		if entry.is_dir() {
-			// Recursively scan subdirectories
-			mut mutable_entry := entry
-			c.scan(mut mutable_entry)!
-			continue
-		}
-
-		// Process files based on extension
-		match entry.extension_lower() {
-			'md' {
-				mut mutable_entry := entry
-				c.add_page(mut mutable_entry)!
-			}
-			else {
-				mut mutable_entry := entry
-				c.add_file(mut mutable_entry)!
-			}
-		}
-	}
-}
-
-// Scan for ACL files
-fn (mut c Collection) scan_acl() ! {
-	// Look for read.acl in collection directory
-	read_acl_path := '${c.path()!.path}/read.acl'
-	if os.exists(read_acl_path) {
-		content := os.read_file(read_acl_path)!
-		// Split by newlines and normalize
-		c.acl_read = content.split('\n')
-			.map(it.trim_space())
-			.filter(it.len > 0)
-			.map(it.to_lower())
-	}
-
-	// Look for write.acl in collection directory
-	write_acl_path := '${c.path()!.path}/write.acl'
-	if os.exists(write_acl_path) {
-		content := os.read_file(write_acl_path)!
-		// Split by newlines and normalize
-		c.acl_write = content.split('\n')
-			.map(it.trim_space())
-			.filter(it.len > 0)
-			.map(it.to_lower())
-	}
-}
-
-// scan_groups scans the collection's directory for .group files and loads them into memory.
-pub fn (mut c Collection) scan_groups() ! {
-	if c.name != 'groups' {
-		return error('scan_groups only works on "groups" collection')
-	}
-	mut p := c.path()!
-	mut entries := p.list(recursive: false)!
-
-	for mut entry in entries.paths {
-		if entry.extension_lower() == 'group' {
-			filename := entry.name_fix_no_ext()
-			mut visited := map[string]bool{}
-			mut group := parse_group_file(filename, c.path()!.path, mut visited)!
-
-			c.doctree.group_add(mut group)!
-		}
-	}
 }

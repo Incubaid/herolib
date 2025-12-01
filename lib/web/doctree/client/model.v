@@ -1,6 +1,6 @@
 module client
 
-// AtlasClient provides access to DocTree-exported documentation collections
+// DocTreeClient provides access to DocTree-exported documentation collections
 // It reads from both the exported directory structure and Redis metadata
 
 // List of recognized image file extensions

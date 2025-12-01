@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.playbook { PlayBook }
-import incubaid.herolib.data.doctree
+import incubaid.herolib.web.doctree
 import incubaid.herolib.ui.console
 import os
 
@@ -32,7 +32,7 @@ fn process_define(mut plbook PlayBook) !&DocSite {
 		reset:           p.get_default_false('reset')
 		template_update: p.get_default_false('template_update')
 		install:         p.get_default_false('install')
-		doctree_dir:       doctree_dir
+		doctree_dir:     doctree_dir
 	)!
 
 	site_name := p.get('name') or { return error('docusaurus.define: "name" is required') }

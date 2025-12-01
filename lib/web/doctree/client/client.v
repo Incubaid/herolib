@@ -7,9 +7,9 @@ import os
 import json
 import incubaid.herolib.core.redisclient
 
-// AtlasClient provides access to DocTree-exported documentation collections
+// DocTreeClient provides access to exported documentation collections
 // It reads from both the exported directory structure and Redis metadata
-pub struct AtlasClient {
+pub struct DocTreeClient {
 pub mut:
 	redis      &redisclient.Redis
 	export_dir string // Path to the doctree export directory (contains content/ and meta/)
@@ -17,7 +17,7 @@ pub mut:
 
 // get_page_path returns the path for a page in a collection
 // Pages are stored in {export_dir}/content/{collection}/{page}.md
-pub fn (mut c AtlasClient) get_page_path(collection_name string, page_name string) !string {
+pub fn (mut c DocTreeClient) get_page_path(collection_name string, page_name string) !string {
 	// Apply name normalization
 	fixed_collection_name := texttools.name_fix(collection_name)
 	fixed_page_name := texttools.name_fix(page_name)
@@ -40,7 +40,7 @@ pub fn (mut c AtlasClient) get_page_path(collection_name string, page_name strin
 
 // get_file_path returns the path for a file in a collection
 // Files are stored in {export_dir}/content/{collection}/{filename}
-pub fn (mut c AtlasClient) get_file_path(collection_name_ string, file_name_ string) !string {
+pub fn (mut c DocTreeClient) get_file_path(collection_name_ string, file_name_ string) !string {
 	collection_name := texttools.name_fix(collection_name_)
 	file_name := texttools.name_fix(file_name_)
 
@@ -62,7 +62,7 @@ pub fn (mut c AtlasClient) get_file_path(collection_name_ string, file_name_ str
 
 // get_image_path returns the path for an image in a collection
 // Images are stored in {export_dir}/content/{collection}/{imagename}
-pub fn (mut c AtlasClient) get_image_path(collection_name_ string, image_name_ string) !string {
+pub fn (mut c DocTreeClient) get_image_path(collection_name_ string, image_name_ string) !string {
 	// Apply name normalization
 	collection_name := texttools.name_fix(collection_name_)
 	// Images keep their original names with extensions
@@ -85,28 +85,28 @@ pub fn (mut c AtlasClient) get_image_path(collection_name_ string, image_name_ s
 }
 
 // page_exists checks if a page exists in a collection
-pub fn (mut c AtlasClient) page_exists(collection_name string, page_name string) bool {
+pub fn (mut c DocTreeClient) page_exists(collection_name string, page_name string) bool {
 	// Try to get the page path - if it succeeds, the page exists
 	_ := c.get_page_path(collection_name, page_name) or { return false }
 	return true
 }
 
 // file_exists checks if a file exists in a collection
-pub fn (mut c AtlasClient) file_exists(collection_name string, file_name string) bool {
+pub fn (mut c DocTreeClient) file_exists(collection_name string, file_name string) bool {
 	// Try to get the file path - if it succeeds, the file exists
 	_ := c.get_file_path(collection_name, file_name) or { return false }
 	return true
 }
 
 // image_exists checks if an image exists in a collection
-pub fn (mut c AtlasClient) image_exists(collection_name string, image_name string) bool {
+pub fn (mut c DocTreeClient) image_exists(collection_name string, image_name string) bool {
 	// Try to get the image path - if it succeeds, the image exists
 	_ := c.get_image_path(collection_name, image_name) or { return false }
 	return true
 }
 
 // get_page_content returns the content of a page in a collection
-pub fn (mut c AtlasClient) get_page_content(collection_name string, page_name string) !string {
+pub fn (mut c DocTreeClient) get_page_content(collection_name string, page_name string) !string {
 	// Get the path for the page
 	page_path := c.get_page_path(collection_name, page_name)!
 
@@ -124,7 +124,7 @@ pub fn (mut c AtlasClient) get_page_content(collection_name string, page_name st
 
 // list_collections returns a list of all collection names
 // Collections are directories in {export_dir}/content/
-pub fn (mut c AtlasClient) list_collections() ![]string {
+pub fn (mut c DocTreeClient) list_collections() ![]string {
 	content_dir := os.join_path(c.export_dir, 'content')
 
 	// Check if content directory exists
@@ -148,7 +148,7 @@ pub fn (mut c AtlasClient) list_collections() ![]string {
 
 // list_pages returns a list of all page names in a collection
 // Uses metadata to get the authoritative list of pages that belong to this collection
-pub fn (mut c AtlasClient) list_pages(collection_name string) ![]string {
+pub fn (mut c DocTreeClient) list_pages(collection_name string) ![]string {
 	// Get metadata which contains the authoritative list of pages
 	metadata := c.get_collection_metadata(collection_name)!
 
@@ -162,7 +162,7 @@ pub fn (mut c AtlasClient) list_pages(collection_name string) ![]string {
 }
 
 // list_files returns a list of all file names in a collection (excluding pages and images)
-pub fn (mut c AtlasClient) list_files(collection_name string) ![]string {
+pub fn (mut c DocTreeClient) list_files(collection_name string) ![]string {
 	metadata := c.get_collection_metadata(collection_name)!
 	mut file_names := []string{}
 	for file_name, file_meta in metadata.files {
@@ -174,7 +174,7 @@ pub fn (mut c AtlasClient) list_files(collection_name string) ![]string {
 }
 
 // list_images returns a list of all image names in a collection
-pub fn (mut c AtlasClient) list_images(collection_name string) ![]string {
+pub fn (mut c DocTreeClient) list_images(collection_name string) ![]string {
 	metadata := c.get_collection_metadata(collection_name)!
 	mut images := []string{}
 	for file_name, file_meta in metadata.files {
@@ -187,7 +187,7 @@ pub fn (mut c AtlasClient) list_images(collection_name string) ![]string {
 
 // list_pages_map returns a map of collection names to a list of page names within that collection.
 // The structure is map[collectionname][]pagename.
-pub fn (mut c AtlasClient) list_pages_map() !map[string][]string {
+pub fn (mut c DocTreeClient) list_pages_map() !map[string][]string {
 	mut result := map[string][]string{}
 	collections := c.list_collections()!
 
@@ -201,7 +201,7 @@ pub fn (mut c AtlasClient) list_pages_map() !map[string][]string {
 
 // get_collection_metadata reads and parses the metadata JSON file for a collection
 // Metadata is stored in {export_dir}/meta/{collection}.json
-pub fn (mut c AtlasClient) get_collection_metadata(collection_name string) !CollectionMetadata {
+pub fn (mut c DocTreeClient) get_collection_metadata(collection_name string) !CollectionMetadata {
 	// Apply name normalization
 	fixed_collection_name := texttools.name_fix(collection_name)
 
@@ -221,23 +221,23 @@ pub fn (mut c AtlasClient) get_collection_metadata(collection_name string) !Coll
 }
 
 // get_collection_errors returns the errors for a collection from metadata
-pub fn (mut c AtlasClient) get_collection_errors(collection_name string) ![]ErrorMetadata {
+pub fn (mut c DocTreeClient) get_collection_errors(collection_name string) ![]ErrorMetadata {
 	metadata := c.get_collection_metadata(collection_name)!
 	return metadata.errors
 }
 
 // has_errors checks if a collection has any errors
-pub fn (mut c AtlasClient) has_errors(collection_name string) bool {
+pub fn (mut c DocTreeClient) has_errors(collection_name string) bool {
 	errors := c.get_collection_errors(collection_name) or { return false }
 	return errors.len > 0
 }
 
-pub fn (mut c AtlasClient) copy_collection(collection_name string, destination_path string) ! {
+pub fn (mut c DocTreeClient) copy_collection(collection_name string, destination_path string) ! {
 	// TODO: list over all pages, links & files and copy them to destination
 }
 
 // will copy all pages linked from a page to a destination directory as well as the page itself
-pub fn (mut c AtlasClient) copy_pages(collection_name string, page_name string, destination_path string) ! {
+pub fn (mut c DocTreeClient) copy_pages(collection_name string, page_name string, destination_path string) ! {
 	// TODO: copy page itself
 
 	// Get page links from metadata
@@ -262,7 +262,7 @@ pub fn (mut c AtlasClient) copy_pages(collection_name string, page_name string, 
 	}
 }
 
-pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string, destination_path string) ! {
+pub fn (mut c DocTreeClient) copy_images(collection_name string, page_name string, destination_path string) ! {
 	// Get page links from metadata
 	links := c.get_page_links(collection_name, page_name)!
 
@@ -288,7 +288,7 @@ pub fn (mut c AtlasClient) copy_images(collection_name string, page_name string,
 // copy_files copies all non-image files from a page to a destination directory
 // Files are placed in {destination}/files/ subdirectory
 // Only copies files referenced in the page (via links)
-pub fn (mut c AtlasClient) copy_files(collection_name string, page_name string, destination_path string) ! {
+pub fn (mut c DocTreeClient) copy_files(collection_name string, page_name string, destination_path string) ! {
 	// Get page links from metadata
 	links := c.get_page_links(collection_name, page_name)!
 

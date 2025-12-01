@@ -1,10 +1,10 @@
-# AtlasClient
+# DocTreeClient
 
 A simple API for accessing document collections exported by the `doctree` module.
 
 ## What It Does
 
-AtlasClient provides methods to:
+DocTreeClient provides methods to:
 
 - List collections, pages, files, and images
 - Check if resources exist

@@ -1,7 +1,7 @@
 module client
 
 // list_markdown returns the collections and their pages in markdown format.
-pub fn (mut c AtlasClient) list_markdown() !string {
+pub fn (mut c DocTreeClient) list_markdown() !string {
 	mut markdown_output := ''
 	pages_map := c.list_pages_map()!
 

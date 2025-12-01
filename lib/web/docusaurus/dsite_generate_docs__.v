@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
-// import incubaid.herolib.data.doctree.client as doctree_client
+// import incubaid.herolib.web.doctree.client as doctree_client
 // import incubaid.herolib.web.site { Page, Section, Site }
 // import incubaid.herolib.data.markdown.tools as markdowntools
 // import incubaid.herolib.ui.console

@@ -43,9 +43,6 @@ fn test_export_recursive_links() {
 	a.add_collection(mut pathlib.get_dir(path: col_b_path)!)!
 	a.add_collection(mut pathlib.get_dir(path: col_c_path)!)!
 
-	// Validate links before export to populate page.links
-	a.validate_links()!
-
 	// Export
 	export_path := '${test_base}/export_recursive'
 	a.export(destination: export_path)!
@@ -160,8 +157,6 @@ fn test_export_recursive_with_images() {
 	a.add_collection(mut pathlib.get_dir(path: col_a_path)!)!
 	a.add_collection(mut pathlib.get_dir(path: col_b_path)!)!
 
-	// Validate and export
-	a.validate_links()!
 	export_path := '${test_base}/export_recursive_img'
 	a.export(destination: export_path)!
 

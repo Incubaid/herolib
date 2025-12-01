@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.data.doctree.client as doctree_client
+import incubaid.herolib.web.doctree.client as doctree_client
 import incubaid.herolib.data.markdown.tools as markdowntools
 import incubaid.herolib.ui.console
 import incubaid.herolib.web.site
@@ -72,7 +72,7 @@ fn reset_docs_dir(docs_path string) ! {
 	os.mkdir_all(docs_path)!
 }
 
-fn report_errors(mut client doctree_client.AtlasClient, errors []string) ! {
+fn report_errors(mut client doctree_client.DocTreeClient, errors []string) ! {
 	available := client.list_markdown() or { 'Could not list available pages' }
 	console.print_stderr('Available pages:\n${available}')
 	return error('Errors during doc generation:\n${errors.join('\n\n')}')
@@ -82,7 +82,7 @@ fn report_errors(mut client doctree_client.AtlasClient, errors []string) ! {
 // Page Processing
 // ============================================================================
 
-fn process_page(mut client doctree_client.AtlasClient, docs_path string, page site.Page, first_doc_page string, mut errors []string) {
+fn process_page(mut client doctree_client.DocTreeClient, docs_path string, page site.Page, first_doc_page string, mut errors []string) {
 	collection, page_name := parse_page_src(page.src) or {
 		errors << err.msg()
 		return
@@ -122,7 +122,7 @@ fn write_page(docs_path string, page_name string, page site.Page, content string
 	file.write(final_content)!
 }
 
-fn copy_page_assets(mut client doctree_client.AtlasClient, docs_path string, collection string, page_name string) {
+fn copy_page_assets(mut client doctree_client.DocTreeClient, docs_path string, collection string, page_name string) {
 	client.copy_images(collection, page_name, docs_path) or {}
 	client.copy_files(collection, page_name, docs_path) or {}
 }
@@ -132,7 +132,6 @@ fn copy_page_assets(mut client doctree_client.AtlasClient, docs_path string, col
 // ============================================================================
 
 fn build_frontmatter(page site.Page, content string, is_landing_page bool) string {
-	
 	title := get_title(page, content)
 
 	description := get_description(page, title)
@@ -146,7 +145,6 @@ fn build_frontmatter(page site.Page, content string, is_landing_page bool) strin
 	// 	println('page.src: ${lines}')
 	// 	$dbg;
 	// }
-
 
 	// Add slug: / for the docs landing page so /docs/ works directly
 	if is_landing_page {

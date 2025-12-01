@@ -77,9 +77,6 @@ fn test_save_and_load_with_includes() {
 	mut a := new(name: 'my_docs')!
 	a.scan(path: '${test_dir}/docs_include')!
 
-	// Validate links (should find the include)
-	a.validate_links()!
-
 	col := a.get_collection('docs')!
 	assert !col.has_errors()
 
@@ -109,9 +106,6 @@ fn test_save_and_load_with_errors() {
 	// Create and scan doctree
 	mut a := new(name: 'my_docs')!
 	a.scan(path: '${test_dir}/docs_errors')!
-
-	// Validate - will generate errors
-	a.validate_links()!
 
 	col := a.get_collection('docs')!
 	assert col.has_errors()
