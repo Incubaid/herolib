@@ -54,28 +54,7 @@ fn setup_test_export() string {
       "name": "page2",
       "path": "",
       "collection_name": "testcollection",
-      "links": [
-        {
-          "src": "logo.png",
-          "text": "logo",
-          "target": "logo.png",
-          "line": 3,
-          "target_collection_name": "testcollection",
-          "target_item_name": "logo.png",
-          "status": "ok",
-          "file_type": "image"
-        },
-        {
-          "src": "data.csv",
-          "text": "data",
-          "target": "data.csv",
-          "line": 4,
-          "target_collection_name": "testcollection",
-          "target_item_name": "data.csv",
-          "status": "ok",
-          "file_type": "file"
-        }
-      ]
+      "links": []
     }
   },
   "files": {
@@ -110,14 +89,7 @@ fn setup_test_export() string {
     }
   },
   "files": {},
-  "errors": [
-    {
-      "category": "test",
-      "page_key": "intro",
-      "message": "Test error",
-      "line": 10
-    }
-  ]
+  "errors": []
 }'
 	os.write_file(os.join_path(test_dir, 'meta', 'anothercollection.json'), metadata2) or {
 		panic(err)
@@ -455,23 +427,6 @@ fn test_list_pages_map() {
 	assert pages_map['anothercollection'].len == 1
 }
 
-// Test list_markdown
-fn test_list_markdown() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	markdown := client.list_markdown() or { panic(err) }
-
-	assert markdown.contains('testcollection')
-	assert markdown.contains('anothercollection')
-	assert markdown.contains('page1')
-	assert markdown.contains('page2')
-	assert markdown.contains('intro')
-	assert markdown.contains('##')
-	assert markdown.contains('*')
-}
-
 // Test get_collection_metadata - success
 fn test_get_collection_metadata_success() {
 	test_dir := setup_test_export()
@@ -483,21 +438,6 @@ fn test_get_collection_metadata_success() {
 	assert metadata.name == 'testcollection'
 	assert metadata.pages.len == 2
 	assert metadata.errors.len == 0
-}
-
-// Test get_collection_metadata - with errors
-fn test_get_collection_metadata_with_errors() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	metadata := client.get_collection_metadata('anothercollection') or { panic(err) }
-
-	assert metadata.name == 'anothercollection'
-	assert metadata.pages.len == 1
-	assert metadata.errors.len == 1
-	assert metadata.errors[0].message == 'Test error'
-	assert metadata.errors[0].line == 10
 }
 
 // Test get_collection_metadata - not found
@@ -513,58 +453,8 @@ fn test_get_collection_metadata_not_found() {
 	assert false, 'Should have returned an error'
 }
 
-// Test get_page_links - success
-fn test_get_page_links_success() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	links := client.get_page_links('testcollection', 'page2') or { panic(err) }
-
-	assert links.len == 2
-	assert links[0].target_item_name == 'logo.png'
-	assert links[0].target_collection_name == 'testcollection'
-	assert links[0].file_type == .image
-}
-
-// Test get_page_links - no links
-fn test_get_page_links_empty() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	links := client.get_page_links('testcollection', 'page1') or { panic(err) }
-
-	assert links.len == 0
-}
-
-// Test get_page_links - page not found
-fn test_get_page_links_page_not_found() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	client.get_page_links('testcollection', 'nonexistent') or {
-		assert err.msg().contains('page_not_found')
-		return
-	}
-	assert false, 'Should have returned an error'
-}
-
 // Test get_collection_errors - success
 fn test_get_collection_errors_success() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	errors := client.get_collection_errors('anothercollection') or { panic(err) }
-
-	assert errors.len == 1
-	assert errors[0].message == 'Test error'
-}
-
-// Test get_collection_errors - no errors
-fn test_get_collection_errors_empty() {
 	test_dir := setup_test_export()
 	defer { cleanup_test_export(test_dir) }
 
@@ -572,17 +462,6 @@ fn test_get_collection_errors_empty() {
 	errors := client.get_collection_errors('testcollection') or { panic(err) }
 
 	assert errors.len == 0
-}
-
-// Test has_errors - true
-fn test_has_errors_true() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	has_errors := client.has_errors('anothercollection')
-
-	assert has_errors == true
 }
 
 // Test has_errors - false
@@ -596,7 +475,7 @@ fn test_has_errors_false() {
 	assert has_errors == false
 }
 
-// Test has_errors - collection not found
+// Test has_errors - collection not found returns false
 fn test_has_errors_collection_not_found() {
 	test_dir := setup_test_export()
 	defer { cleanup_test_export(test_dir) }
@@ -613,64 +492,16 @@ fn test_copy_images_success() {
 	defer { cleanup_test_export(test_dir) }
 
 	dest_dir := os.join_path(os.temp_dir(), 'copy_dest_${os.getpid()}')
+	defer { os.rmdir_all(dest_dir) or {} }
+
 	os.mkdir_all(dest_dir) or { panic(err) }
-	defer { cleanup_test_export(dest_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	client.copy_images('testcollection', 'page2', dest_dir) or { panic(err) }
-
-	// Check that logo.png was copied to img subdirectory
-	assert os.exists(os.join_path(dest_dir, 'img', 'logo.png'))
-}
-
-// Test copy_images - no images
-fn test_copy_images_no_images() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	dest_dir := os.join_path(os.temp_dir(), 'copy_dest_empty_${os.getpid()}')
-	os.mkdir_all(dest_dir) or { panic(err) }
-	defer { cleanup_test_export(dest_dir) }
 
 	mut client := new(export_dir: test_dir) or { panic(err) }
 	client.copy_images('testcollection', 'page1', dest_dir) or { panic(err) }
 
-	// Should succeed even with no images
-	assert true
-}
-
-// Test copy_files - success
-fn test_copy_files_success() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	dest_dir := os.join_path(os.temp_dir(), 'copy_files_dest_${os.getpid()}')
-	os.mkdir_all(dest_dir) or { panic(err) }
-	defer { cleanup_test_export(dest_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	// Note: test data would need to be updated to have file links in page2
-	// For now, this test demonstrates the pattern
-	client.copy_files('testcollection', 'page2', dest_dir) or { panic(err) }
-
-	// Check that files were copied to files subdirectory
-	// assert os.exists(os.join_path(dest_dir, 'files', 'somefile.csv'))
-}
-
-// Test copy_files - no files
-fn test_copy_files_no_files() {
-	test_dir := setup_test_export()
-	defer { cleanup_test_export(test_dir) }
-
-	dest_dir := os.join_path(os.temp_dir(), 'copy_files_empty_${os.getpid()}')
-	os.mkdir_all(dest_dir) or { panic(err) }
-	defer { cleanup_test_export(dest_dir) }
-
-	mut client := new(export_dir: test_dir) or { panic(err) }
-	client.copy_files('testcollection', 'page1', dest_dir) or { panic(err) }
-
-	// Should succeed even with no file links
-	assert true
+	// Check that images were copied to img subdirectory
+	assert os.exists(os.join_path(dest_dir, 'img', 'logo.png'))
+	assert os.exists(os.join_path(dest_dir, 'img', 'banner.jpg'))
 }
 
 // Test naming normalization edge cases

@@ -234,80 +234,81 @@ pub fn (mut c DocTreeClient) has_errors(collection_name string) bool {
 
 pub fn (mut c DocTreeClient) copy_collection(collection_name string, destination_path string) ! {
 	// TODO: list over all pages, links & files and copy them to destination
+	
 }
 
-// will copy all pages linked from a page to a destination directory as well as the page itself
-pub fn (mut c DocTreeClient) copy_pages(collection_name string, page_name string, destination_path string) ! {
-	// TODO: copy page itself
+// // will copy all pages linked from a page to a destination directory as well as the page itself
+// pub fn (mut c DocTreeClient) copy_pages(collection_name string, page_name string, destination_path string) ! {
+// 	// TODO: copy page itself
 
-	// Get page links from metadata
-	links := c.get_page_links(collection_name, page_name)!
+// 	// Get page links from metadata
+// 	links := c.get_page_links(collection_name, page_name)!
 
-	// Create img subdirectory
-	mut img_dest := pathlib.get_dir(path: '${destination_path}', create: true)!
+// 	// Create img subdirectory
+// 	mut img_dest := pathlib.get_dir(path: '${destination_path}', create: true)!
 
-	// Copy only image links
-	for link in links {
-		if link.file_type != .page {
-			continue
-		}
-		if link.status == .external {
-			continue
-		}
-		// Get image path and copy
-		img_path := c.get_page_path(link.target_collection_name, link.target_item_name)!
-		mut src := pathlib.get_file(path: img_path)!
-		src.copy(dest: '${img_dest.path}/${src.name_fix_no_ext()}')!
-		console.print_debug(' ********. Copied page: ${src.path} to ${img_dest.path}/${src.name_fix_no_ext()}')
-	}
-}
+// 	// Copy only image links
+// 	for link in links {
+// 		if link.file_type != .page {
+// 			continue
+// 		}
+// 		if link.status == .external {
+// 			continue
+// 		}
+// 		// Get image path and copy
+// 		img_path := c.get_page_path(link.target_collection_name, link.target_item_name)!
+// 		mut src := pathlib.get_file(path: img_path)!
+// 		src.copy(dest: '${img_dest.path}/${src.name_fix_no_ext()}')!
+// 		console.print_debug(' ********. Copied page: ${src.path} to ${img_dest.path}/${src.name_fix_no_ext()}')
+// 	}
+// }
 
-pub fn (mut c DocTreeClient) copy_images(collection_name string, page_name string, destination_path string) ! {
-	// Get page links from metadata
-	links := c.get_page_links(collection_name, page_name)!
+// pub fn (mut c DocTreeClient) copy_images(collection_name string, page_name string, destination_path string) ! {
+// 	// Get page links from metadata
+// 	links := c.get_page_links(collection_name, page_name)!
 
-	// Create img subdirectory
-	mut img_dest := pathlib.get_dir(path: '${destination_path}/img', create: true)!
+// 	// Create img subdirectory
+// 	mut img_dest := pathlib.get_dir(path: '${destination_path}/img', create: true)!
 
-	// Copy only image links
-	for link in links {
-		if link.file_type != .image {
-			continue
-		}
-		if link.status == .external {
-			continue
-		}
-		// Get image path and copy
-		img_path := c.get_image_path(link.target_collection_name, link.target_item_name)!
-		mut src := pathlib.get_file(path: img_path)!
-		src.copy(dest: '${img_dest.path}/${src.name_fix_no_ext()}')!
-		// console.print_debug('Copied image: ${src.path} to ${img_dest.path}/${src.name_fix()}')
-	}
-}
+// 	// Copy only image links
+// 	for link in links {
+// 		if link.file_type != .image {
+// 			continue
+// 		}
+// 		if link.status == .external {
+// 			continue
+// 		}
+// 		// Get image path and copy
+// 		img_path := c.get_image_path(link.target_collection_name, link.target_item_name)!
+// 		mut src := pathlib.get_file(path: img_path)!
+// 		src.copy(dest: '${img_dest.path}/${src.name_fix_no_ext()}')!
+// 		// console.print_debug('Copied image: ${src.path} to ${img_dest.path}/${src.name_fix()}')
+// 	}
+// }
 
-// copy_files copies all non-image files from a page to a destination directory
-// Files are placed in {destination}/files/ subdirectory
-// Only copies files referenced in the page (via links)
-pub fn (mut c DocTreeClient) copy_files(collection_name string, page_name string, destination_path string) ! {
-	// Get page links from metadata
-	links := c.get_page_links(collection_name, page_name)!
+// // copy_files copies all non-image files from a page to a destination directory
+// // Files are placed in {destination}/files/ subdirectory
+// // Only copies files referenced in the page (via links)
+// pub fn (mut c DocTreeClient) copy_files(collection_name string, page_name string, destination_path string) ! {
+// 	// Get page links from metadata
+// 	links := c.get_page_links(collection_name, page_name)!
 
-	// Create files subdirectory
-	mut files_dest := pathlib.get_dir(path: '${destination_path}/files', create: true)!
+// 	// Create files subdirectory
+// 	mut files_dest := pathlib.get_dir(path: '${destination_path}/files', create: true)!
 
-	// Copy only file links (non-image files)
-	for link in links {
-		if link.file_type != .file {
-			continue
-		}
-		if link.status == .external {
-			continue
-		}
-		// println(link)
-		// Get file path and copy
-		file_path := c.get_file_path(link.target_collection_name, link.target_item_name)!
-		mut src := pathlib.get_file(path: file_path)!
-		// src.copy(dest: '${files_dest.path}/${src.name_fix_no_ext()}')!
-		console.print_debug('Copied file: ${src.path} to ${files_dest.path}/${src.name_fix_no_ext()}')
-	}
-}
+// 	// Copy only file links (non-image files)
+// 	for link in links {
+// 		if link.file_type != .file {
+// 			continue
+// 		}
+// 		if link.status == .external {
+// 			continue
+// 		}
+// 		// println(link)
+// 		// Get file path and copy
+// 		file_path := c.get_file_path(link.target_collection_name, link.target_item_name)!
+// 		mut src := pathlib.get_file(path: file_path)!
+// 		// src.copy(dest: '${files_dest.path}/${src.name_fix_no_ext()}')!
+// 		console.print_debug('Copied file: ${src.path} to ${files_dest.path}/${src.name_fix_no_ext()}')
+// 	}
+// }
