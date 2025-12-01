@@ -22,6 +22,16 @@ pub mut:
 	path            string
 	collection_name string
 	links           []LinkMetadata
+	title string
+	description string
+	questions []Question
+
+}
+
+pub struct Question {
+pub mut:
+	question string
+	answer   string
 }
 
 pub struct FileMetadata {

@@ -11,7 +11,16 @@ pub mut:
 	collection_name string
 	links           []Link
 	// macros          []Macro
+	title string
+	description string
+	questions []Question
 	collection &Collection @[skip; str: skip] // Reference to parent collection
+}
+
+pub struct Question {
+pub mut:
+	question string
+	answer   string
 }
 
 @[params]
@@ -36,7 +45,7 @@ pub mut:
 	include bool
 }
 
-// Read content without processing includes
+// Read content can be with or without processing includes
 pub fn (mut p Page) content(args ReadContentArgs) !string {
 	mut mypath := p.path()!
 	mut content := mypath.read()!

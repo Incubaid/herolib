@@ -2,6 +2,7 @@ module core
 
 import incubaid.herolib.develop.gittools
 import os
+import incubaid.herolib.data.markdown.tools as markdowntools
 
 // Validate all links in collection
 fn (mut c Collection) find_links() ! {
@@ -25,8 +26,22 @@ fn (mut c Collection) fix_links() ! {
 			mut p := page.path()!
 			p.write(fixed_content)!
 		}
+	}	
+}
+
+
+pub fn (mut c Collection) title_descriptions() ! {
+	for _, mut p in c.pages {			
+		if p.title == '' {
+			p.title = markdowntools.extract_title(p.content(include: true)!)
+		}
+		// TODO in future should do AI
+		if p.description == '' {
+			p.description = p.title
+		}
 	}
 }
+
 
 // Detect git repository URL for a collection
 fn (mut c Collection) init_git_info() ! {

@@ -77,7 +77,7 @@ fn test_asset_list_filtering() ! {
 			address:     'ADDR${i}'
 			asset_type:  if i < 3 { 'token' } else { 'nft' }
 			issuer:      if i % 2 == 0 { u32(1) } else { u32(2) }
-			supply:      1000.0 * f64(i + 1)
+			supply:      1000.0 * u64(i + 1)
 			decimals:    8
 			is_frozen:   i >= 3
 		}

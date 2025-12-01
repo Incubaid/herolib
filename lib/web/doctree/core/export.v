@@ -26,6 +26,7 @@ pub fn (mut a DocTree) export(args ExportArgs) ! {
 	for _, mut col in a.collections {
 		col.find_links()!
 		col.init_git_info()!
+		col.title_descriptions()!
 	}
 
 	for _, mut col in a.collections {

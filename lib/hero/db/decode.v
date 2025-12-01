@@ -30,6 +30,17 @@ pub fn decode_u32(data string) !u32 {
 	return u32(parsed_uint)
 }
 
+pub fn u32_ourtime(t u32) ourtime.OurTime {
+	return ourtime.OurTime{
+		unixt: i64(t)
+	}
+}
+
+pub fn ourtime_u32(t ourtime.OurTime) u32 {
+	return u32(t.unixt) // Convert unix time to u32
+}
+
+
 pub fn decode_string(data string) !string {
 	// Try JSON decode first (for proper JSON strings)
 	// if result := json2.decode[string](data) {

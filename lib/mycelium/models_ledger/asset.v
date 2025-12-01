@@ -14,7 +14,7 @@ pub mut:
 	address        string @[index; required] // The unique address or identifier for the asset.
 	asset_type     string @[required]        // The type of the asset (e.g., 'token', 'nft').
 	issuer         u32    @[required]        // The user ID of the issuer of the asset.
-	supply         f64               // The total supply of the asset.
+	supply         u64               // The total supply of the asset.
 	decimals       u8                // The number of decimal places for the asset's value.
 	is_frozen      bool              // Indicates if the asset is currently frozen and cannot be transferred.
 	metadata       map[string]string // A map for storing arbitrary metadata as key-value pairs.
@@ -61,7 +61,7 @@ pub fn (self Asset) dump(mut e encoder.Encoder) ! {
 	e.add_string(self.address)
 	e.add_string(self.asset_type)
 	e.add_u32(self.issuer)
-	e.add_f64(self.supply)
+	e.add_u64(self.supply)
 	e.add_u8(self.decimals)
 	e.add_bool(self.is_frozen)
 
@@ -74,7 +74,7 @@ fn (mut self DBAsset) load(mut o Asset, mut e encoder.Decoder) ! {
 	o.address = e.get_string()!
 	o.asset_type = e.get_string()!
 	o.issuer = e.get_u32()!
-	o.supply = e.get_f64()!
+	o.supply = e.get_u64()!
 	o.decimals = e.get_u8()!
 	o.is_frozen = e.get_bool()!
 
@@ -91,7 +91,7 @@ pub mut:
 	address        string
 	asset_type     string
 	issuer         u32
-	supply         f64
+	supply         u64
 	decimals       u8
 	is_frozen      bool
 	metadata       map[string]string

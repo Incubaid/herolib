@@ -14,7 +14,7 @@ pub mut:
 	source      u32
 	destination u32
 	assetid     u32
-	amount      f64
+	amount      u64
 	timestamp   u64
 	status      string
 	memo        string
@@ -100,7 +100,7 @@ pub fn (self Transaction) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.source)
 	e.add_u32(self.destination)
 	e.add_u32(self.assetid)
-	e.add_f64(self.amount)
+	e.add_u64(self.amount)
 	e.add_u64(self.timestamp)
 	e.add_string(self.status)
 	e.add_string(self.memo)
@@ -120,7 +120,7 @@ fn (mut self DBTransaction) load(mut o Transaction, mut e encoder.Decoder) ! {
 	o.source = e.get_u32()!
 	o.destination = e.get_u32()!
 	o.assetid = e.get_u32()!
-	o.amount = e.get_f64()!
+	o.amount = e.get_u64()!
 	o.timestamp = e.get_u64()!
 	o.status = e.get_string()!
 	o.memo = e.get_string()!
@@ -148,7 +148,7 @@ pub mut:
 	source      u32
 	destination u32
 	assetid     u32
-	amount      f64
+	amount      u64
 	timestamp   u64
 	status      string
 	memo        string

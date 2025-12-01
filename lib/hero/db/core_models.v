@@ -5,8 +5,8 @@ pub mut:
 	id             u32
 	name           string
 	description    string
-	created_at     i64
-	updated_at     i64
+	created_at     u32
+	updated_at     u32
 	securitypolicy u32
 	tags           u32 // when we set/get we always do as []string but this can then be sorted and md5ed this gies the unique id of tags
 	messages       []u32
