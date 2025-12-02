@@ -43,7 +43,7 @@ import incubaid.herolib.installers.virt.cloudhypervisor
 import incubaid.herolib.installers.virt.crun_installer
 import incubaid.herolib.installers.virt.docker
 import incubaid.herolib.installers.virt.k3s
-import incubaid.herolib.installers.virt.kubectl
+// import incubaid.herolib.installers.virt.kubectl
 import incubaid.herolib.installers.virt.lima
 import incubaid.herolib.installers.virt.pacman
 import incubaid.herolib.installers.virt.podman
@@ -53,10 +53,6 @@ import incubaid.herolib.installers.web.tailwind
 import incubaid.herolib.installers.web.tailwind4
 import incubaid.herolib.installers.web.traefik
 import incubaid.herolib.installers.web.zola
-import incubaid.herolib.k8_apps.biz.cryptpad
-import incubaid.herolib.k8_apps.biz.erpnext
-import incubaid.herolib.k8_apps.communication.element_chat
-import incubaid.herolib.k8_apps.devel.gitea
 import incubaid.herolib.virt.heropods
 import incubaid.herolib.virt.hetznermanager
 import incubaid.herolib.virt.kubernetes
@@ -110,7 +106,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	crun_installer.play(mut plbook)!
 	docker.play(mut plbook)!
 	k3s.play(mut plbook)!
-	kubectl.play(mut plbook)!
+	// kubectl.play(mut plbook)!
 	lima.play(mut plbook)!
 	pacman.play(mut plbook)!
 	podman.play(mut plbook)!
@@ -120,11 +116,6 @@ pub fn run_all(args_ PlayArgs) ! {
 	tailwind4.play(mut plbook)!
 	traefik.play(mut plbook)!
 	zola.play(mut plbook)!
-	cryptpad.play(mut plbook)!
-	erpnext.play(mut plbook)!
-	element_chat.play(mut plbook)!
-	gitea.play(mut plbook)!
 	heropods.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
-	kubernetes.play(mut plbook)!
 }

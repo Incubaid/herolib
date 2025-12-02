@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import incubaid.herolib.installers.virt.kubernetes_installer
+import incubaid.herolib.installers.virt.k3s
 
-mut kubectl := kubernetes_installer.get(name: 'k_installer', create: true)!
+mut kubectl := k3s.new()!
 
 // To install
 kubectl.install()!
