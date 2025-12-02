@@ -15,14 +15,14 @@ pub fn (mut self Category) str() string {
 		prefix := if is_last { '└── ' } else { '├── ' }
 
 		match item {
-			NavDoc {
+			Page {
 				result << '${prefix}📄 ${item.label}'
-				result << '    └─ path: ${item.path}'
+				result << '    └─ src: ${item.src}'
 			}
-			NavCat {
+			Category {
 				// Category header
 				collapse_icon := if item.collapsed { '▶ ' } else { '▼ ' }
-				result << '${prefix}${collapse_icon}📁 ${item.label}'
+				result << '${prefix}${collapse_icon}📁 ${item.path}'
 
 				// Category metadata
 				if !item.collapsed {
@@ -35,15 +35,15 @@ pub fn (mut self Category) str() string {
 						sub_prefix := if is_last_sub { '    └── ' } else { '    ├── ' }
 
 						match sub_item {
-							NavDoc {
-								result << '${sub_prefix}📄 ${sub_item.label} [${sub_item.src_path}]'
+							Page {
+								result << '${sub_prefix}📄 ${sub_item.label} [${sub_item.src}]'
 							}
-							NavCat {
+							Category {
 								// Nested categories
 								sub_collapse_icon := if sub_item.collapsed { '▶ ' } else { '▼ ' }
-								result << '${sub_prefix}${sub_collapse_icon}📁 ${sub_item.label}'
+								result << '${sub_prefix}${sub_collapse_icon}📁 ${sub_item.path}'
 							}
-							NavLink {
+							Link {
 								result << '${sub_prefix}🔗 ${sub_item.label}'
 								if sub_item.description.len > 0 {
 									result << '         └─ ${sub_item.description}'
@@ -53,7 +53,7 @@ pub fn (mut self Category) str() string {
 					}
 				}
 			}
-			NavLink {
+			Link {
 				result << '${prefix}🔗 ${item.label}'
 				result << '    └─ href: ${item.href}'
 				if item.description.len > 0 {

@@ -4,16 +4,15 @@ import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.web.doctree as doctreetools
 import incubaid.herolib.ui.console
 
-//=========================================================
-// PAGES: Process pages and build navigation structure
+// ============================================================
+// PAGES & CATEGORIES: Process pages and build navigation structure
 // ============================================================
 fn play_pages(mut plbook PlayBook, mut website Site) ! {
 	mut collection_current := ''
-	
-	mut category_current := &website.root_category // start at root category, this is basically the navigation tree root
+	mut category_current := &website.root // start at root category, this is basically the navigation tree root
 
 	// ============================================================
-	// PASS 1: Process all page and category actions
+	// PASS 1: Process all page_category and page actions
 	// ============================================================
 	mut all_actions := plbook.find(filter: 'site.')!
 
@@ -22,23 +21,31 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 			continue
 		}
 
+		// Skip actions that are not page or page_category
+		if action.name != 'page_category' && action.name != 'page' {
+			continue
+		}
+
 		// ========== PAGE CATEGORY ==========
 		if action.name == 'page_category' {
 			mut p := action.params
 
-			// label is empty when not specified (we support label & path for flexibility)
-			mut category_path := p.get_default('path', '')!
-			category_current = category_current.up(category_path)!
-			category_current.collapsible = p.get_default_true('collapsible')
-			category_current.collapsed = p.get_default_true('collapsed')
+			category_path := p.get_default('path', '')!
+			if category_path.len == 0 {
+				return error('!!site.page_category: must specify "path"')
+			}
 
-			console.print_item('Created page category: "${category_current.path}" ')
+			// Navigate/create category structure
+			category_current = category_current.category_get(category_path)!
+			category_current.collapsible = p.get_default_true('collapsible')
+			category_current.collapsed = p.get_default_false('collapsed')
+
+			console.print_item('Created page category: "${category_current.path}"')
+
 			action.done = true
 			println(category_current)
 
-			website.categories << category_current
-
-			$dbg();
+			// $dbg();
 			continue
 		}
 
@@ -75,13 +82,15 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 			collection_current = page_collection
 
 			// Get optional page metadata
-			page_label := p.get_default('label', p.get_default('title', '')!)! // is what is shown in the sidebar
-			page_title := p.get_default('title', '')! // is title shown on the page, if not from the page content, if empty then will be brought in from the content
+			mut page_label := p.get_default('label', '')! // CHANGED: added mut
+			if page_label.len == 0 {
+				page_label = p.get_default('title', '')!
+			}
+
+			page_title := p.get_default('title', '')!
 			page_description := p.get_default('description', '')!
 
-
-
-			// Create page
+			// Create page object
 			mut page := Page{
 				src:         '${page_collection}:${page_name}'
 				label:       page_label
@@ -89,14 +98,19 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 				description: page_description
 				draft:       p.get_default_false('draft')
 				hide_title:  p.get_default_false('hide_title')
-				category_id: category_current
 				hide:        p.get_default_false('hide')
+				nav_path:    category_current.path
 			}
 
-			website.pages << page
+			// Add page to current category
+			category_current.items << page
+
+			console.print_item('Added page: "${page.src}" (label: "${page.label}")')
 
 			action.done = true
 			continue
 		}
 	}
+
+	console.print_green('Pages and categories processing complete')
 }

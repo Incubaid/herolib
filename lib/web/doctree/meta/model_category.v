@@ -9,7 +9,7 @@ pub mut:
 	items       []CategoryItem
 }
 
-//return the label of the category (last part of the path)
+// return the label of the category (last part of the path)
 pub fn (mut c Category) label() !string {
 	if c.path.count('/') == 0 {
 		return c.path
@@ -19,61 +19,29 @@ pub fn (mut c Category) label() !string {
 
 type CategoryItem = Page | Link | Category
 
-
-
-pub fn (mut self Category) up(path string) !&Category {
-	// Split the requested path into parts
-	path_parts := path.split('/')
-	
-	// Start at current category
-	mut current := &self
-	
-	// Navigate through each part of the path
-	for part in path_parts {
-		// Skip empty parts (from leading/trailing slashes)
-		if part.len == 0 {
-			continue
-		}
-		
-		// Check if this part already exists in current category's items
-		mut found := false
-		for item in current.items {
-			match item {
-				&Category {
-					item_label := item.label()!
-					if item_label == part {
-						current = item
-						found = true
-						break
-					}
-				}
-				else {}
+// return all items as CategoryItem references recursive
+pub fn (mut self Category) items_get() ![]&CategoryItem {
+	mut result := []&CategoryItem{}
+	for i in 0 .. self.items.len {
+		mut c := self.items[i]
+		match mut c {
+			Category {
+				result << c.items_get()!
 			}
-		}
-		
-		// If not found, create a new category and add it
-		if !found {
-			mut new_category := Category{
-				path:        part
-				collapsible: true
-				collapsed:   true
-				items:       []CategoryItem{}
+			else {
+				result << &c
 			}
-			current.items << new_category
-			current = &new_category
 		}
 	}
-	
-	return current
+	return result
 }
 
-
-fn (mut self Category) page_get(src string)! &Page {
-	for item in self.items {
-		match item {
+pub fn (mut self Category) page_get(src string) !&Page {
+	for c in self.items_get()! {
+		match c {
 			Page {
-				if item.src == src {
-					return it
+				if c.src == src {
+					return &c
 				}
 			}
 			else {}
@@ -82,12 +50,12 @@ fn (mut self Category) page_get(src string)! &Page {
 	return error('Page with src="${src}" not found in site.')
 }
 
-fn (mut self Category) link_get(href string)! &Link {
-	for item in self.items {
-		match item {
+pub fn (mut self Category) link_get(href string) !&Link {
+	for c in self.items_get()! {
+		match c {
 			Link {
-				if item.href == href {
-					return it
+				if c.href == href {
+					return &c
 				}
 			}
 			else {}
@@ -96,16 +64,26 @@ fn (mut self Category) link_get(href string)! &Link {
 	return error('Link with href="${href}" not found in site.')
 }
 
-fn (mut self Category) category_get(path string)! &Category {
-	for item in self.items {
-		match item {
+pub fn (mut self Category) category_get(path string) !&Category {
+	for i in 0 .. self.items.len {
+		mut c := self.items[i]
+		match mut c {
 			Category {
-				if item.path == path {
-					return it
+				if c.path == path {
+					return &c
 				}
 			}
 			else {}
 		}
 	}
-	return error('Category with path="${path}" not found in site.')
+	mut new_category := Category{
+		path:        path
+		collapsible: true
+		collapsed:   true
+		items:       []CategoryItem{}
+	}
+	// Add the new category as a sum type variant
+	self.items << new_category
+	// Update current_category_ref to point to the newly added category in the slice
+	return &new_category
 }
