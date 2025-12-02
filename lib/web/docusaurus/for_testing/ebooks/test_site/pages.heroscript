@@ -1,0 +1,34 @@
+// Page Definitions for Link Resolution Test
+// Each page maps to a markdown file in the test_collection
+
+// Root pages (no category)
+!!site.page src:"test_collection:page1"
+    title:"Introduction"
+
+!!site.page src:"page2"
+    title:"Basic Concepts"
+
+// Basics category
+!!site.page_category name:'basics' label:"Getting Started"
+
+!!site.page src:"page3"
+    title:"Configuration"
+
+!!site.page src:"page4"
+    title:"Advanced Features"
+
+// Advanced category
+!!site.page_category name:'advanced' label:"Advanced Topics"
+
+!!site.page src:"page5"
+    title:"Troubleshooting"
+
+!!site.page src:"page6"
+    title:"Best Practices"
+
+// Reference category
+!!site.page_category name:'reference' label:"Reference"
+
+!!site.page src:"page7"
+    title:"Conclusion"
+
