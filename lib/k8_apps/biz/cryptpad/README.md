@@ -5,7 +5,7 @@ A Kubernetes installer for CryptPad with TFGrid Gateway integration.
 ## Quick Start
 
 ```v
-import incubaid.herolib.installers.k8s.cryptpad
+import incubaid.herolib.apps.biz.cryptpad
 
 // Create and install CryptPad
 mut installer := cryptpad.get(

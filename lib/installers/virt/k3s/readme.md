@@ -16,68 +16,68 @@ Complete K3s cluster installer with multi-master HA support, worker nodes, and M
 ### Install First Master
 
 ```v
-import incubaid.herolib.installers.virt.kubernetes_installer
+import incubaid.herolib.installers.virt.k3s
 
 heroscript := "
-!!kubernetes_installer.configure
+!!k3s.configure
     name:'k3s_master_1'
     k3s_version:'v1.33.1'
     node_name:'master-1'
     mycelium_interface:'mycelium0'
 
-!!kubernetes_installer.install_master name:'k3s_master_1'
-!!kubernetes_installer.start name:'k3s_master_1'
+!!k3s.install_master name:'k3s_master_1'
+!!k3s.start name:'k3s_master_1'
 "
 
-kubernetes_installer.play(heroscript: heroscript)!
+k3s.play(heroscript: heroscript)!
 ```
 
 ### Join Additional Master (HA)
 
 ```v
 heroscript := "
-!!kubernetes_installer.configure
+!!k3s.configure
     name:'k3s_master_2'
     node_name:'master-2'
     token:'<TOKEN_FROM_FIRST_MASTER>'
     master_url:'https://[<MASTER_IPV6>]:6443'
 
-!!kubernetes_installer.join_master name:'k3s_master_2'
-!!kubernetes_installer.start name:'k3s_master_2'
+!!k3s.join_master name:'k3s_master_2'
+!!k3s.start name:'k3s_master_2'
 "
 
-kubernetes_installer.play(heroscript: heroscript)!
+k3s.play(heroscript: heroscript)!
 ```
 
 ### Install Worker Node
 
 ```v
 heroscript := "
-!!kubernetes_installer.configure
+!!k3s.configure
     name:'k3s_worker_1'
     node_name:'worker-1'
     token:'<TOKEN_FROM_FIRST_MASTER>'
     master_url:'https://[<MASTER_IPV6>]:6443'
 
-!!kubernetes_installer.install_worker name:'k3s_worker_1'
-!!kubernetes_installer.start name:'k3s_worker_1'
+!!k3s.install_worker name:'k3s_worker_1'
+!!k3s.start name:'k3s_worker_1'
 "
 
-kubernetes_installer.play(heroscript: heroscript)!
+k3s.play(heroscript: heroscript)!
 ```
 
 ## Configuration Options
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `name` | string | 'default' | Instance name |
-| `k3s_version` | string | 'v1.33.1' | K3s version to install |
-| `data_dir` | string | '~/hero/var/k3s' | Data directory for K3s |
-| `node_name` | string | hostname | Unique node identifier |
-| `mycelium_interface` | string | auto-detected | Mycelium interface name (auto-detected from 400::/7 route) |
-| `token` | string | auto-generated | Cluster authentication token |
-| `master_url` | string | - | Master URL for joining (e.g., 'https://[ipv6]:6443') |
-| `node_ip` | string | auto-detected | Node IPv6 (auto-detected from Mycelium) |
+| Field                | Type   | Default          | Description                                                |
+| -------------------- | ------ | ---------------- | ---------------------------------------------------------- |
+| `name`               | string | 'default'        | Instance name                                              |
+| `k3s_version`        | string | 'v1.33.1'        | K3s version to install                                     |
+| `data_dir`           | string | '~/hero/var/k3s' | Data directory for K3s                                     |
+| `node_name`          | string | hostname         | Unique node identifier                                     |
+| `mycelium_interface` | string | auto-detected    | Mycelium interface name (auto-detected from 400::/7 route) |
+| `token`              | string | auto-generated   | Cluster authentication token                               |
+| `master_url`         | string | -                | Master URL for joining (e.g., 'https://[ipv6]:6443')       |
+| `node_ip`            | string | auto-detected    | Node IPv6 (auto-detected from Mycelium)                    |
 
 ## Actions
 

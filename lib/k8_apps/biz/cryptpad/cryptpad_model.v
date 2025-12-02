@@ -44,7 +44,7 @@ fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
 	mycfg.name = mycfg.name.replace('.', '')
 
 	if mycfg.namespace == '' {
-		mycfg.namespace = '${mycfg.name}-cryptpad-namespace'
+		mycfg.namespace = '${mycfg.name}-cryptpad'
 	}
 
 	if mycfg.namespace.contains('_') || mycfg.namespace.contains('.') {

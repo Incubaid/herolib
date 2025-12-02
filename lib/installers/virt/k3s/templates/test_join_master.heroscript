@@ -21,13 +21,13 @@ console.print_header('='.repeat(80))
 
 // IMPORTANT: Replace these values with your actual cluster information
 // You can get these from the first master's join script or by running:
-// !!kubernetes_installer.generate_join_script name:"k3s_master_1"
+// !!k3s.generate_join_script name:"k3s_master_1"
 
 master_token := 'YOUR_CLUSTER_TOKEN_HERE'  // Get from first master
 master_url := 'https://[YOUR_MASTER_IPV6]:6443'  // First master's IPv6 address
 
 join_master_script := '
-!!kubernetes_installer.configure
+!!k3s.configure
     name:"k3s_master_2"
     k3s_version:"v1.33.1"
     data_dir:"~/hero/var/k3s"
@@ -36,9 +36,9 @@ join_master_script := '
     token:"${master_token}"
     master_url:"${master_url}"
 
-!!kubernetes_installer.join_master name:"k3s_master_2"
+!!k3s.join_master name:"k3s_master_2"
 
-!!kubernetes_installer.start name:"k3s_master_2"
+!!k3s.start name:"k3s_master_2"
 '
 
 console.print_header('⚠️  Before running, make sure to:')

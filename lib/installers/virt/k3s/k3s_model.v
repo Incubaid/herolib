@@ -1,4 +1,4 @@
-module kubernetes_installer
+module k3s
 
 import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
@@ -11,33 +11,33 @@ const default = true
 
 // K3s installer - handles K3s cluster installation with Mycelium IPv6 networking
 @[heap]
-pub struct KubernetesInstaller {
+pub struct K3s {
 pub mut:
-	name               string = 'default'
+	name string = 'default'
 	// K3s version to install
-	k3s_version        string = version
+	k3s_version string = version
 	// Data directory for K3s (default: ~/hero/var/k3s)
-	data_dir           string
+	data_dir string
 	// Unique node name/identifier
-	node_name          string
+	node_name string
 	// Mycelium interface name (auto-detected if not specified)
 	mycelium_interface string
 	// Cluster token for authentication (auto-generated if empty)
-	token              string
+	token string
 	// Master URL for joining cluster (e.g., 'https://[ipv6]:6443')
-	master_url         string
+	master_url string
 	// Node IPv6 address (auto-detected from Mycelium if empty)
-	node_ip            string
+	node_ip string
 	// Is this a master/control-plane node?
-	is_master          bool
+	is_master bool
 	// Is this the first master (uses --cluster-init)?
-	is_first_master    bool
+	is_first_master bool
 }
 
 // your checking & initialization code if needed
-fn obj_init(mycfg_ KubernetesInstaller) !KubernetesInstaller {
+fn obj_init(mycfg_ K3s) !K3s {
 	mut mycfg := mycfg_
-	
+
 	// Set default data directory if not provided
 	if mycfg.data_dir == '' {
 		mycfg.data_dir = os.join_path(os.home_dir(), 'hero/var/k3s')
@@ -72,12 +72,12 @@ fn obj_init(mycfg_ KubernetesInstaller) !KubernetesInstaller {
 }
 
 // Get path to kubeconfig file
-pub fn (self &KubernetesInstaller) kubeconfig_path() string {
+pub fn (self &K3s) kubeconfig_path() string {
 	return '${self.data_dir}/server/cred/admin.kubeconfig'
 }
 
 // Get Mycelium IPv6 address from interface
-pub fn (self &KubernetesInstaller) get_mycelium_ipv6() !string {
+pub fn (self &K3s) get_mycelium_ipv6() !string {
 	// If node_ip is already set, use it
 	if self.node_ip != '' {
 		return self.node_ip
@@ -103,7 +103,7 @@ fn detect_mycelium_interface() !string {
 	// Parse interface name from route (format: "400::/7 dev <interface> ...")
 	route_line := route_result.output.trim_space()
 	parts := route_line.split(' ')
-	
+
 	for i, part in parts {
 		if part == 'dev' && i + 1 < parts.len {
 			iface := parts[i + 1]
@@ -134,7 +134,7 @@ fn get_mycelium_ipv6_from_interface(iface string) !string {
 	)!
 
 	ipv6_list := addr_result.output.split_into_lines()
-	
+
 	// Check if route has a next-hop (via keyword)
 	parts := route_line.split(' ')
 	mut nexthop := ''
@@ -202,11 +202,11 @@ fn configure() ! {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_dumps(obj KubernetesInstaller) !string {
-	return encoderhero.encode[KubernetesInstaller](obj)!
+pub fn heroscript_dumps(obj K3s) !string {
+	return encoderhero.encode[K3s](obj)!
 }
 
-pub fn heroscript_loads(heroscript string) !KubernetesInstaller {
-	mut obj := encoderhero.decode[KubernetesInstaller](heroscript)!
+pub fn heroscript_loads(heroscript string) !K3s {
+	mut obj := encoderhero.decode[K3s](heroscript)!
 	return obj
 }

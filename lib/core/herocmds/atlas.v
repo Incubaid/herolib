@@ -1,7 +1,6 @@
 module herocmds
 
 import incubaid.herolib.ui.console
-import incubaid.herolib.data.doctree
 import incubaid.herolib.core.playcmds
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.web.docusaurus

@@ -19,7 +19,7 @@
 // This creates the initial master node and initializes the cluster.
 // The token will be auto-generated and displayed for use with other nodes.
 
-!!kubernetes_installer.configure
+!!k3s.configure
     name:'k3s_master_1'
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
@@ -27,16 +27,16 @@
     // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
 
 // Install as first master (will generate token and use --cluster-init)
-!!kubernetes_installer.install_master name:'k3s_master_1'
+!!k3s.install_master name:'k3s_master_1'
 
 // Start K3s
-!!kubernetes_installer.start name:'k3s_master_1'
+!!k3s.start name:'k3s_master_1'
 
 // Get kubeconfig (optional - to verify installation)
-// !!kubernetes_installer.get_kubeconfig name:'k3s_master_1'
+// !!k3s.get_kubeconfig name:'k3s_master_1'
 
 // Generate join script for other nodes (optional)
-// !!kubernetes_installer.generate_join_script name:'k3s_master_1'
+// !!k3s.generate_join_script name:'k3s_master_1'
 
 // ============================================================================
 // SECTION 2: Join as Additional Master (HA Setup)
@@ -45,7 +45,7 @@
 // You MUST have the token and master_url from the first master.
 
 /*
-!!kubernetes_installer.configure
+!!k3s.configure
     name:'k3s_master_2'
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
@@ -55,10 +55,10 @@
     master_url:'https://[<MASTER_IPV6>]:6443'
 
 // Join as additional master
-!!kubernetes_installer.join_master name:'k3s_master_2'
+!!k3s.join_master name:'k3s_master_2'
 
 // Start K3s
-!!kubernetes_installer.start name:'k3s_master_2'
+!!k3s.start name:'k3s_master_2'
 */
 
 // ============================================================================
@@ -68,7 +68,7 @@
 // You MUST have the token and master_url from the first master.
 
 /*
-!!kubernetes_installer.configure
+!!k3s.configure
     name:'k3s_worker_1'
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
@@ -78,10 +78,10 @@
     master_url:'https://[<MASTER_IPV6>]:6443'
 
 // Install as worker
-!!kubernetes_installer.install_worker name:'k3s_worker_1'
+!!k3s.install_worker name:'k3s_worker_1'
 
 // Start K3s
-!!kubernetes_installer.start name:'k3s_worker_1'
+!!k3s.start name:'k3s_worker_1'
 */
 
 // ============================================================================
@@ -90,16 +90,16 @@
 // Common operations for managing K3s
 
 // Stop K3s
-// !!kubernetes_installer.stop name:'k3s_master_1'
+// !!k3s.stop name:'k3s_master_1'
 
 // Restart K3s
-// !!kubernetes_installer.restart name:'k3s_master_1'
+// !!k3s.restart name:'k3s_master_1'
 
 // Get kubeconfig
-// !!kubernetes_installer.get_kubeconfig name:'k3s_master_1'
+// !!k3s.get_kubeconfig name:'k3s_master_1'
 
 // Destroy K3s (complete cleanup)
-// !!kubernetes_installer.destroy name:'k3s_master_1'
+// !!k3s.destroy name:'k3s_master_1'
 
 // ============================================================================
 // NOTES:

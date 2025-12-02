@@ -1,4 +1,4 @@
-module kubernetes_installer
+module k3s
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
@@ -10,7 +10,7 @@ import os
 
 //////////////////// STARTUP COMMAND ////////////////////
 
-fn (self &KubernetesInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
+fn (self &K3s) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 
 	// Get Mycelium IPv6 address
@@ -53,10 +53,10 @@ fn (self &KubernetesInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	}
 
 	res << startupmanager.ZProcessNewArgs{
-		name: 'k3s_${self.name}'
+		name:        'k3s_${self.name}'
 		startuptype: .systemd
-		cmd:  cmd
-		env:  {
+		cmd:         cmd
+		env:         {
 			'HOME': os.home_dir()
 		}
 	}
@@ -90,7 +90,7 @@ fn check_ubuntu() ! {
 	content := os.read_file('/etc/os-release') or {
 		return error('Could not read /etc/os-release. Is this Ubuntu?')
 	}
-	
+
 	if !content.contains('Ubuntu') && !content.contains('ubuntu') {
 		return error('This installer requires Ubuntu. Current OS is not Ubuntu.')
 	}
@@ -162,7 +162,7 @@ fn installed() !bool {
 }
 
 // Install first master node
-pub fn (mut self KubernetesInstaller) install_master() ! {
+pub fn (mut self K3s) install_master() ! {
 	console.print_header('Installing K3s as first master node')
 
 	// Check OS
@@ -183,7 +183,7 @@ pub fn (mut self KubernetesInstaller) install_master() ! {
 
 	console.print_header('K3s first master installation completed')
 	console.print_header('Token: ${self.token}')
-	console.print_header('To start K3s, run: kubernetes_installer.start')
+	console.print_header('To start K3s, run: k3s.start')
 
 	// Generate join script
 	join_script := self.generate_join_script()!
@@ -191,7 +191,7 @@ pub fn (mut self KubernetesInstaller) install_master() ! {
 }
 
 // Join as additional master
-pub fn (mut self KubernetesInstaller) join_master() ! {
+pub fn (mut self K3s) join_master() ! {
 	console.print_header('Joining K3s cluster as additional master')
 
 	// Check OS
@@ -219,11 +219,11 @@ pub fn (mut self KubernetesInstaller) join_master() ! {
 	set(self)!
 
 	console.print_header('K3s additional master installation completed')
-	console.print_header('To start K3s, run: kubernetes_installer.start')
+	console.print_header('To start K3s, run: k3s.start')
 }
 
 // Install worker node
-pub fn (mut self KubernetesInstaller) install_worker() ! {
+pub fn (mut self K3s) install_worker() ! {
 	console.print_header('Installing K3s as worker node')
 
 	// Check OS
@@ -251,13 +251,13 @@ pub fn (mut self KubernetesInstaller) install_worker() ! {
 	set(self)!
 
 	console.print_header('K3s worker installation completed')
-	console.print_header('To start K3s, run: kubernetes_installer.start')
+	console.print_header('To start K3s, run: k3s.start')
 }
 
 //////////////////// UTILITY FUNCTIONS ////////////////////
 
 // Get kubeconfig content
-pub fn (self &KubernetesInstaller) get_kubeconfig() !string {
+pub fn (self &K3s) get_kubeconfig() !string {
 	kubeconfig_path := self.kubeconfig_path()
 
 	mut kubeconfig_file := pathlib.get_file(path: kubeconfig_path) or {
@@ -272,7 +272,7 @@ pub fn (self &KubernetesInstaller) get_kubeconfig() !string {
 }
 
 // Generate join script for other nodes
-pub fn (self &KubernetesInstaller) generate_join_script() !string {
+pub fn (self &K3s) generate_join_script() !string {
 	if !self.is_first_master {
 		return error('Can only generate join script from first master node')
 	}
@@ -291,7 +291,7 @@ pub fn (self &KubernetesInstaller) generate_join_script() !string {
 // Section 1: Join as Additional Master (HA)
 // Uncomment to join as additional master node
 /*
-!!kubernetes_installer.configure
+!!k3s.configure
     name:\'k3s_master_2\'
     k3s_version:\'${self.k3s_version}\'
     data_dir:\'${self.data_dir}\'
@@ -300,14 +300,14 @@ pub fn (self &KubernetesInstaller) generate_join_script() !string {
     token:\'${self.token}\'
     master_url:\'${master_url}\'
 
-!!kubernetes_installer.join_master name:\'k3s_master_2\'
-!!kubernetes_installer.start name:\'k3s_master_2\'
+!!k3s.join_master name:\'k3s_master_2\'
+!!k3s.start name:\'k3s_master_2\'
 */
 
 // Section 2: Join as Worker Node
 // Uncomment to join as worker node
 /*
-!!kubernetes_installer.configure
+!!k3s.configure
     name:\'k3s_worker_1\'
     k3s_version:\'${self.k3s_version}\'
     data_dir:\'${self.data_dir}\'
@@ -316,8 +316,8 @@ pub fn (self &KubernetesInstaller) generate_join_script() !string {
     token:\'${self.token}\'
     master_url:\'${master_url}\'
 
-!!kubernetes_installer.install_worker name:\'k3s_worker_1\'
-!!kubernetes_installer.start name:\'k3s_worker_1\'
+!!k3s.install_worker name:\'k3s_worker_1\'
+!!k3s.start name:\'k3s_worker_1\'
 */
 '
 
@@ -332,36 +332,36 @@ fn destroy() ! {
 	// Get configuration to find data directory
 	// Try to get from current configuration, otherwise use common paths
 	mut data_dirs := []string{}
-	
+
 	if cfg := get() {
 		data_dirs << cfg.data_dir
 		console.print_debug('Found configured data directory: ${cfg.data_dir}')
 	} else {
 		console.print_debug('No configuration found, will clean up common K3s paths')
 	}
-	
+
 	// Always add common K3s directories to ensure complete cleanup
 	data_dirs << '/var/lib/rancher/k3s'
 	data_dirs << '/root/hero/var/k3s'
 
 	// CRITICAL: Complete systemd service deletion FIRST before any other cleanup
 	// This prevents the service from auto-restarting during cleanup
-	
+
 	// Step 1: Stop and delete ALL k3s systemd services using startupmanager
 	console.print_header('Stopping and removing systemd services...')
-	
+
 	// Get systemd startup manager
 	mut sm := startupmanager_get(.systemd) or {
 		console.print_debug('Failed to get systemd manager: ${err}')
 		return error('Could not get systemd manager: ${err}')
 	}
-	
+
 	// List all k3s services
 	all_services := sm.list() or {
 		console.print_debug('Failed to list services: ${err}')
 		[]string{}
 	}
-	
+
 	// Filter and delete k3s services
 	for service_name in all_services {
 		if service_name.starts_with('k3s_') {
@@ -372,7 +372,7 @@ fn destroy() ! {
 			}
 		}
 	}
-	
+
 	console.print_header('✓ Systemd services removed')
 
 	// Step 2: Kill any remaining K3s processes
@@ -380,7 +380,7 @@ fn destroy() ! {
 	osal.exec(cmd: 'killall -9 k3s 2>/dev/null || true', stdout: false, raise_error: false) or {
 		console.print_debug('No k3s processes to kill or killall failed')
 	}
-	
+
 	// Wait for processes to fully terminate
 	osal.exec(cmd: 'sleep 2', stdout: false) or {}
 
@@ -392,7 +392,7 @@ fn destroy() ! {
 
 	// Step 5: Remove data directories
 	console.print_header('Removing data directories...')
-	
+
 	// Remove all K3s data directories (deduplicated)
 	mut cleaned_dirs := map[string]bool{}
 	for data_dir in data_dirs {
@@ -404,7 +404,7 @@ fn destroy() ! {
 			}
 		}
 	}
-	
+
 	// Also remove /etc/rancher which K3s creates
 	console.print_debug('Removing /etc/rancher')
 	osal.exec(cmd: 'rm -rf /etc/rancher', stdout: false, raise_error: false) or {}
@@ -438,16 +438,19 @@ fn cleanup_network() ! {
 		cmd:         'ip link show | grep "master cni0" | awk -F: \'{print $2}\' | xargs'
 		stdout:      false
 		raise_error: false
-	) {
+	)
+	{
 		if veth_result.output.trim_space() != '' {
 			veth_interfaces := veth_result.output.trim_space().split(' ')
 			for veth in veth_interfaces {
 				veth_trimmed := veth.trim_space()
 				if veth_trimmed != '' {
 					console.print_debug('Deleting veth interface: ${veth_trimmed}')
-					osal.exec(cmd: 'ip link delete ${veth_trimmed}', stdout: false, raise_error: false) or {
-						console.print_debug('Failed to delete ${veth_trimmed}, continuing...')
-					}
+					osal.exec(
+						cmd:         'ip link delete ${veth_trimmed}'
+						stdout:      false
+						raise_error: false
+					) or { console.print_debug('Failed to delete ${veth_trimmed}, continuing...') }
 				}
 			}
 		}
@@ -460,9 +463,11 @@ fn cleanup_network() ! {
 	for iface in interfaces {
 		console.print_debug('Deleting interface: ${iface}')
 		// Use timeout to prevent hanging, and redirect stderr to avoid blocking
-		osal.exec(cmd: 'timeout 5 ip link delete ${iface} 2>/dev/null || true', stdout: false, raise_error: false) or {
-			console.print_debug('Interface ${iface} not found or already deleted')
-		}
+		osal.exec(
+			cmd:         'timeout 5 ip link delete ${iface} 2>/dev/null || true'
+			stdout:      false
+			raise_error: false
+		) or { console.print_debug('Interface ${iface} not found or already deleted') }
 	}
 
 	// Remove CNI namespaces
@@ -470,16 +475,19 @@ fn cleanup_network() ! {
 		cmd:         'ip netns show | grep cni- | xargs'
 		stdout:      false
 		raise_error: false
-	) {
+	)
+	{
 		if ns_result.output.trim_space() != '' {
 			namespaces := ns_result.output.trim_space().split(' ')
 			for ns in namespaces {
 				ns_trimmed := ns.trim_space()
 				if ns_trimmed != '' {
 					console.print_debug('Deleting namespace: ${ns_trimmed}')
-					osal.exec(cmd: 'ip netns delete ${ns_trimmed}', stdout: false, raise_error: false) or {
-						console.print_debug('Failed to delete namespace ${ns_trimmed}')
-					}
+					osal.exec(
+						cmd:         'ip netns delete ${ns_trimmed}'
+						stdout:      false
+						raise_error: false
+					) or { console.print_debug('Failed to delete namespace ${ns_trimmed}') }
 				}
 			}
 		}
@@ -500,7 +508,8 @@ fn cleanup_mounts() ! {
 			cmd:         'mount | grep "${path}" | awk \'{print $3}\' | sort -r'
 			stdout:      false
 			raise_error: false
-		) {
+		)
+		{
 			if mount_result.output.trim_space() != '' {
 				mount_points := mount_result.output.split_into_lines()
 				for mount_point in mount_points {
