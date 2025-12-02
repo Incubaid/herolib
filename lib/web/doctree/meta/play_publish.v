@@ -9,7 +9,7 @@ import incubaid.herolib.ui.console
 // ============================================================
 // PUBLISHING: Configure build and publish destinations
 // ============================================================
-fn play_publishing(mut plbook PlayBook, mut config SiteConfig) ! {
+fn play_publishing(mut plbook PlayBook, mut website Site) ! {
 	// Production publish destinations
 	mut build_dest_actions := plbook.find(filter: 'site.publish')!
 	for mut action in build_dest_actions {
@@ -23,7 +23,7 @@ fn play_publishing(mut plbook PlayBook, mut config SiteConfig) ! {
 			path:     path
 			ssh_name: p.get_default('ssh_name', '')!
 		}
-		config.build_dest << dest
+		website.build_dest << dest
 		action.done = true
 	}
 
@@ -40,7 +40,7 @@ fn play_publishing(mut plbook PlayBook, mut config SiteConfig) ! {
 			path:     path
 			ssh_name: p.get_default('ssh_name', '')!
 		}
-		config.build_dest_dev << dest
+		website.build_dest_dev << dest
 		action.done = true
 	}
 }

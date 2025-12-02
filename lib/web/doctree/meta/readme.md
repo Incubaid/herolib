@@ -2,7 +2,6 @@
 
 The Site module provides a structured way to define website configurations, navigation menus, pages, and sections using HeroScript. It's designed to work with static site generators like Docusaurus.
 
-
 ## Quick Start
 
 ### Minimal HeroScript Example
@@ -13,33 +12,33 @@ The Site module provides a structured way to define website configurations, navi
     title: "My Documentation"
 
 !!site.page src: "docs:introduction"
+    label: "Getting Started"
     title: "Getting Started"
 
 !!site.page src: "setup"
+    label: "Installation"
     title: "Installation"
 ```
 
 ### Processing with V Code
 
 ```v
-#!/usr/bin/env -S v -n -w -gc none -cg -cc tcc -d use_openssl -enable-globals run
-
 import incubaid.herolib.core.playbook
-import incubaid.herolib.web.site
+import incubaid.herolib.web.doctree.meta as site_module
 import incubaid.herolib.ui.console
 
 // Process HeroScript file
 mut plbook := playbook.new(path: './site_config.heroscript')!
 
 // Execute site configuration
-site.play(mut plbook)!
+site_module.play(mut plbook)!
 
 // Access the configured site
-mut mysite := site.get(name: 'my_docs')!
+mut mysite := site_module.get(name: 'my_docs')!
 
 // Print available pages
-for page_id, page in mysite.pages {
-    console.print_item('Page: ${page_id} - "${page.title}"')
+for page in mysite.pages {
+    console.print_item('Page: "${page.src}" - "${page.title}"')
 }
 
 println('Site has ${mysite.pages.len} pages')
@@ -55,31 +54,38 @@ Factory functions to create and retrieve site instances:
 
 ```v
 // Create a new site
-mut mysite := site.new(name: 'my_docs')!
+mut mysite := site_module.new(name: 'my_docs')!
 
 // Get existing site
-mut mysite := site.get(name: 'my_docs')!
+mut mysite := site_module.get(name: 'my_docs')!
 
 // Check if site exists
-if site.exists(name: 'my_docs') {
+if site_module.exists(name: 'my_docs') {
     println('Site exists')
 }
 
 // Get all site names
-site_names := site.list()  // Returns []string
+site_names := site_module.list()  // Returns []string
 
 // Get default site (creates if needed)
-mut default := site.default()!
+mut default := site_module.default()!
 ```
 
 ### Site Object Structure
 
 ```v
+@[heap]
 pub struct Site {
 pub mut:
-    pages      map[string]Page  // key: "collection:page_name"
-    nav        NavConfig        // Navigation sidebar
-    siteconfig SiteConfig       // Full configuration
+    doctree_path   string       // path to the export of the doctree site
+    config         SiteConfig   // Full site configuration	
+    pages          []Page       // Array of pages
+    links          []Link       // Array of links
+    categories     []Category   // Array of categories
+    announcements  []Announcement // Array of announcements (can be multiple)
+    imports        []ImportItem // Array of imports
+    build_dest     []BuildDest  // Production build destinations
+    build_dest_dev []BuildDest  // Development build destinations
 }
 ```
 
@@ -87,44 +93,60 @@ pub mut:
 
 ```v
 // Access all pages
-pages := mysite.pages  // map[string]Page
+pages := mysite.pages  // []Page
 
-// Get specific page
-page := mysite.pages['docs:introduction']
+// Access specific page by index
+page := mysite.pages[0]
 
 // Page structure
 pub struct Page {
 pub mut:
-    id          string  // "collection:page_name"
-    title       string  // Display title
+    src         string  // "collection:page_name" format (unique identifier)
+    label       string  // Display label in navigation
+    title       string  // Display title on page (extracted from markdown if empty)
     description string  // SEO metadata
-    draft       bool    // Hidden if true
-    hide_title  bool    // Don't show title in rendering
-    src         string  // Source reference
+    draft       bool    // Hide from navigation if true
+    hide_title  bool    // Don't show title on page
+    hide        bool    // Hide page completely
+    category_id int     // Optional category ID (0 = root level)
 }
 ```
 
-### Navigation Structure
+### Categories and Navigation
 
 ```v
-// Access sidebar navigation
-sidebar := mysite.nav.my_sidebar  // []NavItem
+// Access all categories
+categories := mysite.categories  // []Category
 
-// NavItem is a sum type (can be one of three types):
+// Category structure
+pub struct Category {
+pub mut:
+    path        string  // e.g., "Getting Started" or "Operations/Daily"
+    collapsible bool = true
+    collapsed   bool
+}
+
+// Generate sidebar navigation
+sidebar := mysite.sidebar()  // Returns SideBar
+
+// Sidebar structure
+pub struct SideBar {
+pub mut:
+    my_sidebar []NavItem
+}
+
 pub type NavItem = NavDoc | NavCat | NavLink
-
-// Navigation items:
 
 pub struct NavDoc {
 pub:
-    id    string  // page id
-    label string  // display name
+    path  string  // path is $collection/$name without .md
+    label string
 }
 
 pub struct NavCat {
 pub mut:
     label       string
-    collapsible bool
+    collapsible bool = true
     collapsed   bool
     items       []NavItem  // nested NavDoc/NavCat/NavLink
 }
@@ -137,10 +159,11 @@ pub:
 }
 
 // Example: iterate navigation
-for item in mysite.nav.my_sidebar {
+sidebar := mysite.sidebar()
+for item in sidebar.my_sidebar {
     match item {
         NavDoc {
-            println('Page: ${item.label} (${item.id})')
+            println('Page: ${item.label} (${item.path})')
         }
         NavCat {
             println('Category: ${item.label} (${item.items.len} items)')
@@ -150,11 +173,15 @@ for item in mysite.nav.my_sidebar {
         }
     }
 }
+
+// Print formatted sidebar
+println(mysite.sidebar_str())
 ```
 
 ### Site Configuration
 
 ```v
+@[heap]
 pub struct SiteConfig {
 pub mut:
     // Core
@@ -175,15 +202,14 @@ pub mut:
     meta_title  string    // SEO title override
     meta_image  string    // OG image override
 
+    // Navigation & Footer
+    footer      Footer
+    menu        Menu
+
     // Publishing
     build_dest      []BuildDest  // Production destinations
     build_dest_dev  []BuildDest  // Development destinations
 
-    // Navigation & Footer
-    footer      Footer
-    menu        Menu
-    announcement AnnouncementBar
-    
     // Imports
     imports     []ImportItem
 }
@@ -193,6 +219,59 @@ pub mut:
     path     string
     ssh_name string
 }
+
+pub struct Menu {
+pub mut:
+    title         string
+    items         []MenuItem
+    logo_alt      string
+    logo_src      string
+    logo_src_dark string
+}
+
+pub struct MenuItem {
+pub mut:
+    href     string
+    to       string
+    label    string
+    position string  // "left" or "right"
+}
+
+pub struct Footer {
+pub mut:
+    style string  // e.g., "dark" or "light"
+    links []FooterLink
+}
+
+pub struct FooterLink {
+pub mut:
+    title string
+    items []FooterItem
+}
+
+pub struct FooterItem {
+pub mut:
+    label string
+    to    string
+    href  string
+}
+
+pub struct Announcement {
+pub mut:
+    content          string
+    background_color string
+    text_color       string
+    is_closeable     bool
+}
+
+pub struct ImportItem {
+pub mut:
+    url     string  // http or git url
+    path    string
+    dest    string  // location in docs folder
+    replace map[string]string
+    visible bool = true
+}
 ```
 
 ---
@@ -200,20 +279,32 @@ pub mut:
 ## Core Concepts
 
 ### Site
-A website configuration that contains pages, navigation structure, and metadata.
+A website configuration that contains pages, navigation structure, and metadata. Each site is registered globally and can be retrieved by name.
 
 ### Page
-A single page with:
-- **ID**: `collection:page_name` format
-- **Title**: Display name (optional - extracted from markdown if not provided)
-- **Description**: SEO metadata
-- **Draft**: Hidden from navigation if true
+A single documentation page with:
+- **src**: `collection:page_name` format (unique identifier)
+- **label**: Display name in sidebar
+- **title**: Display name on page (extracted from markdown if empty)
+- **description**: SEO metadata
+- **draft**: Hidden from navigation if true
+- **category_id**: Links page to a category (0 = root level)
 
 ### Category (Section)
-Groups related pages together in the navigation sidebar. Automatically collapsed/expandable.
+Groups related pages together in the navigation sidebar. Categories can be nested and are automatically collapsed/expandable.
+
+```heroscript
+!!site.page_category
+    path: "Getting Started"
+    collapsible: true
+    collapsed: false
+
+!!site.page src: "tech:intro"
+    category_id: 1  // Links to the category above
+```
 
 ### Collection
-A logical group of pages. Pages reuse the collection once specified.
+A logical group of pages. Pages reuse the collection once specified:
 
 ```heroscript
 !!site.page src: "tech:intro"          # Specifies collection "tech"
@@ -326,6 +417,8 @@ Overrides specific metadata for SEO without changing core config.
 
 ### 5. Announcement Bar (Optional)
 
+Multiple announcements are supported and stored in an array:
+
 ```heroscript
 !!site.announcement
     content: "🎉 Version 2.0 is now available!"
@@ -334,61 +427,71 @@ Overrides specific metadata for SEO without changing core config.
     is_closeable: true
 ```
 
+**Note:** Each `!!site.announcement` block adds to the `announcements[]` array. Only the first is typically displayed, but all are stored.
+
 ### 6. Pages and Categories
 
 #### Simple: Pages Without Categories
 
 ```heroscript
 !!site.page src: "guides:introduction"
+    label: "Getting Started"
     title: "Getting Started"
     description: "Introduction to the platform"
 
 !!site.page src: "installation"
+    label: "Installation"
     title: "Installation"
-
-!!site.page src: "configuration"
-    title: "Configuration"
 ```
 
 #### Advanced: Pages With Categories
 
 ```heroscript
 !!site.page_category
-    name: "basics"
-    label: "Getting Started"
+    path: "Getting Started"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "guides:introduction"
+    label: "Introduction"
     title: "Introduction"
     description: "Learn the basics"
 
 !!site.page src: "installation"
+    label: "Installation"
     title: "Installation"
 
 !!site.page src: "configuration"
+    label: "Configuration"
     title: "Configuration"
 
 !!site.page_category
-    name: "advanced"
-    label: "Advanced Topics"
+    path: "Advanced Topics"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "advanced:performance"
+    label: "Performance Tuning"
     title: "Performance Tuning"
 
 !!site.page src: "scaling"
+    label: "Scaling Guide"
     title: "Scaling Guide"
 ```
 
 **Page Parameters:**
-- `src` - Source as `collection:page` (first page) or just `page_name` (reuse collection)
+- `src` - Source as `collection:page_name` (first page) or just `page_name` (reuse collection)
+- `label` - Display label in sidebar (required)
 - `title` - Page title (optional, extracted from markdown if not provided)
 - `description` - Page description
 - `draft` - Hide from navigation (default: false)
 - `hide_title` - Don't show title in page (default: false)
+- `hide` - Hide page completely (default: false)
 
 **Category Parameters:**
-- `name` - Category identifier (required)
-- `label` - Display label (auto-generated from name if omitted)
-- `position` - Sort order (auto-incremented if omitted)
+- `path` - Category path/label (required)
+- `collapsible` - Allow collapsing (default: true)
+- `collapsed` - Initially collapsed (default: false)
 
 ### 7. Content Imports
 
@@ -424,33 +527,42 @@ Overrides specific metadata for SEO without changing core config.
     title: "Technical Documentation"
 
 !!site.page_category
-    name: "getting_started"
-    label: "Getting Started"
+    path: "Getting Started"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "docs:intro"
+    label: "Introduction"
     title: "Introduction"
 
 !!site.page src: "installation"
+    label: "Installation"
     title: "Installation"
 
 !!site.page_category
-    name: "concepts"
-    label: "Core Concepts"
+    path: "Core Concepts"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "concepts:architecture"
+    label: "Architecture"
     title: "Architecture"
 
 !!site.page src: "components"
+    label: "Components"
     title: "Components"
 
 !!site.page_category
-    name: "api"
-    label: "API Reference"
+    path: "API Reference"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "api:rest"
+    label: "REST API"
     title: "REST API"
 
 !!site.page src: "graphql"
+    label: "GraphQL"
     title: "GraphQL"
 ```
 
@@ -462,12 +574,15 @@ Overrides specific metadata for SEO without changing core config.
     title: "Knowledge Base"
 
 !!site.page src: "articles:first_post"
+    label: "Welcome to Our Blog"
     title: "Welcome to Our Blog"
 
 !!site.page src: "second_post"
+    label: "Understanding the Basics"
     title: "Understanding the Basics"
 
 !!site.page src: "third_post"
+    label: "Advanced Techniques"
     title: "Advanced Techniques"
 ```
 
@@ -484,20 +599,25 @@ Overrides specific metadata for SEO without changing core config.
     visible: true
 
 !!site.page_category
-    name: "product"
-    label: "Product Guide"
+    path: "Product Guide"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "docs:overview"
+    label: "Overview"
     title: "Overview"
 
 !!site.page src: "features"
+    label: "Features"
     title: "Features"
 
 !!site.page_category
-    name: "resources"
-    label: "Shared Resources"
+    path: "Shared Resources"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "shared:common"
+    label: "Common Patterns"
     title: "Common Patterns"
 ```
 
@@ -554,4 +674,3 @@ hero docs -d -p /path/to/my_ebook
 # Build for production
 hero docs -p /path/to/my_ebook
 ```
-

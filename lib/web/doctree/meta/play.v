@@ -23,7 +23,7 @@ pub fn play(mut plbook PlayBook) ! {
 
 	name := p.get_default('name', 'default')!
 	mut website := new(name: name)!
-	mut config := &website.siteconfig
+	    mut config := &website.config
 
 	// Load core configuration
 	config.name = texttools.name_fix(name)
@@ -60,7 +60,7 @@ pub fn play(mut plbook PlayBook) ! {
 	// STEP 3: Configure content imports
 	// ============================================================
 	console.print_item('Step 3: Configuring content imports')
-	play_imports(mut plbook, mut config)!
+	    play_imports(mut plbook, mut website)!
 
 	// ============================================================
 	// STEP 4: Configure navigation menu
@@ -78,13 +78,13 @@ pub fn play(mut plbook PlayBook) ! {
 	// STEP 6: Configure announcement bar (optional)
 	// ============================================================
 	console.print_item('Step 6: Configuring announcement bar (if present)')
-	play_announcement(mut plbook, mut config)!
+	    play_announcement(mut plbook, mut website)!
 
 	// ============================================================
 	// STEP 7: Configure publish destinations
 	// ============================================================
 	console.print_item('Step 7: Configuring publish destinations')
-	play_publishing(mut plbook, mut config)!
+	    play_publishing(mut plbook, mut website)!
 
 	// ============================================================
 	// STEP 8: Build pages and navigation structure

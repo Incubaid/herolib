@@ -2,7 +2,6 @@ module meta
 
 import incubaid.herolib.core.playbook
 import incubaid.herolib.ui.console
-import os
 
 // Big comprehensive HeroScript for testing
 const test_heroscript = '
@@ -94,74 +93,86 @@ const test_heroscript = '
     is_closeable: true
 
 !!site.page_category
-    name: "getting_started"
-    label: "Getting Started"
-    position: 10
+    path: "Getting Started"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "guides:introduction"
+    label: "Introduction to Test Docs"
     title: "Introduction to Test Docs"
     description: "Learn what this project is about"
 
 !!site.page src: "installation"
+    label: "Installation Guide"
     title: "Installation Guide"
     description: "How to install and setup"
 
 !!site.page src: "quick_start"
+    label: "Quick Start"
     title: "Quick Start"
     description: "5 minute quick start guide"
 
 !!site.page_category
-    name: "concepts"
-    label: "Core Concepts"
-    position: 20
+    path: "Core Concepts"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "concepts:architecture"
+    label: "Architecture Overview"
     title: "Architecture Overview"
     description: "Understanding the system architecture"
 
 !!site.page src: "components"
+    label: "Key Components"
     title: "Key Components"
     description: "Learn about the main components"
 
 !!site.page src: "workflow"
+    label: "Typical Workflow"
     title: "Typical Workflow"
     description: "How to use the system"
 
 !!site.page_category
-    name: "api"
-    label: "API Reference"
-    position: 30
+    path: "API Reference"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "api:rest"
+    label: "REST API"
     title: "REST API"
     description: "Complete REST API reference"
 
 !!site.page src: "graphql"
+    label: "GraphQL API"
     title: "GraphQL API"
     description: "GraphQL API documentation"
 
 !!site.page src: "webhooks"
+    label: "Webhooks"
     title: "Webhooks"
     description: "Webhook configuration and examples"
 
 !!site.page_category
-    name: "advanced"
-    label: "Advanced Topics"
-    position: 40
+    path: "Advanced Topics"
+    collapsible: true
+    collapsed: false
 
 !!site.page src: "advanced:performance"
+    label: "Performance Optimization"
     title: "Performance Optimization"
     description: "Tips for optimal performance"
 
 !!site.page src: "scaling"
+    label: "Scaling Guide"
     title: "Scaling Guide"
-    description: "How to scale the system"
 
 !!site.page src: "security"
+    label: "Security Best Practices"
     title: "Security Best Practices"
     description: "Security considerations and best practices"
 
 !!site.page src: "troubleshooting"
+    label: "Troubleshooting"
     title: "Troubleshooting"
     description: "Common issues and solutions"
     draft: false
@@ -174,10 +185,8 @@ const test_heroscript = '
     path: "/tmp/docs-dev"
 '
 
-
-
 fn test_site1() ! {
-	console.print_header('Site Module Comprehensive Test')
+	console.print_header('Site Module Comprehensive Test - Part 1')
 	console.lf()
 
 	// ========================================================
@@ -200,7 +209,7 @@ fn test_site1() ! {
 	// TEST 3: Retrieve site and validate
 	// ========================================================
 	console.print_item('TEST 3: Retrieving configured site')
-	mut test_site := site.get(name: 'test_docs')!
+	mut test_site := get(name: 'test_docs')!
 	console.print_green('✓ Site retrieved successfully')
 	console.lf()
 
@@ -208,7 +217,7 @@ fn test_site1() ! {
 	// TEST 4: Validate SiteConfig
 	// ========================================================
 	console.print_header('Validating SiteConfig')
-	mut config := &test_site.siteconfig
+	mut config := &test_site.config
 
 	help_test_string('Site Name', config.name, 'test_docs')
 	help_test_string('Site Title', config.title, 'Test Documentation Site')
@@ -221,14 +230,13 @@ fn test_site1() ! {
 	help_test_string('Meta Title', config.meta_title, 'Test Docs - Advanced')
 	help_test_string('Meta Image', config.meta_image, 'img/test-og-alternative.png')
 
-	assert config.build_dest.len == 1, 'Should have 1 production build destination'
-	console.print_green('✓ Production build dest: ${config.build_dest[0].path}')
+	assert test_site.build_dest.len == 1, 'Should have 1 production build destination'
+	console.print_green('✓ Production build dest: ${test_site.build_dest[0].path}')
 
-	assert config.build_dest_dev.len == 1, 'Should have 1 dev build destination'
-	console.print_green('✓ Dev build dest: ${config.build_dest_dev[0].path}')
+	assert test_site.build_dest_dev.len == 1, 'Should have 1 dev build destination'
+	console.print_green('✓ Dev build dest: ${test_site.build_dest_dev[0].path}')
 
 	console.lf()
-
 
 	// ========================================================
 	// TEST 5: Validate Menu Configuration
@@ -252,7 +260,6 @@ fn test_site1() ! {
 	help_test_navbar_item(menu.items[3], 'Blog', '', 'https://blog.example.com', 'right')
 
 	console.lf()
-
 
 	// ========================================================
 	// TEST 6: Validate Footer Configuration
@@ -291,7 +298,10 @@ fn test_site1() ! {
 	// TEST 7: Validate Announcement Bar
 	// ========================================================
 	console.print_header('Validating Announcement Bar')
-	mut announcement := config.announcement
+	assert test_site.announcements.len == 1, 'Should have 1 announcement, got ${test_site.announcements.len}'
+	console.print_green('✓ Announcement bar present')
+
+	mut announcement := test_site.announcements[0]
 
 	help_test_string('Announcement Content', announcement.content, '🎉 Version 2.0 is now available! Check out the new features.')
 	help_test_string('Announcement BG Color', announcement.background_color, '#1a472a')
@@ -300,99 +310,141 @@ fn test_site1() ! {
 	console.print_green('✓ Announcement bar configured correctly')
 
 	console.lf()
-
-
 }
 
-
-
 fn test_site2() ! {
-	console.print_header('Site Module Comprehensive Test')
+	console.print_header('Site Module Comprehensive Test - Part 2')
 	console.lf()
 
+	reset()
+
 	mut plbook := playbook.new(text: test_heroscript)!
-	mut test_site := site.get(name: 'test_docs')!
+	play(mut plbook)!
+	mut test_site := get(name: 'test_docs')!
 
 	// ========================================================
 	// TEST 8: Validate Pages
 	// ========================================================
 	console.print_header('Validating Pages')
-	mut pages := test_site.pages.clone()
 
-	assert pages.len == 13, 'Should have 13 pages, got ${pages.len}'
-	console.print_green('✓ Total pages: ${pages.len}')
+	println(test_site)
+
+	assert test_site.pages.len == 13, 'Should have 13 pages, got ${test_site.pages.len}'
+	console.print_green('✓ Total pages: ${test_site.pages.len}')
 
 	// List and validate pages
-	mut page_ids := pages.keys()
-	page_ids.sort()
-
-	for page_id in page_ids {
-		mut page := pages[page_id]
-		console.print_debug('  Page: ${page_id} - "${page.title}"')
+	for i, page in test_site.pages {
+		console.print_debug('  Page ${i}: "${page.src}" - "${page.label}"')
 	}
 
-	// Validate specific pages
-	assert 'guides:introduction' in pages, 'guides:introduction page not found'
+	// Validate specific pages exist by src
+	mut src_exists := false
+	for page in test_site.pages {
+		if page.src == 'guides:introduction' {
+			src_exists = true
+			break
+		}
+	}
+	assert src_exists, 'guides:introduction page not found'
 	console.print_green('✓ Found guides:introduction')
 
-	assert 'concepts:architecture' in pages, 'concepts:architecture page not found'
+	src_exists = false
+	for page in test_site.pages {
+		if page.src == 'concepts:architecture' {
+			src_exists = true
+			break
+		}
+	}
+	assert src_exists, 'concepts:architecture page not found'
 	console.print_green('✓ Found concepts:architecture')
 
-	assert 'api:rest' in pages, 'api:rest page not found'
+	src_exists = false
+	for page in test_site.pages {
+		if page.src == 'api:rest' {
+			src_exists = true
+			break
+		}
+	}
+	assert src_exists, 'api:rest page not found'
 	console.print_green('✓ Found api:rest')
 
 	console.lf()
 
 	// ========================================================
-	// TEST 9: Validate Navigation Structure
+	// TEST 9: Validate Categories
 	// ========================================================
-	console.print_header('Validating Navigation Structure')
-	mut sidebar := unsafe { test_site.nav.my_sidebar.clone() }
+	console.print_header('Validating Categories')
 
-	console.print_item('Navigation sidebar has ${sidebar.len} items')
+	assert test_site.categories.len == 4, 'Should have 4 categories, got ${test_site.categories.len}'
+	console.print_green('✓ Total categories: ${test_site.categories.len}')
 
-	// Count categories
-	mut category_count := 0
-	mut doc_count := 0
+	for i, category in test_site.categories {
+		console.print_debug('  Category ${i}: "${category.path}" (collapsible: ${category.collapsible}, collapsed: ${category.collapsed})')
+	}
 
-	for item in sidebar {
+	// Validate category paths
+	mut category_paths := test_site.categories.map(it.path)
+	assert category_paths.contains('Getting Started'), 'Missing "Getting Started" category'
+	console.print_green('✓ Found "Getting Started" category')
+
+	assert category_paths.contains('Core Concepts'), 'Missing "Core Concepts" category'
+	console.print_green('✓ Found "Core Concepts" category')
+
+	assert category_paths.contains('API Reference'), 'Missing "API Reference" category'
+	console.print_green('✓ Found "API Reference" category')
+
+	assert category_paths.contains('Advanced Topics'), 'Missing "Advanced Topics" category'
+	console.print_green('✓ Found "Advanced Topics" category')
+
+	console.lf()
+
+	// ========================================================
+	// TEST 10: Validate Navigation Structure (Sidebar)
+	// ========================================================
+	console.print_header('Validating Navigation Structure (Sidebar)')
+
+	mut sidebar := test_site.sidebar()
+
+	console.print_item('Sidebar has ${sidebar.my_sidebar.len} root items')
+	assert sidebar.my_sidebar.len > 0, 'Sidebar should not be empty'
+	console.print_green('✓ Sidebar generated successfully')
+
+	// Count categories in sidebar
+	mut sidebar_category_count := 0
+	mut sidebar_doc_count := 0
+
+	for item in sidebar.my_sidebar {
 		match item {
 			NavCat {
-				category_count++
-				console.print_debug('  Category: "${item.label}" with ${item.items.len} sub-items')
+				sidebar_category_count++
 			}
 			NavDoc {
-				doc_count++
-				console.print_debug('  Doc: "${item.label}" (${item.id})')
+				sidebar_doc_count++
 			}
-			NavLink {
-				console.print_debug('  Link: "${item.label}" -> ${item.href}')
+			else {
+				// Other types
 			}
 		}
 	}
 
-	assert category_count == 4, 'Should have 4 categories, got ${category_count}'
-	console.print_green('✓ Navigation has 4 categories')
+	console.print_item('Sidebar contains: ${sidebar_category_count} categories, ${sidebar_doc_count} docs')
 
-	// Validate category structure
-	for item in sidebar {
+	// Detailed sidebar validation
+	for i, item in sidebar.my_sidebar {
 		match item {
 			NavCat {
-				console.print_item('Category: "${item.label}"')
-				println('    Collapsible: ${item.collapsible}, Collapsed: ${item.collapsed}')
-				println('    Items: ${item.items.len}')
-
-				// Validate sub-items
+				console.print_debug('  Category ${i}: "${item.label}" (${item.items.len} items)')
 				for sub_item in item.items {
 					match sub_item {
 						NavDoc {
-							println('      - ${sub_item.label} (${sub_item.id})')
+							console.print_debug('    └─ Doc: "${sub_item.label}" (${sub_item.path})')
 						}
-						else {
-							println('      - Unexpected item type')
-						}
+						else {}
 					}
 				}
+			}
+			NavDoc {
+				console.print_debug('  Doc ${i}: "${item.label}" (${item.path})')
 			}
 			else {}
 		}
@@ -400,9 +452,8 @@ fn test_site2() ! {
 
 	console.lf()
 
-
 	// ========================================================
-	// TEST 10: Validate Site Factory
+	// TEST 11: Validate Site Factory
 	// ========================================================
 	console.print_header('Validating Site Factory')
 
@@ -420,10 +471,15 @@ fn test_site2() ! {
 
 	console.lf()
 
-	// println(test_site)
-	// if true{panic("ss33")}
+	// ========================================================
+	// TEST 12: Validate Print Output
+	// ========================================================
+	console.print_header('Site Sidebar String Output')
+	println(test_site.sidebar_str())
+	if true {
+		panic('End of tests reached - panic to stop further execution')
+	}
 }
-
 
 // ============================================================
 // Helper Functions for Testing

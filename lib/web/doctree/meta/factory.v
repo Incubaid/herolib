@@ -22,8 +22,7 @@ pub fn new(args FactoryArgs) !&Site {
 	}
 
 	mut site := Site{
-		nav: SideBar{}
-		siteconfig: SiteConfig{
+		config: SiteConfig{
 			name: name
 		}
 	}
@@ -43,6 +42,10 @@ pub fn get(args FactoryArgs) !&Site {
 pub fn exists(args FactoryArgs) bool {
 	name := texttools.name_fix(args.name)
 	return name in sites_global
+}
+
+pub fn reset() {
+	sites_global.clear()
 }
 
 pub fn default() !&Site {
