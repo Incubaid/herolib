@@ -290,6 +290,9 @@ pub fn test_navigation_depth() ! {
 	assert stats.categories >= 6, 'Should have at least 6 categories'
 	console.print_green('✓ Multiple category levels present')
 
+	println(nav_site.sidebar_str())
+	println(sidebar)
+
 	assert stats.max_depth >= 4, 'Should have nesting depth of at least 4 levels (0-indexed root, so 3+1)'
 	console.print_green('✓ Deep nesting verified (depth: ${stats.max_depth})')
 
@@ -348,26 +351,25 @@ fn analyze_sidebar_structure(items []NavItem) SidebarStats {
 	stats.root_items = items.len
 
 	for item in items {
-		// Start depth at 1 for top-level items
+		// Calculate depth for the current item and update max_depth
+		// The calculate_nav_item_depth function correctly handles recursion for NavCat
+		// and returns current_depth for leaf nodes (NavDoc, NavLink).
+		// We start at depth 1 for root-level items.
+		depth := calculate_nav_item_depth(item, 1)
+		if depth > stats.max_depth {
+			stats.max_depth = depth
+		}
+
+		// Now categorize and count based on item type
 		if item is NavCat {
 			stats.categories++
-			depth := calculate_nav_item_depth(item, 1)
-			if depth > stats.max_depth {
-				stats.max_depth = depth
-			}
-			// Recursively count pages and categories
+			// Recursively count pages and categories within this NavCat
 			stats.pages += count_nested_pages_in_navcat(item)
 			stats.categories += count_nested_categories_in_navcat(item)
 		} else if item is NavDoc {
 			stats.pages++
-			if 1 > stats.max_depth {
-				stats.max_depth = 1
-			}
 		} else if item is NavLink {
 			stats.links++
-			if 1 > stats.max_depth {
-				stats.max_depth = 1
-			}
 		}
 	}
 

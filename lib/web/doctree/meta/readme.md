@@ -175,7 +175,7 @@ for item in sidebar.my_sidebar {
 }
 
 // Print formatted sidebar
-println(mysite.sidebar_str())
+println(mysite.str())
 ```
 
 ### Site Configuration
