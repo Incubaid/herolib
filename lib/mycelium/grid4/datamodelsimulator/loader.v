@@ -2,7 +2,7 @@ module datamodelsimulator
 
 import json
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.threefold.grid4.datamodel { Node }
+import incubaid.herolib.mycelium.grid4.datamodel { Node }
 
 // load the cloudboxes from a path
 pub fn load(path string) ![]Node {

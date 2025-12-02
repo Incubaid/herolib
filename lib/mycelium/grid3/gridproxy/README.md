@@ -5,7 +5,7 @@ Easily access Threefold grid APIs from vlang. gridproxy is v module include the 
 ### import the client
 
 ```v
-import incubaid.herolib.threefold.grid3.gridproxy
+import incubaid.herolib.mycelium.grid3.gridproxy
 
 // create a client for the testnet, with API cache disabled
 // you can pass true as second arg to enable cache

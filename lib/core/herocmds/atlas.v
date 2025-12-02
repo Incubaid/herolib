@@ -1,19 +1,19 @@
 module herocmds
 
 import incubaid.herolib.ui.console
-import incubaid.herolib.data.doctree
+import incubaid.herolib.data.atlas
 import incubaid.herolib.core.playcmds
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.web.docusaurus
 import os
 import cli { Command, Flag }
 
-pub fn cmd_doctree(mut cmdroot Command) Command {
+pub fn cmd_atlas(mut cmdroot Command) Command {
 	mut cmd_run := Command{
-		name:          'doctree'
-		description:   'Scan and export doctree collections.'
+		name:          'atlas'
+		description:   'Scan and export atlas collections.'
 		required_args: 0
-		execute:       cmd_doctree_execute
+		execute:       cmd_atlas_execute
 	}
 
 	cmd_run.add_flag(Flag{
@@ -29,7 +29,7 @@ pub fn cmd_doctree(mut cmdroot Command) Command {
 		required:    false
 		name:        'url'
 		abbrev:      'u'
-		description: 'Git URL where doctree source is.'
+		description: 'Git URL where atlas source is.'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -37,7 +37,7 @@ pub fn cmd_doctree(mut cmdroot Command) Command {
 		required:    false
 		name:        'path'
 		abbrev:      'p'
-		description: 'Path where doctree collections are located.'
+		description: 'Path where atlas collections are located.'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -45,7 +45,7 @@ pub fn cmd_doctree(mut cmdroot Command) Command {
 		required:    false
 		name:        'name'
 		abbrev:      'n'
-		description: 'DocTree instance name (default: "default").'
+		description: 'Atlas instance name (default: "default").'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -112,7 +112,7 @@ pub fn cmd_doctree(mut cmdroot Command) Command {
 	return cmdroot
 }
 
-fn cmd_doctree_execute(cmd Command) ! {
+fn cmd_atlas_execute(cmd Command) ! {
 	// ---------- FLAGS ----------
 	mut reset := cmd.flags.get_bool('reset') or { false }
 	mut update := cmd.flags.get_bool('update') or { false }
@@ -138,27 +138,27 @@ fn cmd_doctree_execute(cmd Command) ! {
 		path = os.getwd()
 	}
 
-	doctree_path := gittools.path(
+	atlas_path := gittools.path(
 		git_url:   url
 		path:      path
 		git_reset: reset
 		git_pull:  update
 	)!
 
-	console.print_header('Running DocTree for: ${doctree_path.path}')
+	console.print_header('Running Atlas for: ${atlas_path.path}')
 
 	// Run HeroScript if exists
 	playcmds.run(
-		heroscript_path: doctree_path.path
+		heroscript_path: atlas_path.path
 		reset:           reset
 		emptycheck:      false
 	)!
 
-	// Create or get doctree instance
-	mut a := if doctree.exists(name) {
-		doctree.get(name)!
+	// Create or get atlas instance
+	mut a := if atlas.exists(name) {
+		atlas.get(name)!
 	} else {
-		doctree.new(name: name)!
+		atlas.new(name: name)!
 	}
 
 	// Default behavior: scan and export if no flags specified
@@ -170,13 +170,13 @@ fn cmd_doctree_execute(cmd Command) ! {
 	// Execute operations
 	if scan {
 		console.print_header('Scanning collections...')
-		a.scan(path: doctree_path.path)!
+		a.scan(path: atlas_path.path)!
 		console.print_green('✓ Scan complete: ${a.collections.len} collection(s) found')
 	}
 
 	if export {
 		if destination == '' {
-			destination = '${doctree_path.path}/output'
+			destination = '${atlas_path.path}/output'
 		}
 
 		console.print_header('Exporting collections to: ${destination}')
@@ -203,14 +203,14 @@ fn cmd_doctree_execute(cmd Command) ! {
 		// Run dev server if -dev flag is set
 		if dev {
 			console.print_header('Starting development server...')
-			console.print_item('DocTree export directory: ${destination}')
-			console.print_item('Looking for docusaurus configuration in: ${doctree_path.path}')
+			console.print_item('Atlas export directory: ${destination}')
+			console.print_item('Looking for docusaurus configuration in: ${atlas_path.path}')
 
-			// Run the docusaurus dev server using the exported doctree content
-			// This will look for a .heroscript file in the doctree_path that configures docusaurus
-			// with use_doctree:true and doctree_export_dir pointing to the destination
+			// Run the docusaurus dev server using the exported atlas content
+			// This will look for a .heroscript file in the atlas_path that configures docusaurus
+			// with use_atlas:true and atlas_export_dir pointing to the destination
 			playcmds.run(
-				heroscript_path: doctree_path.path
+				heroscript_path: atlas_path.path
 				reset:           reset
 			)!
 

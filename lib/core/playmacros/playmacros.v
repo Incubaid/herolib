@@ -2,8 +2,8 @@ module playmacros
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.core.playbook { Action, PlayBook }
-import incubaid.herolib.threefold.grid4.gridsimulator
-import incubaid.herolib.threefold.grid4.farmingsimulator
+import incubaid.herolib.mycelium.grid4.gridsimulator
+import incubaid.herolib.mycelium.grid4.farmingsimulator
 import incubaid.herolib.biz.bizmodel
 import incubaid.herolib.biz.spreadsheet
 

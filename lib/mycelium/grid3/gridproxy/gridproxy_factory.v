@@ -1,7 +1,7 @@
 module gridproxy
 
 import incubaid.herolib.core.httpconnection
-import incubaid.herolib.threefold.grid3.gridproxy.model
+import incubaid.herolib.mycelium.grid3.gridproxy.model
 // import incubaid.herolib.installers.threefold.griddriver
 
 @[heap]

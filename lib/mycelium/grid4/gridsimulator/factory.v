@@ -6,7 +6,7 @@ import incubaid.herolib.develop.gittools
 import incubaid.herolib.core.texttools
 import incubaid.herolib.core.playbook
 import incubaid.herolib.ui.console
-import incubaid.herolib.threefold.grid4.datamodel
+import incubaid.herolib.mycelium.grid4.datamodel
 
 __global (
 	grid_simulators shared map[string]&Simulator

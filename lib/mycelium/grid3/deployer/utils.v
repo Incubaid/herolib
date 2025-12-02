@@ -1,8 +1,8 @@
 module deployer
 
-import incubaid.herolib.threefold.grid3.gridproxy
-import incubaid.herolib.threefold.grid3.models as grid_models
-import incubaid.herolib.threefold.grid3.gridproxy.model as gridproxy_models
+import incubaid.herolib.mycelium.grid3.gridproxy
+import incubaid.herolib.mycelium.grid3.models as grid_models
+import incubaid.herolib.mycelium.grid3.gridproxy.model as gridproxy_models
 import rand
 import incubaid.herolib.ui.console
 

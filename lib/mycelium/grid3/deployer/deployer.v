@@ -4,8 +4,8 @@ import os
 import json
 import time
 import log
-import incubaid.herolib.threefold.grid3.models
-import incubaid.herolib.threefold.grid3.griddriver
+import incubaid.herolib.mycelium.grid3.models
+import incubaid.herolib.mycelium.grid3.griddriver
 import incubaid.herolib.ui.console
 
 @[heap]
