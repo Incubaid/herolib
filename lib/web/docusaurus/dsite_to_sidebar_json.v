@@ -1,7 +1,16 @@
 module doc
-import incubaid.herolib.web.site
 
-//this is the logic to create docusaurus sidebar.json from site.NavItems
+import incubaid.herolib.web.doctree.meta as site
+import json
+
+// this is the logic to create docusaurus sidebar.json from site.NavItems
+
+struct Sidebar {
+pub mut:
+	items []NavItem
+}
+
+type NavItem = NavDoc | NavCat | NavLink
 
 struct SidebarItem {
 	typ         string @[json: 'type']
@@ -14,11 +23,32 @@ struct SidebarItem {
 	items       []SidebarItem @[omitempty]
 }
 
+pub struct NavDoc {
+pub mut:
+	id    string
+	label string
+}
+
+pub struct NavCat {
+pub mut:
+	label       string
+	collapsible bool = true
+	collapsed   bool
+	items       []NavItem
+}
+
+pub struct NavLink {
+pub mut:
+	label       string
+	href        string
+	description string
+}
+
 // ============================================================================
 // JSON Serialization
 // ============================================================================
 
-pub fn  sidebar_to_json(sb site.SideBar) !string {
+pub fn sidebar_to_json(sb site.SideBar) !string {
 	items := sb.my_sidebar.map(to_sidebar_item(it))
 	return json.encode_pretty(items)
 }
@@ -57,4 +87,3 @@ fn from_category(cat site.NavCat) SidebarItem {
 		items:       cat.items.map(to_sidebar_item(it))
 	}
 }
-

@@ -25,6 +25,7 @@ pub fn new(args FactoryArgs) !&Site {
 		config: SiteConfig{
 			name: name
 		}
+		root_category: Category{}
 	}
 	sites_global[name] = &site
 	return get(name: name)!

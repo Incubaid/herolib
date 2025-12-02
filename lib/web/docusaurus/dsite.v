@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.web.site
+import incubaid.herolib.web.doctree.meta
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 
@@ -15,7 +15,7 @@ pub mut:
 	path_build   pathlib.Path
 	errors       []SiteError
 	config       Configuration
-	website      site.Site
+	website      meta.Site
 	generated    bool
 }
 
@@ -50,7 +50,7 @@ pub fn (mut s DocSite) build_publish() ! {
 			'
 		retry: 0
 	)!
-	for item in s.website.siteconfig.build_dest {
+	for item in s.build_dest {
 		if item.path.trim_space().trim('/ ') == '' {
 			$if debug {
 				print_backtrace()

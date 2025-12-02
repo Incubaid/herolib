@@ -11,4 +11,5 @@ pub mut:
 	hide_title  bool   // Should the title be hidden on the page?
 	hide        bool   // Should the page be hidden from navigation?
 	category_id int    // Optional category ID this page belongs to, if 0 it means its at root level
+	nav_path    string // navigation path e.g. "Operations/Daily"
 }

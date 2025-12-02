@@ -403,7 +403,7 @@ fn test_site2() ! {
 	// ========================================================
 	console.print_header('Validating Navigation Structure (Sidebar)')
 
-	mut sidebar := test_site.sidebar()
+	mut sidebar := test_site.sidebar()!
 
 	console.print_item('Sidebar has ${sidebar.my_sidebar.len} root items')
 	assert sidebar.my_sidebar.len > 0, 'Sidebar should not be empty'

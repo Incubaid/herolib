@@ -9,7 +9,8 @@ import incubaid.herolib.ui.console
 // ============================================================
 fn play_pages(mut plbook PlayBook, mut website Site) ! {
 	mut collection_current := ''
-	mut category_current := 0
+	
+	mut category_current := &website.root_category // start at root category, this is basically the navigation tree root
 
 	// ============================================================
 	// PASS 1: Process all page and category actions
@@ -26,16 +27,18 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 			mut p := action.params
 
 			// label is empty when not specified (we support label & path for flexibility)
+			mut category_path := p.get_default('path', '')!
+			category_current = category_current.up(category_path)!
+			category_current.collapsible = p.get_default_true('collapsible')
+			category_current.collapsed = p.get_default_true('collapsed')
 
-			mut category := Category{
-				path:        p.get_default('path', p.get_default('label', '')!)!
-				collapsible: p.get_default_true('collapsible')
-				collapsed:   p.get_default_true('collapsed')
-			}
-			website.categories << category
-			category_current = website.categories.len - 1
-			console.print_item('Created page category: "${category.path}" ')
+			console.print_item('Created page category: "${category_current.path}" ')
 			action.done = true
+			println(category_current)
+
+			website.categories << category_current
+
+			$dbg();
 			continue
 		}
 
@@ -75,6 +78,8 @@ fn play_pages(mut plbook PlayBook, mut website Site) ! {
 			page_label := p.get_default('label', p.get_default('title', '')!)! // is what is shown in the sidebar
 			page_title := p.get_default('title', '')! // is title shown on the page, if not from the page content, if empty then will be brought in from the content
 			page_description := p.get_default('description', '')!
+
+
 
 			// Create page
 			mut page := Page{

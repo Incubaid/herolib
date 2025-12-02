@@ -560,7 +560,7 @@ pub fn test_navigation_depth() ! {
 	// ========================================================
 	console.print_header('TEST 3: Navigation Structure Analysis')
 
-	mut sidebar := nav_site.sidebar()
+	mut sidebar := nav_site.sidebar()!
 	console.print_item('Sidebar root items: ${sidebar.my_sidebar.len}')
 	console.lf()
 

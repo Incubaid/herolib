@@ -1,6 +1,6 @@
 module docusaurus
 
-import incubaid.herolib.web.site
+import incubaid.herolib.web.doctree.meta
 
 // IS THE ONE AS USED BY DOCUSAURUS
 
@@ -87,9 +87,9 @@ pub mut:
 }
 
 // This function is a pure transformer: site.SiteConfig -> docusaurus.Configuration
-fn new_configuration(mysite site.Site) !Configuration {
+fn new_configuration(mysite meta.Site) !Configuration {
 	// Transform site.SiteConfig to docusaurus.Configuration
-	mut site_cfg := mysite.siteconfig
+	mut site_cfg := mysite.config
 	mut nav_items := []NavbarItem{}
 	for item in site_cfg.menu.items {
 		nav_items << NavbarItem{

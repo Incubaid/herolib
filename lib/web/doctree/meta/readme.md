@@ -127,7 +127,7 @@ pub mut:
 }
 
 // Generate sidebar navigation
-sidebar := mysite.sidebar()  // Returns SideBar
+sidebar := mysite.sidebar()!  // Returns SideBar
 
 // Sidebar structure
 pub struct SideBar {
@@ -159,7 +159,7 @@ pub:
 }
 
 // Example: iterate navigation
-sidebar := mysite.sidebar()
+sidebar := mysite.sidebar()!
 for item in sidebar.my_sidebar {
     match item {
         NavDoc {
