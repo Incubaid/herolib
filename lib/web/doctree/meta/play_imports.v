@@ -9,7 +9,7 @@ import incubaid.herolib.ui.console
 // ============================================================
 // IMPORTS: Process content imports
 // ============================================================
-fn play_imports(mut plbook PlayBook, mut config SiteConfig) ! {
+fn play_imports(mut plbook PlayBook, mut site Site) ! {
 	mut import_actions := plbook.find(filter: 'site.import')!
 
 	for mut action in import_actions {
@@ -37,7 +37,6 @@ fn play_imports(mut plbook PlayBook, mut config SiteConfig) ! {
 
 		// Create import item
 		mut import_item := ImportItem{
-			name:    p.get_default('name', '')!
 			url:     p.get_default('url', '')!
 			path:    import_path
 			dest:    p.get_default('dest', '')!
@@ -45,7 +44,7 @@ fn play_imports(mut plbook PlayBook, mut config SiteConfig) ! {
 			visible: p.get_default_false('visible')
 		}
 
-		config.imports << import_item
+		site.imports << import_item
 		action.done = true
 	}
 }

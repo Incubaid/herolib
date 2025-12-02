@@ -20,6 +20,7 @@ pub fn key_parse(key string) !(string, string) {
 pub fn name_fix(name string) string {
 	mut result := name
 	// Remove .md extension if present for processing
+	result = result.replace('/', '_')
 	if result.ends_with('.md') {
 		result = result[0..result.len - 3]
 	}

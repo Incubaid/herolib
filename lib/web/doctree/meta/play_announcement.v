@@ -1,15 +1,11 @@
 module meta
 
-import os
 import incubaid.herolib.core.playbook { PlayBook }
-import incubaid.herolib.core.texttools
-import time
-import incubaid.herolib.ui.console
 
 // ============================================================
 // ANNOUNCEMENT: Process announcement bar (optional)
 // ============================================================
-fn play_announcement(mut plbook PlayBook, mut config SiteConfig) ! {
+fn play_announcement(mut plbook PlayBook, mut site Site) ! {
 	mut announcement_actions := plbook.find(filter: 'site.announcement')!
 
 	if announcement_actions.len > 0 {
@@ -21,7 +17,7 @@ fn play_announcement(mut plbook PlayBook, mut config SiteConfig) ! {
 			return error('!!site.announcement: must specify "content"')
 		}
 
-		config.announcement = AnnouncementBar{
+		site.announcements << Announcement{
 			// id:               p.get('id')!
 			content:          content
 			background_color: p.get_default('background_color', '#20232a')!

@@ -1,9 +1,8 @@
 module meta
 
-import json
-
 // ============================================================================
 // Sidebar Navigation Models (Domain Types)
+// is the result of walking through the pages, links and categories to build the sidebar structure
 // ============================================================================
 
 pub struct SideBar {
@@ -15,9 +14,8 @@ pub type NavItem = NavDoc | NavCat | NavLink
 
 pub struct NavDoc {
 pub:
-	id    string
+	path  string // path is $collection/$name without .md, this is a subdir of the doctree export dir
 	label string
-	hide_title bool
 }
 
 pub struct NavCat {

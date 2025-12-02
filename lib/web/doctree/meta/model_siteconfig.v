@@ -15,7 +15,6 @@ pub mut:
 	copyright   string = 'someone'
 	footer      Footer
 	menu        Menu
-	imports     []ImportItem
 
 	// New fields for Docusaurus compatibility
 	url      string // The main URL of the site (from !!site.config url:)
@@ -24,21 +23,6 @@ pub mut:
 
 	meta_title string // Specific title for SEO metadata (from !!site.config_meta title:)
 	meta_image string // Specific image for SEO metadata (og:image) (from !!site.config_meta image:)
-
-	build_dest     []BuildDest // Production build destinations (from !!site.build_dest)
-	build_dest_dev []BuildDest // Development build destinations (from !!site.build_dest_dev)
-
-	announcement AnnouncementBar // Announcement bar configuration (from !!site.announcement)
-}
-
-// Announcement bar config structure
-pub struct AnnouncementBar {
-pub mut:
-	// id               string @[json: 'id']
-	content          string @[json: 'content']
-	background_color string @[json: 'backgroundColor']
-	text_color       string @[json: 'textColor']
-	is_closeable     bool   @[json: 'isCloseable']
 }
 
 // Footer config structures
@@ -77,21 +61,4 @@ pub mut:
 	logo_alt      string @[json: 'logoAlt']
 	logo_src      string @[json: 'logoSrc']
 	logo_src_dark string @[json: 'logoSrcDark']
-}
-
-pub struct BuildDest {
-pub mut:
-	path     string
-	ssh_name string
-}
-
-// is to import one docusaurus site into another, can be used to e.g. import static parts from one location into the build one we are building
-pub struct ImportItem {
-pub mut:
-	name    string // will normally be empty
-	url     string // http git url can be to specific path
-	path    string
-	dest    string            // location in the docs folder of the place where we will build the documentation site e.g. docusaurus
-	replace map[string]string // will replace ${NAME} in the imported content
-	visible bool = true
 }
