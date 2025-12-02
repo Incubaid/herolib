@@ -31,8 +31,7 @@ pub fn get(args FactoryArgs) !&Site {
 
 pub fn exists(args FactoryArgs) bool {
 	name := texttools.name_fix(args.name)
-	mut sc := websites[name] or { return false }
-	return true
+	return name in websites
 }
 
 pub fn default() !&Site {

@@ -114,7 +114,7 @@ fn cmd_docusaurus_execute(cmd Command) ! {
 	// ---------- FLAGS ----------
 	mut open_ := cmd.flags.get_bool('open') or { false }
 	mut buildpublish := cmd.flags.get_bool('buildpublish') or { false }
-	mut builddevpublish := cmd.flags.get_bool('builddevpublish') or { false }
+	// mut builddevpublish := cmd.flags.get_bool('builddevpublish') or { false }
 	mut dev := cmd.flags.get_bool('dev') or { false }
 	mut reset := cmd.flags.get_bool('reset') or { false }
 	mut update := cmd.flags.get_bool('update') or { false }
