@@ -1,7 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.web.doctree.meta
+import incubaid.herolib.web.site
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 
@@ -15,7 +15,7 @@ pub mut:
 	path_build   pathlib.Path
 	errors       []SiteError
 	config       Configuration
-	website      meta.Site
+	website      site.Site
 	generated    bool
 }
 
@@ -50,7 +50,7 @@ pub fn (mut s DocSite) build_publish() ! {
 			'
 		retry: 0
 	)!
-	for item in s.build_dest {
+	for item in s.website.siteconfig.build_dest {
 		if item.path.trim_space().trim('/ ') == '' {
 			$if debug {
 				print_backtrace()
@@ -71,9 +71,9 @@ pub struct DevArgs {
 pub mut:
 	host          string = 'localhost'
 	port          int    = 3000
-	open          bool   = true // whether to open the browser automatically
-	watch_changes bool // whether to watch for changes in docs and rebuild automatically
-	skip_generate bool // whether to skip generation (useful when docs are pre-generated, e.g., from doctree)
+	open          bool   = true  // whether to open the browser automatically
+	watch_changes bool   = false // whether to watch for changes in docs and rebuild automatically
+	skip_generate bool   = false // whether to skip generation (useful when docs are pre-generated, e.g., from atlas)
 }
 
 pub fn (mut s DocSite) open(args DevArgs) ! {
