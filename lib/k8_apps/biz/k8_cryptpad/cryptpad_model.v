@@ -2,7 +2,8 @@ module cryptpad
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.data.encoderhero
-import incubaid.herolib.virt.kubernetes
+
+import incubaid.herolib.k8_apps.core
 import incubaid.herolib.core.pathlib
 import strings
 
@@ -27,7 +28,7 @@ pub mut:
 	cryptpad_path      string = '/tmp/cryptpad/cryptpad.yaml'
 	tfgw_cryptpad_path string = '/tmp/cryptpad/tfgw-cryptpad.yaml'
 	config_js_path     string = '/tmp/cryptpad/config.js'
-	kube_client        kubernetes.KubeClient @[skip]
+	k8app        	   ?core.K8App @[skip]
 }
 
 // your checking & initialization code if needed
@@ -38,10 +39,7 @@ fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
 		mycfg.name = 'cryptpad'
 	}
 
-	// Replace the dashes, dots, and underscores with nothing
-	mycfg.name = mycfg.name.replace('_', '')
-	mycfg.name = mycfg.name.replace('-', '')
-	mycfg.name = mycfg.name.replace('.', '')
+	mycfg.name = core.name_fix(mycfg.name)
 
 	if mycfg.namespace == '' {
 		mycfg.namespace = '${mycfg.name}-cryptpad'
