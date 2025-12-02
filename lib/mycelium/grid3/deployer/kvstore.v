@@ -1,23 +1,18 @@
 module deployer
 
 import incubaid.herolib.core.base as context
+import incubaid.herolib.core
 
 // Will be changed when we support the logic of the TFChain one
 pub struct KVStoreFS {}
 
 fn (kvs KVStoreFS) set(key string, data []u8) ! {
 	// set in context
-	mut mycontext := context.context_new()!
-	mut session := mycontext.session_new(name: 'deployer')!
-	mut db := session.db_get()!
-	db.set(key: key, valueb: data) or { return error('Cannot set the key due to: ${err}') }
+	core.memdb_set(key, data.bytestr())
 }
 
 fn (kvs KVStoreFS) get(key string) ![]u8 {
-	mut mycontext := context.context_new()!
-	mut session := mycontext.session_new(name: 'deployer')!
-	mut db := session.db_get()!
-	value := db.get(key: key) or { return error('Cannot get value of key ${key} due to: ${err}') }
+	value := core.memdb_get(key)
 	if value.len == 0 {
 		return error('The value is empty.')
 	}
@@ -26,8 +21,6 @@ fn (kvs KVStoreFS) get(key string) ![]u8 {
 }
 
 fn (kvs KVStoreFS) delete(key string) ! {
-	mut mycontext := context.context_new()!
-	mut session := mycontext.session_new(name: 'deployer')!
-	mut db := session.db_get()!
-	db.delete(key: key) or { return error('Cannot set the key due to: ${err}') }
+	// clearing the entry is sufficient for current usage
+	core.memdb_set(key, '')
 }
