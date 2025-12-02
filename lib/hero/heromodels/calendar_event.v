@@ -498,7 +498,6 @@ pub fn calendar_event_handle(mut f ModelsFactory, rpcid int, servercontext map[s
 		}
 		else {
 			println('Method not found on calendar_event: ${method}')
-			$dbg;
 			return new_error(rpcid,
 				code:    32601
 				message: 'Method ${method} not found on calendar_event'

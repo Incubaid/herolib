@@ -1,5 +1,5 @@
 // lib/threefold/models_ledger/transaction.v
-module models_ledger
+module ledger
 
 import incubaid.herolib.data.encoder
 import incubaid.herolib.data.ourtime

@@ -2,6 +2,7 @@ module db
 
 import x.json2
 import json
+import incubaid.herolib.data.ourtime
 import strconv
 
 pub fn decode_int(data string) !int {

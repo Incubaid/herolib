@@ -1,4 +1,4 @@
-module models_ledger
+module ledger
 
 import incubaid.herolib.hero.db
 

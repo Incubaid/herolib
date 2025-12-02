@@ -1,4 +1,4 @@
-module models_ledger
+module ledger
 
 pub fn (self AccountPolicy) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.policy_id)
@@ -10,15 +10,15 @@ pub fn (self AccountPolicy) dump(mut e encoder.Encoder) ! {
 	}
 	e.add_list_u32(self.whitelist_out)
 	e.add_list_u32(self.whitelist_in)
-	e.add_u64(self.lock_till)
+	e.add_u32(self.lock_till)
 	e.add_u8(u8(self.admin_lock_type))
-	e.add_u64(self.admin_lock_till)
+	e.add_u32(self.admin_lock_till)
 	e.add_list_u32(self.admin_unlock)
 	e.add_u8(self.admin_unlock_min_signature)
 	e.add_list_u32(self.clawback_accounts)
 	e.add_u8(self.clawback_min_signatures)
-	e.add_u64(self.clawback_from)
-	e.add_u64(self.clawback_till)
+	e.add_u32(self.clawback_from)
+	e.add_u32(self.clawback_till)
 }
 
 fn (mut self AccountPolicy) load(mut e encoder.Decoder) ! {
@@ -34,38 +34,38 @@ fn (mut self AccountPolicy) load(mut e encoder.Decoder) ! {
 	}
 	self.whitelist_out = e.get_list_u32()!
 	self.whitelist_in = e.get_list_u32()!
-	self.lock_till = e.get_u64()!
+	self.lock_till = e.get_u32()!
 	self.admin_lock_type = unsafe { LockType(e.get_u8()!) }
-	self.admin_lock_till = e.get_u64()!
+	self.admin_lock_till = e.get_u32()!
 	self.admin_unlock = e.get_list_u32()!
 	self.admin_unlock_min_signature = e.get_u8()!
 	self.clawback_accounts = e.get_list_u32()!
 	self.clawback_min_signatures = e.get_u8()!
-	self.clawback_from = e.get_u64()!
-	self.clawback_till = e.get_u64()!
+	self.clawback_from = e.get_u32()!
+	self.clawback_till = e.get_u32()!
 }
 
 pub fn (self AccountLimit) dump(mut e encoder.Encoder) ! {
-	e.add_u64(self.amount)
+	e.add_u32(self.amount)
 	e.add_u32(self.asset_id)
 	e.add_u8(u8(self.period))
 }
 
 fn (mut self AccountLimit) load(mut e encoder.Decoder) ! {
-	self.amount = e.get_u64()!
+	self.amount = e.get_u32()!
 	self.asset_id = e.get_u32()!
 	self.period = unsafe { AccountLimitPeriodLimit(e.get_u8()!) }
 }
 
 pub fn (self AccountAsset) dump(mut e encoder.Encoder) ! {
 	e.add_u32(self.assetid)
-	e.add_u64(self.balance)
+	e.add_u32(self.balance)
 	e.add_map_string(self.metadata)
 }
 
 fn (mut self AccountAsset) load(mut e encoder.Decoder) ! {
 	self.assetid = e.get_u32()!
-	self.balance = e.get_u64()!
+	self.balance = e.get_u32()!
 	self.metadata = e.get_map_string()!
 }
 
@@ -136,7 +136,7 @@ pub fn (self Account) dump(mut e encoder.Encoder) ! {
 		asset.dump(mut e)!
 	}
 	e.add_u32(self.assetid)
-	e.add_u64(self.last_activity)
+	e.add_u32(self.last_activity)
 	e.add_list_u32(self.administrators)
 }
 
@@ -158,7 +158,7 @@ fn (mut self DBAccount) load(mut o Account, mut e encoder.Decoder) ! {
 		o.assets << asset
 	}
 	o.assetid = e.get_u32()!
-	o.last_activity = e.get_u64()!
+	o.last_activity = e.get_u32()!
 	o.administrators = e.get_list_u32()!
 }
 
@@ -310,59 +310,6 @@ pub fn (mut self DBAccount) list(args AccountListArg) ![]Account {
 
 pub fn (mut self DBAccount) list_all() ![]Account {
 	return self.db.list[Account]()!.map(self.get(it)!)
-}
-
-// Response struct for API
-pub struct Response {
-pub mut:
-	id      int
-	jsonrpc string = '2.0'
-	result  string
-	error   ?ResponseError
-}
-
-pub struct ResponseError {
-pub mut:
-	code    int
-	message string
-}
-
-pub fn new_response(rpcid int, result string) Response {
-	return Response{
-		id:     rpcid
-		result: result
-	}
-}
-
-pub fn new_response_true(rpcid int) Response {
-	return Response{
-		id:     rpcid
-		result: 'true'
-	}
-}
-
-pub fn new_response_false(rpcid int) Response {
-	return Response{
-		id:     rpcid
-		result: 'false'
-	}
-}
-
-pub fn new_response_int(rpcid int, result int) Response {
-	return Response{
-		id:     rpcid
-		result: result.str()
-	}
-}
-
-pub fn new_error(rpcid int, code int, message string) Response {
-	return Response{
-		id:    rpcid
-		error: ResponseError{
-			code:    code
-			message: message
-		}
-	}
 }
 
 pub struct UserRef {
