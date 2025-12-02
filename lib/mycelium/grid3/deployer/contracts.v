@@ -1,7 +1,7 @@
 module deployer
 
-import incubaid.herolib.threefold.grid3.gridproxy
-import incubaid.herolib.threefold.grid3.gridproxy.model as proxy_models
+import incubaid.herolib.mycelium.grid3.gridproxy
+import incubaid.herolib.mycelium.grid3.gridproxy.model as proxy_models
 
 @[params]
 pub struct ContractGetArgs {

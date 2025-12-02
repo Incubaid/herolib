@@ -1,8 +1,8 @@
 module deploy
 
-import incubaid.herolib.threefold.grid3.models as grid_models
+import incubaid.herolib.mycelium.grid3.models as grid_models
 import incubaid.herolib.data.paramsparser
-import incubaid.herolib.threefold.grid
+import incubaid.herolib.mycelium.grid
 import incubaid.herolib.data.encoder
 import incubaid.herolib.ui.console
 import rand

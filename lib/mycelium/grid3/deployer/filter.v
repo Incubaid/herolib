@@ -1,7 +1,7 @@
 module deployer
 
-import incubaid.herolib.threefold.grid3.gridproxy
-import incubaid.herolib.threefold.grid3.gridproxy.model as gridproxy_models
+import incubaid.herolib.mycelium.grid3.gridproxy
+import incubaid.herolib.mycelium.grid3.gridproxy.model as gridproxy_models
 
 // TODO: put all code in relation to filtering in file filter.v
 @[params]

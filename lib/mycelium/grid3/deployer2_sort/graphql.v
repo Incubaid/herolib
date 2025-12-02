@@ -4,7 +4,7 @@ import net.http
 import json
 import x.json2
 import log
-import incubaid.herolib.threefold.grid3.models
+import incubaid.herolib.mycelium.grid3.models
 
 pub struct GraphQl {
 	url string

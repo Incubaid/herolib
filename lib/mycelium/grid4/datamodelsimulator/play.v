@@ -1,6 +1,6 @@
 module datamodelsimulator
 
-import incubaid.herolib.threefold.grid4.datamodel { Node }
+import incubaid.herolib.mycelium.grid4.datamodel { Node }
 import incubaid.herolib.core.playbook { PlayBook }
 
 // this play script should never be called from hero directly its called by gridsimulator

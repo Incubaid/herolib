@@ -90,7 +90,7 @@ fn do() ! {
 	herocmds.cmd_docusaurus(mut cmd)
 	herocmds.cmd_web(mut cmd)
 	herocmds.cmd_sshagent(mut cmd)
-	herocmds.cmd_doctree(mut cmd)
+	herocmds.cmd_atlas(mut cmd)
 
 	cmd.setup()
 	cmd.parse(os.args)

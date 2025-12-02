@@ -1,7 +1,9 @@
 module playcmds
 
 import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.data.atlas
 import incubaid.herolib.biz.bizmodel
+import incubaid.herolib.mycelium.incatokens
 import incubaid.herolib.web.site
 import incubaid.herolib.virt.hetznermanager
 import incubaid.herolib.virt.heropods
@@ -18,7 +20,7 @@ import incubaid.herolib.installers.horus.herorunner
 import incubaid.herolib.installers.horus.osirisrunner
 import incubaid.herolib.installers.horus.salrunner
 import incubaid.herolib.installers.virt.podman
-import incubaid.herolib.installers.virt.k3s
+import incubaid.herolib.installers.virt.kubernetes_installer
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.builder
 
@@ -68,6 +70,8 @@ pub fn run(args_ PlayArgs) ! {
 	// Website / docs
 	site.play(mut plbook)!
 
+	incatokens.play(mut plbook)!
+	atlas.play(mut plbook)!
 	docusaurus.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	hetznermanager.play2(mut plbook)!
@@ -77,7 +81,7 @@ pub fn run(args_ PlayArgs) ! {
 	herolib.play(mut plbook)!
 	vlang.play(mut plbook)!
 	podman.play(mut plbook)!
-	k3s.play(mut plbook)!
+	kubernetes_installer.play(mut plbook)!
 	gitea.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!

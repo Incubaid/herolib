@@ -1,6 +1,6 @@
 module deployer
 
-import incubaid.herolib.threefold.grid3.models as grid_models
+import incubaid.herolib.mycelium.grid3.models as grid_models
 import incubaid.herolib.ui.console
 import json
 import rand
