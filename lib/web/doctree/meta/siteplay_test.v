@@ -476,9 +476,6 @@ fn test_site2() ! {
 	// ========================================================
 	console.print_header('Site Sidebar String Output')
 	println(test_site.sidebar_str())
-	if true {
-		panic('End of tests reached - panic to stop further execution')
-	}
 }
 
 // ============================================================
