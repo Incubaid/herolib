@@ -27,7 +27,8 @@ const test_heroscript_nav_depth = '
     collapsible: true
     collapsed: false
 
-!!site.page src: "why:intro"
+//COLLECTION WILL BE REPEATED, HAS NO INFLUENCE ON NAVIGATION LEVELS
+!!site.page src: "mycollection:intro"
     label: "Why Choose Us"
     title: "Why Choose Us"
     description: "Reasons to use this platform"
@@ -38,14 +39,14 @@ const test_heroscript_nav_depth = '
     description: "Main benefits overview"
 
 // ============================================================
-// LEVEL 2: Two-level nested category
+// LEVEL 1: Simple top-level category
 // ============================================================
 !!site.page_category
     path: "Tutorials"
     collapsible: true
     collapsed: false
 
-!!site.page src: "tutorials:getting_started"
+!!site.page src: "getting_started"
     label: "Getting Started"
     title: "Getting Started"
     description: "Basic tutorial to get started"
@@ -63,7 +64,7 @@ const test_heroscript_nav_depth = '
     collapsible: true
     collapsed: false
 
-!!site.page src: "operations:emergency_restart"
+!!site.page src: "emergency_restart"
     label: "Emergency Restart"
     title: "Emergency Restart"
     description: "How to emergency restart the system"
@@ -79,14 +80,14 @@ const test_heroscript_nav_depth = '
     description: "Handle incidents in real-time"
 
 // ============================================================
-// LEVEL 2.5: Two-level nested category (Tutorials > Operations)
+// LEVEL 2: Two-level nested category (Tutorials > Operations)
 // ============================================================
 !!site.page_category
     path: "Tutorials/Operations"
     collapsible: true
     collapsed: false
 
-!!site.page src: "ops:daily_checks"
+!!site.page src: "daily_checks"
     label: "Daily Checks"
     title: "Daily Checks"
     description: "Daily maintenance checklist"
@@ -102,7 +103,7 @@ const test_heroscript_nav_depth = '
     description: "Backup and restore procedures"
 
 // ============================================================
-// LEVEL 1.5: One-to-two level (Tutorials)
+// LEVEL 1: One-to-two level (Tutorials)
 // ============================================================
 // Note: This creates a sibling at the Tutorials level (not nested deeper)
 !!site.page src: "advanced_concepts"
@@ -123,7 +124,7 @@ const test_heroscript_nav_depth = '
     collapsible: true
     collapsed: false
 
-!!site.page src: "faq:general"
+!!site.page src: "general"
     label: "General Questions"
     title: "General Questions"
     description: "Frequently asked questions"
@@ -144,14 +145,14 @@ const test_heroscript_nav_depth = '
     description: "Support-related FAQ"
 
 // ============================================================
-// LEVEL 3+: Even deeper nesting for comprehensive testing
+// LEVEL 4: Four-level nested category (Tutorials > Operations > Database > Optimization)
 // ============================================================
 !!site.page_category
     path: "Tutorials/Operations/Database/Optimization"
     collapsible: true
     collapsed: false
 
-!!site.page src: "database:query_optimization"
+!!site.page src: "query_optimization"
     label: "Query Optimization"
     title: "Query Optimization"
     description: "Optimize your database queries"
@@ -166,7 +167,7 @@ const test_heroscript_nav_depth = '
     collapsible: true
     collapsed: false
 
-!!site.page src: "db:configuration"
+!!site.page src: "configuration"
     label: "Configuration"
     title: "Database Configuration"
     description: "Configure your database"
@@ -177,6 +178,289 @@ const test_heroscript_nav_depth = '
     description: "Set up database replication"
 
 '
+
+fn check(s2 Site) {
+	mut s := Site{
+		doctree_path:   ''
+		config:         SiteConfig{
+			name:        'nav_depth_test'
+			title:       'Navigation Depth Test Site'
+			description: 'Testing multi-level nested navigation'
+			tagline:     'Deep navigation structures'
+			favicon:     'img/favicon.png'
+			image:       'img/tf_graph.png'
+			copyright:   '© 2025 Example Organization'
+			footer:      Footer{
+				style: 'dark'
+				links: []
+			}
+			menu:        Menu{
+				title:         'Nav Depth Test'
+				items:         [
+					MenuItem{
+						href:     ''
+						to:       '/'
+						label:    'Home'
+						position: 'left'
+					},
+				]
+				logo_alt:      ''
+				logo_src:      ''
+				logo_src_dark: ''
+			}
+			url:         ''
+			base_url:    '/'
+			url_home:    ''
+			meta_title:  ''
+			meta_image:  ''
+		}
+		pages:          [
+			Page{
+				src:         'mycollection:intro'
+				label:       'Why Choose Us'
+				title:       'Why Choose Us'
+				description: 'Reasons to use this platform'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 0
+			},
+			Page{
+				src:         'mycollection:benefits'
+				label:       'Key Benefits'
+				title:       'Key Benefits'
+				description: 'Main benefits overview'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 0
+			},
+			Page{
+				src:         'mycollection:getting_started'
+				label:       'Getting Started'
+				title:       'Getting Started'
+				description: 'Basic tutorial to get started'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 1
+			},
+			Page{
+				src:         'mycollection:first_steps'
+				label:       'First Steps'
+				title:       'First Steps'
+				description: 'Your first steps with the platform'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 1
+			},
+			Page{
+				src:         'mycollection:emergency_restart'
+				label:       'Emergency Restart'
+				title:       'Emergency Restart'
+				description: 'How to emergency restart the system'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 2
+			},
+			Page{
+				src:         'mycollection:critical_fixes'
+				label:       'Critical Fixes'
+				title:       'Critical Fixes'
+				description: 'Apply critical fixes immediately'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 2
+			},
+			Page{
+				src:         'mycollection:incident_response'
+				label:       'Incident Response'
+				title:       'Incident Response'
+				description: 'Handle incidents in real-time'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 2
+			},
+			Page{
+				src:         'mycollection:daily_checks'
+				label:       'Daily Checks'
+				title:       'Daily Checks'
+				description: 'Daily maintenance checklist'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 3
+			},
+			Page{
+				src:         'mycollection:monitoring'
+				label:       'Monitoring'
+				title:       'Monitoring'
+				description: 'System monitoring procedures'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 3
+			},
+			Page{
+				src:         'mycollection:backups'
+				label:       'Backups'
+				title:       'Backups'
+				description: 'Backup and restore procedures'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 3
+			},
+			Page{
+				src:         'mycollection:advanced_concepts'
+				label:       'Advanced Concepts'
+				title:       'Advanced Concepts'
+				description: 'Deep dive into advanced concepts'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 3
+			},
+			Page{
+				src:         'mycollection:troubleshooting'
+				label:       'Troubleshooting'
+				title:       'Troubleshooting'
+				description: 'Troubleshooting guide'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 3
+			},
+			Page{
+				src:         'mycollection:general'
+				label:       'General Questions'
+				title:       'General Questions'
+				description: 'Frequently asked questions'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 4
+			},
+			Page{
+				src:         'mycollection:pricing_questions'
+				label:       'Pricing'
+				title:       'Pricing Questions'
+				description: 'Questions about pricing'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 4
+			},
+			Page{
+				src:         'mycollection:technical_faq'
+				label:       'Technical FAQ'
+				title:       'Technical FAQ'
+				description: 'Technical frequently asked questions'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 4
+			},
+			Page{
+				src:         'mycollection:support_faq'
+				label:       'Support'
+				title:       'Support FAQ'
+				description: 'Support-related FAQ'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 4
+			},
+			Page{
+				src:         'mycollection:query_optimization'
+				label:       'Query Optimization'
+				title:       'Query Optimization'
+				description: 'Optimize your database queries'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 5
+			},
+			Page{
+				src:         'mycollection:indexing_strategy'
+				label:       'Indexing Strategy'
+				title:       'Indexing Strategy'
+				description: 'Effective indexing strategies'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 5
+			},
+			Page{
+				src:         'mycollection:configuration'
+				label:       'Configuration'
+				title:       'Database Configuration'
+				description: 'Configure your database'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 6
+			},
+			Page{
+				src:         'mycollection:replication'
+				label:       'Replication'
+				title:       'Database Replication'
+				description: 'Set up database replication'
+				draft:       false
+				hide_title:  false
+				hide:        false
+				category_id: 6
+			},
+		]
+		links:          []
+		categories:     [
+			Category{
+				path:        'Why'
+				collapsible: true
+				collapsed:   false
+			},
+			Category{
+				path:        'Tutorials'
+				collapsible: true
+				collapsed:   false
+			},
+			Category{
+				path:        'Tutorials/Operations/Urgent'
+				collapsible: true
+				collapsed:   false
+			},
+			Category{
+				path:        'Tutorials/Operations'
+				collapsible: true
+				collapsed:   false
+			},
+			Category{
+				path:        'Why/FAQ'
+				collapsible: true
+				collapsed:   false
+			},
+			Category{
+				path:        'Tutorials/Operations/Database/Optimization'
+				collapsible: true
+				collapsed:   false
+			},
+			Category{
+				path:        'Tutorials/Operations/Database'
+				collapsible: true
+				collapsed:   false
+			},
+		]
+		announcements:  []
+		imports:        []
+		build_dest:     []
+		build_dest_dev: []
+	}
+	assert s == s2
+}
 
 pub fn test_navigation_depth() ! {
 	console.print_header('🧭 Navigation Depth Multi-Level Test')
@@ -199,6 +483,8 @@ pub fn test_navigation_depth() ! {
 	mut nav_site := get(name: 'nav_depth_test')!
 	console.print_green('✓ Site retrieved')
 	console.lf()
+
+	check(nav_site)
 
 	// ========================================================
 	// TEST 1: Validate Categories Structure

@@ -29,18 +29,26 @@ pub fn (mut s Site) sidebar() SideBar {
 	mut uncategorized_pages := []Page{}
 
 	// Group pages by category
+	eprintln('DEBUG: Grouping ${s.pages.len} pages into categories')
 	for page in s.pages {
 		if page.category_id == 0 {
 			// Page at root level (no category)
 			uncategorized_pages << page
+			eprintln('  Page "${page.src}": UNCATEGORIZED')
 		} else {
 			// Page belongs to a category
 			if page.category_id !in category_pages {
 				category_pages[page.category_id] = []Page{}
 			}
 			category_pages[page.category_id] << page
+			if page.category_id < s.categories.len {
+				eprintln('  Page "${page.src}": category_id=${page.category_id} -> "${s.categories[page.category_id].path}"')
+			} else {
+				eprintln('  Page "${page.src}": category_id=${page.category_id} -> INVALID INDEX!')
+			}
 		}
 	}
+	eprintln('DEBUG: Grouped into ${category_pages.len} categories + ${uncategorized_pages.len} uncategorized')
 
 	// Sort pages within each category by their order in the pages array
 	for category_id in category_pages.keys() {
@@ -54,61 +62,110 @@ pub fn (mut s Site) sidebar() SideBar {
 	// Build nested category structure from path
 	// ============================================================
 	mut category_tree := map[string]&NavCat{}
+	mut parent_map := map[string]string{} // Map of path -> parent_path
 
-	// PASS 1: Create all category nodes (even empty intermediate ones)
+	// PASS 1: Create ALL category nodes first
+	// Collect all paths first, then sort by depth (shallow first)
+	mut all_paths := []string{}
 	for i, category in s.categories {
-		category_id := i + 1 // categories are 1-indexed
-
-		// Split path into parts (e.g., "Getting Started/Advanced/Deep" -> ["Getting Started", "Advanced", "Deep"])
 		path_parts := if category.path.contains('/') {
 			category.path.split('/')
 		} else {
 			[category.path]
 		}
 
-		// Create all nodes in the path hierarchy
 		mut current_path := ''
-
 		for part_idx, part in path_parts {
 			if current_path.len > 0 {
 				current_path += '/'
 			}
 			current_path += part
 
-			// Check if this node already exists
+			// Add this path if not already added
 			if current_path !in category_tree {
-				// Create new category node
-				mut new_cat := &NavCat{
-					label:       part
-					collapsible: category.collapsible
-					collapsed:   category.collapsed
-					items:       []NavItem{}
-				}
-				category_tree[current_path] = new_cat
-
-				// If this is not the root of the path, add it to its parent
-				if part_idx > 0 {
-					parent_path := path_parts[0..part_idx].join('/')
-					if parent_path in category_tree {
-						mut parent_cat := category_tree[parent_path]
-						parent_cat.items << new_cat
-					}
-				}
+				all_paths << current_path
 			}
 		}
 	}
 
-	// PASS 2: Add pages to their designated categories
+	// Sort paths by depth (number of '/') so we create parents before children
+	all_paths.sort(a.count('/') < b.count('/'))
+
+	// Now create all nodes in order of depth
+	for path in all_paths {
+		if path !in category_tree {
+			path_parts := path.split('/')
+			part := path_parts[path_parts.len - 1]
+
+			// Find the category with this path to get collapsible/collapsed settings
+			mut collapsible := true
+			mut collapsed := false
+			for category in s.categories {
+				if category.path == path {
+					collapsible = category.collapsible
+					collapsed = category.collapsed
+					break
+				}
+			}
+
+			// Create new category node
+			mut new_cat := &NavCat{
+				label:       part
+				collapsible: collapsible
+				collapsed:   collapsed
+				items:       []NavItem{}
+			}
+			category_tree[path] = new_cat
+
+			// Record parent for later linking
+			if path.contains('/') {
+				last_slash := path.last_index('/') or { 0 }
+				parent_path := path[0..last_slash]
+				parent_map[path] = parent_path
+			}
+		}
+	}
+
+	// PASS 2: Link all parent-child relationships
+	// Process these in order of depth to ensure parents are linked first
+	mut sorted_paths := parent_map.keys()
+	sorted_paths.sort(a.count('/') < b.count('/'))
+
+	for path in sorted_paths {
+		parent_path := parent_map[path]
+		if parent_path in category_tree && path in category_tree {
+			mut parent_cat := category_tree[parent_path]
+			child_cat := category_tree[path]
+
+			// Only add if not already added
+			mut already_added := false
+			for item in parent_cat.items {
+				if item is NavCat && item.label == child_cat.label {
+					already_added = true
+					break
+				}
+			}
+			if !already_added {
+				parent_cat.items << child_cat
+			}
+		}
+	}
+
+	// PASS 3: Add pages to their designated categories
+	eprintln('DEBUG PASS 3: Adding pages to categories')
 	for i, category in s.categories {
-		category_id := i + 1 // categories are 1-indexed
+		category_id := i // categories are 0-indexed in the page assignment
 
 		// Skip if no pages in this category
 		if category_id !in category_pages {
+			eprintln('  Category ${category_id} ("${category.path}"): no pages')
 			continue
 		}
 
 		// Build the full path for this category
 		full_path := category.path
+
+		eprintln('  Category ${category_id} ("${full_path}"): ${category_pages[category_id].len} pages')
 
 		// Add pages to this category
 		if full_path in category_tree {
@@ -118,6 +175,8 @@ pub fn (mut s Site) sidebar() SideBar {
 					// Convert page src format "collection:name" to path "collection/name"
 					path := page.src.replace(':', '/')
 
+					eprintln('    Adding page: ${page.src} -> ${path}')
+
 					nav_doc := NavDoc{
 						path:  path
 						label: if page.label.len > 0 { page.label } else { page.title }
@@ -125,13 +184,15 @@ pub fn (mut s Site) sidebar() SideBar {
 					leaf_cat.items << nav_doc
 				}
 			}
+		} else {
+			eprintln('    ERROR: Category path "${full_path}" not in category_tree!')
 		}
 	}
 
 	// ============================================================
-	// PASS 3: Add root-level categories to sidebar
+	// PASS 4: Add root-level categories to sidebar
 	// ============================================================
-	// Find all root-level categories (those without '/')
+	// Find all root-level categories (those without '/') and add them once
 	mut added_roots := map[string]bool{}
 
 	for i, category in s.categories {
@@ -149,7 +210,7 @@ pub fn (mut s Site) sidebar() SideBar {
 	}
 
 	// ============================================================
-	// PASS 4: Add uncategorized pages at root level
+	// PASS 5: Add uncategorized pages at root level
 	// ============================================================
 	for page in uncategorized_pages {
 		if !page.hide {
@@ -165,7 +226,7 @@ pub fn (mut s Site) sidebar() SideBar {
 	}
 
 	// ============================================================
-	// PASS 5: Add standalone links (if needed)
+	// PASS 6: Add standalone links (if needed)
 	// ============================================================
 	for link in s.links {
 		nav_link := NavLink{
