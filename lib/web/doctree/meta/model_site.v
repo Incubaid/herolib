@@ -55,14 +55,9 @@ pub fn (mut s Site) sidebar() SideBar {
 	// ============================================================
 	mut category_tree := map[string]&NavCat{}
 
-	// PASS 1: Create all categories and their nested hierarchy
+	// PASS 1: Create all category nodes (even empty intermediate ones)
 	for i, category in s.categories {
 		category_id := i + 1 // categories are 1-indexed
-
-		// Skip if no pages in this category
-		if category_id !in category_pages {
-			continue
-		}
 
 		// Split path into parts (e.g., "Getting Started/Advanced/Deep" -> ["Getting Started", "Advanced", "Deep"])
 		path_parts := if category.path.contains('/') {
@@ -71,7 +66,7 @@ pub fn (mut s Site) sidebar() SideBar {
 			[category.path]
 		}
 
-		// Navigate/create the nested structure
+		// Create all nodes in the path hierarchy
 		mut current_path := ''
 
 		for part_idx, part in path_parts {
@@ -101,10 +96,23 @@ pub fn (mut s Site) sidebar() SideBar {
 				}
 			}
 		}
+	}
 
-		// Add pages to the leaf category
-		if current_path in category_tree {
-			mut leaf_cat := category_tree[current_path]
+	// PASS 2: Add pages to their designated categories
+	for i, category in s.categories {
+		category_id := i + 1 // categories are 1-indexed
+
+		// Skip if no pages in this category
+		if category_id !in category_pages {
+			continue
+		}
+
+		// Build the full path for this category
+		full_path := category.path
+
+		// Add pages to this category
+		if full_path in category_tree {
+			mut leaf_cat := category_tree[full_path]
 			for page in category_pages[category_id] {
 				if !page.hide {
 					// Convert page src format "collection:name" to path "collection/name"
@@ -121,25 +129,27 @@ pub fn (mut s Site) sidebar() SideBar {
 	}
 
 	// ============================================================
-	// PASS 2: Add root-level categories to sidebar
+	// PASS 3: Add root-level categories to sidebar
 	// ============================================================
+	// Find all root-level categories (those without '/')
+	mut added_roots := map[string]bool{}
+
 	for i, category in s.categories {
-		// Only add the root of each category tree to the sidebar.
-		// If a category path contains '/', it means it's a nested category,
-		// and its root (first part of the path) would have already been processed in PASS 1
-		// and added to the category_tree.
-		// We should only add the top-level categories, or categories without '/',
-		// to the main sidebar.
+		// Only process top-level categories
 		if !category.path.contains('/') && category.path.len > 0 {
 			root_path := category.path
-			if root_path in category_tree {
-				result.my_sidebar << category_tree[root_path]
+			// Only add each root once
+			if root_path !in added_roots {
+				if root_path in category_tree {
+					result.my_sidebar << category_tree[root_path]
+					added_roots[root_path] = true
+				}
 			}
 		}
 	}
 
 	// ============================================================
-	// PASS 3: Add uncategorized pages at root level
+	// PASS 4: Add uncategorized pages at root level
 	// ============================================================
 	for page in uncategorized_pages {
 		if !page.hide {
@@ -155,7 +165,7 @@ pub fn (mut s Site) sidebar() SideBar {
 	}
 
 	// ============================================================
-	// PASS 4: Add standalone links (if needed)
+	// PASS 5: Add standalone links (if needed)
 	// ============================================================
 	for link in s.links {
 		nav_link := NavLink{

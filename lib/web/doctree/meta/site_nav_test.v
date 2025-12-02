@@ -287,11 +287,11 @@ pub fn test_navigation_depth() ! {
 	console.print_debug('  Links: ${stats.links}')
 	console.print_debug('  Max nesting depth: ${stats.max_depth}')
 
-	assert stats.categories >= 6, 'Should have at least 6 categories'
-	console.print_green('✓ Multiple category levels present')
-
 	println(nav_site.sidebar_str())
 	println(sidebar)
+
+	assert stats.categories >= 6, 'Should have at least 6 categories'
+	console.print_green('✓ Multiple category levels present')
 
 	assert stats.max_depth >= 4, 'Should have nesting depth of at least 4 levels (0-indexed root, so 3+1)'
 	console.print_green('✓ Deep nesting verified (depth: ${stats.max_depth})')
