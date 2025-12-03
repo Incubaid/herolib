@@ -167,12 +167,11 @@ pub fn to_map[T](t T) map[string]string {
 			[]json2.Any {
 				// Handle arrays: join elements with comma
 				if val.len > 0 {
-					m[key] = val.map(it.str().trim('"')).join(',')
+					m[key] = val.map(|it| any_to_string(it)).join(',')
 				}
 			}
 			else {
-				// Handle all other types: convert to string, trim quotes from strings
-				str_val := val.str().trim('"')
+				str_val := any_to_string(val)
 				if str_val.len > 0 {
 					m[key] = str_val
 				}
@@ -180,4 +179,30 @@ pub fn to_map[T](t T) map[string]string {
 		}
 	}
 	return m
+}
+
+// any_to_string converts a json2.Any value to a string suitable for query parameters.
+// Handles numbers specially to avoid scientific notation.
+fn any_to_string(val json2.Any) string {
+	match val {
+		i64 {
+			return val.str()
+		}
+		f64 {
+			// Check if it's actually an integer (no fractional part)
+			if val == f64(i64(val)) {
+				return i64(val).str()
+			}
+			return val.str()
+		}
+		bool {
+			return val.str()
+		}
+		string {
+			return val
+		}
+		else {
+			return val.str().trim('"')
+		}
+	}
 }
