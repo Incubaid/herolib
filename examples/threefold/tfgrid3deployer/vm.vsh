@@ -1,8 +1,8 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
-import incubaid.herolib.mycelium.grid3.gridproxy
-import incubaid.herolib.mycelium.grid3.deployer
+import incubaid.herolib.threefold.grid3.gridproxy
+import incubaid.herolib.threefold.grid3.deployer
 import incubaid.herolib.ui.console
 
 const node_id = u32(2009)

@@ -281,7 +281,7 @@ fn (mut self TFDeployment) finalize_deployment(setup DeploymentSetup) ! {
 		mut deployment := *dl
 		if _ := old_deployments[node_id] {
 			self.deployer.update_deployment(node_id, mut deployment, dl.metadata)!
-			returned_deployments[node_id] = &deployment
+			returned_deployments[node_id] = deployment
 		}
 	}
 
