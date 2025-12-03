@@ -1,14 +1,9 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
-<<<<<<< Updated upstream
-import incubaid.herolib.threefold.grid3.gridproxy
-import incubaid.herolib.threefold.grid3.deployer
-=======
 import incubaid.herolib.mycelium.grid3.gridproxy
 import incubaid.herolib.mycelium.grid3.deployer
 import incubaid.herolib.installers.threefold.griddriver
->>>>>>> Stashed changes
 import incubaid.herolib.ui.console
 
 const deployment_name = 'vmtestdeployment'
@@ -38,7 +33,7 @@ fn delete_vm() ! {
 	// griddriver_installer.install()!
 
 	deployer.get(create: true)!
-	deployer.delete_deployment(deployment_name)!
+	deployer.delete_deployment(name: deployment_name)!
 }
 
 fn main() {
