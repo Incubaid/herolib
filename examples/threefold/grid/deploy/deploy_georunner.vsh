@@ -11,7 +11,7 @@ const ssh_pubkey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHvfosOnVY+teTHeT3rr657r
 
 // Gitea action runner configuration
 const gitea_instance = 'https://git.ourworld.tf/'
-const gitea_token = '$ACT_TOKEN'
+const gitea_token = 'a8KJ256bWNZy2YXFU3qvmzpIuhZzRpDpFzKb8ots'
 const hero_binary_url = 'https://github.com/Incubaid/herolib/releases/download/v1.0.38/hero-x86_64-linux-musl'
 
 fn deploy_vm() ! {
@@ -26,6 +26,7 @@ fn deploy_vm() ! {
 		name:       vm_name
 		cpu:        2
 		memory:     4
+		size:       50  // 50 GB disk
 		planetary:  false
 		public_ip4: true
 		public_ip6: false
@@ -81,9 +82,10 @@ echo "Setting up Gitea Action Runner..."
 
 # Download hero binary
 echo "Downloading hero binary..."
-apt update && apt install -y redis-server curl
+apt update && apt install -y redis-server curl sudo
+/etc/init.d/redis-server start
 cd /root
-curl -L -o hero "${hero_binary_url}"
+curl -L -o /usr/local/bin/hero "${hero_binary_url}"
 chmod +x hero
 
 # Create heroscript
