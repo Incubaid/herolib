@@ -24,7 +24,7 @@ hs := '
 	user:"${user}"
 	whitelist:"2521602,2555487,2573047"
 	password:"${passwd}"
-	sshkey:"kristof"
+	sshkey:"*"
 '
 
 println(hs)
@@ -55,7 +55,7 @@ println(serverinfo)
 
 // console.print_header('SSH login')
 
-cl.ubuntu_install(name: name, wait: true, hero_install: true)!
+cl.ubuntu_install(name: name, wait: true, hero_install: true, reinstall: true)!
 // cl.ubuntu_install(name: 'kristof20', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550378, name: 'kristof21', wait: true, hero_install: true)!
 // cl.ubuntu_install(id:2550508, name: 'kristof22', wait: true, hero_install: true)!
