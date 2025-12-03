@@ -1,14 +1,24 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
 import os
+<<<<<<< Updated upstream
 import incubaid.herolib.threefold.grid3.gridproxy
 import incubaid.herolib.threefold.grid3.deployer
+=======
+import incubaid.herolib.mycelium.grid3.gridproxy
+import incubaid.herolib.mycelium.grid3.deployer
+import incubaid.herolib.installers.threefold.griddriver
+>>>>>>> Stashed changes
 import incubaid.herolib.ui.console
 
-const node_id = u32(2009)
 const deployment_name = 'vmtestdeployment'
 
 fn deploy_vm() ! {
+	// Install griddriver binary if not present
+	// mut griddriver_installer := griddriver.get()!
+	// griddriver_installer.install()!
+
+	deployer.get(create: true)!
 	mut deployment := deployer.new_deployment(deployment_name)!
 	deployment.add_machine(
 		name:       'vm1'
@@ -16,13 +26,18 @@ fn deploy_vm() ! {
 		memory:     2
 		planetary:  false
 		public_ip4: true
-		nodes:      [node_id]
+		// nodes: [] means the system will automatically find an available node
 	)
 	deployment.deploy()!
 	println(deployment)
 }
 
 fn delete_vm() ! {
+	// Install griddriver binary if not present
+	// mut griddriver_installer := griddriver.get()!
+	// griddriver_installer.install()!
+
+	deployer.get(create: true)!
 	deployer.delete_deployment(deployment_name)!
 }
 
