@@ -6,6 +6,7 @@ import incubaid.herolib.osal.startupmanager
 import incubaid.herolib.installers.ulist
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core
+import incubaid.herolib.clients.zinit
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
@@ -24,10 +25,9 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 
 fn running() !bool {
 	mut zinit_factory := zinit.new()!
-	if zinit_factory.exists('actrunner') {
-		is_running := zinit_factory.get('actrunner')!
-		println('is_running: ${is_running}')
-		return true
+	if zinit_factory.service_exists('actrunner')! {
+		status := zinit_factory.service_status('actrunner')!
+		return status.state == 'Running'
 	}
 	return false
 }
@@ -74,7 +74,6 @@ fn upload() ! {}
 
 fn install() ! {
 	console.print_header('install actrunner')
-	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	mut url := ''
 	if core.is_linux_arm()! {
 		url = 'https://gitea.com/gitea/act_runner/releases/download/v${version}/act_runner-${version}-linux-arm64'
@@ -85,20 +84,20 @@ fn install() ! {
 	} else if core.is_osx_intel()! {
 		url = 'https://gitea.com/gitea/act_runner/releases/download/v${version}/act_runner-${version}-darwin-amd64'
 	} else {
-		return error('unsported platform')
+		return error('unsupported platform')
 	}
 
-	osal.package_install('wget') or { return error('Could not install wget due to: ${err}') }
+	// Download to temp location using osal.download (uses curl, commonly pre-installed)
+	mut dest := osal.download(
+		url:        url
+		minsize_kb: 1000
+	) or { return error('failed to download actrunner: ${err}') }
 
-	mut res := os.execute('sudo wget -O /usr/local/bin/actrunner ${url}')
-	if res.exit_code != 0 {
-		return error('failed to install actrunner: ${res.output}')
-	}
-
-	res = os.execute('sudo chmod +x /usr/local/bin/actrunner')
-	if res.exit_code != 0 {
-		return error('failed to install actrunner: ${res.output}')
-	}
+	// Install to ~/hero/bin (user-writable, no sudo required)
+	osal.cmd_add(
+		cmdname: 'actrunner'
+		source:  dest.path
+	)!
 }
 
 fn build() ! {}
@@ -107,18 +106,16 @@ fn destroy() ! {
 	console.print_header('uninstall actrunner')
 	mut zinit_factory := zinit.new()!
 
-	if zinit_factory.exists('actrunner') {
-		zinit_factory.stop('actrunner') or {
+	if zinit_factory.service_exists('actrunner') or { false } {
+		zinit_factory.service_stop('actrunner') or {
 			return error('Could not stop actrunner service due to: ${err}')
 		}
-		zinit_factory.delete('actrunner') or {
+		zinit_factory.service_delete('actrunner') or {
 			return error('Could not delete actrunner service due to: ${err}')
 		}
 	}
 
-	res := os.execute('sudo rm -rf /usr/local/bin/actrunner')
-	if res.exit_code != 0 {
-		return error('failed to uninstall actrunner: ${res.output}')
-	}
+	// Remove the binary using osal.cmd_delete (handles ~/hero/bin and other locations)
+	osal.cmd_delete('actrunner')!
 	console.print_header('actrunner is uninstalled')
 }
