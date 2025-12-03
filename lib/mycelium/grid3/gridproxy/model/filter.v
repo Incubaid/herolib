@@ -1,5 +1,7 @@
 module model
 
+import x.json2
+
 @[params]
 pub struct FarmFilter {
 pub mut:
@@ -146,35 +148,36 @@ pub fn (f TwinFilter) to_map() map[string]string {
 	return to_map(f)
 }
 
+// to_map converts any struct to map[string]string using JSON as intermediary.
+// This properly handles Option types by leveraging V's built-in JSON encoder
+// which correctly serializes ?T as either the value or null.
 pub fn to_map[T](t T) map[string]string {
 	mut m := map[string]string{}
-	$for field in T.fields {
-		value := t.$(field.name)
-		$if value is $option {
-			opt := t.$(field.name)
-			if opt != none {
-				// NOTE: for some reason when passing the value to another function
-				// it is not recognized as an Option and is dereferenced
-				encode_val(field.name, value, mut m)
-			}
-		}
 
-		$if value !is $option {
-			encode_val(field.name, value, mut m)
+	// Use JSON encoding which properly handles Option types
+	encoded := json2.encode(t)
+	json_map := json2.decode[json2.Any](encoded) or { return m }.as_map()
+
+	for key, val in json_map {
+		match val {
+			json2.Null {
+				// Skip null/none values - don't include in query params
+				continue
+			}
+			[]json2.Any {
+				// Handle arrays: join elements with comma
+				if val.len > 0 {
+					m[key] = val.map(it.str().trim('"')).join(',')
+				}
+			}
+			else {
+				// Handle all other types: convert to string, trim quotes from strings
+				str_val := val.str().trim('"')
+				if str_val.len > 0 {
+					m[key] = str_val
+				}
+			}
 		}
 	}
 	return m
-}
-
-fn encode_val[T](field_name string, val T, mut m map[string]string) {
-	$if T is $array {
-		mut arr := []string{}
-		for a in val {
-			arr << a.str()
-		}
-
-		m[field_name] = arr.join(',')
-	} $else {
-		m[field_name] = val.str()
-	}
 }
