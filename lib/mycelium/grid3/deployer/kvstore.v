@@ -1,18 +1,21 @@
 module deployer
 
-import incubaid.herolib.core.base as context
-import incubaid.herolib.core
+import incubaid.herolib.core.base
 
 // Will be changed when we support the logic of the TFChain one
 pub struct KVStoreFS {}
 
 fn (kvs KVStoreFS) set(key string, data []u8) ! {
 	// set in context
-	core.memdb_set(key, data.bytestr())
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hset('deployer:deployments', key, data.bytestr())!
 }
 
 fn (kvs KVStoreFS) get(key string) ![]u8 {
-	value := core.memdb_get(key)
+	mut context := base.context()!
+	mut r := context.redis()!
+	value := r.hget('deployer:deployments', key)!
 	if value.len == 0 {
 		return error('The value is empty.')
 	}
@@ -21,6 +24,7 @@ fn (kvs KVStoreFS) get(key string) ![]u8 {
 }
 
 fn (kvs KVStoreFS) delete(key string) ! {
-	// clearing the entry is sufficient for current usage
-	core.memdb_set(key, '')
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hdel('deployer:deployments', key)!
 }

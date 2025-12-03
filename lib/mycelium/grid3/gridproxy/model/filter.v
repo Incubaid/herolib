@@ -30,7 +30,31 @@ pub mut:
 
 // serialize FarmFilter to map
 pub fn (f FarmFilter) to_map() map[string]string {
-	return to_map(f)
+	mut m := map[string]string{}
+	if v := f.page { m['page'] = v.str() }
+	if v := f.size { m['size'] = v.str() }
+	if v := f.ret_count { m['ret_count'] = v.str() }
+	if v := f.randomize { m['randomize'] = v.str() }
+	if v := f.free_ips { m['free_ips'] = v.str() }
+	if v := f.total_ips { m['total_ips'] = v.str() }
+	if v := f.stellar_address { m['stellar_address'] = v }
+	if v := f.pricing_policy_id { m['pricing_policy_id'] = v.str() }
+	if v := f.farm_id { m['farm_id'] = v.str() }
+	if v := f.twin_id { m['twin_id'] = v.str() }
+	if v := f.name { m['name'] = v }
+	if v := f.name_contains { m['name_contains'] = v }
+	if v := f.certification_type { m['certification_type'] = v }
+	if v := f.dedicated { m['dedicated'] = v.str() }
+	if v := f.country { m['country'] = v }
+	if v := f.node_free_mru { m['node_free_mru'] = v.str() }
+	if v := f.node_free_hru { m['node_free_hru'] = v.str() }
+	if v := f.node_free_sru { m['node_free_sru'] = v.str() }
+	if v := f.node_status { m['node_status'] = v }
+	if v := f.node_rented_by { m['node_rented_by'] = v.str() }
+	if v := f.node_available_for { m['node_available_for'] = v.str() }
+	if v := f.node_has_gpu { m['node_has_gpu'] = v.str() }
+	if v := f.node_certified { m['node_certified'] = v.str() }
+	return m
 }
 
 @[params]
@@ -53,7 +77,21 @@ pub mut:
 
 // serialize ContractFilter to map
 pub fn (f ContractFilter) to_map() map[string]string {
-	return to_map(f)
+	mut m := map[string]string{}
+	if v := f.page { m['page'] = v.str() }
+	if v := f.size { m['size'] = v.str() }
+	if v := f.ret_count { m['ret_count'] = v.str() }
+	if v := f.randomize { m['randomize'] = v.str() }
+	if v := f.contract_id { m['contract_id'] = v.str() }
+	if v := f.twin_id { m['twin_id'] = v.str() }
+	if v := f.node_id { m['node_id'] = v.str() }
+	if v := f.contract_type { m['contract_type'] = v }
+	if v := f.state { m['state'] = v }
+	if v := f.name { m['name'] = v }
+	if v := f.number_of_public_ips { m['number_of_public_ips'] = v.str() }
+	if v := f.deployment_data { m['deployment_data'] = v }
+	if v := f.deployment_hash { m['deployment_hash'] = v }
+	return m
 }
 
 @[params]
@@ -104,7 +142,58 @@ pub mut:
 
 // serialize NodeFilter to map
 pub fn (f NodeFilter) to_map() map[string]string {
-	return to_map(f)
+	mut m := map[string]string{}
+	
+	// Handle optional u64 fields
+	if v := f.page { m['page'] = v.str() }
+	if v := f.size { m['size'] = v.str() }
+	if v := f.free_mru { m['free_mru'] = v.str() }
+	if v := f.free_sru { m['free_sru'] = v.str() }
+	if v := f.free_hru { m['free_hru'] = v.str() }
+	if v := f.free_ips { m['free_ips'] = v.str() }
+	if v := f.total_mru { m['total_mru'] = v.str() }
+	if v := f.total_sru { m['total_sru'] = v.str() }
+	if v := f.total_hru { m['total_hru'] = v.str() }
+	if v := f.total_cru { m['total_cru'] = v.str() }
+	if v := f.rented_by { m['rented_by'] = v.str() }
+	if v := f.available_for { m['available_for'] = v.str() }
+	if v := f.node_id { m['node_id'] = v.str() }
+	if v := f.twin_id { m['twin_id'] = v.str() }
+	
+	// Handle optional bool fields
+	if v := f.ret_count { m['ret_count'] = v.str() }
+	if v := f.randomize { m['randomize'] = v.str() }
+	if v := f.ipv4 { m['ipv4'] = v.str() }
+	if v := f.ipv6 { m['ipv6'] = v.str() }
+	if v := f.domain { m['domain'] = v.str() }
+	if v := f.dedicated { m['dedicated'] = v.str() }
+	if v := f.healthy { m['healthy'] = v.str() }
+	if v := f.rentable { m['rentable'] = v.str() }
+	if v := f.rented { m['rented'] = v.str() }
+	if v := f.has_gpu { m['has_gpu'] = v.str() }
+	if v := f.has_ipv6 { m['has_ipv6'] = v.str() }
+	if v := f.gpu_available { m['gpu_available'] = v.str() }
+	
+	// Handle optional string fields
+	if v := f.city { m['city'] = v }
+	if v := f.city_contains { m['city_contains'] = v }
+	if v := f.country { m['country'] = v }
+	if v := f.country_contains { m['country_contains'] = v }
+	if v := f.farm_name { m['farm_name'] = v }
+	if v := f.farm_name_contains { m['farm_name_contains'] = v }
+	if v := f.status { m['status'] = v }
+	if v := f.certification_type { m['certification_type'] = v }
+	if v := f.gpu_device_id { m['gpu_device_id'] = v }
+	if v := f.gpu_device_name { m['gpu_device_name'] = v }
+	if v := f.gpu_vendor_id { m['gpu_vendor_id'] = v }
+	if v := f.gpu_vendor_name { m['gpu_vendor_name'] = v }
+	
+	// Handle array fields
+	if f.farm_ids.len > 0 { m['farm_ids'] = f.farm_ids.map(it.str()).join(',') }
+	if f.node_ids.len > 0 { m['node_ids'] = f.node_ids.map(it.str()).join(',') }
+	if f.features.len > 0 { m['features'] = f.features.join(',') }
+	
+	return m
 }
 
 pub enum NodeStatus {
@@ -143,38 +232,14 @@ pub mut:
 
 // serialize TwinFilter to map
 pub fn (f TwinFilter) to_map() map[string]string {
-	return to_map(f)
-}
-
-pub fn to_map[T](t T) map[string]string {
 	mut m := map[string]string{}
-	$for field in T.fields {
-		value := t.$(field.name)
-		$if value is $option {
-			opt := t.$(field.name)
-			if opt != none {
-				// NOTE: for some reason when passing the value to another function
-				// it is not recognized as an Option and is dereferenced
-				encode_val(field.name, value, mut m)
-			}
-		}
-
-		$if value !is $option {
-			encode_val(field.name, value, mut m)
-		}
-	}
+	if v := f.page { m['page'] = v.str() }
+	if v := f.size { m['size'] = v.str() }
+	if v := f.ret_count { m['ret_count'] = v.str() }
+	if v := f.randomize { m['randomize'] = v.str() }
+	if v := f.twin_id { m['twin_id'] = v.str() }
+	if v := f.account_id { m['account_id'] = v }
+	if v := f.relay { m['relay'] = v }
+	if v := f.public_key { m['public_key'] = v }
 	return m
-}
-
-fn encode_val[T](field_name string, val T, mut m map[string]string) {
-	$if T is $array {
-		mut arr := []string{}
-		for a in val {
-			arr << a.str()
-		}
-
-		m[field_name] = arr.join(',')
-	} $else {
-		m[field_name] = val.str()
-	}
 }
