@@ -9,14 +9,29 @@ import incubaid.herolib.core
 import incubaid.herolib.clients.zinit
 import os
 
-fn startupcmd() ![]startupmanager.ZProcessNewArgs {
+// actrunner_cfg_dir returns the configuration directory for actrunner
+fn actrunner_cfg_dir() !string {
+	cfg_dir := os.join_path(os.home_dir(), 'hero', 'cfg', 'actrunner')
+	osal.dir_ensure(cfg_dir)!
+	return cfg_dir
+}
+
+@[params]
+pub struct StartArgs {
+pub mut:
+	reset bool
+}
+
+fn startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
+	cfg_dir := actrunner_cfg_dir()!
 	res << startupmanager.ZProcessNewArgs{
 		name:        'actrunner'
-		cmd:         'actrunner daemon'
+		cmd:         'cd ${cfg_dir} && actrunner daemon'
 		startuptype: .zinit
+		reset:       args.reset
 		env:         {
-			'HOME': '/root'
+			'HOME': os.home_dir()
 		}
 	}
 
@@ -102,13 +117,54 @@ fn install() ! {
 
 fn build() ! {}
 
+@[params]
+pub struct RegisterArgs {
+pub mut:
+	instance string @[required] // Gitea instance URL (e.g., https://gitea.example.com)
+	token    string @[required] // Registration token from Gitea
+	name     string // Runner name (optional)
+	labels   string // Runner labels (optional, comma-separated)
+}
+
+// register registers the actrunner with a Gitea instance
+fn register(args RegisterArgs) ! {
+	if args.instance == '' {
+		return error('instance URL is required for actrunner registration')
+	}
+	if args.token == '' {
+		return error('registration token is required for actrunner registration')
+	}
+
+	console.print_header('register actrunner with ${args.instance}')
+
+	cfg_dir := actrunner_cfg_dir()!
+
+	mut cmd := 'cd ${cfg_dir} && actrunner register --no-interactive --instance ${args.instance} --token ${args.token}'
+
+	if args.name != '' {
+		cmd += ' --name ${args.name}'
+	}
+
+	if args.labels != '' {
+		cmd += ' --labels ${args.labels}'
+	}
+
+	osal.exec(cmd: cmd) or { return error('failed to register actrunner: ${err}') }
+
+	console.print_header('actrunner registered successfully')
+}
+
 fn destroy() ! {
 	console.print_header('uninstall actrunner')
 	mut zinit_factory := zinit.new()!
 
 	if zinit_factory.service_exists('actrunner') or { false } {
+		// First stop the service, then forget (unmonitor), then delete config
 		zinit_factory.service_stop('actrunner') or {
-			return error('Could not stop actrunner service due to: ${err}')
+			return error('Could not stop actrunner service: ${err}')
+		}
+		zinit_factory.service_forget('actrunner') or {
+			return error('Could not forget actrunner service: ${err}')
 		}
 		zinit_factory.service_delete('actrunner') or {
 			return error('Could not delete actrunner service due to: ${err}')
