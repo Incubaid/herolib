@@ -1,0 +1,14 @@
+// Install actrunner
+!!actrunner.install reset:true
+
+// Register actrunner with a Gitea instance (replace with your actual values)
+!!actrunner.register instance:'<gitea_instance_url>' token:'<registration_token>'
+
+// Start the actrunner daemon (only after registration)
+!!actrunner.start reset:true
+
+// Stop the actrunner daemon
+// !!actrunner.stop reset:true
+
+// Uninstall actrunner
+// !!actrunner.destroy reset:true
