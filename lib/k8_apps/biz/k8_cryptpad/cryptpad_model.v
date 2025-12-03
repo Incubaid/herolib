@@ -11,6 +11,7 @@ pub const version = '0.0.0'
 const singleton = false
 const default = false
 
+//TODO: this should. not be needed
 struct ConfigValues {
 pub mut:
 	hostname  string // The CryptPad hostname
@@ -23,8 +24,6 @@ pub mut:
 pub struct CryptpadServer {
 pub mut:
 	name               string = 'cryptpad'
-	hostname           string
-	namespace          string
 	cryptpad_path      string = '/tmp/cryptpad/cryptpad.yaml'
 	tfgw_cryptpad_path string = '/tmp/cryptpad/tfgw-cryptpad.yaml'
 	config_js_path     string = '/tmp/cryptpad/config.js'
@@ -34,28 +33,11 @@ pub mut:
 // your checking & initialization code if needed
 fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
 	mut mycfg := mycfg_
-
-	if mycfg.name == '' {
-		mycfg.name = 'cryptpad'
-	}
-
-	mycfg.name = core.name_fix(mycfg.name)
-
-	if mycfg.namespace == '' {
-		mycfg.namespace = '${mycfg.name}-cryptpad'
-	}
-
-	if mycfg.namespace.contains('_') || mycfg.namespace.contains('.') {
-		console.print_stderr('namespace cannot contain _, was: ${mycfg.namespace}, use dashes instead.')
-		return error('namespace cannot contain _, was: ${mycfg.namespace}')
-	}
-
-	if mycfg.hostname == '' {
-		mycfg.hostname = '${mycfg.name}cryptpad'
-	}
-
-	mycfg.kube_client = kubernetes.get(create: true)!
-	mycfg.kube_client.config.namespace = mycfg.namespace
+	mycfg.k8app = core.k8app(
+		app_name: 'cryptpad'
+		app_instance: mycfg.name
+		namespace: 
+	)!
 	return mycfg
 }
 
