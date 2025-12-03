@@ -217,7 +217,7 @@ pub fn (mut node Node) package_install(package Package) ! {
 		node.exec(cmd: 'apk install ${name}') or {
 			return error('could not install package:${package.name}\nerror:\n${err}')
 		}
-	} else if node.platform == PlatformType.alpine {
+	} else if node.platform == PlatformType.arch {
 		node.exec(cmd: 'pacman -Su ${name}') or {
 			return error('could not install package:${package.name}\nerror:\n${err}')
 		}
