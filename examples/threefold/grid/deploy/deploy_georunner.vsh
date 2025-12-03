@@ -11,7 +11,7 @@ const ssh_pubkey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHvfosOnVY+teTHeT3rr657r
 
 // Gitea action runner configuration
 const gitea_instance = 'https://git.ourworld.tf/'
-const gitea_token = 'a8KJ256bWNZy2YXFU3qvmzpIuhZzRpDpFzKb8ots'
+const gitea_token = '$ACT_TOKEN'
 const hero_binary_url = 'https://github.com/Incubaid/herolib/releases/download/v1.0.38/hero-x86_64-linux-musl'
 
 fn deploy_vm() ! {
