@@ -1,9 +1,10 @@
-module gitea
+module k8_gitea
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.data.encoderhero
 import incubaid.herolib.virt.kubernetes
 import incubaid.herolib.core.pathlib
+import incubaid.herolib.k8_apps.core
 import strings
 
 pub const version = '0.0.0'
@@ -95,8 +96,9 @@ fn obj_init(mycfg_ GiteaK8SInstaller) !GiteaK8SInstaller {
 // called before start if done
 fn configure() ! {
 	mut installer := get()!
+	mut k8s := installer.kube_client
 
-	master_ips := get_master_node_ips()!
+	master_ips := core.get_master_node_ips(mut k8s)!
 	console.print_info('Master node IPs: ${master_ips}')
 
 	mut backends_str_builder := strings.new_builder(100)
@@ -121,15 +123,18 @@ fn configure() ! {
 		db_type:              installer.db_type
 		db_path:              installer.db_path
 		storage_size:         installer.storage_size
-		// Postgres connection details (use full DNS name for service)
+		// Postgres connection details
+		// db_host is the full DNS name for Gitea to connect
 		db_host:     '${installer.db_host}.${installer.namespace}.svc.cluster.local'
 		db_name:     installer.db_name
 		db_user:     installer.db_user
 		db_password: installer.db_password
 	}
 
-	// Ensure the output directory exists
-	_ := pathlib.get_dir(path: '/tmp/gitea', create: true)!
+	// Ensure the output directory exists (extract from configured path)
+	mut tfgw_path_obj := pathlib.get(installer.tfgw_path)
+	output_dir := tfgw_path_obj.path_dir()
+	_ := pathlib.get_dir(path: output_dir, create: true)!
 
 	// Generate TFGW YAML
 	tfgw_yaml := $tmpl('./templates/tfgw.yaml')
@@ -154,27 +159,6 @@ fn configure() ! {
 	}
 
 	console.print_info('Configuration files generated successfully.')
-}
-
-// Get Kubernetes master node IPs
-fn get_master_node_ips() ![]string {
-	mut master_ips := []string{}
-	installer := get()!
-
-	// Get all nodes using the kubernetes client
-	mut k8s := installer.kube_client
-	nodes := k8s.get_nodes()!
-
-	// Extract IPv6 internal IPs from all nodes (dual-stack support)
-	for node in nodes {
-		// Check all internal IPs (not just the first one) for IPv6 addresses
-		for ip in node.internal_ips {
-			if ip.len > 0 && ip.contains(':') {
-				master_ips << ip
-			}
-		}
-	}
-	return master_ips
 }
 
 /////////////NORMALLY NO NEED TO TOUCH

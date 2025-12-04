@@ -1,22 +1,20 @@
-module cryptpad
+module k8_cryptpad
 
-import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 import incubaid.herolib.installers.ulist
+import incubaid.herolib.k8_apps.core
 import time
-
-const max_deployment_retries = 30
-const deployment_check_interval_seconds = 2
 
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
 fn installed() !bool {
 	installer := get()!
-	mut k8s := installer.kube_client
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 
 	// Try to get the cryptpad deployment
-	deployments := k8s.get_deployments(installer.namespace) or {
+	deployments := k8s.get_deployments(k8app.namespace) or {
 		// If we can't get deployments, it's not running
 		return false
 	}
@@ -50,12 +48,13 @@ fn install() ! {
 
 	// Get installer config to access namespace
 	installer := get()!
-	mut k8s := installer.kube_client
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 	configure()!
 
 	// 1. Check for dependencies.
 	console.print_info('Checking for kubectl...')
-	kubectl_installed()!
+	core.kubectl_installed(mut k8s)!
 	console.print_info('kubectl is installed and configured.')
 
 	// 4. Apply the YAML files using kubernetes client
@@ -67,8 +66,8 @@ fn install() ! {
 	console.print_info('Gateway YAML file applied successfully.')
 
 	// 5. Verify TFGW deployments
-	verify_tfgw_deployment(tfgw_name: 'cryptpad-main', namespace: installer.namespace)!
-	verify_tfgw_deployment(tfgw_name: 'cryptpad-sandbox', namespace: installer.namespace)!
+	core.verify_tfgw_deployment(tfgw_name: 'cryptpad-main', namespace: k8app.namespace, k8s: k8s)!
+	core.verify_tfgw_deployment(tfgw_name: 'cryptpad-sandbox', namespace: k8app.namespace, k8s: k8s)!
 
 	// 6. Apply Cryptpad YAML
 	console.print_info('Applying Cryptpad YAML file to the cluster...')
@@ -81,13 +80,13 @@ fn install() ! {
 	// 7. Verify deployment status
 	console.print_info('Verifying deployment status...')
 	mut is_running := false
-	for i in 0 .. max_deployment_retries {
+	for i in 0 .. core.max_deployment_retries {
 		if installed()! {
 			is_running = true
 			break
 		}
-		console.print_info('Waiting for CryptPad deployment to be ready... (${i + 1}/${max_deployment_retries})')
-		time.sleep(deployment_check_interval_seconds * time.second)
+		console.print_info('Waiting for CryptPad deployment to be ready... (${i + 1}/${core.max_deployment_retries})')
+		time.sleep(core.deployment_check_interval_seconds * time.second)
 	}
 
 	if is_running {
@@ -97,93 +96,10 @@ fn install() ! {
 	}
 }
 
-// params for verifying the generating of the FQDN using tfgw crd
-@[params]
-struct VerifyTfgwDeployment {
-pub mut:
-	tfgw_name string // tfgw serivce generating the FQDN
-	namespace string // namespace name for cryptpad deployments/services
-	retry     int = 30
-}
-
-// Function for verifying the generating of of the FQDN using tfgw crd
-fn verify_tfgw_deployment(args VerifyTfgwDeployment) ! {
-	console.print_info('Verifying TFGW deployment for ${args.tfgw_name}...')
-	installer := get()!
-	mut k8s := installer.kube_client
-	mut is_fqdn_generated := false
-
-	for i in 0 .. args.retry {
-		// Use kubectl_exec for custom resource (TFGW) with jsonpath
-		result := k8s.kubectl_exec(
-			command: 'get tfgw ${args.tfgw_name} -n ${args.namespace} -o jsonpath="{.status.fqdn}"'
-		) or {
-			console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
-			time.sleep(2 * time.second)
-			continue
-		}
-
-		if result.success && result.stdout != '' {
-			is_fqdn_generated = true
-			break
-		}
-		console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
-		time.sleep(2 * time.second)
-	}
-
-	if !is_fqdn_generated {
-		console.print_stderr('Failed to get FQDN for ${args.tfgw_name}.')
-		// Use describe_resource to get detailed information about the TFGW resource
-		result := k8s.describe_resource(
-			resource:      'tfgw'
-			resource_name: args.tfgw_name
-			namespace:     args.namespace
-		) or { return error('TFGW deployment failed for ${args.tfgw_name}.') }
-		console.print_stderr(result.stdout)
-		return error('TFGW deployment failed for ${args.tfgw_name}.')
-	}
-	console.print_info('TFGW deployment for ${args.tfgw_name} verified successfully.')
-}
-
 fn destroy() ! {
-	console.print_header('Destroying CryptPad...')
 	installer := get()!
-	mut k8s := installer.kube_client
-
-	console.print_debug('Attempting to delete namespace: ${installer.namespace}')
-
-	// Delete the namespace using kubernetes client
-	result := k8s.delete_resource('namespace', installer.namespace, '') or {
-		console.print_stderr('Failed to delete namespace ${installer.namespace}: ${err}')
-		return error('Failed to delete namespace ${installer.namespace}: ${err}')
-	}
-
-	console.print_debug('Delete command completed. Exit code: ${result.exit_code}, Success: ${result.success}')
-
-	if !result.success {
-		// Namespace not found is OK - it means it's already deleted
-		if result.stderr.contains('NotFound') {
-			console.print_info('Namespace ${installer.namespace} does not exist (already deleted).')
-		} else {
-			console.print_stderr('Failed to delete namespace ${installer.namespace}: ${result.stderr}')
-			return error('Failed to delete namespace ${installer.namespace}: ${result.stderr}')
-		}
-	} else {
-		console.print_info('Namespace ${installer.namespace} deleted successfully.')
-	}
-}
-
-fn kubectl_installed() ! {
-	// Check if kubectl command exists
-	if !osal.cmd_exists('kubectl') {
-		return error('kubectl is not installed. Please install it to continue.')
-	}
-
-	// Check if kubectl is configured to connect to a cluster
-	installer := get()!
-	mut k8s := installer.kube_client
-
-	if !k8s.test_connection()! {
-		return error('kubectl is not configured to connect to a Kubernetes cluster. Please check your kubeconfig.')
-	}
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+	
+	core.destroy_namespace(mut k8s, k8app.namespace)!
 }

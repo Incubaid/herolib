@@ -1,4 +1,4 @@
-module cryptpad
+module k8_cryptpad
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
@@ -15,7 +15,7 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = 'cryptpad'
+	name   string = cryptpad_default
 	fromdb bool // will load from filesystem
 	create bool // default will not create if not exist
 }

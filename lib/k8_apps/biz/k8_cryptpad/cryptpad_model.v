@@ -1,4 +1,4 @@
-module cryptpad
+module k8_cryptpad
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.data.encoderhero
@@ -33,10 +33,14 @@ pub mut:
 // your checking & initialization code if needed
 fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
 	mut mycfg := mycfg_
+	
+	// Set default namespace if not provided
+	namespace := '${mycfg.name}-cryptpad-namespace'
+	
 	mycfg.k8app = core.k8app(
 		app_name: 'cryptpad'
 		app_instance: mycfg.name
-		namespace: 
+		namespace: namespace
 	)!
 	return mycfg
 }
@@ -44,8 +48,12 @@ fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
 // called before start if done
 fn configure() ! {
 	mut installer := get()!
+	
+	// Unwrap k8app once
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 
-	master_ips := get_master_node_ips()!
+	master_ips := core.get_master_node_ips(mut k8s)!
 	console.print_info('Master node IPs: ${master_ips}')
 
 	mut backends_str_builder := strings.new_builder(100)
@@ -55,9 +63,9 @@ fn configure() ! {
 
 	// Create config_values for template generation
 	mut config_values := ConfigValues{
-		hostname:  installer.hostname
+		hostname:  k8app.hostname
 		backends:  backends_str_builder.str()
-		namespace: installer.namespace
+		namespace: k8app.namespace
 		config_js: ''
 	}
 
@@ -89,27 +97,6 @@ fn configure() ! {
 	cryptpad_path.write(cryptpad_yaml)!
 
 	console.print_info('YAML files generated successfully.')
-}
-
-// Get Kubernetes master node IPs
-fn get_master_node_ips() ![]string {
-	mut master_ips := []string{}
-	installer := get()!
-
-	// Get all nodes using the kubernetes client
-	mut k8s := installer.kube_client
-	nodes := k8s.get_nodes()!
-
-	// Extract IPv6 internal IPs from all nodes (dual-stack support)
-	for node in nodes {
-		// Check all internal IPs (not just the first one) for IPv6 addresses
-		for ip in node.internal_ips {
-			if ip.len > 0 && ip.contains(':') {
-				master_ips << ip
-			}
-		}
-	}
-	return master_ips
 }
 
 /////////////NORMALLY NO NEED TO TOUCH

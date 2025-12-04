@@ -1,4 +1,4 @@
-module gitea
+module k8_gitea
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
