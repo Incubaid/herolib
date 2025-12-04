@@ -11,8 +11,8 @@ const ssh_pubkey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHvfosOnVY+teTHeT3rr657r
 
 // Gitea action runner configuration
 const gitea_instance = 'https://git.ourworld.tf/'
-const gitea_token = 'a8KJ256bWNZy2YXFU3qvmzpIuhZzRpDpFzKb8ots'
-const hero_binary_url = 'https://github.com/Incubaid/herolib/releases/download/v1.0.38/hero-x86_64-linux-musl'
+const gitea_token = 'W2KyeBH1ZyICO3GW6T2IaUxzp9tsoOfU3yY514QV'
+const hero_binary_url = 'https://github.com/Incubaid/herolib/releases/download/v1.0.39/hero-x86_64-linux-musl'
 
 fn deploy_vm() ! {
 	// Initialize deployer (reads from env vars: TFGRID_MNEMONIC, SSH_KEY, TFGRID_NETWORK)
@@ -60,8 +60,8 @@ fn install_action_runner(mycelium_ip string) ! {
 		return error('Mycelium IP is empty, cannot install action runner')
 	}
 	
-	println('Waiting for VM to be fully ready (30 seconds)...')
-	os.execute('sleep 30')
+	println('Waiting for VM to be fully ready (10 seconds)...')
+	os.execute('sleep 10')
 	
 	// Create the heroscript
 	heroscript := '// Install actrunner
@@ -85,8 +85,7 @@ echo "Downloading hero binary..."
 apt update && apt install -y redis-server curl sudo
 /etc/init.d/redis-server start
 cd /root
-curl -L -o /usr/local/bin/hero "${hero_binary_url}"
-chmod +x hero
+curl -L -o /usr/local/bin/hero "${hero_binary_url}" && chmod +x /usr/local/bin/hero
 
 # Create heroscript
 cat > act_runner.heroscript <<HEROSCRIPT_EOF
@@ -95,7 +94,7 @@ HEROSCRIPT_EOF
 
 # Run heroscript
 echo "Running heroscript to install and configure action runner..."
-./hero run act_runner.heroscript
+hero run act_runner.heroscript
 
 echo "Gitea Action Runner setup complete!"
 '
