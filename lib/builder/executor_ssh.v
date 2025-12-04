@@ -235,11 +235,12 @@ pub fn (mut executor ExecutorSSH) info() map[string]string {
 // forwarding ssh traffic to certain container
 
 pub fn (mut executor ExecutorSSH) shell(cmd string) ! {
+	mut args := ['-o', 'StrictHostKeyChecking=no', '-o', 'UserKnownHostsFile=/dev/null',
+		'${executor.user}@${executor.ipaddr.addr}', '-p', '${executor.ipaddr.port}']
 	if cmd.len > 0 {
-		panic('TODO IMPLEMENT SHELL EXEC OVER SSH')
+		args << cmd
 	}
-	os.execvp('ssh', ['-o StrictHostKeyChecking=no', '${executor.user}@${executor.ipaddr.addr}',
-		'-p ${executor.ipaddr.port}'])!
+	os.execvp('ssh', args)!
 }
 
 pub fn (mut executor ExecutorSSH) list(path string) ![]string {

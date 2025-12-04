@@ -1,14 +1,109 @@
-# regex
 
-## basic regex utilities
+## escape_regex_chars
 
-- .
+Escapes special regex metacharacters in a string to make it safe for use in regex patterns.
+
+```v
+import incubaid.herolib.core.texttools.regext
+
+escaped := regext.escape_regex_chars("file.txt")
+// Result: "file\.txt"
+
+// Use in regex patterns:
+safe_search := regext.escape_regex_chars("[test]")
+// Result: "\[test\]"
+```
+
+**Special characters escaped**: `. ^ $ * + ? { } [ ] \ | ( )`
+
+### wildcard_to_regex
+
+Converts simple wildcard patterns to regex patterns for flexible file matching.
+
+**Conversion rules:**
+- `*` becomes `.*` (matches any sequence of characters)
+- Literal text is escaped (special regex characters are escaped)
+- Patterns without `*` match as substrings anywhere
+
+```v
+import incubaid.herolib.core.texttools.regext
+
+// Match files ending with .txt
+pattern1 := regext.wildcard_to_regex("*.txt")
+// Result: ".*\.txt"
+
+// Match anything starting with test
+pattern2 := regext.wildcard_to_regex("test*")
+// Result: "test.*"
+
+// Match anything containing 'config' (no wildcard)
+pattern3 := regext.wildcard_to_regex("config")
+// Result: ".*config.*"
+
+// Complex pattern with special chars
+pattern4 := regext.wildcard_to_regex("src/*.v")
+// Result: "src/.*\.v"
+
+// Multiple wildcards
+pattern5 := regext.wildcard_to_regex("*test*file*")
+// Result: ".*test.*file.*"
+```
+
+## Regex Group Finders
+
+### find_sid
+
+Extracts unique `sid` values from a given text. A `sid` is identified by the pattern `sid:XXXXXX`, where `XXXXXX` can be alphanumeric characters.
+
+```v
+import incubaid.herolib.core.texttools.regext
+
+text := `
+!!action.something sid:aa733
+
+sid:aa733
+
+...sid:aa733 ss
+
+...sid:rrrrrr ss
+sid:997
+
+   sid:s d
+sid:s_d
+`
+
+r := regext.find_sid(text)
+// Result: ['aa733', 'aa733', 'aa733', '997']
+```
+
+### find_simple_vars
+
+Extracts simple variable names enclosed in curly braces, e.g., `{var_name}`, from a given text. Variable names can contain letters, numbers, and underscores.
+
+```v
+import incubaid.herolib.core.texttools.regext
+
+text := `
+!!action.something {sid}
+
+sid:aa733
+
+{a}
+
+...sid:rrrrrr ss {a_sdsdsdsd_e__f_g}
+sid:997
+
+   sid:s d
+sid:s_d
+`
+
+r := regext.find_simple_vars(text)
+// Result: ['sid', 'a', 'a_sdsdsdsd_e__f_g']
+```
 
 ## regex replacer
 
 Tool to flexibly replace elements in file(s) or text.
-
-next example does it for
 
 ```golang
 import incubaid.herolib.core.texttools.regext
@@ -51,7 +146,3 @@ mut text_out2 := ri.replace(text: text, dedent: true) or { panic(err) }
 ri.replace_in_dir(path:"/tmp/mypath",extensions:["md"])!
 
 ```
-
-```
-
-

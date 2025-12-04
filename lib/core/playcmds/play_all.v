@@ -38,6 +38,7 @@ import incubaid.herolib.installers.lang.python
 import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.installers.net.mycelium_installer
 import incubaid.herolib.installers.net.wireguard_installer
+import incubaid.herolib.installers.sysadmintools.actrunner
 import incubaid.herolib.installers.sysadmintools.b2
 import incubaid.herolib.installers.sysadmintools.garage_s3
 import incubaid.herolib.installers.threefold.griddriver
@@ -95,6 +96,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	rust.play(mut plbook)!
 	mycelium_installer.play(mut plbook)!
 	wireguard_installer.play(mut plbook)!
+	actrunner.play(mut plbook)!
 	b2.play(mut plbook)!
 	garage_s3.play(mut plbook)!
 	griddriver.play(mut plbook)!

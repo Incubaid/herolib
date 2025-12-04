@@ -12,7 +12,7 @@ mut goals := [
 		title:       'Faster Requirements'
 		description: 'Reduce PRD creation time to under 1 day'
 		gtype:       .product
-	}
+	},
 ]
 
 // Create use cases
@@ -25,7 +25,7 @@ mut use_cases := [
 		steps:   ['Select template', 'Fill fields', 'Export to Markdown']
 		success: 'Complete PRD generated'
 		failure: 'Validation failed'
-	}
+	},
 ]
 
 // Create requirements
@@ -45,7 +45,7 @@ mut requirements := [
 		priority:     .high
 		criteria:     [criterion]
 		dependencies: []
-	}
+	},
 ]
 
 // Create constraints
@@ -55,7 +55,7 @@ mut constraints := [
 		title:       'ARM64 Support'
 		description: 'Must run on ARM64 infrastructure'
 		ctype:       .technica
-	}
+	},
 ]
 
 // Create risks

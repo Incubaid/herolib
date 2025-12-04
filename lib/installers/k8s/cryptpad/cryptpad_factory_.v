@@ -156,8 +156,8 @@ pub fn play(mut plbook PlayBook) ! {
 
 // load from disk and make sure is properly intialized
 pub fn (mut self CryptpadServer) reload() ! {
-	switch(self.name)
 	self = obj_init(self)!
+	set(self)!
 }
 
 @[params]

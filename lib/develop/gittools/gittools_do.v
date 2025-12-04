@@ -22,8 +22,8 @@ pub mut:
 	recursive bool
 	pull      bool
 	reload    bool // means reload the info into the cache
-	script    bool = true // run non interactive
-	reset     bool = true // means we will lose changes (only relevant for clone, pull)
+	script    bool  // run non interactive
+	reset     bool // means we will lose changes (only relevant for clone, pull)
 }
 
 // do group actions on repo
@@ -38,14 +38,12 @@ pub mut:
 // url      string
 // pull     bool
 // reload bool //means reload the info into the cache
-// script   bool = true // run non interactive
-// reset    bool = true // means we will lose changes (only relevant for clone, pull)
+// script   bool // run non interactive
+// reset    bool// means we will lose changes (only relevant for clone, pull)
 //```
 pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 	mut args := args_
 	console.print_debug('git do ${args.cmd}')
-	// println(args)
-	// $dbg;
 
 	if args.path.len > 0 && args.url.len > 0 {
 		panic('bug')
@@ -99,7 +97,9 @@ pub fn (mut gs GitStructure) do(args_ ReposActionsArgs) !string {
 		provider: args.provider
 	)!
 
-	if repos.len < 4 || args.cmd in 'pull,push,commit,delete'.split(',') {
+	// println(repos.map(it.name))
+
+	if repos.len < 4 || args.cmd in 'pull,push,commit'.split(',') {
 		args.reload = true
 	}
 

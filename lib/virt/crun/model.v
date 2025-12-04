@@ -3,14 +3,14 @@ module crun
 // OCI Runtime Spec structures that can be directly encoded to JSON
 pub struct Spec {
 pub mut:
-	oci_version string @[json: 'ociVersion']
-	platform    Platform
-	process     Process
-	root        Root
-	hostname    string
-	mounts      []Mount
-	linux       Linux
-	hooks       Hooks
+	oci_version  string @[json: 'ociVersion']
+	platform     Platform
+	process      Process
+	root         Root
+	hostname     string
+	mounts       []Mount
+	linux_config LinuxConfig
+	hooks        Hooks
 }
 
 pub struct Platform {
@@ -68,7 +68,7 @@ pub mut:
 	options     []string
 }
 
-pub struct Linux {
+pub struct LinuxConfig {
 pub mut:
 	namespaces     []LinuxNamespace
 	resources      LinuxResources

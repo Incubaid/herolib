@@ -1,0 +1,12 @@
+
+!!hero_code.generate_installer
+    name:''
+    classname:'GiteaK8SInstaller'
+    singleton:0
+    templates:1
+    default:0
+    title:''
+    supported_platforms:''
+    startupmanager:0
+	hasconfig:1
+    build:0

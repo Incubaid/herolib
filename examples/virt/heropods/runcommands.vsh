@@ -2,12 +2,12 @@
 
 import incubaid.herolib.virt.heropods
 
-mut factory := heropods.new(
+mut heropods_ := heropods.new(
 	reset:      false
 	use_podman: true
-) or { panic('Failed to init ContainerFactory: ${err}') }
+) or { panic('Failed to init HeroPods: ${err}') }
 
-mut container := factory.new(
+mut container := heropods_.container_new(
 	name:              'alpine_demo'
 	image:             .custom
 	custom_image_name: 'alpine_3_20'

@@ -1,0 +1,95 @@
+module gridsimulator
+
+import incubaid.herolib.biz.spreadsheet
+// import incubaid.herolib.core.pathlib
+import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.texttools
+import incubaid.herolib.core.playbook
+import incubaid.herolib.ui.console
+import incubaid.herolib.mycelium.grid4.datamodel
+
+__global (
+	grid_simulators shared map[string]&Simulator
+)
+
+pub struct Simulator {
+pub mut:
+	name   string
+	sheet  &spreadsheet.Sheet
+	params SimulatorArgs
+	nodes  map[string]&datamodel.Node
+}
+
+@[params]
+pub struct SimulatorArgs {
+pub mut:
+	name      string = 'default' // name of simulation
+	path      string
+	git_url   string
+	git_reset bool
+	git_pull  bool
+}
+
+pub fn new(args_ SimulatorArgs) !Simulator {
+	mut args := args_
+
+	if args.name == '' {
+		return error('simulation needs to have a name')
+	}
+	args.name = texttools.name_fix(args.name)
+	// if args.mdbook_name == '' {
+	// 	args.mdbook_name = args.name
+	// }
+
+	// mut cs := currency.new()
+	mut sh := spreadsheet.sheet_new(name: 'tfgridsim_${args.name}')!
+	mut sim := Simulator{
+		name:   args.name
+		sheet:  sh
+		params: args
+		// currencies: cs
+	}
+
+	if args.git_url.len > 0 {
+		mut gs := gittools.new()!
+		mut repo := gs.get_repo(
+			url:   args.git_url
+			pull:  args.git_pull
+			reset: args.git_reset
+		)!
+
+		args.path = repo.path()
+	}
+
+	simulator_set(sim)
+	sim.load()!
+
+	return sim
+}
+
+// get sheet from global
+pub fn simulator_get(name string) !&Simulator {
+	rlock grid_simulators {
+		if name in grid_simulators {
+			return grid_simulators[name] or { return error('Grid simulator ${name} not found') }
+		}
+	}
+	return error("cann't find tfgrid gridsimulator:'${name}' in global grid_simulators")
+}
+
+// remember sheet in global
+pub fn simulator_set(sim Simulator) {
+	lock grid_simulators {
+		grid_simulators[sim.name] = &sim
+	}
+	spreadsheet.sheet_set(sim.sheet)
+}
+
+// load the mdbook content from path or git
+pub fn (mut self Simulator) load() ! {
+	console.print_header('GRID SIMULATOR LOAD ${self.params.name}')
+
+	mut plbook := playbook.new(path: self.params.path)!
+
+	self.play(mut plbook)!
+}

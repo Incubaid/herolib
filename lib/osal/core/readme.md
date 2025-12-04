@@ -21,7 +21,7 @@ Execute shell commands with fine-grained control and robust error handling.
     * `raise_error` (bool): Raise V error on failure (default: true).
     * `ignore_error` (bool): Do not raise error, just report.
     * `debug` (bool): Enable debug output.
-    * `shell` (bool): Execute in interactive shell.
+    * `shell` (bool): Execute in interactive shell. This transfers control to the new command, effectively exiting the current program.
     * `async` (bool): Run command asynchronously.
     * `runtime` (RunTime): Specify runtime (e.g., `.bash`, `.python`).
   * Returns `Job` struct with `status`, `output`, `error`, `exit_code`, etc.

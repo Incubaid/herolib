@@ -53,7 +53,7 @@ pub fn (mut h HetznerManager) server_reset(args ServerRebootArgs) !ResetInfo {
 			console.print_debug('wait for server ${serverinfo.server_name} on ${serverinfo.server_ip} to go down.')
 			pingresult := osal.ping(address: serverinfo.server_ip)!
 			if !pingresult {
-				console.print_debug('server ${serverinfo.server_name} is now down, now waitig for reboot.')
+				console.print_debug('server ${serverinfo.server_name} is now down, now waiting for reboot.')
 				break
 			}
 			time.sleep(1000 * time.millisecond)

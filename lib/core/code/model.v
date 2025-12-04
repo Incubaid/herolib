@@ -11,6 +11,7 @@ pub type CodeItem = Alias
 	| Struct
 	| Sumtype
 	| Interface
+	| Enum
 
 // item for adding custom code in
 pub struct CustomCode {
@@ -29,6 +30,21 @@ pub:
 	name        string
 	description string
 	types       []Type
+}
+
+pub struct Enum {
+pub mut:
+	name        string
+	description string
+	is_pub      bool
+	values      []EnumValue
+}
+
+pub struct EnumValue {
+pub:
+	name        string
+	value       string
+	description string
 }
 
 pub struct Attribute {

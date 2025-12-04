@@ -2,6 +2,7 @@ module pathlib
 
 import os
 import incubaid.herolib.core.texttools
+import incubaid.herolib.core.texttools.regext
 import time
 import crypto.md5
 import rand
@@ -290,6 +291,70 @@ pub fn (path Path) parent_find(tofind string) !Path {
 	}
 	path2 := path.parent()!
 	return path2.parent_find(tofind)
+}
+
+// parent_find_advanced walks up the directory tree, collecting all items that match tofind
+// pattern until it encounters an item matching the stop pattern.
+// Both tofind and stop use matcher filter format supporting wildcards:
+//   - '*.txt' matches any .txt file
+//   - 'src*' matches anything starting with 'src'
+//   - '.git' matches exactly '.git'
+//   - '*test*' matches anything containing 'test'
+//
+// Returns all found paths before hitting the stop condition.
+// If stop is never found, continues until reaching filesystem root.
+//
+// Examples:
+//   // Find all 'test_*.v' files until reaching '.git' directory
+//   tests := my_path.parent_find_advanced('test_*.v', '.git')!
+//
+//   // Find any 'Makefile*' until hitting 'node_modules'
+//   makefiles := my_path.parent_find_advanced('Makefile*', 'node_modules')!
+//
+//   // Find '*.md' files until reaching '.git'
+//   docs := my_path.parent_find_advanced('*.md', '.git')!
+pub fn (path Path) parent_find_advanced(tofind string, stop string) ![]Path {
+	// Start from current path or its parent if it's a file
+	mut search_path := path
+	if search_path.is_file() {
+		search_path = search_path.parent()!
+	}
+
+	// Create matchers from filter patterns
+	tofind_matcher := regext.new(filter: [tofind])!
+	stop_matcher := regext.new(filter: [stop])!
+
+	mut found_paths := []Path{}
+	mut current := search_path
+
+	for {
+		// List contents of current directory
+		mut items := os.ls(current.path) or { []string{} }
+
+		// Check each item in the directory
+		for item in items {
+			// Check if this is the stop pattern - if yes, halt and return
+			if stop_matcher.match(item) {
+				return found_paths
+			}
+
+			// Check if this matches what we're looking for
+			if tofind_matcher.match(item) {
+				full_path := os.join_path(current.path, item)
+				mut found_path := get(full_path)
+				if found_path.exists() {
+					found_paths << found_path
+				}
+			}
+		}
+
+		// Try to move to parent directory
+		current = current.parent() or {
+			// Reached filesystem root, return what we found
+			return found_paths
+		}
+	}
+	return found_paths
 }
 
 // delete

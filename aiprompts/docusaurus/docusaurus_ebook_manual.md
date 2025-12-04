@@ -2,13 +2,38 @@
 
 This manual provides a comprehensive guide on how to leverage HeroLib's Docusaurus integration, Doctree, and HeroScript to create and manage technical ebooks, optimized for AI-driven content generation and project management.
 
+## Quick Start - Recommended Ebook Structure
+
+The recommended directory structure for an ebook:
+
+```
+my_ebook/
+├── scan.hero              # DocTree collection scanning
+├── config.hero            # Site configuration
+├── menus.hero             # Navbar and footer configuration
+├── include.hero           # Docusaurus define and doctree export
+├── 1_intro.heroscript     # Page definitions (numbered for ordering)
+├── 2_concepts.heroscript  # More page definitions
+└── 3_advanced.heroscript  # Additional pages
+```
+
+**Running an ebook:**
+
+```bash
+# Start development server
+hero docs -d -p /path/to/my_ebook
+
+# Build for production
+hero docs -p /path/to/my_ebook
+```
+
 ## 1. Core Concepts
 
 To effectively create ebooks with HeroLib, it's crucial to understand the interplay of three core components:
 
-* **HeroScript**: A concise scripting language used to define the structure, configuration, and content flow of your Docusaurus site. It acts as the declarative interface for the entire process.
+* **HeroScript**: A concise scripting language used to define the structure, configuration, and content flow of your Docusaurus site. It acts as the declarative interface for the entire process. Files use `.hero` extension for configuration and `.heroscript` for page definitions.
 * **Docusaurus**: A popular open-source static site generator. HeroLib uses Docusaurus as the underlying framework to render your ebook content into a navigable website.
-* **Doctree**: HeroLib's content management system. Doctree organizes your markdown files into "collections" and "pages," allowing for structured content retrieval and reuse across multiple projects.
+* **DocTree**: HeroLib's document collection layer. DocTree scans and exports markdown "collections" and "pages" that Docusaurus consumes.
 
 ## 2. Setting Up a Docusaurus Project with HeroLib
 
@@ -22,18 +47,26 @@ The `docusaurus.define` HeroScript directive configures the global settings for 
 
 ```heroscript
 !!docusaurus.define
+    name:"my_ebook"                  // must match the site name from !!site.config
     path_build: "/tmp/my_ebook_build"
     path_publish: "/tmp/my_ebook_publish"
-    production: true
-    update: true
+    reset: true                      // clean build dir before building (optional)
+    install: true                    // run bun install if needed (optional)
+    template_update: true            // update the Docusaurus template (optional)
+    doctree_dir: "/tmp/doctree_export"   // where DocTree exports collections
+    use_doctree: true                  // use DocTree as content backend
 ```
 
 **Arguments:**
 
+* `name` (string, required): The site/factory name. Must match the `name` used in `!!site.config` so Docusaurus can find the corresponding site definition.
 * `path_build` (string, optional): The local path where the Docusaurus site will be built. Defaults to `~/hero/var/docusaurus/build`.
 * `path_publish` (string, optional): The local path where the final Docusaurus site will be published (e.g., for deployment). Defaults to `~/hero/var/docusaurus/publish`.
-* `production` (boolean, optional): If `true`, the site will be built for production (optimized). Default is `false`.
-* `update` (boolean, optional): If `true`, the Docusaurus template and dependencies will be updated. Default is `false`.
+* `reset` (boolean, optional): If `true`, clean the build directory before starting.
+* `install` (boolean, optional): If `true`, run dependency installation (e.g., `bun install`).
+* `template_update` (boolean, optional): If `true`, update the Docusaurus template.
+* `doctree_dir` (string, optional): Directory where DocTree exports collections (used by the DocTree client in `lib/data/doctree/client`).
+* `use_doctree` (boolean, optional): If `true`, use the DocTree client as the content backend (default behavior).
 
 ### 2.2. Adding a Docusaurus Site (`docusaurus.add`)
 
@@ -53,7 +86,7 @@ The `docusaurus.add` directive defines an individual Docusaurus site (your ebook
 ```heroscript
 !!docusaurus.add
     name:"tfgrid_tech_ebook"
-    git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"
+    git_url:"https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/ebooks/tech"
     git_reset:true // Reset Git repository before pulling
     git_pull:true // Pull latest changes
     git_root:"/tmp/git_clones" // Optional: specify a root directory for git clones
@@ -190,18 +223,18 @@ Configure the footer section of your Docusaurus site.
   * `href` (string, optional): External URL for the link.
   * `to` (string, optional): Internal Docusaurus path.
 
-### 3.4. Build Destinations (`site.build_dest`, `site.build_dest_dev`)
+### 3.4. Publish Destinations (`site.publish`, `site.publish_dev`)
 
 Specify where the built Docusaurus site should be deployed. This typically involves an SSH connection defined elsewhere (e.g., `!!site.ssh_connection`).
 
 **HeroScript Example:**
 
 ```heroscript
-!!site.build_dest
+!!site.publish
     ssh_name:"production_server" // Name of a pre-defined SSH connection
-    path:"/var/www/my-ebook" // Remote path on the server
+    path:"/var/www/my-ebook"     // Remote path on the server
 
-!!site.build_dest_dev
+!!site.publish_dev
     ssh_name:"dev_server"
     path:"/tmp/dev-ebook"
 ```
@@ -219,7 +252,7 @@ This powerful feature allows you to pull markdown content and assets from other 
 
 ```heroscript
 !!site.import
-    url:'https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/collections/cloud_reinvented'
+    url:'https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections/cloud_reinvented'
     dest:'cloud_reinvented' // Destination subdirectory within your Docusaurus docs folder
     replace:'NAME:MyName, URGENCY:red' // Optional: comma-separated key:value pairs for text replacement
 ```
@@ -238,49 +271,60 @@ This is where you define the actual content pages and how they are organized int
 
 ```heroscript
 // Define a category
-!!site.page_category path:'introduction' label:"Introduction to Ebook" position:10
+!!site.page_category name:'introduction' label:"Introduction to Ebook"
 
-// Define a page within that category, linking to Doctree content
-!!site.page path:'introduction' src:"my_doctree_collection:chapter_1_overview"
+// Define pages - first page specifies collection, subsequent pages reuse it
+!!site.page src:"my_collection:chapter_1_overview"
     title:"Chapter 1: Overview"
     description:"A brief introduction to the ebook's content."
-    position:1 // Order within the category
-    hide_title:true // Hide the title on the page itself
+
+!!site.page src:"chapter_2_basics"
+    title:"Chapter 2: Basics"
+
+// New category with new collection
+!!site.page_category name:'advanced' label:"Advanced Topics"
+
+!!site.page src:"advanced_collection:performance"
+    title:"Performance Tuning"
+    hide_title:true
 ```
 
 **Arguments:**
 
 * **`site.page_category`**:
-  * `path` (string, required): The path to the category directory within your Docusaurus `docs` folder (e.g., `introduction` will create `docs/introduction/_category_.json`).
+  * `name` (string, required): Category identifier (used internally).
   * `label` (string, required): The display name for the category in the sidebar.
-  * `position` (int, optional): The order of the category in the sidebar.
-  * `sitename` (string, optional): If you have multiple Docusaurus sites defined, specify which site this category belongs to. Defaults to the current site's name.
+  * `position` (int, optional): The order of the category in the sidebar (auto-incremented if omitted).
 * **`site.page`**:
-  * `src` (string, required): **Crucial for Doctree integration.** This specifies the source of the page content in the format `collection_name:page_name`. HeroLib will fetch the markdown content from the specified Doctree collection and page.
-  * `path` (string, required): The relative path and filename for the generated markdown file within your Docusaurus `docs` folder (e.g., `introduction/chapter_1.md`). If only a directory is provided (e.g., `introduction/`), the `page_name` from `src` will be used as the filename.
-  * `title` (string, optional): The title of the page. If not provided, HeroLib will attempt to extract it from the markdown content or use the `page_name`.
+  * `src` (string, required): **Crucial for DocTree/collection integration.** Format: `collection_name:page_name` for the first page, or just `page_name` to reuse the previous collection.
+  * `title` (string, optional): The title of the page. If not provided, HeroLib extracts it from the markdown `# Heading` or uses the page name.
   * `description` (string, optional): A short description for the page, used in frontmatter.
-  * `position` (int, optional): The order of the page within its category.
   * `hide_title` (boolean, optional): If `true`, the title will not be displayed on the page itself.
-  * `draft` (boolean, optional): If `true`, the page will be marked as a draft and not included in production builds.
-  * `title_nr` (int, optional): If set, HeroLib will re-number the markdown headings (e.g., `title_nr:3` will make `# Heading` become `### Heading`). Useful for consistent heading levels across imported content.
+  * `draft` (boolean, optional): If `true`, the page will be hidden from navigation.
 
-### 3.7. Doctree Integration Details
+### 3.7. Collections and DocTree/Doctree Integration
 
-The `site.page` directive's `src` parameter (`collection_name:page_name`) is the bridge to your Doctree content.
+The `site.page` directive's `src` parameter (`collection_name:page_name`) is the bridge to your content collections.
 
-**How Doctree Works:**
+**Current default: DocTree export**
+
+1. **Collections**: DocTree exports markdown files into collections under an `export_dir` (see `lib/data/doctree/client`).
+2. **Export step**: A separate process (DocTree) writes the collections into `doctree_dir` (e.g., `/tmp/doctree_export`), following the `content/` + `meta/` structure.
+3. **Docusaurus consumption**: The Docusaurus module uses the DocTree client (`doctree_client`) to resolve `collection_name:page_name` into markdown content and assets when generating docs.
+
+**Alternative: Doctree/`doctreeclient`**
+
+In older setups, or when explicitly configured, Doctree and `doctreeclient` can still be used to provide the same `collection:page` model:
 
 1. **Collections**: Doctree organizes markdown files into logical groups called "collections." A collection is typically a directory containing markdown files and an empty `.collection` file.
-2. **Scanning**: You define which collections Doctree should scan using `!!doctree.scan` in a HeroScript file (e.g., `doctree.heroscript`).
-    **Example `doctree.heroscript`:**
+2. **Scanning**: You define which collections Doctree should scan using `!!doctree.scan` in a HeroScript file (e.g., `doctree.heroscript`):
 
     ```heroscript
-    !!doctree.scan git_url:"https://git.threefold.info/tfgrid/docs_tfgrid4/src/branch/main/collections"
+    !!doctree.scan git_url:"https://git.ourworld.tf/tfgrid/docs_tfgrid4/src/branch/main/collections"
     ```
 
     This will pull the `collections` directory from the specified Git URL and make its contents available to Doctree.
-3. **Page Retrieval**: When `site.page` references `src:"my_collection:my_page"`, HeroLib's `doctreeclient` fetches the content of `my_page.md` from the `my_collection` collection that Doctree has scanned.
+3. **Page Retrieval**: When `site.page` references `src:"my_collection:my_page"`, the client (`doctree_client` or `doctreeclient`, depending on configuration) fetches the content of `my_page.md` from the `my_collection` collection.
 
 ## 4. Building and Developing Your Ebook
 

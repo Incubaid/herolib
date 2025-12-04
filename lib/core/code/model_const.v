@@ -1,6 +1,7 @@
 module code
 
 pub struct Const {
+pub mut:
 	name  string
 	value string
 }
@@ -10,8 +11,13 @@ pub fn parse_const(code_ string) !Const {
 	if !code.contains('=') {
 		return error('code <${code_}> is not of const')
 	}
+	mut name := code.split('=')[0].trim_space()
+	// Strip 'const ' prefix if present
+	if name.starts_with('const ') {
+		name = name.trim_string_left('const ').trim_space()
+	}
 	return Const{
-		name:  code.split('=')[0].trim_space()
+		name:  name
 		value: code.split('=')[1].trim_space()
 	}
 }

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: @{config_values.namespace}
+---
+apiVersion: ingress.grid.tf/v1
+kind: TFGW
+metadata:
+  name: gitea
+  namespace: @{config_values.namespace}
+spec:
+  hostname: "@{config_values.hostname}"
+  backends: 
+@{config_values.backends}
+

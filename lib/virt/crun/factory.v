@@ -149,19 +149,19 @@ pub fn (mut config CrunConfig) set_hostname(hostname string) &CrunConfig {
 }
 
 pub fn (mut config CrunConfig) set_memory_limit(limit_bytes u64) &CrunConfig {
-	config.spec.linux.resources.memory.limit = limit_bytes
+	config.spec.linux_config.resources.memory.limit = limit_bytes
 	return config
 }
 
 pub fn (mut config CrunConfig) set_cpu_limits(period u64, quota i64, shares u64) &CrunConfig {
-	config.spec.linux.resources.cpu.period = period
-	config.spec.linux.resources.cpu.quota = quota
-	config.spec.linux.resources.cpu.shares = shares
+	config.spec.linux_config.resources.cpu.period = period
+	config.spec.linux_config.resources.cpu.quota = quota
+	config.spec.linux_config.resources.cpu.shares = shares
 	return config
 }
 
 pub fn (mut config CrunConfig) set_pids_limit(limit i64) &CrunConfig {
-	config.spec.linux.resources.pids.limit = limit
+	config.spec.linux_config.resources.pids.limit = limit
 	return config
 }
 
@@ -222,15 +222,15 @@ pub fn (mut config CrunConfig) set_terminal(value bool) &CrunConfig {
 }
 
 pub fn (mut config CrunConfig) add_masked_path(path string) &CrunConfig {
-	if path !in config.spec.linux.masked_paths {
-		config.spec.linux.masked_paths << path
+	if path !in config.spec.linux_config.masked_paths {
+		config.spec.linux_config.masked_paths << path
 	}
 	return config
 }
 
 pub fn (mut config CrunConfig) add_readonly_path(path string) &CrunConfig {
-	if path !in config.spec.linux.readonly_paths {
-		config.spec.linux.readonly_paths << path
+	if path !in config.spec.linux_config.readonly_paths {
+		config.spec.linux_config.readonly_paths << path
 	}
 	return config
 }
@@ -293,7 +293,7 @@ fn create_default_spec() Spec {
 		}
 		hostname:    'container'
 		mounts:      create_default_mounts()
-		linux:       Linux{
+		linux_config:       LinuxConfig{
 			namespaces:     create_default_namespaces()
 			masked_paths:   [
 				'/proc/acpi',

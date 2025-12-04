@@ -11,7 +11,7 @@ pub fn play_ssh(mut plbook PlayBook) ! {
 	}
 
 	// Get or create a single SSH agent instance
-	mut agent := sshagent.new_single(sshagent.SSHAgentNewArgs{})!
+	    _ := sshagent.new_single(sshagent.SSHAgentNewArgs{})!
 
 	// TO IMPLEMENT:
 
