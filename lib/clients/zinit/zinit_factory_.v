@@ -17,11 +17,13 @@ pub mut:
 	name   string = 'default'
 	fromdb bool // will load from filesystem
 	create bool // default will not create if not exist
+	socket_path  string
 }
 
 pub fn new(args ArgsGet) !&ZinitRPC {
 	mut obj := ZinitRPC{
 		name: args.name
+		socket_path: args.socket_path
 	}
 	set(obj)!
 	return get(name: args.name)!
