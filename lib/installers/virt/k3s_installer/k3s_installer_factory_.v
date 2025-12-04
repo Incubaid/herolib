@@ -315,14 +315,14 @@ pub fn (self &K3SInstaller) installed() !bool {
 	return installed()!
 }
 
-pub fn (mut self KubectlInstaller) install(args InstallArgs) ! {
+pub fn (mut self K3SInstaller) install(args InstallArgs) ! {
 	switch(self.name)
 	if args.reset || (!installed()!) {
 		install()!
 	}
 }
 
-pub fn (mut self KubectlInstaller) destroy() ! {
+pub fn (mut self K3SInstaller) destroy() ! {
 	switch(self.name)
 	destroy()!
 }

@@ -338,10 +338,6 @@ fn install() ! {
 	return error('Use install_master, join_master, or install_worker instead of generic install')
 }
 
-fn (mut self K3SInstaller) install(args InstallArgs) ! {
-	return error('Use install_master, join_master, or install_worker instead of generic install')
-}
-
 @[params]
 pub struct InstallArgs {
 pub mut:
@@ -353,11 +349,6 @@ fn (mut self K3SInstaller) build() ! {
 }
 
 //////////////////// CLEANUP ////////////////////
-
-fn (mut self K3SInstaller) destroy() ! {
-	destroy()!
-}
-
 fn destroy() ! {
 	console.print_header('Destroying K3s installation')
 
