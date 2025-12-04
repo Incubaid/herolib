@@ -12,8 +12,6 @@ const default = true
 pub struct KubectlInstaller {
 pub mut:
 	name string = 'default'
-	// kubectl version to install
-	kubectl_version string = version
 }
 
 // your checking & initialization code if needed

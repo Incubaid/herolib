@@ -126,33 +126,20 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut install_actions := plbook.find(filter: 'kubectl_installer.configure')!
 	if install_actions.len > 0 {
-		for mut install_action in install_actions {
-			heroscript := install_action.heroscript()
-			mut obj2 := heroscript_loads(heroscript)!
-			set(obj2)!
-			install_action.done = true
-		}
+		return error("can't configure kubectl_installer, because no configuration allowed for this installer.")
 	}
 	mut other_actions := plbook.find(filter: 'kubectl_installer.')!
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
-			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
-			mut kubectl_installer_obj := get(name: name)!
-			console.print_debug('action object:\n${kubectl_installer_obj}')
-
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action kubectl_installer.destroy')
-				kubectl_installer_obj.destroy()!
+				destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action kubectl_installer.install')
-				kubectl_installer_obj.install(reset: reset)!
-			}
-			if other_action.name == 'build' {
-				console.print_debug('install action kubectl_installer.build')
-				kubectl_installer_obj.build()!
+				install()!
 			}
 		}
 		other_action.done = true
@@ -167,6 +154,18 @@ pub fn play(mut plbook PlayBook) ! {
 pub fn (mut self KubectlInstaller) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
+}
+
+pub fn (mut self KubectlInstaller) install(args InstallArgs) ! {
+	switch(self.name)
+	if args.reset || (!installed()!) {
+		install()!
+	}
+}
+
+pub fn (mut self KubectlInstaller) destroy() ! {
+	switch(self.name)
+	destroy()!
 }
 
 // switch instance to be used for kubectl_installer

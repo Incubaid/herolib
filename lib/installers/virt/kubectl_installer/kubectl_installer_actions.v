@@ -3,11 +3,10 @@ module kubectl_installer
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
 import incubaid.herolib.installers.ulist
-
-//////////////////// INSTALLATION ACTIONS ////////////////////
+import incubaid.herolib.core
 
 // checks if kubectl is installed
-fn (self &KubectlInstaller) installed() !bool {
+fn installed() !bool {
 	return osal.cmd_exists('kubectl')
 }
 
@@ -27,8 +26,8 @@ pub mut:
 	reset bool
 }
 
-fn (mut self KubectlInstaller) install(args InstallArgs) ! {
-	console.print_header('Installing kubectl ${self.kubectl_version}...')
+fn install(args InstallArgs) ! {
+	console.print_header('Installing kubectl')
 
 	// Check if already installed and reset not requested
 	if !args.reset && osal.cmd_exists('kubectl') {
@@ -36,8 +35,19 @@ fn (mut self KubectlInstaller) install(args InstallArgs) ! {
 		return
 	}
 
-	// Download kubectl binary
-	kubectl_url := 'https://dl.k8s.io/release/${self.kubectl_version}/bin/linux/amd64/kubectl'
+	// Determine the correct URL based on platform
+	mut kubectl_url := ''
+	if core.is_linux_arm()! {
+		kubectl_url = 'https://dl.k8s.io/release/${version}/bin/linux/arm64/kubectl'
+	} else if core.is_linux_intel()! {
+		kubectl_url = 'https://dl.k8s.io/release/${version}/bin/linux/amd64/kubectl'
+	} else if core.is_osx_arm()! {
+		kubectl_url = 'https://dl.k8s.io/release/${version}/bin/darwin/arm64/kubectl'
+	} else if core.is_osx_intel()! {
+		kubectl_url = 'https://dl.k8s.io/release/${version}/bin/darwin/amd64/kubectl'
+	} else {
+		return error('unsupported platform')
+	}
 
 	osal.download(
 		url:  kubectl_url
@@ -51,10 +61,10 @@ fn (mut self KubectlInstaller) install(args InstallArgs) ! {
 		source:  '/tmp/kubectl'
 	)!
 
-	console.print_header('kubectl ${self.kubectl_version} installed successfully')
+	console.print_header('kubectl ${version} installed successfully')
 }
 
-fn (mut self KubectlInstaller) destroy() ! {
+fn destroy() ! {
 	console.print_header('Removing kubectl...')
 
 	// Remove kubectl binary
