@@ -1,5 +1,7 @@
 module model
 
+import x.json2
+
 @[params]
 pub struct FarmFilter {
 pub mut:
@@ -146,35 +148,61 @@ pub fn (f TwinFilter) to_map() map[string]string {
 	return to_map(f)
 }
 
+// to_map converts any struct to map[string]string using JSON as intermediary.
+// This properly handles Option types by leveraging V's built-in JSON encoder
+// which correctly serializes ?T as either the value or null.
 pub fn to_map[T](t T) map[string]string {
 	mut m := map[string]string{}
-	$for field in T.fields {
-		value := t.$(field.name)
-		$if value is $option {
-			opt := t.$(field.name)
-			if opt != none {
-				// NOTE: for some reason when passing the value to another function
-				// it is not recognized as an Option and is dereferenced
-				encode_val(field.name, value, mut m)
-			}
-		}
 
-		$if value !is $option {
-			encode_val(field.name, value, mut m)
+	// Use JSON encoding which properly handles Option types
+	encoded := json2.encode(t)
+	json_map := json2.decode[json2.Any](encoded) or { return m }.as_map()
+
+	for key, val in json_map {
+		match val {
+			json2.Null {
+				// Skip null/none values - don't include in query params
+				continue
+			}
+			[]json2.Any {
+				// Handle arrays: join elements with comma
+				if val.len > 0 {
+					m[key] = val.map(|it| any_to_string(it)).join(',')
+				}
+			}
+			else {
+				str_val := any_to_string(val)
+				if str_val.len > 0 {
+					m[key] = str_val
+				}
+			}
 		}
 	}
 	return m
 }
 
-fn encode_val[T](field_name string, val T, mut m map[string]string) {
-	$if T is $array {
-		mut arr := []string{}
-		for a in val {
-			arr << a.str()
+// any_to_string converts a json2.Any value to a string suitable for query parameters.
+// Handles numbers specially to avoid scientific notation.
+fn any_to_string(val json2.Any) string {
+	match val {
+		i64 {
+			return val.str()
 		}
-
-		m[field_name] = arr.join(',')
-	} $else {
-		m[field_name] = val.str()
+		f64 {
+			// Check if it's actually an integer (no fractional part)
+			if val == f64(i64(val)) {
+				return i64(val).str()
+			}
+			return val.str()
+		}
+		bool {
+			return val.str()
+		}
+		string {
+			return val
+		}
+		else {
+			return val.str().trim('"')
+		}
 	}
 }
