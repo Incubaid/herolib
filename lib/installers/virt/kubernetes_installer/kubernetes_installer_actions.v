@@ -101,7 +101,7 @@ fn check_ubuntu() ! {
 //////////////////// DEPENDENCY INSTALLATION ////////////////////
 
 fn install_deps(k3s_version string) ! {
-	console.print_header('Installing dependencies...')
+	console.print_header('Installing K3s dependencies...')
 
 	// Check and install curl
 	if !osal.cmd_exists('curl') {
@@ -133,32 +133,13 @@ fn install_deps(k3s_version string) ! {
 		)!
 	}
 
-	// Install kubectl
-	if !osal.cmd_exists('kubectl') {
-		console.print_header('Installing kubectl...')
-		// Extract version number from k3s_version (e.g., v1.33.1)
-		kubectl_version := k3s_version
-		kubectl_url := 'https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl'
-
-		osal.download(
-			url:  kubectl_url
-			dest: '/tmp/kubectl'
-		)!
-
-		osal.exec(cmd: 'chmod +x /tmp/kubectl')!
-		osal.cmd_add(
-			cmdname: 'kubectl'
-			source:  '/tmp/kubectl'
-		)!
-	}
-
-	console.print_header('All dependencies installed successfully')
+	console.print_header('K3s dependencies installed successfully')
 }
 
 //////////////////// INSTALLATION ACTIONS ////////////////////
 
 fn installed() !bool {
-	return osal.cmd_exists('k3s') && osal.cmd_exists('kubectl')
+	return osal.cmd_exists('k3s')
 }
 
 // Install first master node
