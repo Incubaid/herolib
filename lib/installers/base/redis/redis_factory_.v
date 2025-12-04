@@ -136,28 +136,25 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut other_actions := plbook.find(filter: 'redis.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install', 'build'] {
+		if other_action.name in ['destroy', 'install', 'start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
+			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
+			mut redis_obj := get(name: name)!
+			console.print_debug('action object:\n${redis_obj}')
+			
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action redis.destroy')
-				destroy()!
+				redis_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action redis.install')
-				install()!
+				redis_obj.install(reset: reset)!
 			}
-		}
-		if other_action.name in ['start', 'stop', 'restart'] {
-			mut p := other_action.params
-			name := p.get('name')!
-			mut redis_obj := get(name: name)!
-			console.print_debug('action object:\n${redis_obj}')
 			if other_action.name == 'start' {
 				console.print_debug('install action redis.${other_action.name}')
 				redis_obj.start()!
 			}
-
 			if other_action.name == 'stop' {
 				console.print_debug('install action redis.${other_action.name}')
 				redis_obj.stop()!
@@ -165,6 +162,22 @@ pub fn play(mut plbook PlayBook) ! {
 			if other_action.name == 'restart' {
 				console.print_debug('install action redis.${other_action.name}')
 				redis_obj.restart()!
+			}
+			if other_action.name == 'start_pre' {
+				console.print_debug('install action redis.${other_action.name}')
+				redis_obj.start_pre()!
+			}
+			if other_action.name == 'start_post' {
+				console.print_debug('install action redis.${other_action.name}')
+				redis_obj.start_post()!
+			}
+			if other_action.name == 'stop_pre' {
+				console.print_debug('install action redis.${other_action.name}')
+				redis_obj.stop_pre()!
+			}
+			if other_action.name == 'stop_post' {
+				console.print_debug('install action redis.${other_action.name}')
+				redis_obj.stop_post()!
 			}
 		}
 		other_action.done = true
@@ -215,15 +228,13 @@ pub fn (mut self RedisInstall) start() ! {
 
 	console.print_header('installer: redis start')
 
-	if !installed()! {
-		install()!
+	if !self.installed()! {
+		self.install()!
 	}
 
-	configure()!
+	self.start_pre()!
 
-	start_pre()!
-
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: redis starting with ${zprocess.startuptype}...')
@@ -233,7 +244,7 @@ pub fn (mut self RedisInstall) start() ! {
 		sm.start(zprocess.name)!
 	}
 
-	start_post()!
+	self.start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -252,12 +263,12 @@ pub fn (mut self RedisInstall) install_start(args InstallArgs) ! {
 
 pub fn (mut self RedisInstall) stop() ! {
 	switch(self.name)
-	stop_pre()!
-	for zprocess in startupcmd()! {
+	self.stop_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.stop(zprocess.name)!
 	}
-	stop_post()!
+	self.stop_post()!
 }
 
 pub fn (mut self RedisInstall) restart() ! {
@@ -270,7 +281,7 @@ pub fn (mut self RedisInstall) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		if zprocess.startuptype != .screen {
 			mut sm := startupmanager_get(zprocess.startuptype)!
 			r := sm.running(zprocess.name)!
@@ -279,27 +290,9 @@ pub fn (mut self RedisInstall) running() !bool {
 			}
 		}
 	}
-	return running()!
+	return self.running_check()!
 }
 
-@[params]
-pub struct InstallArgs {
-pub mut:
-	reset bool
-}
-
-pub fn (mut self RedisInstall) install(args InstallArgs) ! {
-	switch(self.name)
-	if args.reset || (!installed()!) {
-		install()!
-	}
-}
-
-pub fn (mut self RedisInstall) destroy() ! {
-	switch(self.name)
-	self.stop() or {}
-	destroy()!
-}
 
 // switch instance to be used for redis
 pub fn switch(name string) {

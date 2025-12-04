@@ -18,6 +18,7 @@ import incubaid.herolib.installers.horus.supervisor
 import incubaid.herolib.installers.horus.herorunner
 import incubaid.herolib.installers.horus.osirisrunner
 import incubaid.herolib.installers.horus.salrunner
+import incubaid.herolib.clients.namecomclient
 
 // -------------------------------------------------------------------
 // run – entry point for all HeroScript play‑commands
@@ -73,6 +74,7 @@ pub fn run(args_ PlayArgs) ! {
 	vlang.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
+	namecomclient.play(mut plbook)!
 
 	// Horus
 	coordinator.play(mut plbook)!
