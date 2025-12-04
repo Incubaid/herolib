@@ -56,6 +56,19 @@ Create or update a DNS record. If a record with the same host and type exists, i
     ttl: 300
 ```
 
+### A Record with Current Machine IP
+
+Use keywords like `thismachine`, `thisvm`, `device`, `machine`, or `current` to automatically use the current machine's IP address:
+
+```hero
+!!namecomclient.record_set
+    domain: 'example.com'
+    host: 'myserver'
+    type: 'A'
+    answer: 'thismachine'
+    ttl: 300
+```
+
 ### Apex/Root A Record
 
 For apex records (root domain), use empty host or '@':
@@ -163,7 +176,7 @@ This example shows a complete workflow to configure the client and set an A reco
 | `domain` | string | required | Domain name (e.g., 'example.com') |
 | `host` | string | '' | Hostname relative to domain (e.g., 'www', 'api', '' for apex) |
 | `type` | string | 'A' | Record type: A, AAAA, ANAME, CNAME, MX, NS, SRV, TXT |
-| `answer` | string | required | IP address or target depending on record type |
+| `answer` | string | required | IP address, target, or keyword (`thismachine`, `thisvm`, `device`, `machine`, `current`) |
 | `ttl` | u32 | 300 | Time to live in seconds (minimum 300) |
 | `priority` | u32 | 0 | Priority for MX and SRV records |
 

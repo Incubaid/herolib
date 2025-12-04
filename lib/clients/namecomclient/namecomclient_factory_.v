@@ -3,6 +3,7 @@ module namecomclient
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.ui.console
+import incubaid.herolib.osal.ipaddr
 import json
 
 __global (
@@ -165,7 +166,9 @@ pub fn play(mut plbook PlayBook) ! {
 				domain := p.get('domain')!
 				host := p.get_default('host', '')!
 				record_type := p.get_default('type', 'A')!
-				answer := p.get('answer')!
+				answer_raw := p.get('answer')!
+				// Resolve IP if keyword like 'thismachine', 'thisvm', 'device', 'machine', 'current'
+				answer := ipaddr.get_or_resolve(answer_raw)!
 				ttl := p.get_u32_default('ttl', 300)!
 				priority := p.get_u32_default('priority', 0)!
 

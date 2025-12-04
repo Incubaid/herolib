@@ -140,6 +140,16 @@ The client supports the following HeroScript actions:
     priority: 0
 ```
 
+Use keywords `thismachine`, `thisvm`, `device`, `machine`, or `current` to auto-detect the current machine's IP:
+
+```hero
+!!namecomclient.record_set
+    domain: 'example.com'
+    host: 'myserver'
+    type: 'A'
+    answer: 'thismachine'
+```
+
 ### Delete DNS Record
 
 ```hero
