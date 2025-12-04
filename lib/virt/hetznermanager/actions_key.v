@@ -1,6 +1,7 @@
 module hetznermanager
 
 import incubaid.herolib.core.texttools
+import incubaid.herolib.ui.console
 
 pub struct SSHKey {
 pub mut:
@@ -75,4 +76,39 @@ pub fn (mut h HetznerManager) key_delete(name string) ! {
 		prefix:     'key/${key.fingerprint}'
 		dataformat: .urlencoded
 	)!
+}
+
+// Get SSH keys based on the sshkey specification mode:
+// - '*': returns all keys registered on Hetzner
+// - any other value: returns the key with that name (e.g., "kristof", "mahmoud")
+pub fn (mut h HetznerManager) get_keys_for_rescue() ![]SSHKey {
+	if h.sshkey == '*' {
+		// Return all keys registered on Hetzner
+		keys := h.keys_get()!
+		if keys.len == 0 {
+			return error('No SSH keys registered on Hetzner account')
+		}
+		console.print_debug('Using all ${keys.len} SSH keys from Hetzner')
+		return keys
+	} else {
+		// Use the specified key name
+		if !h.key_exists(h.sshkey) {
+			return error('SSH key "${h.sshkey}" not found on Hetzner. Available keys: ${h.keys_get()!.map(it.name).join(', ')}')
+		}
+		key := h.key_get(h.sshkey)!
+		console.print_debug('Using SSH key "${h.sshkey}" from Hetzner')
+		return [key]
+	}
+}
+
+// Get all public key data for the specified keys (for copying to authorized_keys)
+pub fn (mut h HetznerManager) get_pubkeys_data() ![]string {
+	keys := h.get_keys_for_rescue()!
+	mut pubkeys := []string{}
+	for key in keys {
+		if key.data.len > 0 {
+			pubkeys << key.data
+		}
+	}
+	return pubkeys
 }

@@ -83,18 +83,23 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 	if serverinfo.rescue == false || args.reset {
 		console.print_header('server ${serverinfo.server_name} goes into rescue mode')
 
-		mykey := h.key_get(h.sshkey)!
-		mykeyfp := mykey.fingerprint
+		// Get SSH keys based on sshkey mode ('*', 'default', or specific key name)
+		keys := h.get_keys_for_rescue()!
 
-		// println("Using SSH key fingerprint: ${mykey} ${mykeyfp}")
+		// Build URL-encoded data with multiple authorized_key[] parameters
+		// Hetzner API expects: authorized_key[]=fp1&authorized_key[]=fp2&...
+		mut data_parts := ['os=linux']
+		for key in keys {
+			data_parts << 'authorized_key[]=${key.fingerprint}'
+		}
+		post_data := data_parts.join('&')
+
+		console.print_debug('Using ${keys.len} SSH key(s) for rescue mode')
 
 		mut conn := h.connection()!
 		rescue := conn.post_json_generic[RescueInfo](
 			prefix:     'boot/${serverinfo.server_number}/rescue'
-			params:     {
-				'os':             'linux'
-				'authorized_key': mykeyfp
-			}
+			data:       post_data
 			dict_key:   'rescue'
 			dataformat: .urlencoded
 		)!
@@ -184,9 +189,9 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 		wait: true
 	)!
 
-	// Get the SSH key data to copy to the installed system
-	mykey := h.key_get(h.sshkey)!
-	ssh_pubkey := mykey.data
+	// Get all SSH public keys to copy to the installed system
+	pubkeys := h.get_pubkeys_data()!
+	ssh_pubkeys := pubkeys.join('\n')
 
 	mut b := builder.new()!
 	mut n := b.node_new(ipaddr: serverinfo.server_ip)!
@@ -225,14 +230,16 @@ if ! /root/.oldroot/nfs/install/installimage -a -n "${args.name}" ${rstr} -i /ro
 	exit 1
 fi
 
-# Copy SSH key to the installed system before rebooting
+# Copy SSH keys to the installed system before rebooting
 # After installimage, the new system is mounted at /mnt
-echo "Copying SSH key to installed system..."
+echo "Copying SSH keys to installed system..."
 mkdir -p /mnt/root/.ssh
 chmod 700 /mnt/root/.ssh
-echo "${ssh_pubkey}" > /mnt/root/.ssh/authorized_keys
+cat > /mnt/root/.ssh/authorized_keys << "EOF_SSH_KEYS"
+${ssh_pubkeys}
+EOF_SSH_KEYS
 chmod 600 /mnt/root/.ssh/authorized_keys
-echo "SSH key copied successfully"
+echo "SSH keys copied successfully"
 
 # Mark installation as complete before rebooting
 # sync to ensure marker file is written to disk before reboot
