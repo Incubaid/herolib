@@ -3,7 +3,7 @@ module model
 import time { Time }
 import math { floor, pow10 }
 
-type ByteUnit = u64
+pub type ByteUnit = u64
 
 pub fn (u ByteUnit) to_megabytes() f64 {
 	return f64(u) / 1e+6
@@ -29,7 +29,7 @@ pub fn (u ByteUnit) str() string {
 }
 
 // SecondUnit represents a duration in seconds
-type SecondUnit = u64
+pub type SecondUnit = u64
 
 pub fn (u SecondUnit) to_minutes() f64 {
 	return f64(u) / 60
@@ -66,7 +66,7 @@ pub fn (u SecondUnit) str() string {
 }
 
 // UnixTime represent time in seconds since epoch (timestamp)
-type UnixTime = u64
+pub type UnixTime = u64
 
 pub fn (t UnixTime) to_time() Time {
 	return time.unix(t)
@@ -78,7 +78,7 @@ pub fn (t UnixTime) str() string {
 
 // this is the smallest unit used to calculate the billing and and the one natively fetched from the API
 // 1 TFT = 10_000_000 drops = 1_000 mTFT = 1_000_000 uTFT
-type DropTFTUnit = u64
+pub type DropTFTUnit = u64
 
 pub fn (t DropTFTUnit) to_tft() f64 {
 	return f64(t) / pow10(7) // 1 TFT = 10_000_000 drops
