@@ -33,7 +33,7 @@ fn delete_vm() ! {
 	// griddriver_installer.install()!
 
 	deployer.get(create: true)!
-	deployer.delete_deployment(name: deployment_name)!
+	deployer.delete_deployment(deployment_name)!
 }
 
 fn main() {
