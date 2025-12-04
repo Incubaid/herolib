@@ -27,8 +27,8 @@ if k3s.installed()! {
 // SECTION 1: Install as First Master Node
 // ============================================================================
 // This initializes a new K3s cluster with this node as the first master
-// k3s.install_master()!
-// k3s.start()!
+k3s.install_master()!
+k3s.start()!
 
 // ============================================================================
 // SECTION 2: Join as Additional Master (HA)
