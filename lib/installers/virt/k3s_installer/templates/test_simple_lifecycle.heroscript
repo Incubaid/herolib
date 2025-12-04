@@ -13,12 +13,12 @@ console.print_header('='*.repeat(80))
 console.print_header('\n📦 PHASE 1: Installing K3s Master')
 
 install_script := '
-!!kubernetes_installer.configure
+!!k3s_installer.configure
     name:"k3s_test"
     node_name:"test-master"
 
-!!kubernetes_installer.install_master name:"k3s_test"
-!!kubernetes_installer.start name:"k3s_test"
+!!k3s_installer.install_master name:"k3s_test"
+!!k3s_installer.start name:"k3s_test"
 '
 
 playcmds.run(heroscript: install_script)!
@@ -30,10 +30,10 @@ console.print_header('✅ Installation completed!')
 console.print_header('\n🧹 PHASE 2: Uninstalling K3s')
 
 uninstall_script := '
-!!kubernetes_installer.configure
+!!k3s_installer.configure
     name:"k3s_test"
 
-!!kubernetes_installer.destroy name:"k3s_test"
+!!k3s_installer.destroy name:"k3s_test"
 '
 
 playcmds.run(heroscript: uninstall_script)!
@@ -42,3 +42,4 @@ console.print_header('✅ Uninstallation completed!')
 console.print_header('\n' + '='.repeat(80))
 console.print_header('✅ FULL LIFECYCLE TEST COMPLETED!')
 console.print_header('='.repeat(80))
+

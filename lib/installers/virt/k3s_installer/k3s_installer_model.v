@@ -1,7 +1,8 @@
-module kubernetes_installer
+module k3s_installer
 
 import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
+import incubaid.herolib.core.pathlib
 import os
 import rand
 
@@ -11,7 +12,7 @@ const default = true
 
 // K3s installer - handles K3s cluster installation with Mycelium IPv6 networking
 @[heap]
-pub struct KubernetesInstaller {
+pub struct K3SInstaller {
 pub mut:
 	name               string = 'default'
 	// K3s version to install
@@ -35,9 +36,9 @@ pub mut:
 }
 
 // your checking & initialization code if needed
-fn obj_init(mycfg_ KubernetesInstaller) !KubernetesInstaller {
+fn obj_init(mycfg_ K3SInstaller) !K3SInstaller {
 	mut mycfg := mycfg_
-	
+
 	// Set default data directory if not provided
 	if mycfg.data_dir == '' {
 		mycfg.data_dir = os.join_path(os.home_dir(), 'hero/var/k3s')
@@ -72,12 +73,12 @@ fn obj_init(mycfg_ KubernetesInstaller) !KubernetesInstaller {
 }
 
 // Get path to kubeconfig file
-pub fn (self &KubernetesInstaller) kubeconfig_path() string {
+pub fn (self &K3SInstaller) kubeconfig_path() string {
 	return '${self.data_dir}/server/cred/admin.kubeconfig'
 }
 
 // Get Mycelium IPv6 address from interface
-pub fn (self &KubernetesInstaller) get_mycelium_ipv6() !string {
+pub fn (self &K3SInstaller) get_mycelium_ipv6() !string {
 	// If node_ip is already set, use it
 	if self.node_ip != '' {
 		return self.node_ip
@@ -89,29 +90,52 @@ pub fn (self &KubernetesInstaller) get_mycelium_ipv6() !string {
 
 // Auto-detect Mycelium interface by finding 400::/7 route
 fn detect_mycelium_interface() !string {
-	// Find all 400::/7 routes
-	route_result := osal.exec(
-		cmd:         'ip -6 route | grep "^400::/7"'
-		stdout:      false
-		raise_error: false
-	)!
+	// Check if we're on macOS or Linux
+	$if macos {
+		// On macOS, use netstat to find the route
+		route_result := osal.exec(
+			cmd:         'netstat -rn -f inet6 | grep -E "^4[0-9a-f]{2,3}:" | head -1'
+			stdout:      false
+			raise_error: false
+		)!
 
-	if route_result.exit_code != 0 || route_result.output.trim_space() == '' {
-		return error('No Mycelium interface found (no 400::/7 route detected). Please ensure Mycelium is installed and running.')
-	}
+		if route_result.exit_code != 0 || route_result.output.trim_space() == '' {
+			return error('No Mycelium interface found on macOS. Please ensure Mycelium is installed and running.')
+		}
 
-	// Parse interface name from route (format: "400::/7 dev <interface> ...")
-	route_line := route_result.output.trim_space()
-	parts := route_line.split(' ')
-	
-	for i, part in parts {
-		if part == 'dev' && i + 1 < parts.len {
-			iface := parts[i + 1]
+		// Parse interface name from netstat output (last column)
+		route_line := route_result.output.trim_space()
+		parts := route_line.split_any(' \t').filter(it.len > 0)
+		if parts.len > 0 {
+			iface := parts[parts.len - 1]
 			return iface
 		}
-	}
+		return error('Could not parse Mycelium interface from netstat output: ${route_line}')
+	} $else {
+		// Find all 400::/7 routes on Linux
+		route_result := osal.exec(
+			cmd:         'ip -6 route | grep "^400::/7"'
+			stdout:      false
+			raise_error: false
+		)!
 
-	return error('Could not parse Mycelium interface from route output: ${route_line}')
+		if route_result.exit_code != 0 || route_result.output.trim_space() == '' {
+			return error('No Mycelium interface found (no 400::/7 route detected). Please ensure Mycelium is installed and running.')
+		}
+
+		// Parse interface name from route (format: "400::/7 dev <interface> ...")
+		route_line := route_result.output.trim_space()
+		parts := route_line.split(' ')
+
+		for i, part in parts {
+			if part == 'dev' && i + 1 < parts.len {
+				iface := parts[i + 1]
+				return iface
+			}
+		}
+
+		return error('Could not parse Mycelium interface from route output: ${route_line}')
+	}
 }
 
 // Helper function to detect Mycelium IPv6 from interface
@@ -134,7 +158,7 @@ fn get_mycelium_ipv6_from_interface(iface string) !string {
 	)!
 
 	ipv6_list := addr_result.output.split_into_lines()
-	
+
 	// Check if route has a next-hop (via keyword)
 	parts := route_line.split(' ')
 	mut nexthop := ''
@@ -202,11 +226,11 @@ fn configure() ! {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_dumps(obj KubernetesInstaller) !string {
-	return encoderhero.encode[KubernetesInstaller](obj)!
+pub fn heroscript_dumps(obj K3SInstaller) !string {
+	return encoderhero.encode[K3SInstaller](obj)!
 }
 
-pub fn heroscript_loads(heroscript string) !KubernetesInstaller {
-	mut obj := encoderhero.decode[KubernetesInstaller](heroscript)!
+pub fn heroscript_loads(heroscript string) !K3SInstaller {
+	mut obj := encoderhero.decode[K3SInstaller](heroscript)!
 	return obj
 }
