@@ -315,6 +315,19 @@ pub fn (self &K3SInstaller) installed() !bool {
 	return installed()!
 }
 
+pub fn (mut self KubectlInstaller) install(args InstallArgs) ! {
+	switch(self.name)
+	if args.reset || (!installed()!) {
+		install()!
+	}
+}
+
+pub fn (mut self KubectlInstaller) destroy() ! {
+	switch(self.name)
+	destroy()!
+}
+
+
 // switch instance to be used for k3s_installer
 pub fn switch(name string) {
 	k3s_installer_default = name
