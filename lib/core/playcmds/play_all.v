@@ -44,7 +44,8 @@ import incubaid.herolib.installers.sysadmintools.garage_s3
 import incubaid.herolib.installers.threefold.griddriver
 import incubaid.herolib.installers.virt.cloudhypervisor
 import incubaid.herolib.installers.virt.docker
-import incubaid.herolib.installers.virt.kubernetes_installer
+import incubaid.herolib.installers.virt.k3s_installer
+import incubaid.herolib.installers.virt.kubectl_installer
 import incubaid.herolib.installers.virt.lima
 import incubaid.herolib.installers.virt.pacman
 import incubaid.herolib.installers.virt.podman
@@ -103,7 +104,8 @@ pub fn run_all(args_ PlayArgs) ! {
 	cloudhypervisor.play(mut plbook)!
 	docker.play(mut plbook)!
 	herorunner.play(mut plbook)!
-	kubernetes_installer.play(mut plbook)!
+	k3s_installer.play(mut plbook)!
+	kubectl_installer.play(mut plbook)!
 	lima.play(mut plbook)!
 	pacman.play(mut plbook)!
 	podman.play(mut plbook)!
