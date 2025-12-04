@@ -22,9 +22,17 @@ fn (self &K3SInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	// Get Mycelium IPv6 address
 	ipv6 := self.get_mycelium_ipv6()!
 
+	// Get k3s binary path
+	k3s_path := osal.cmd_path('k3s') or { '/usr/local/bin/k3s' }
+
 	// Build K3s command based on node type
 	mut cmd := ''
 	mut extra_args := '--node-ip=${ipv6} --flannel-iface ${self.mycelium_interface}'
+
+	// Add node name
+	if self.node_name != '' {
+		extra_args += ' --node-name ${self.node_name}'
+	}
 
 	// Add data directory if specified
 	if self.data_dir != '' {
@@ -42,20 +50,20 @@ fn (self &K3SInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
 
 		if self.is_first_master {
 			// First master: initialize cluster
-			cmd = 'k3s server --cluster-init ${extra_args}'
+			cmd = '${k3s_path} server --cluster-init ${extra_args}'
 		} else {
 			// Additional master: join existing cluster
 			if self.master_url == '' {
 				return error('master_url is required for joining as additional master')
 			}
-			cmd = 'k3s server --server ${self.master_url} ${extra_args}'
+			cmd = '${k3s_path} server --server ${self.master_url} ${extra_args}'
 		}
 	} else {
 		// Worker node: join as agent
 		if self.master_url == '' {
 			return error('master_url is required for worker nodes')
 		}
-		cmd = 'k3s agent --server ${self.master_url} ${extra_args}'
+		cmd = '${k3s_path} agent --server ${self.master_url} ${extra_args}'
 	}
 
 	res << startupmanager.ZProcessNewArgs{
@@ -338,10 +346,6 @@ fn install() ! {
 	return error('Use install_master, join_master, or install_worker instead of generic install')
 }
 
-fn (mut self K3SInstaller) install(args InstallArgs) ! {
-	return error('Use install_master, join_master, or install_worker instead of generic install')
-}
-
 @[params]
 pub struct InstallArgs {
 pub mut:
@@ -353,11 +357,6 @@ fn (mut self K3SInstaller) build() ! {
 }
 
 //////////////////// CLEANUP ////////////////////
-
-fn (mut self K3SInstaller) destroy() ! {
-	destroy()!
-}
-
 fn destroy() ! {
 	console.print_header('Destroying K3s installation')
 
@@ -451,56 +450,73 @@ fn destroy() ! {
 }
 
 fn cleanup_network() ! {
-	console.print_header('Cleaning up network interfaces')
+	console.print_header('Cleaning up network interfaces (interfaces only)')
 
-	if veth_result := osal.exec(
-		cmd:         'ip link show | grep "master cni0" | awk -F: \'{print $2}\' | xargs'
+	// 1) Collect veth interfaces enslaved to cni0 (robust + no stderr noise)
+	mut veths := []string{}
+	mut seen := map[string]bool{}
+
+	if res := osal.exec(
+		cmd:         'ip -o link show master cni0 2>/dev/null || true'
 		stdout:      false
 		raise_error: false
 	) {
-		if veth_result.output.trim_space() != '' {
-			veth_interfaces := veth_result.output.trim_space().split(' ')
-			for veth in veth_interfaces {
-				veth_trimmed := veth.trim_space()
-				if veth_trimmed != '' {
-					console.print_debug('Deleting veth interface: ${veth_trimmed}')
-					osal.exec(cmd: 'ip link delete ${veth_trimmed}', stdout: false, raise_error: false) or {
-						console.print_debug('Failed to delete ${veth_trimmed}, continuing...')
-					}
-				}
+		for line in res.output.split_into_lines() {
+			l := line.trim_space()
+			if l == '' {
+				continue
+			}
+
+			// Format (ip -o): "12: vethXXXX@if2: <...> ... master cni0 ..."
+			if !l.contains(': ') {
+				continue
+			}
+
+			mut name := l.all_after(': ').all_before(':').trim_space()
+
+			// Strip "@ifX" so we can delete by real ifname (ip can't delete "veth@if2")
+			if name.contains('@') {
+				name = name.all_before('@').trim_space()
+			}
+
+			if name != '' && !seen[name] {
+				seen[name] = true
+				veths << name
 			}
 		}
-	} else {
-		console.print_debug('No veth interfaces found or error getting list')
 	}
 
+	// 2) Delete veths (guard every call with timeout to avoid hanging)
+	for veth in veths {
+		console.print_debug('Deleting veth interface: ${veth}')
+		osal.exec(
+			cmd:         'timeout 3 ip link set dev ${veth} down 2>/dev/null || true'
+			stdout:      false
+			raise_error: false
+		) or {}
+		osal.exec(
+			cmd:         'timeout 3 ip link del ${veth} 2>/dev/null || true'
+			stdout:      false
+			raise_error: false
+		) or {
+			console.print_debug('Failed/timed out deleting ${veth}, continuing...')
+		}
+	}
+
+	// 3) Delete known k3s/CNI interfaces (also timeout + silence errors)
 	interfaces := ['cni0', 'flannel.1', 'flannel-v6.1', 'kube-ipvs0', 'flannel-wg', 'flannel-wg-v6']
 	for iface in interfaces {
 		console.print_debug('Deleting interface: ${iface}')
-		osal.exec(cmd: 'timeout 5 ip link delete ${iface} 2>/dev/null || true', stdout: false, raise_error: false) or {
-			console.print_debug('Interface ${iface} not found or already deleted')
-		}
-	}
-
-	if ns_result := osal.exec(
-		cmd:         'ip netns show | grep cni- | xargs'
-		stdout:      false
-		raise_error: false
-	) {
-		if ns_result.output.trim_space() != '' {
-			namespaces := ns_result.output.trim_space().split(' ')
-			for ns in namespaces {
-				ns_trimmed := ns.trim_space()
-				if ns_trimmed != '' {
-					console.print_debug('Deleting namespace: ${ns_trimmed}')
-					osal.exec(cmd: 'ip netns delete ${ns_trimmed}', stdout: false, raise_error: false) or {
-						console.print_debug('Failed to delete namespace ${ns_trimmed}')
-					}
-				}
-			}
-		}
-	} else {
-		console.print_debug('No CNI namespaces found')
+		osal.exec(
+			cmd:         'timeout 3 ip link set dev ${iface} down 2>/dev/null || true'
+			stdout:      false
+			raise_error: false
+		) or {}
+		osal.exec(
+			cmd:         'timeout 3 ip link del ${iface} 2>/dev/null || true'
+			stdout:      false
+			raise_error: false
+		) or {}
 	}
 }
 
@@ -535,3 +551,4 @@ fn cleanup_mounts() ! {
 		osal.exec(cmd: 'rm -rf ${path}', stdout: false, raise_error: false) or {}
 	}
 }
+
