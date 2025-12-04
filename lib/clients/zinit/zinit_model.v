@@ -1,27 +1,14 @@
 module zinit
 
 import incubaid.herolib.data.encoderhero
+import os
 
 pub const version = '0.0.0'
 const singleton = true
 const default = false
 
-// // Factory function to create a new ZinitRPC client instance
-// @[params]
-// pub struct NewClientArgs {
-// pub mut:
-// 	name        string = 'default'
-// 	socket_path string
-// }
-
-// pub fn new_client(args NewClientArgs) !&ZinitRPC {
-// 	mut client := ZinitRPC{
-// 		name:        args.name
-// 		socket_path: args.socket_path
-// 	}
-// 	client = obj_init(client)!
-// 	return &client
-// }
+// Common zinit socket paths to check
+const socket_paths = ['/var/run/zinit.sock', '/tmp/zinit.sock']
 
 @[heap]
 pub struct ZinitRPC {
@@ -35,9 +22,21 @@ pub mut:
 fn obj_init(mycfg_ ZinitRPC) !ZinitRPC {
 	mut mycfg := mycfg_
 	if mycfg.socket_path == '' {
-		mycfg.socket_path = '/tmp/zinit.sock'
+		// Auto-detect socket path by checking common locations
+		mycfg.socket_path = detect_socket_path()
 	}
 	return mycfg
+}
+
+// detect_socket_path tries common socket locations and returns the first one that exists
+fn detect_socket_path() string {
+	for path in socket_paths {
+		if os.exists(path) {
+			return path
+		}
+	}
+	// Default fallback if none found
+	return '/tmp/zinit.sock'
 }
 
 pub fn heroscript_loads(heroscript string) !ZinitRPC {
