@@ -29,21 +29,31 @@ sal_running := sal_runner.running()!
 
 println('Service                Status      Details')
 println('-' * 60)
-println('Coordinator            ${if coord_running { "✅ Running" } else { "❌ Stopped" }}   http://127.0.0.1:${coordinator.http_port}')
-println('Supervisor             ${if super_running { "✅ Running" } else { "❌ Stopped" }}   http://127.0.0.1:${supervisor_inst.http_port}')
-println('Hero Runner            ${if hero_running { "✅ Running" } else { "❌ Stopped" }}')
-println('Osiris Runner          ${if osiris_running { "✅ Running" } else { "❌ Stopped" }}')
-println('SAL Runner             ${if sal_running { "✅ Running" } else { "❌ Stopped" }}')
+println('Coordinator            ${if coord_running { '✅ Running' } else { '❌ Stopped' }}   http://127.0.0.1:${coordinator.http_port}')
+println('Supervisor             ${if super_running { '✅ Running' } else { '❌ Stopped' }}   http://127.0.0.1:${supervisor_inst.http_port}')
+println('Hero Runner            ${if hero_running { '✅ Running' } else { '❌ Stopped' }}')
+println('Osiris Runner          ${if osiris_running { '✅ Running' } else { '❌ Stopped' }}')
+println('SAL Runner             ${if sal_running { '✅ Running' } else { '❌ Stopped' }}')
 
 println('\n' + '=' * 60)
 
 // Count running services
 mut running_count := 0
-if coord_running { running_count++ }
-if super_running { running_count++ }
-if hero_running { running_count++ }
-if osiris_running { running_count++ }
-if sal_running { running_count++ }
+if coord_running {
+	running_count++
+}
+if super_running {
+	running_count++
+}
+if hero_running {
+	running_count++
+}
+if osiris_running {
+	running_count++
+}
+if sal_running {
+	running_count++
+}
 
 println('Summary: ${running_count}/5 services running')
 

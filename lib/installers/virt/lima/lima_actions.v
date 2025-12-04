@@ -11,7 +11,7 @@ import incubaid.herolib.installers.virt.qemu
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
-	mut installer := get()!
+	_ := get()!
 	mut res := []startupmanager.ZProcessNewArgs{}
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// res << startupmanager.ZProcessNewArgs{
@@ -26,7 +26,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 }
 
 fn running() !bool {
-	mut installer := get()!
+	_ := get()!
 	// THIS IS EXAMPLE CODEAND NEEDS TO BE CHANGED
 	// this checks health of lima
 	// curl http://localhost:3333/api/v1/s --oauth2-bearer 1234 works
@@ -147,7 +147,7 @@ fn destroy() ! {
 	   lima
 	   limactl
 	   ${os.home_dir()}/bin/*.lima
-	   ${os.home_dir()}/bin/*.lima	   
+	   ${os.home_dir()}/bin/*.lima
 	   ${os.home_dir()}/share/doc/lima
 	   ${os.home_dir()}/share/lima
 	   ${os.home_dir()}/share/man/lima*

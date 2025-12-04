@@ -381,3 +381,48 @@ fn test_get_edit_url() {
 	// Assert the URLs are correct
 	// assert edit_url == 'https://github.com/test/repo/edit/main/test_page.md'
 }
+
+fn test_export_recursive_links() {
+	// Create 3 collections with chained links
+	col_a_path := '${test_base}/recursive_export/col_a'
+	col_b_path := '${test_base}/recursive_export/col_b'
+	col_c_path := '${test_base}/recursive_export/col_c'
+
+	os.mkdir_all(col_a_path)!
+	os.mkdir_all(col_b_path)!
+	os.mkdir_all(col_c_path)!
+
+	// Collection A
+	mut cfile_a := pathlib.get_file(path: '${col_a_path}/.collection', create: true)!
+	cfile_a.write('name:col_a')!
+	mut page_a := pathlib.get_file(path: '${col_a_path}/page_a.md', create: true)!
+	page_a.write('# Page A\n\n[Link to B](col_b:page_b)')!
+
+	// Collection B
+	mut cfile_b := pathlib.get_file(path: '${col_b_path}/.collection', create: true)!
+	cfile_b.write('name:col_b')!
+	mut page_b := pathlib.get_file(path: '${col_b_path}/page_b.md', create: true)!
+	page_b.write('# Page B\n\n[Link to C](col_c:page_c)')!
+
+	// Collection C
+	mut cfile_c := pathlib.get_file(path: '${col_c_path}/.collection', create: true)!
+	cfile_c.write('name:col_c')!
+	mut page_c := pathlib.get_file(path: '${col_c_path}/page_c.md', create: true)!
+	page_c.write('# Page C\n\nFinal content')!
+
+	// Export
+	mut a := new()!
+	a.add_collection(mut pathlib.get_dir(path: col_a_path)!)!
+	a.add_collection(mut pathlib.get_dir(path: col_b_path)!)!
+	a.add_collection(mut pathlib.get_dir(path: col_c_path)!)!
+
+	export_path := '${test_base}/export_recursive'
+	a.export(destination: export_path)!
+
+	// Verify all pages were exported
+	assert os.exists('${export_path}/content/col_a/page_a.md')
+	assert os.exists('${export_path}/content/col_a/page_b.md') // From Collection B
+	assert os.exists('${export_path}/content/col_a/page_c.md') // From Collection C
+
+	// TODO: test not complete
+}

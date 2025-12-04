@@ -7,9 +7,9 @@ println('=== Redis Installer Example ===\n')
 // Create configuration
 // You can customize port, datadir, and ipaddr as needed
 config := redis.RedisInstall{
-	port: 6379                  // Redis port
-	datadir: '/var/lib/redis'   // Data directory (standard location)
-	ipaddr: 'localhost'         // Bind address
+	port:    6379             // Redis port
+	datadir: '/var/lib/redis' // Data directory (standard location)
+	ipaddr:  'localhost'      // Bind address
 }
 
 // Check if Redis is already running
@@ -22,9 +22,9 @@ if redis.check(config) {
 	println('  Port: ${config.port}')
 	println('  Data directory: ${config.datadir}')
 	println('  Bind address: ${config.ipaddr}\n')
-	
+
 	redis.redis_install(config)!
-	
+
 	// Verify installation
 	if redis.check(config) {
 		println('\nSUCCESS: Redis installed and started successfully!')

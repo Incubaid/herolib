@@ -1,0 +1,96 @@
+#!/usr/bin/env hero
+
+// ============================================================================
+// HeroPods Example: IPv4 Networking and Internet Connectivity
+// ============================================================================
+//
+// This script demonstrates IPv4 networking functionality:
+// - Bridge networking with automatic IP allocation
+// - NAT for outbound internet access
+// - DNS resolution
+// - HTTP connectivity testing
+//
+// The container gets an IP address from the bridge subnet (default: 10.10.0.0/24)
+// and can access the internet through NAT.
+// ============================================================================
+
+// Step 1: Configure HeroPods instance with IPv4 networking
+// This creates a HeroPods instance with bridge networking enabled
+!!heropods.configure
+    name:'ipv4_demo'
+    reset:false
+    use_podman:true
+    bridge_name:'heropods0'
+    subnet:'10.10.0.0/24'
+    gateway_ip:'10.10.0.1'
+    dns_servers:['8.8.8.8', '8.8.4.4']
+
+// Step 2: Create a new Alpine Linux container
+// Alpine is lightweight and includes basic networking tools
+!!heropods.container_new
+    name:'ipv4_container'
+    image:'custom'
+    custom_image_name:'alpine_3_20'
+    docker_url:'docker.io/library/alpine:3.20'
+
+// Step 3: Start the container
+// This sets up the veth pair and configures IPv4 networking
+!!heropods.container_start
+    name:'ipv4_container'
+
+// Step 4: Verify network configuration inside the container
+
+// Show network interfaces and IP addresses
+!!heropods.container_exec
+    name:'ipv4_container'
+    cmd:'ip addr show'
+    stdout:true
+
+// Show routing table
+!!heropods.container_exec
+    name:'ipv4_container'
+    cmd:'ip route show'
+    stdout:true
+
+// Show DNS configuration
+!!heropods.container_exec
+    name:'ipv4_container'
+    cmd:'cat /etc/resolv.conf'
+    stdout:true
+
+// Step 5: Test DNS resolution
+// Verify that DNS queries work correctly
+!!heropods.container_exec
+    name:'ipv4_container'
+    cmd:'nslookup google.com'
+    stdout:true
+
+// Step 6: Test HTTP connectivity
+// Use wget to verify internet access (ping requires CAP_NET_RAW capability)
+!!heropods.container_exec
+    name:'ipv4_container'
+    cmd:'wget -O- http://google.com --timeout=5 2>&1 | head -n 10'
+    stdout:true
+
+// Test another website to confirm connectivity
+!!heropods.container_exec
+    name:'ipv4_container'
+    cmd:'wget -O- http://example.com --timeout=5 2>&1 | head -n 10'
+    stdout:true
+
+// Step 7: Test HTTPS connectivity (if wget supports it)
+!!heropods.container_exec
+    name:'ipv4_container'
+    cmd:'wget -O- https://www.google.com --timeout=5 --no-check-certificate 2>&1 | head -n 10'
+    stdout:true
+
+// Step 8: Stop the container
+// This removes the veth pair and cleans up network configuration
+!!heropods.container_stop
+    name:'ipv4_container'
+
+// Step 9: Delete the container
+// This removes the container and all associated resources
+!!heropods.container_delete
+    name:'ipv4_container'
+

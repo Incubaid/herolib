@@ -9,6 +9,7 @@ pub enum LLMEnum {
 	flash
 	pro
 	morph
+	local
 }
 
 fn llm_to_model_url(model LLMEnum) !(string, string) {
@@ -22,5 +23,6 @@ fn llm_to_model_url(model LLMEnum) !(string, string) {
 		.flash { 'google/gemini-2.5-flash', 'https://api.openrouter.ai/api/v1' }
 		.pro { 'google/gemini-2.5-pro', 'https://api.openrouter.ai/api/v1' }
 		.morph { 'morph/morph-v3-fast', 'https://api.openrouter.ai/api/v1' }
+		.local { 'google/gemma-3-12b', 'http://localhost:1234/v1' }
 	}
 }

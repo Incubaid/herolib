@@ -1,11 +1,15 @@
 module hetznermanager
 
-import incubaid.herolib.core.texttools
 import time
 import incubaid.herolib.ui.console
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.builder
 import os
+
+// Ubuntu installation timeout constants
+const install_timeout_seconds = 600 // 10 minutes max for installation
+const install_poll_interval_seconds = 5 // Check installation status every 5 seconds
+const install_progress_interval = 6 // Show progress every 6 polls (30 seconds)
 
 // ///////////////////////////RESCUE
 
@@ -51,36 +55,51 @@ fn (mut h HetznerManager) server_rescue_internal(args_ ServerRescueArgs) !Server
 
 	if serverinfo.rescue && !args.reset {
 		if osal.ssh_test(address: serverinfo.server_ip, port: 22)! == .ok {
-			console.print_debug('test server ${serverinfo.server_name} is in rescue mode?')
+			console.print_debug('test server ${serverinfo.server_name} - checking if actually in rescue mode...')
 			mut b := builder.new()!
 			mut n := b.node_new(ipaddr: serverinfo.server_ip)!
 
-			res := n.exec(cmd: 'ls /root/.oldroot/nfs/install/installimage', stdout: false) or {
-				'ERROR'
-			}
-			if res.contains('nfs/install/installimage') {
+			// Check if the server is actually in rescue mode using file_exists
+			if n.file_exists('/root/.oldroot/nfs/install/installimage') {
 				console.print_debug('server ${serverinfo.server_name} is in rescue mode')
 				return serverinfo
 			}
+
+			// Server is reachable but not in rescue mode - check if it's running Ubuntu
+			// This happens when the API reports rescue=true but the server already booted into the installed OS
+			if n.platform == .ubuntu {
+				console.print_debug('server ${serverinfo.server_name} is already running Ubuntu, not in rescue mode')
+			} else {
+				console.print_debug('server ${serverinfo.server_name} is running ${n.platform}, not in rescue mode')
+			}
+			// Server is not in rescue mode - the rescue flag in API is stale
+			serverinfo.rescue = false
+		} else {
+			// SSH not reachable - server might be rebooting or in unknown state
+			serverinfo.rescue = false
 		}
-		serverinfo.rescue = false
 	}
 	// only do it if its not in rescue yet
 	if serverinfo.rescue == false || args.reset {
 		console.print_header('server ${serverinfo.server_name} goes into rescue mode')
 
-		mykey := h.key_get(h.sshkey)!
-		mykeyfp := mykey.fingerprint
+		// Get SSH keys based on sshkey mode ('*', 'default', or specific key name)
+		keys := h.get_keys_for_rescue()!
 
-		// println("Using SSH key fingerprint: ${mykey} ${mykeyfp}")
+		// Build URL-encoded data with multiple authorized_key[] parameters
+		// Hetzner API expects: authorized_key[]=fp1&authorized_key[]=fp2&...
+		mut data_parts := ['os=linux']
+		for key in keys {
+			data_parts << 'authorized_key[]=${key.fingerprint}'
+		}
+		post_data := data_parts.join('&')
+
+		console.print_debug('Using ${keys.len} SSH key(s) for rescue mode')
 
 		mut conn := h.connection()!
 		rescue := conn.post_json_generic[RescueInfo](
 			prefix:     'boot/${serverinfo.server_number}/rescue'
-			params:     {
-				'os':             'linux'
-				'authorized_key': mykeyfp
-			}
+			data:       post_data
 			dict_key:   'rescue'
 			dataformat: .urlencoded
 		)!
@@ -132,15 +151,47 @@ pub mut:
 	hero_install         bool
 	hero_install_compile bool
 	raid                 bool
+	install_timeout      int = install_timeout_seconds // timeout in seconds for installation
+	reinstall            bool // if true, always reinstall even if Ubuntu is already running
 }
 
 pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.Node {
 	h.check_whitelist(name: args.name, id: args.id)!
-	mut serverinfo := h.server_rescue(
+	mut serverinfo := h.server_info_get(id: args.id, name: args.name)!
+
+	// Check if Ubuntu is already installed and running (skip reinstallation unless forced)
+	if !args.reinstall {
+		if osal.ssh_test(address: serverinfo.server_ip, port: 22)! == .ok {
+			mut b := builder.new()!
+			mut n := b.node_new(ipaddr: serverinfo.server_ip)!
+
+			// Check if server is running Ubuntu and NOT in rescue mode using Node's methods
+			is_rescue := n.file_exists('/root/.oldroot/nfs/install/installimage')
+
+			if n.platform == .ubuntu && !is_rescue {
+				console.print_debug('server ${serverinfo.server_name} is already running Ubuntu, skipping installation')
+
+				// Still install hero if requested
+				if args.hero_install {
+					n.exec_silent('apt update && apt install -y mc redis libpq5 libpq-dev')!
+					n.hero_install(compile: args.hero_install_compile)!
+				}
+
+				return n
+			}
+		}
+	}
+
+	// Server needs Ubuntu installation - go into rescue mode
+	serverinfo = h.server_rescue(
 		id:   args.id
 		name: args.name
 		wait: true
 	)!
+
+	// Get all SSH public keys to copy to the installed system
+	pubkeys := h.get_pubkeys_data()!
+	ssh_pubkeys := pubkeys.join('\n')
 
 	mut b := builder.new()!
 	mut n := b.node_new(ipaddr: serverinfo.server_ip)!
@@ -155,25 +206,107 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 		rstr = '-r yes -l 1 '
 	}
 
+	// Write the installation script to the server
+	// We run it with nohup in the background to avoid SSH timeout during long installations
+	install_script := '#!/bin/bash
+set -e
+echo "go into install mode, try to install ubuntu 24.04"
+
+# Cleanup any previous installation state
+rm -f /tmp/install_complete /tmp/install_failed
+
+if [ -d /sys/firmware/efi ]; then
+	echo "UEFI system detected → need ESP"
+	PARTS="/boot/efi:esp:256M,swap:swap:4G,/boot:ext3:1024M,/:btrfs:all"
+else
+	echo "BIOS/legacy system detected → no ESP"
+	PARTS="swap:swap:4G,/boot:ext3:1024M,/:btrfs:all"
+fi
+
+# installimage invocation with error handling
+if ! /root/.oldroot/nfs/install/installimage -a -n "${args.name}" ${rstr} -i /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz -f yes -t yes -p "\$PARTS"; then
+	echo "INSTALL_FAILED" > /tmp/install_failed
+	echo "installimage failed, check /root/debug.txt for details"
+	exit 1
+fi
+
+# Copy SSH keys to the installed system before rebooting
+# After installimage, the new system is mounted at /mnt
+echo "Copying SSH keys to installed system..."
+mkdir -p /mnt/root/.ssh
+chmod 700 /mnt/root/.ssh
+cat > /mnt/root/.ssh/authorized_keys << "EOF_SSH_KEYS"
+${ssh_pubkeys}
+EOF_SSH_KEYS
+chmod 600 /mnt/root/.ssh/authorized_keys
+echo "SSH keys copied successfully"
+
+# Mark installation as complete before rebooting
+# sync to ensure marker file is written to disk before reboot
+echo "INSTALL_COMPLETE" > /tmp/install_complete
+sync
+
+reboot
+'
+
+	n.file_write('/tmp/ubuntu_install.sh', install_script)!
+
+	// Start the installation in background using nohup to avoid SSH timeout
+	// The script will run independently of the SSH session
 	n.exec(
-		cmd: '
-		set -ex
-		echo "go into install mode, try to install ubuntu 24.04"
-
-		if [ -d /sys/firmware/efi ]; then
-			echo "UEFI system detected → need ESP"
-			PARTS="/boot/efi:esp:256M,swap:swap:4G,/boot:ext3:1024M,/:btrfs:all"
-		else
-			echo "BIOS/legacy system detected → no ESP"
-			PARTS="swap:swap:4G,/boot:ext3:1024M,/:btrfs:all"
-		fi
-
-		# installimage invocation
-		/root/.oldroot/nfs/install/installimage -a -n "${args.name}" ${rstr} -i /root/.oldroot/nfs/images/Ubuntu-2404-noble-amd64-base.tar.gz -f yes -t yes -p "\$PARTS"
-
-		reboot
-		'
+		cmd:    'chmod +x /tmp/ubuntu_install.sh && nohup /tmp/ubuntu_install.sh > /tmp/install.log 2>&1 &'
+		stdout: false
 	)!
+
+	console.print_debug('Installation script started in background, waiting for completion...')
+
+	// Poll for completion by checking if the marker file exists or if the server goes down (reboot)
+	max_iterations := args.install_timeout / install_poll_interval_seconds
+	mut install_complete := false
+	for i := 0; i < max_iterations; i++ {
+		time.sleep(install_poll_interval_seconds * time.second)
+
+		// Check if server is still up and installation status
+		result := n.exec(
+			cmd:    'cat /tmp/install_failed 2>/dev/null && echo "FAILED" || (cat /tmp/install_complete 2>/dev/null || echo "NOT_COMPLETE")'
+			stdout: false
+		) or {
+			// SSH connection failed - server might be rebooting after successful installation
+			console.print_debug('SSH connection lost - server is likely rebooting after installation')
+			install_complete = true
+			break
+		}
+
+		// Check for installation failure
+		if result.contains('INSTALL_FAILED') || result.contains('FAILED') {
+			// Try to get error details from install log
+			error_log := n.exec(
+				cmd:    'tail -20 /tmp/install.log 2>/dev/null || cat /root/debug.txt 2>/dev/null || echo "No error details available"'
+				stdout: false
+			) or { 'Could not retrieve error details' }
+			return error('Installation failed: ${error_log.trim_space()}')
+		}
+
+		if result.contains('INSTALL_COMPLETE') {
+			console.print_debug('Installation complete, server should reboot soon')
+			install_complete = true
+			break
+		}
+
+		// Show progress at configured interval
+		if i % install_progress_interval == 0 {
+			// Try to get the last line of the install log for progress
+			log_tail := n.exec(
+				cmd:    'tail -3 /tmp/install.log 2>/dev/null || echo "waiting..."'
+				stdout: false
+			) or { 'waiting...' }
+			console.print_debug('Installation in progress: ${log_tail.trim_space()}')
+		}
+	}
+
+	if !install_complete {
+		return error('Installation timed out after ${args.install_timeout} seconds')
+	}
 
 	os.execute_opt('ssh-keygen -R ${serverinfo.server_ip}')!
 
@@ -187,15 +320,20 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 
 	console.print_debug('server ${serverinfo.server_name} is reacheable over ping, lets now try ssh.')
 
-	// wait 20 sec to make sure ssh is there
-	osal.ssh_wait(address: serverinfo.server_ip, timeout: 20)!
+	// wait 20 seconds to make sure ssh is there (timeout is in milliseconds)
+	osal.ssh_wait(address: serverinfo.server_ip, timeout: 20000)!
 
 	console.print_debug('server ${serverinfo.server_name} is reacheable over ssh, lets now install hero if asked for.')
 
+	// Create a new node connection to the freshly installed Ubuntu system
+	// The old 'n' was connected to the rescue system which no longer exists after reboot
+	mut b2 := builder.new()!
+	mut n2 := b2.node_new(ipaddr: serverinfo.server_ip)!
+
 	if args.hero_install {
-		n.exec_silent('apt update && apt install -y mc redis')!
-		n.hero_install(compile: args.hero_install_compile)!
+		n2.exec_silent('apt update && apt install -y mc redis libpq5 libpq-dev')!
+		n2.hero_install(compile: args.hero_install_compile)!
 	}
 
-	return n
+	return n2
 }

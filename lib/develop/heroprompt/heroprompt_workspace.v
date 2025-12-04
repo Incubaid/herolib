@@ -4,7 +4,7 @@ import rand
 import time
 import os
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.develop.codewalker
+import incubaid.herolib.ai.filemap
 
 // Selection API
 @[params]
@@ -222,14 +222,23 @@ pub:
 }
 
 pub fn (wsp &Workspace) list_dir(rel_path string) ![]ListItem {
-	// Create an ignore matcher with default patterns
-	ignore_matcher := codewalker.gitignore_matcher_new()
-	items := codewalker.list_directory_filtered(wsp.base_path, rel_path, &ignore_matcher)!
+	// Use pathlib to list directory with default ignore patterns
+	full_path := if rel_path.len == 0 {
+		wsp.base_path
+	} else {
+		os.join_path(wsp.base_path, rel_path)
+	}
+	mut dir := pathlib.get(full_path)
+
+	// List with default ignore patterns (files starting with . and _)
+	mut list_result := dir.list(recursive: false, ignore_default: true)!
+
 	mut out := []ListItem{}
-	for item in items {
+	for mut path_item in list_result.paths {
+		typ := if path_item.is_dir() { 'dir' } else { 'file' }
 		out << ListItem{
-			name: item.name
-			typ:  item.typ
+			name: os.base(path_item.path)
+			typ:  typ
 		}
 	}
 	return out
@@ -268,11 +277,10 @@ fn (wsp Workspace) build_file_content() !string {
 			}
 		}
 	}
-	// files under selected directories, using CodeWalker for filtered traversal
+	// files under selected directories, using filemap for filtered traversal
 	for ch in wsp.children {
 		if ch.path.cat == .dir && ch.include_tree {
-			mut cw := codewalker.new(codewalker.CodeWalkerArgs{})!
-			mut fm := cw.filemap_get(path: ch.path.path)!
+			mut fm := filemap.filemap(path: ch.path.path)!
 			for rel, fc in fm.content {
 				if content.len > 0 {
 					content += '\n\n'
@@ -303,7 +311,7 @@ fn (wsp Workspace) build_user_instructions(text string) string {
 }
 
 // build_file_map creates a complete file map with base path and metadata
-fn (wsp Workspace) build_file_map() string {
+fn (wsp Workspace) build_file_map() !string {
 	mut file_map := ''
 	// roots are selected directories
 	mut roots := []HeropromptChild{}
@@ -342,13 +350,15 @@ fn (wsp Workspace) build_file_map() string {
 		// files under dirs (only when roots present)
 		if roots.len > 0 {
 			for r in roots {
-				for f in codewalker.list_files_recursive(r.path.path) {
+				mut dir := pathlib.get(r.path.path)
+				mut file_list := dir.list(recursive: true, files_only: true)!
+				for mut f in file_list.paths {
 					total_files++
-					ext := get_file_extension(os.base(f))
+					ext := get_file_extension(os.base(f.path))
 					if ext.len > 0 {
 						file_extensions[ext] = file_extensions[ext] + 1
 					}
-					total_content_length += (os.read_file(f) or { '' }).len
+					total_content_length += (os.read_file(f.path) or { '' }).len
 				}
 			}
 		}
@@ -386,16 +396,16 @@ fn (wsp Workspace) build_file_map() string {
 			for r in roots {
 				root_paths << r.path.path
 			}
-			file_map += codewalker.build_file_tree_fs(root_paths, '')
+			file_map += build_file_tree_fs(root_paths, '')
 		}
 		// If there are only standalone selected files (no selected dirs),
-		// build a minimal tree via codewalker relative to the workspace base.
+		// build a minimal tree relative to the workspace base.
 		if files_only.len > 0 && roots.len == 0 {
 			mut paths := []string{}
 			for fo in files_only {
 				paths << fo.path.path
 			}
-			file_map += codewalker.build_selected_tree(paths, wsp.base_path)
+			file_map += build_selected_tree(paths, wsp.base_path)
 		} else if files_only.len > 0 && roots.len > 0 {
 			// Keep listing absolute paths for standalone files when directories are also selected.
 			for fo in files_only {
@@ -413,7 +423,7 @@ pub mut:
 
 pub fn (wsp Workspace) prompt(args WorkspacePrompt) string {
 	user_instructions := wsp.build_user_instructions(args.text)
-	file_map := wsp.build_file_map()
+	file_map := wsp.build_file_map() or { '(Error building file map)' }
 	file_contents := wsp.build_file_content() or { '(Error building file contents)' }
 	prompt := HeropromptTmpPrompt{
 		user_instructions: user_instructions
@@ -456,7 +466,7 @@ pub fn generate_random_workspace_name() string {
 		'script',
 		'ocean',
 		'phoenix',
-		'atlas',
+		'doctree',
 		'quest',
 		'shield',
 		'dragon',

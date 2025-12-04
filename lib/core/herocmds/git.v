@@ -217,7 +217,7 @@ fn cmd_git_execute(cmd Command) ! {
 	mut gs := gittools.new(coderoot: coderoot)!
 
 	// create the filter for doing group actions, or action on 1 repo
-	mut filter := ''
+	_ := ''
 	mut url := ''
 	mut path := ''
 

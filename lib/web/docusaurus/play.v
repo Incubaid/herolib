@@ -1,6 +1,7 @@
 module docusaurus
 
 import incubaid.herolib.core.playbook { PlayBook }
+import os
 
 pub fn play(mut plbook PlayBook) ! {
 	if !plbook.exists(filter: 'docusaurus.') {
@@ -17,7 +18,7 @@ pub fn play(mut plbook PlayBook) ! {
 		reset:           param_define.get_default_false('reset')
 		template_update: param_define.get_default_false('template_update')
 		install:         param_define.get_default_false('install')
-		atlas_dir:       param_define.get_default('atlas_dir', '/tmp/atlas_export')!
+		atlas_dir:       param_define.get_default('atlas_dir', '${os.home_dir()}/hero/var/atlas_export')!
 		use_atlas:       param_define.get_default_false('use_atlas')
 	)!
 

@@ -38,7 +38,7 @@ pub fn set_titles(page string, maxnr int) string {
 	for line in lines {
 		mut hash_count := 0
 		mut first_char_idx := 0
-		for char_idx, r in line.runes() {
+		        for _, r in line.runes() {
 			if r == ` ` {
 				first_char_idx++
 				continue
@@ -89,7 +89,7 @@ pub fn set_titles(page string, maxnr int) string {
 			// Remove existing numbering (e.g., "1. ", "1.1. ")
 			mut skip_chars := 0
 			mut in_numbering := true
-			for r_idx, r in original_title_text.runes() {
+			for _, r in original_title_text.runes() {
 				if in_numbering {
 					if (r >= `0` && r <= `9`) || r == `.` || r == ` ` {
 						skip_chars++

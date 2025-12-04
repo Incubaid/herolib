@@ -6,4 +6,4 @@ pub struct Example {
 	result   Value
 }
 
-// pub type Value = string
+pub type Value = string

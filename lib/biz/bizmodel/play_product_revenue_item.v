@@ -6,7 +6,7 @@ import incubaid.herolib.core.texttools
 // see lib/biz/bizmodel/docs/revenue.md
 fn (mut m BizModel) revenue_item_action(action Action) !Action {
 	mut r := get_action_descr(action)!
-	mut product := m.products[r.name]
+	mut product := m.products[r.name] or { return error('Product "${r.name}" not found for revenue item action') }
 
 	mut nr_sold := m.sheet.row_new(
 		name:          '${r.name}_nr_sold'
@@ -193,7 +193,7 @@ fn (mut m BizModel) revenue_item_action(action Action) !Action {
 		tags:   'name:${r.name}'
 	)!
 
-	mut margin := margin_setup.action(
+	_ := margin_setup.action(
 		name:   '${r.name}_margin'
 		descr:  'Margin for ${r.name}'
 		action: .add

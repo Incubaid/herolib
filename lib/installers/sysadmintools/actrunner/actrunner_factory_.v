@@ -49,14 +49,31 @@ pub fn play(mut plbook PlayBook) ! {
 				install()!
 			}
 		}
+		if other_action.name == 'register' {
+			mut p := other_action.params
+			instance := p.get('instance') or {
+				return error('instance URL is required for actrunner.register')
+			}
+			token := p.get('token') or { return error('token is required for actrunner.register') }
+			name := p.get_default('name', '')!
+			labels := p.get_default('labels', '')!
+			console.print_debug('install action actrunner.register')
+			register(
+				instance: instance
+				token:    token
+				name:     name
+				labels:   labels
+			)!
+		}
 		if other_action.name in ['start', 'stop', 'restart'] {
 			mut p := other_action.params
-			name := p.get('name')!
+			name := p.get_default('name', 'default')!
+			reset := p.get_default_false('reset')
 			mut actrunner_obj := get(name: name)!
 			console.print_debug('action object:\n${actrunner_obj}')
 			if other_action.name == 'start' {
 				console.print_debug('install action actrunner.${other_action.name}')
-				actrunner_obj.start()!
+				actrunner_obj.start(reset: reset)!
 			}
 
 			if other_action.name == 'stop' {
@@ -102,7 +119,7 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 	}
 }
 
-pub fn (mut self ActRunner) start() ! {
+pub fn (mut self ActRunner) start(args StartArgs) ! {
 	if self.running()! {
 		return
 	}
@@ -117,7 +134,7 @@ pub fn (mut self ActRunner) start() ! {
 
 	start_pre()!
 
-	for zprocess in startupcmd()! {
+	for zprocess in startupcmd(args)! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 
 		console.print_debug('installer: actrunner starting with ${zprocess.startuptype}...')
@@ -157,7 +174,7 @@ pub fn (mut self ActRunner) stop() ! {
 pub fn (mut self ActRunner) restart() ! {
 	switch(self.name)
 	self.stop()!
-	self.start()!
+	self.start(reset: true)!
 }
 
 pub fn (mut self ActRunner) running() !bool {

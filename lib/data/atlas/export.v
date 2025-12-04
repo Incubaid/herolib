@@ -44,6 +44,7 @@ pub mut:
 }
 
 // Export a single collection
+// Export a single collection with recursive link processing
 pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 	// Create collection directory
 	mut col_dir := pathlib.get_dir(
@@ -66,11 +67,14 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 	)!
 	json_file.write(meta)!
 
-	// Track cross-collection pages and files that need to be copied for self-contained export
-	mut cross_collection_pages := map[string]&Page{} // key: page.name, value: &Page
-	mut cross_collection_files := map[string]&File{} // key: file.name, value: &File
+	// Track all cross-collection pages and files that need to be exported
+	// Use maps with collection:name as key to track globally across all resolutions
+	mut cross_collection_pages := map[string]&Page{} // key: "collection:page_name"
+	mut cross_collection_files := map[string]&File{} // key: "collection:file_name"
+	mut processed_local_pages := map[string]bool{} // Track which local pages we've already processed
+	mut processed_cross_pages := map[string]bool{} // Track which cross-collection pages we've processed for links
 
-	// First pass: export all pages in this collection and collect cross-collection references
+	// First pass: export all pages in this collection and recursively collect ALL cross-collection references
 	for _, mut page in c.pages {
 		// Get content with includes processed and links transformed for export
 		content := page.content_with_fixed_links(
@@ -82,33 +86,11 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${page.name}.md', create: true)!
 		dest_file.write(content)!
 
-		// Collect cross-collection references for copying (pages and files/images)
-		// IMPORTANT: Use cached links from validation (before transformation) to preserve collection info
-		for mut link in page.links {
-			if link.status != .found {
-				continue
-			}
+		// Recursively collect cross-collection references from this page
+		c.collect_cross_collection_references(mut page, mut cross_collection_pages, mut
+			cross_collection_files, mut processed_cross_pages)!
 
-			// Collect cross-collection page references
-			is_local := link.target_collection_name == c.name
-			if link.file_type == .page && !is_local {
-				mut target_page := link.target_page() or { continue }
-				// Use page name as key to avoid duplicates
-				if target_page.name !in cross_collection_pages {
-					cross_collection_pages[target_page.name] = target_page
-				}
-			}
-
-			// Collect cross-collection file/image references
-			if (link.file_type == .file || link.file_type == .image) && !is_local {
-				mut target_file := link.target_file() or { continue }
-				// Use file name as key to avoid duplicates
-				file_key := target_file.name
-				if file_key !in cross_collection_files {
-					cross_collection_files[file_key] = target_file
-				}
-			}
-		}
+		processed_local_pages[page.name] = true
 
 		// Redis operations...
 		if args.redis {
@@ -136,21 +118,48 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		src_file.copy(dest: dest_file.path)!
 	}
 
-	// Second pass: copy cross-collection referenced pages to make collection self-contained
-	for _, mut ref_page in cross_collection_pages {
-		// Get the referenced page content with includes processed
-		ref_content := ref_page.content_with_fixed_links(
-			include:          args.include
-			cross_collection: true
-			export_mode:      true
-		)!
+	// Second pass: copy all collected cross-collection pages and process their links recursively
+	// Keep iterating until no new cross-collection references are found
+	for {
+		mut found_new_references := false
 
-		// Write the referenced page to this collection's directory
-		mut dest_file := pathlib.get_file(path: '${col_dir.path}/${ref_page.name}.md', create: true)!
-		dest_file.write(ref_content)!
+		// Process all cross-collection pages we haven't processed yet
+		for page_key, mut ref_page in cross_collection_pages {
+			if page_key in processed_cross_pages {
+				continue // Already processed this page's links
+			}
+
+			// Mark as processed to avoid infinite loops
+			processed_cross_pages[page_key] = true
+			found_new_references = true
+
+			// Get the referenced page content with includes processed
+			ref_content := ref_page.content_with_fixed_links(
+				include:          args.include
+				cross_collection: true
+				export_mode:      true
+			)!
+
+			// Write the referenced page to this collection's directory
+			mut dest_file := pathlib.get_file(
+				path:   '${col_dir.path}/${ref_page.name}.md'
+				create: true
+			)!
+			dest_file.write(ref_content)!
+
+			// CRITICAL: Recursively process links in this cross-collection page
+			// This ensures we get pages/files/images referenced by ref_page
+			c.collect_cross_collection_references(mut ref_page, mut cross_collection_pages, mut
+				cross_collection_files, mut processed_cross_pages)!
+		}
+
+		// If we didn't find any new references, we're done with the recursive pass
+		if !found_new_references {
+			break
+		}
 	}
 
-	// Third pass: copy cross-collection referenced files/images to make collection self-contained
+	// Third pass: copy ALL collected cross-collection referenced files/images
 	for _, mut ref_file in cross_collection_files {
 		mut src_file := ref_file.path()!
 
@@ -166,5 +175,44 @@ pub fn (mut c Collection) export(args CollectionExportArgs) ! {
 		mut dest_path := '${subdir_path.path}/${ref_file.name}'
 		mut dest_file := pathlib.get_file(path: dest_path, create: true)!
 		src_file.copy(dest: dest_file.path)!
+	}
+}
+
+// Helper function to recursively collect cross-collection references
+// This processes a page's links and adds all non-local references to the collections
+fn (mut c Collection) collect_cross_collection_references(mut page Page,
+	mut all_cross_pages map[string]&Page,
+	mut all_cross_files map[string]&File,
+	mut processed_pages map[string]bool) ! {
+	// Use cached links from validation (before transformation) to preserve collection info
+	for mut link in page.links {
+		if link.status != .found {
+			continue
+		}
+
+		is_local := link.target_collection_name == c.name
+
+		// Collect cross-collection page references
+		if link.file_type == .page && !is_local {
+			page_key := '${link.target_collection_name}:${link.target_item_name}'
+
+			// Only add if not already collected
+			if page_key !in all_cross_pages {
+				mut target_page := link.target_page()!
+				all_cross_pages[page_key] = target_page
+				// Don't mark as processed yet - we'll do that when we actually process its links
+			}
+		}
+
+		// Collect cross-collection file/image references
+		if (link.file_type == .file || link.file_type == .image) && !is_local {
+			file_key := '${link.target_collection_name}:${link.target_item_name}'
+
+			// Only add if not already collected
+			if file_key !in all_cross_files {
+				mut target_file := link.target_file()!
+				all_cross_files[file_key] = target_file
+			}
+		}
 	}
 }

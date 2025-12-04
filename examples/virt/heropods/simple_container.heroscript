@@ -1,0 +1,79 @@
+#!/usr/bin/env hero
+
+// ============================================================================
+// HeroPods Example: Simple Container Lifecycle Management
+// ============================================================================
+//
+// This script demonstrates the basic container lifecycle operations:
+// - Creating a container
+// - Starting a container
+// - Executing commands inside the container
+// - Stopping a container
+// - Deleting a container
+//
+// No networking tests - just basic container operations.
+// ============================================================================
+
+// Step 1: Configure HeroPods instance
+// This creates a HeroPods instance named 'simple_demo' with default settings
+!!heropods.configure
+    name:'simple_demo'
+    reset:false
+    use_podman:true
+
+// Step 2: Create a new Alpine Linux container
+// This pulls the Alpine 3.20 image from Docker Hub and prepares it for use
+!!heropods.container_new
+    name:'simple_container'
+    image:'custom'
+    custom_image_name:'alpine_3_20'
+    docker_url:'docker.io/library/alpine:3.20'
+
+// Step 3: Start the container
+// This starts the container using crun (OCI runtime)
+!!heropods.container_start
+    name:'simple_container'
+
+// Step 4: Execute basic commands inside the container
+// These commands demonstrate that the container is running and functional
+
+// Show kernel information
+!!heropods.container_exec
+    name:'simple_container'
+    cmd:'uname -a'
+    stdout:true
+
+// List root directory contents
+!!heropods.container_exec
+    name:'simple_container'
+    cmd:'ls -la /'
+    stdout:true
+
+// Show OS release information
+!!heropods.container_exec
+    name:'simple_container'
+    cmd:'cat /etc/os-release'
+    stdout:true
+
+// Show current processes
+!!heropods.container_exec
+    name:'simple_container'
+    cmd:'ps aux'
+    stdout:true
+
+// Show environment variables
+!!heropods.container_exec
+    name:'simple_container'
+    cmd:'env'
+    stdout:true
+
+// Step 5: Stop the container
+// This gracefully stops the container (SIGTERM, then SIGKILL if needed)
+!!heropods.container_stop
+    name:'simple_container'
+
+// Step 6: Delete the container
+// This removes the container and cleans up all associated resources
+!!heropods.container_delete
+    name:'simple_container'
+
