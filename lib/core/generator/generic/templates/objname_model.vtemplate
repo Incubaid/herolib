@@ -13,6 +13,9 @@ const default = ${args.default}
 pub struct ${args.classname} {
 pub mut:
     name string = 'default'
+@if args.hasconfig
+	namespace string = 'default'
+@end	
 @if args.hasconfig    
 	homedir    string
 	configpath string

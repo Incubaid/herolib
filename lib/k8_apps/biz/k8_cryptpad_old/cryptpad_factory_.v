@@ -6,7 +6,7 @@ import incubaid.herolib.ui.console
 import json
 
 __global (
-	cryptpad_global  map[string]&CryptpadServer
+	cryptpad_global  map[string]&K8Cryptpad
 	cryptpad_default string
 )
 
@@ -20,15 +20,15 @@ pub mut:
 	create bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&CryptpadServer {
-	mut obj := CryptpadServer{
+pub fn new(args ArgsGet) !&K8Cryptpad {
+	mut obj := K8Cryptpad{
 		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&CryptpadServer {
+pub fn get(args ArgsGet) !&K8Cryptpad {
 	mut context := base.context()!
 	cryptpad_default = args.name
 	if args.fromdb || args.name !in cryptpad_global {
@@ -37,16 +37,16 @@ pub fn get(args ArgsGet) !&CryptpadServer {
 			data := r.hget('context:cryptpad', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('CryptpadServer with name: ${args.name} does not exist, prob bug.')
+				return error('K8Cryptpad with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(CryptpadServer, data)!
+			mut obj := json.decode(K8Cryptpad, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("CryptpadServer with name '${args.name}' does not exist")
+				return error("K8Cryptpad with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
@@ -58,7 +58,7 @@ pub fn get(args ArgsGet) !&CryptpadServer {
 }
 
 // register the config for the future
-pub fn set(o CryptpadServer) ! {
+pub fn set(o K8Cryptpad) ! {
 	mut o2 := set_in_mem(o)!
 	cryptpad_default = o2.name
 	mut context := base.context()!
@@ -86,12 +86,12 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&CryptpadServer {
-	mut res := []&CryptpadServer{}
+pub fn list(args ArgsList) ![]&K8Cryptpad {
+	mut res := []&K8Cryptpad{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		cryptpad_global = map[string]&CryptpadServer{}
+		cryptpad_global = map[string]&K8Cryptpad{}
 		cryptpad_default = ''
 	}
 	if args.fromdb {
@@ -112,7 +112,7 @@ pub fn list(args ArgsList) ![]&CryptpadServer {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o CryptpadServer) !CryptpadServer {
+fn set_in_mem(o K8Cryptpad) !K8Cryptpad {
 	mut o2 := obj_init(o)!
 	cryptpad_global[o2.name] = &o2
 	cryptpad_default = o2.name
@@ -155,7 +155,7 @@ pub fn play(mut plbook PlayBook) ! {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // load from disk and make sure is properly intialized
-pub fn (mut self CryptpadServer) reload() ! {
+pub fn (mut self K8Cryptpad) reload() ! {
 	self = obj_init(self)!
 	set(self)!
 }
@@ -166,14 +166,14 @@ pub mut:
 	reset bool
 }
 
-pub fn (mut self CryptpadServer) install(args InstallArgs) ! {
+pub fn (mut self K8Cryptpad) install(args InstallArgs) ! {
 	switch(self.name)
 	if args.reset || (!installed()!) {
 		install()!
 	}
 }
 
-pub fn (mut self CryptpadServer) destroy() ! {
+pub fn (mut self K8Cryptpad) destroy() ! {
 	switch(self.name)
 	destroy()!
 }

@@ -1,6 +1,6 @@
 !!hero_code.generate_installer
     name:'cryptpad'
-    classname:'CryptpadServer'
+    classname:'K8Cryptpad'
     singleton:0            
     default:0
     title:''

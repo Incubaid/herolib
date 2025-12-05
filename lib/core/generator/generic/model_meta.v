@@ -27,6 +27,7 @@ pub mut:
 pub enum Cat {
 	installer
 	client
+	k8sapp
 }
 
 fn args_get(path string) !ModuleMeta {

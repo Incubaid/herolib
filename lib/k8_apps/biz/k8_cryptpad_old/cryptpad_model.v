@@ -11,33 +11,41 @@ pub const version = '0.0.0'
 const singleton = false
 const default = false
 
-//TODO: this should. not be needed
-struct ConfigValues {
-pub mut:
-	hostname  string // The CryptPad hostname
-	backends  string // The backends for the TFGW
-	namespace string // The namespace for the CryptPad deployment
-	config_js string // Generated config.js content
-}
+// //TODO: this should. not be needed
+// struct ConfigValues {
+// pub mut:
+// 	hostname  string // The CryptPad hostname
+// 	backends  string // The backends for the TFGW
+// 	namespace string // The namespace for the CryptPad deployment
+// 	config_js string // Generated config.js content
+// }
 
 @[heap]
 pub struct CryptpadServer {
 pub mut:
-	name               string = 'cryptpad'
-	cryptpad_path      string = '/tmp/cryptpad/cryptpad.yaml'
-	tfgw_cryptpad_path string = '/tmp/cryptpad/tfgw-cryptpad.yaml'
-	config_js_path     string = '/tmp/cryptpad/config.js'
-	k8app        	   ?core.K8App @[skip]
+	name               string
+	namespace          string
+	k8s_        	   ?core.K8App @[skip]
 }
 
-// your checking & initialization code if needed
-fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
-	mut mycfg := mycfg_
-	mycfg.k8app = core.k8app(
+
+pub fn (mut self CryptpadServer) k8s() !core.K8App {
+	return self.k8s_ or {
+		self.k8s_ = core.k8app(
 		app_name: 'cryptpad'
-		app_instance: mycfg.name
+		app_instance: self.name
 		namespace: 
 	)!
+
+		installer.k8app = obj
+		return obj
+	}
+}
+
+
+// your checking & initialization code if needed
+fn obj_init(mycfg_ K8Cryptpad) !K8Cryptpad {
+	mut mycfg := mycfg_
 	return mycfg
 }
 
@@ -114,7 +122,7 @@ fn get_master_node_ips() ![]string {
 
 /////////////NORMALLY NO NEED TO TOUCH
 
-pub fn heroscript_loads(heroscript string) !CryptpadServer {
-	mut obj := encoderhero.decode[CryptpadServer](heroscript)!
+pub fn heroscript_loads(heroscript string) !K8Cryptpad {
+	mut obj := encoderhero.decode[K8Cryptpad](heroscript)!
 	return obj
 }
