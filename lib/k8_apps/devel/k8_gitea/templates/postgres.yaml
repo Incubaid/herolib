@@ -12,10 +12,10 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: @{config_values.db_host}
+  name: postgres
   namespace: @{config_values.namespace}
   labels:
-    app: @{config_values.db_host}
+    app: postgres
 spec:
   containers:
   - name: postgres
@@ -43,11 +43,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: @{config_values.db_host}
+  name: postgres
   namespace: @{config_values.namespace}
 spec:
   selector:
-    app: @{config_values.db_host}
+    app: postgres
   ports:
   - port: 5432
     targetPort: 5432
