@@ -1,33 +1,41 @@
 module deployer
 
-import incubaid.herolib.core.base as context
+import incubaid.herolib.core.base
 
-// Will be changed when we support the logic of the TFChain one
+// KVStoreFS uses Redis for caching deployment state via hero context and session
 pub struct KVStoreFS {}
 
+const session_name = 'deployer'
+
+fn get_session() !base.Session {
+	mut ctx := base.context()!
+	// Try to get existing session, or create new one
+	session := ctx.session_get(name: session_name) or { ctx.session_new(name: session_name)! }
+	return session
+}
+
+fn cache_key(session base.Session, key string) string {
+	return '${session.guid()}:${key}'
+}
+
 fn (kvs KVStoreFS) set(key string, data []u8) ! {
-	// set in context
-	mut mycontext := context.context_new()!
-	mut session := mycontext.session_new(name: 'deployer')!
-	mut db := session.db_get()!
-	db.set(key: key, valueb: data) or { return error('Cannot set the key due to: ${err}') }
+	mut session := get_session()!
+	mut redis := session.context.redis()!
+	redis.set(cache_key(session, key), data.bytestr())!
 }
 
 fn (kvs KVStoreFS) get(key string) ![]u8 {
-	mut mycontext := context.context_new()!
-	mut session := mycontext.session_new(name: 'deployer')!
-	mut db := session.db_get()!
-	value := db.get(key: key) or { return error('Cannot get value of key ${key} due to: ${err}') }
+	mut session := get_session()!
+	mut redis := session.context.redis()!
+	value := redis.get(cache_key(session, key)) or { return error('Key "${key}" not found.') }
 	if value.len == 0 {
 		return error('The value is empty.')
 	}
-
 	return value.bytes()
 }
 
 fn (kvs KVStoreFS) delete(key string) ! {
-	mut mycontext := context.context_new()!
-	mut session := mycontext.session_new(name: 'deployer')!
-	mut db := session.db_get()!
-	db.delete(key: key) or { return error('Cannot set the key due to: ${err}') }
+	mut session := get_session()!
+	mut redis := session.context.redis()!
+	redis.del(cache_key(session, key))!
 }
