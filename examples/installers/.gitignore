@@ -3,3 +3,4 @@ gitea
 installers
 postgresql
 mycelium
+kubectl_installer

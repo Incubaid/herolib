@@ -136,28 +136,29 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut other_actions := plbook.find(filter: 'coredns.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install', 'build'] {
+		if other_action.name in ['destroy', 'install', 'build', 'start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
+			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
+			mut coredns_obj := get(name: name)!
+			console.print_debug('action object:\n${coredns_obj}')
+			
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action coredns.destroy')
-				destroy()!
+				coredns_obj.destroy()!
 			}
 			if other_action.name == 'install' {
 				console.print_debug('install action coredns.install')
-				install()!
+				coredns_obj.install(reset: reset)!
 			}
-		}
-		if other_action.name in ['start', 'stop', 'restart'] {
-			mut p := other_action.params
-			name := p.get('name')!
-			mut coredns_obj := get(name: name)!
-			console.print_debug('action object:\n${coredns_obj}')
+			if other_action.name == 'build' {
+				console.print_debug('install action coredns.build')
+				coredns_obj.build()!
+			}
 			if other_action.name == 'start' {
 				console.print_debug('install action coredns.${other_action.name}')
 				coredns_obj.start()!
 			}
-
 			if other_action.name == 'stop' {
 				console.print_debug('install action coredns.${other_action.name}')
 				coredns_obj.stop()!
@@ -165,6 +166,22 @@ pub fn play(mut plbook PlayBook) ! {
 			if other_action.name == 'restart' {
 				console.print_debug('install action coredns.${other_action.name}')
 				coredns_obj.restart()!
+			}
+			if other_action.name == 'start_pre' {
+				console.print_debug('install action coredns.${other_action.name}')
+				coredns_obj.start_pre()!
+			}
+			if other_action.name == 'start_post' {
+				console.print_debug('install action coredns.${other_action.name}')
+				coredns_obj.start_post()!
+			}
+			if other_action.name == 'stop_pre' {
+				console.print_debug('install action coredns.${other_action.name}')
+				coredns_obj.stop_pre()!
+			}
+			if other_action.name == 'stop_post' {
+				console.print_debug('install action coredns.${other_action.name}')
+				coredns_obj.stop_post()!
 			}
 		}
 		other_action.done = true
@@ -213,17 +230,16 @@ pub fn (mut self CoreDNS) start() ! {
 
 	console.print_header('installer: coredns start')
 
-	if !installed()! {
-		install()!
+	if !self.installed()! {
+		self.install(reset: false)!
 	}
 
 	configure()!
 
-	start_pre()!
+	self.start_pre()!
 
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
-
 		console.print_debug('installer: coredns starting with ${zprocess.startuptype}...')
 
 		sm.new(zprocess)!
@@ -231,7 +247,7 @@ pub fn (mut self CoreDNS) start() ! {
 		sm.start(zprocess.name)!
 	}
 
-	start_post()!
+	self.start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -250,12 +266,12 @@ pub fn (mut self CoreDNS) install_start(args InstallArgs) ! {
 
 pub fn (mut self CoreDNS) stop() ! {
 	switch(self.name)
-	stop_pre()!
-	for zprocess in startupcmd()! {
+	self.stop_pre()!
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.stop(zprocess.name)!
 	}
-	stop_post()!
+	self.stop_post()!
 }
 
 pub fn (mut self CoreDNS) restart() ! {
@@ -268,7 +284,7 @@ pub fn (mut self CoreDNS) running() !bool {
 	switch(self.name)
 
 	// walk over the generic processes, if not running return
-	for zprocess in startupcmd()! {
+	for zprocess in self.startupcmd()! {
 		if zprocess.startuptype != .screen {
 			mut sm := startupmanager_get(zprocess.startuptype)!
 			r := sm.running(zprocess.name)!
@@ -277,32 +293,9 @@ pub fn (mut self CoreDNS) running() !bool {
 			}
 		}
 	}
-	return running()!
+	return self.running_check()!
 }
 
-@[params]
-pub struct InstallArgs {
-pub mut:
-	reset bool
-}
-
-pub fn (mut self CoreDNS) install(args InstallArgs) ! {
-	switch(self.name)
-	if args.reset || (!installed()!) {
-		install()!
-	}
-}
-
-pub fn (mut self CoreDNS) build() ! {
-	switch(self.name)
-	build()!
-}
-
-pub fn (mut self CoreDNS) destroy() ! {
-	switch(self.name)
-	self.stop() or {}
-	destroy()!
-}
 
 // switch instance to be used for coredns
 pub fn switch(name string) {

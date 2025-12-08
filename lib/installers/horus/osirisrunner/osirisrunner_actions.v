@@ -7,6 +7,7 @@ import incubaid.herolib.osal.startupmanager
 import incubaid.herolib.installers.ulist
 import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.develop.gittools
+import incubaid.herolib.core.texttools
 import os
 
 @[params]
@@ -20,6 +21,14 @@ fn (self &Osirisrunner) startupcmd(args StartArgs) ![]startupmanager.ZProcessNew
 
 	reset := args.reset
 
+	// Get the actual version from the binary
+	version_result := osal.execute_silent('${self.binary_path} --version') or {
+		return error('Failed to get osiris runner version: ${err}')
+	}
+	
+	// Standardize version format
+	version := texttools.version(version_result.trim_space())
+	
 	// Ensure redis_addr has the redis:// prefix
 	redis_url := if self.redis_addr.starts_with('redis://') {
 		self.redis_addr
@@ -28,8 +37,8 @@ fn (self &Osirisrunner) startupcmd(args StartArgs) ![]startupmanager.ZProcessNew
 	}
 
 	res << startupmanager.ZProcessNewArgs{
-		name:  'runner_osiris'
-		cmd:   '${self.binary_path} --redis-url ${redis_url} 12002'
+		name:  'runner_osiris_${self.name}_${version}'
+		cmd:   '${self.binary_path}'
 		reset: reset
 		env:   {
 			'HOME':           os.home_dir()

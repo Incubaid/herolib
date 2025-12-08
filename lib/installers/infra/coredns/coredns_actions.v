@@ -12,10 +12,9 @@ import incubaid.herolib.core.httpconnection
 import incubaid.herolib.installers.lang.golang
 import os
 
-fn startupcmd() ![]startupmanager.ZProcessNewArgs {
-	mut args := get()!
+fn (self &CoreDNS) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
-	cmd := "coredns -conf '${args.config_path}'"
+	cmd := "coredns -conf '${self.config_path}'"
 	res << startupmanager.ZProcessNewArgs{
 		name: 'coredns'
 		cmd:  cmd
@@ -24,7 +23,7 @@ fn startupcmd() ![]startupmanager.ZProcessNewArgs {
 	return res
 }
 
-fn running() !bool {
+fn (self &CoreDNS) running_check() !bool {
 	mut conn := httpconnection.new(name: 'coredns', url: 'http://localhost:3334')!
 	r := conn.get(prefix: 'health')!
 	if r.trim_space() == 'OK' {
@@ -33,24 +32,24 @@ fn running() !bool {
 	return false
 }
 
-fn start_pre() ! {
+fn (self &CoreDNS) start_pre() ! {
 	fix()!
 }
 
-fn start_post() ! {
+fn (self &CoreDNS) start_post() ! {
 	set_local_dns()
 }
 
-fn stop_pre() ! {
+fn (self &CoreDNS) stop_pre() ! {
 }
 
-fn stop_post() ! {
+fn (self &CoreDNS) stop_post() ! {
 }
 
 //////////////////// following actions are not specific to instance of the object
 
 // checks if a certain version or above is installed
-fn installed() !bool {
+fn (self &CoreDNS) installed() !bool {
 	res := os.execute('/bin/bash -c "coredns --version"')
 	if res.exit_code != 0 {
 		return false
@@ -66,21 +65,27 @@ fn installed() !bool {
 }
 
 // get the Upload List of the files
-fn ulist_get() !ulist.UList {
+fn (self &CoreDNS) ulist_get() !ulist.UList {
 	// optionally build a UList which is all paths which are result of building, is then used e.g. in upload
 	return ulist.UList{}
 }
 
 // uploads to S3 server if configured
-fn upload() ! {
+fn (self &CoreDNS) upload() ! {
 }
 
-fn install() ! {
+@[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
+}
+
+fn (mut self CoreDNS) install(args InstallArgs) ! {
 	console.print_header('install coredns')
-	build()! // because we need the plugins
+	self.build()! // because we need the plugins
 }
 
-fn build() ! {
+fn (mut self CoreDNS) build() ! {
 	url := 'https://github.com/coredns/coredns'
 
 	if core.platform()! != .ubuntu {
@@ -116,8 +121,8 @@ fn build() ! {
 	)!
 }
 
-fn destroy() ! {
-	for zprocess in startupcmd()! {
+fn (mut self CoreDNS) destroy() ! {
+	for zprocess in self.startupcmd()! {
 		mut sm := startupmanager_get(zprocess.startuptype)!
 		sm.delete(zprocess.name) or { return error('failed to delete coredns process: ${err}') }
 	}
