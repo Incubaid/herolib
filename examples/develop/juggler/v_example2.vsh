@@ -20,4 +20,4 @@ sm.start(
 // - caddy through startup manager, also for dagu
 // - expose dagu UI over caddy & make sure we use secret
 // - have heroscript starting from itenv to start a full env (with secret): 'hero juggler -i -s mysecret --dns juggler2.protocol.me '
-// - use domain name use https://github.com/Incubaid/dns/blob/main/protocol.me.lua  over git ssh
+// - use domain name use https://github.com/incubaid/dns/blob/main/protocol.me.lua  over git ssh

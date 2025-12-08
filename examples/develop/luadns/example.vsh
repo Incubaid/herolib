@@ -3,7 +3,7 @@
 import incubaid.herolib.develop.luadns
 
 fn main() {
-	mut lua_dns := luadns.load('https://github.com/Incubaid/dns') or {
+	mut lua_dns := luadns.load('https://github.com/incubaid/dns') or {
 		eprintln('Failed to parse LuaDNS files: ${err}')
 		return
 	}

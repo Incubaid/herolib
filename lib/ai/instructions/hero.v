@@ -7,7 +7,7 @@ import incubaid.herolib.lib.develop.codewalker
 pub fn aiprompts_path() !string {
 	return instructions_cache['aiprompts_path'] or {
 		mypath := gittools.path(
-			git_url: 'https://github.com/Incubaid/herolib/tree/development/aiprompts'
+			git_url: 'https://github.com/incubaid/herolib/tree/development/aiprompts'
 		)!.path
 		instructions_cache['aiprompts_path'] = mypath
 		mypath

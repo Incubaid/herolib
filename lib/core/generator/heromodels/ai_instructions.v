@@ -5,7 +5,7 @@ import incubaid.herolib.core.pathlib
 
 pub fn aiprompts_path() !string {
 	return gittools.path(
-		git_url: 'https://github.com/Incubaid/herolib/tree/development/aiprompts'
+		git_url: 'https://github.com/incubaid/herolib/tree/development/aiprompts'
 	)!.path
 }
 
