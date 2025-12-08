@@ -13,7 +13,7 @@ fn (self &RedisInstall) startupcmd() ![]startupmanager.ZProcessNewArgs {
 
 	res << startupmanager.ZProcessNewArgs{
 		name: 'redis'
-		cmd:  'redis-server ${configfilepath(self)}'
+		cmd:  'redis-server ${configfilepath(self)!}'
 		env:  {
 			'HOME': os.home_dir()
 		}
@@ -37,11 +37,11 @@ fn (self &RedisInstall) start_pre() ! {
 	}
 
 	// Ensure data directory exists with proper permissions before configuring
-	osal.execute_silent('mkdir -p ${self.datadir}')!
-	if core.is_linux()! {
-		// On Linux, ensure redis user can access the directory
-		osal.execute_silent('chown -R redis:redis ${self.datadir}')!
-		osal.execute_silent('chmod 755 ${self.datadir}')!
+	osal.dir_ensure(self.datadir)!
+	if core.is_linux()! && osal.user_exists('redis') {
+		// On Linux, ensure redis user can access the directory (if redis user exists)
+		osal.execute_silent('chown -R redis:redis ${self.datadir}') or {}
+		osal.execute_silent('chmod 755 ${self.datadir}') or {}
 	}
 
 	// Configure redis before starting (applies template)
@@ -52,7 +52,7 @@ fn (self &RedisInstall) start_pre() ! {
 
 	// On macOS, start redis with daemonize (not via startupmanager)
 	if core.platform()! == .osx {
-		osal.exec(cmd: 'redis-server ${configfilepath(self)} --daemonize yes')!
+		osal.exec(cmd: 'redis-server ${configfilepath(self)!} --daemonize yes')!
 	}
 }
 
@@ -115,17 +115,15 @@ pub fn redis_install(mut args RedisInstall) ! {
 
 	// Install Redis package if not already installed
 	if !args.installed()! {
-		if core.is_linux()! {
-			osal.package_install('redis-server')! // Ubuntu/Debian
-		} else {
-			osal.package_install('redis')! // macOS, Alpine, Arch, etc.
-		}
+		osal.package_install(package_name()!)!
 	}
 
 	// Create data directory with correct permissions
-	osal.execute_silent('mkdir -p ${args.datadir}')!
-	osal.execute_silent('chown -R redis:redis ${args.datadir}') or {}
-	osal.execute_silent('chmod 755 ${args.datadir}') or {}
+	osal.dir_ensure(args.datadir)!
+	if core.is_linux()! && osal.user_exists('redis') {
+		osal.execute_silent('chown -R redis:redis ${args.datadir}') or {}
+		osal.execute_silent('chmod 755 ${args.datadir}') or {}
+	}
 
 	// Configure and start Redis
 	start(args)!
@@ -154,24 +152,29 @@ pub fn start(args RedisInstall) ! {
 	// Kill any existing Redis processes (including package auto-started ones)
 	osal.process_kill_recursive(name: 'redis-server')!
 
-	if core.platform()! == .osx {
+	platform := core.platform()!
+	if platform == .osx {
 		// macOS: start directly with daemonize
-		osal.exec(cmd: 'redis-server ${configfilepath(args)} --daemonize yes')!
+		osal.exec(cmd: 'redis-server ${configfilepath(args)!} --daemonize yes')!
 	} else {
-		// Linux: prefer systemctl if available, otherwise start directly
-		if osal.cmd_exists('systemctl') {
+		// Linux: use systemd if actually available, otherwise start directly
+		if systemd_available() {
 			// Ensure permissions are correct for systemd-managed Redis
-			osal.execute_silent('chown -R redis:redis ${args.datadir}') or {}
-			osal.execute_silent('chmod 755 ${args.datadir}') or {}
+			if osal.user_exists('redis') {
+				osal.execute_silent('chown -R redis:redis ${args.datadir}') or {}
+				osal.execute_silent('chmod 755 ${args.datadir}') or {}
+			}
 			// Reset any failed state from previous kills
-			osal.execute_silent('systemctl reset-failed redis-server') or {}
-			osal.exec(cmd: 'systemctl start redis-server')!
+			svc := service_name()!
+			osal.execute_silent('systemctl reset-failed ${svc}') or {}
+			osal.exec(cmd: 'systemctl start ${svc}')!
 		} else {
-			// No systemctl (Alpine, containers, etc.)
-			// Set permissions for redis user before starting
-			osal.execute_silent('chown -R redis:redis ${args.datadir}') or {}
-			osal.execute_silent('chmod 755 ${args.datadir}') or {}
-			osal.exec(cmd: 'redis-server ${configfilepath(args)} --daemonize yes')!
+			// No systemd (Alpine, containers, etc.) - start directly
+			if osal.user_exists('redis') {
+				osal.execute_silent('chown -R redis:redis ${args.datadir}') or {}
+				osal.execute_silent('chmod 755 ${args.datadir}') or {}
+			}
+			osal.exec(cmd: 'redis-server ${configfilepath(args)!} --daemonize yes')!
 		}
 	}
 
