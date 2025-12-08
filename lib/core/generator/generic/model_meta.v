@@ -1,6 +1,7 @@
 module generic
 
 import incubaid.herolib.core.pathlib
+import incubaid.herolib.data.params
 import incubaid.herolib.core.playbook
 import incubaid.herolib.ui.console
 import os
@@ -43,44 +44,58 @@ fn args_get(path string) !ModuleMeta {
 
 	mut install_actions := plbook.find(filter: 'hero_code.generate_installer')!
 	mut client_actions := plbook.find(filter: 'hero_code.generate_client')!
+	mut k8s_actions := plbook.find(filter: 'hero_code.generate_k8s')!
 
-	if install_actions.len > 1 {
-		return error("found more than one 'hero_code.generate_installer' action in ${path}")
+	if install_actions.len > 1 || k8s_actions.len > 1 || client_actions.len > 1 {
+		return error("found more than one 'hero_code.generate_...' action in ${path}")
 	}
 
-	if client_actions.len > 1 {
-		return error("found more than one 'hero_code.generate_client' action in ${path}")
+	if install_actions.len + client_actions.len + k8s_actions.len > 1 {
+		return error("found multiple 'hero_code.generate_...' actions in ${path}, can only be one or the other")
 	}
 
-	if install_actions.len == 1 && client_actions.len == 1 {
-		return error("found both 'hero_code.generate_installer' and 'hero_code.generate_client' actions in ${path}, can only be one or the other")
-	}
+	mut p:= params.Params{}
+	mut cat := Cat.installer
 
 	if install_actions.len == 1 {
 		mut p := install_actions[0].params
-		mut name := p.get('name')!
-		if name == '' {
-			name = os.base(path)
-		}
-		mut args := ModuleMeta{
-			name:                name
-			classname:           p.get('classname')!
-			title:               p.get_default('title', '')!
-			play_name:           p.get_default('play_name', name)!
-			default:             p.get_default_true('default')
-			supported_platforms: p.get_list_default('supported_platforms', [])!
-			singleton:           p.get_default_false('singleton')
-			templates:           p.get_default_false('templates')
-			startupmanager:      p.get_default_true('startupmanager')
-			hasconfig:           p.get_default_true('hasconfig')
-			build:               p.get_default_false('build')
-			active:              p.get_default_true('active')
-			cat:                 .installer
-			path:                path
-		}
-		args.check()!
-		return args
 	}
+	if k8s_actions.len == 1 {
+		mut p := k8s_actions[0].params
+		cat = .k8sapp
+	}
+	if client_actions.len == 1 {
+		mut p := client_actions[0].params
+		cat = .client
+	}
+
+	mut name := p.get('name')!
+	if name == '' {
+		name = os.base(path)
+	}
+
+
+	mut args := ModuleMeta{
+		name:                name
+		classname:           p.get('classname')!
+		title:               p.get_default('title', '')!
+		play_name:           p.get_default('play_name', name)! // default to name,is what is used for heroscript playbook
+		default:             p.get_default_true('default')
+		supported_platforms: p.get_list_default('supported_platforms', [])! //TODO: list the possible platforms
+		singleton:           p.get_default_false('singleton')
+		templates:           p.get_default_false('templates')
+		startupmanager:      p.get_default_true('startupmanager')
+		hasconfig:           p.get_default_true('hasconfig')
+		build:               p.get_default_false('build')
+		active:              p.get_default_true('active')
+		cat:                 cat
+		path:                path
+	}
+
+
+	args.check()!
+
+
 
 	if client_actions.len == 1 {
 		mut p := client_actions[0].params
@@ -116,9 +131,10 @@ fn (mut m ModuleMeta) check() ! {
 	if module_path.contains('incubaid.herolib.lib.') {
 		// Path is inside lib/ directory (e.g., lib/installers/horus/coordinator)
 		module_path = module_path.split('incubaid.herolib.lib.')[1]
-	} else if module_path.contains('incubaid.herolib.') {
-		// Path is directly under herolib root (e.g., zeko)
-		module_path = module_path.split('incubaid.herolib.')[1]
+		// } else if module_path.contains('incubaid.herolib.') {
+		// 	// Path is directly under herolib root (e.g., zeko)
+		// 	// module_path = module_path.split('incubaid.herolib.')[1]
+		// 	return error('path should be inside incubaid.herolib.lib, so that module_path can be determined, now is: ${m.path}')
 	} else {
 		return error('path should be inside incubaid.herolib, so that module_path can be determined, now is: ${m.path}')
 	}
