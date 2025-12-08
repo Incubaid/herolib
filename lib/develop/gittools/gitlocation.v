@@ -127,23 +127,26 @@ pub fn (mut gs GitStructure) gitlocation_from_url(url string) !GitLocation {
 
 // Normalize the URL for consistent parsing
 fn normalize_url(url string) string {
+	mut result := url
+
 	// Remove common URL prefixes
-	if url.starts_with('ssh://') {
-		return url[6..].replace(':', '/').replace('//', '/').trim('/')
+	if result.starts_with('ssh://') {
+		result = result[6..] // Remove 'ssh://'
 	}
-	if url.starts_with('git@') {
-		return url[4..].replace(':', '/').replace('//', '/').trim('/')
+	if result.starts_with('git@') {
+		result = result[4..] // Remove 'git@'
 	}
-	if url.starts_with('http:/') {
-		return url[6..].replace(':', '/').replace('//', '/').trim('/')
+	if result.starts_with('http://') {
+		result = result[7..] // Remove 'http://'
 	}
-	if url.starts_with('https:/') {
-		return url[7..].replace(':', '/').replace('//', '/').trim('/')
+	if result.starts_with('https://') {
+		result = result[8..] // Remove 'https://'
 	}
-	if url.ends_with('.git') {
-		return url[0..url.len - 4].replace(':', '/').replace('//', '/').trim('/')
-	}
-	return url.replace(':', '/').replace('//', '/').trim('/')
+
+	// Normalize separators and trim
+	result = result.replace(':', '/').replace('//', '/').trim('/')
+
+	return result
 }
 
 // path is needed to get the
