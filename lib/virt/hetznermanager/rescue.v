@@ -171,6 +171,33 @@ pub fn (mut h HetznerManager) ubuntu_install(args ServerInstallArgs) !&builder.N
 			if n.platform == .ubuntu && !is_rescue {
 				console.print_debug('server ${serverinfo.server_name} is already running Ubuntu, skipping installation')
 
+				// Inject all SSH keys from Hetzner account into the server
+				console.print_debug('Injecting SSH keys from Hetzner account into ${serverinfo.server_name}')
+				pubkeys := h.get_pubkeys_data()!
+				
+				if pubkeys.len > 0 {
+					// Read existing authorized_keys
+					existing_keys := n.exec(cmd: 'cat /root/.ssh/authorized_keys 2>/dev/null || echo ""', stdout: false) or { '' }
+					
+					// Combine existing keys with new keys (avoid duplicates)
+					mut all_keys := existing_keys.split('\n').filter(it.trim_space().len > 0)
+					
+					for pubkey in pubkeys {
+						key_trimmed := pubkey.trim_space()
+						if key_trimmed.len > 0 && !all_keys.contains(key_trimmed) {
+							all_keys << key_trimmed
+						}
+					}
+					
+					// Write all keys back
+					combined_keys := all_keys.join('\n') + '\n'
+					n.exec(cmd: 'mkdir -p /root/.ssh && chmod 700 /root/.ssh', stdout: false)!
+					n.file_write('/root/.ssh/authorized_keys', combined_keys)!
+					n.exec(cmd: 'chmod 600 /root/.ssh/authorized_keys', stdout: false)!
+					
+					console.print_debug('Injected ${pubkeys.len} SSH key(s) into ${serverinfo.server_name}')
+				}
+
 				// Still install hero if requested
 				if args.hero_install {
 					n.exec_silent('apt update && apt install -y mc redis libpq5 libpq-dev')!
