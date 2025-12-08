@@ -1,7 +1,33 @@
 module gittools
 
-import os
-import incubaid.herolib.core.pathlib
+fn test_normalize_url() {
+	// Test SSH URL with ssh:// prefix and git@ user
+	assert normalize_url('ssh://git@forge.ourworld.tf/lhumina_code/docusaurus_template.git') == 'forge.ourworld.tf/lhumina_code/docusaurus_template.git'
+
+	// Test SSH URL with just git@ prefix (no ssh://)
+	assert normalize_url('git@github.com:vlang/v.git') == 'github.com/vlang/v.git'
+
+	// Test HTTPS URL
+	assert normalize_url('https://github.com/vlang/v.git') == 'github.com/vlang/v.git'
+
+	// Test HTTP URL
+	assert normalize_url('http://github.com/vlang/v.git') == 'github.com/vlang/v.git'
+
+	// Test URL without any prefix (just domain)
+	assert normalize_url('github.com/vlang/v') == 'github.com/vlang/v'
+
+	// Test URL with trailing slash
+	assert normalize_url('https://github.com/vlang/v/') == 'github.com/vlang/v'
+
+	// Test SSH URL with port-style colon (git@host:path format)
+	assert normalize_url('git@git.threefold.info:tfgrid/docs.git') == 'git.threefold.info/tfgrid/docs.git'
+
+	// Test SSH URL with ssh:// and standard path (no colon after host)
+	assert normalize_url('ssh://git@git.ourworld.tf/herocode/home.git') == 'git.ourworld.tf/herocode/home.git'
+
+	// Test double slashes are normalized to single slash
+	assert normalize_url('https://github.com//vlang//v') == 'github.com/vlang/v'
+}
 
 fn test_gitlocation_from_url() {
 	mut gs := GitStructure{}

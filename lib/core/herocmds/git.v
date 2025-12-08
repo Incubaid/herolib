@@ -223,7 +223,9 @@ fn cmd_git_execute(cmd Command) ! {
 
 	if cmd.args.len > 0 {
 		arg1 := cmd.args[0]
-		if arg1.starts_with('git') || arg1.starts_with('http') {
+		// Detect URLs: git@, http://, https://, ssh://, or contains common git hosting domains
+		if arg1.starts_with('git@') || arg1.starts_with('http://') || arg1.starts_with('https://')
+			|| arg1.starts_with('ssh://') {
 			url = arg1
 		} else {
 			path = arg1
