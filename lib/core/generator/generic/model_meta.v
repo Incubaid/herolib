@@ -1,7 +1,7 @@
 module generic
 
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.data.params
+import incubaid.herolib.data.paramsparser as params
 import incubaid.herolib.core.playbook
 import incubaid.herolib.ui.console
 import os

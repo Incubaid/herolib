@@ -1,7 +1,6 @@
 module playcmds
 
 import incubaid.herolib.core.playbook
-import incubaid.herolib.apps.biz.erpnext
 import incubaid.herolib.clients.giteaclient
 import incubaid.herolib.clients.ipapi
 import incubaid.herolib.clients.jina
@@ -30,8 +29,6 @@ import incubaid.herolib.installers.infra.coredns
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.installers.infra.livekit
 import incubaid.herolib.installers.infra.zinit_installer
-import incubaid.herolib.installers.k8s.cryptpad
-import incubaid.herolib.installers.k8s.element_chat
 import incubaid.herolib.installers.lang.golang
 import incubaid.herolib.installers.lang.nodejs
 import incubaid.herolib.installers.lang.python
@@ -65,7 +62,6 @@ pub fn run_all(args_ PlayArgs) ! {
 		playbook.new(text: args.heroscript, path: args.heroscript_path)!
 	}
 
-	erpnext.play(mut plbook)!
 	giteaclient.play(mut plbook)!
 	ipapi.play(mut plbook)!
 	jina.play(mut plbook)!
@@ -89,8 +85,6 @@ pub fn run_all(args_ PlayArgs) ! {
 	gitea.play(mut plbook)!
 	livekit.play(mut plbook)!
 	zinit_installer.play(mut plbook)!
-	cryptpad.play(mut plbook)!
-	element_chat.play(mut plbook)!
 	golang.play(mut plbook)!
 	nodejs.play(mut plbook)!
 	python.play(mut plbook)!
