@@ -58,14 +58,14 @@ fn args_get(path string) !ModuleMeta {
 	mut cat := Cat.installer
 
 	if install_actions.len == 1 {
-		mut p := install_actions[0].params
+		p = install_actions[0].params
 	}
 	if k8s_actions.len == 1 {
-		mut p := k8s_actions[0].params
+		p = k8s_actions[0].params
 		cat = .k8sapp
 	}
 	if client_actions.len == 1 {
-		mut p := client_actions[0].params
+		p = client_actions[0].params
 		cat = .client
 	}
 
@@ -95,29 +95,19 @@ fn args_get(path string) !ModuleMeta {
 
 	args.check()!
 
+	if args.cat == .installer{
 
-
-	if client_actions.len == 1 {
-		mut p := client_actions[0].params
-		mut name := p.get('name')!
-		if name == '' {
-			name = os.base(path)
-		}
-		mut args := ModuleMeta{
-			name:      name
-			classname: p.get('classname')!
-			title:     p.get_default('title', '')!
-			default:   p.get_default_true('default')
-			singleton: p.get_default_false('singleton')
-			active:    p.get_default_true('active')
-			cat:       .client
-			path:      path
-			play_name: p.get_default('play_name', name)!
-		}
-		args.check()!
-		return args
 	}
-	return error("can't find hero_code.generate_client or hero_code.generate_installer in ${path}")
+
+	if args.cat == .k8sapp{
+		
+	}
+
+	if args.cat == .client{
+		args.startupmanager = false // clients don't use startup manager
+		
+	}
+
 }
 
 fn (mut m ModuleMeta) check() ! {
