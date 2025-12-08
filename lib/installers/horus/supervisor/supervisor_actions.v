@@ -28,9 +28,17 @@ fn (self &Supervisor) startupcmd(args StartArgs) ![]startupmanager.ZProcessNewAr
 		'redis://${self.redis_addr}'
 	}
 
+	// Get the actual version from the binary
+	version_result := osal.execute_silent('${self.binary_path} --version') or {
+		return error('Failed to get osiris runner version: ${err}')
+	}
+	
+	// Standardize version format
+	version := texttools.version(version_result.trim_space())
+
 	res << startupmanager.ZProcessNewArgs{
-		name:  'supervisor'
-		cmd:   '${self.binary_path} --redis-url ${redis_url} --port ${self.http_port} --admin-secret mysecret'
+		name:  'supervisor_${self.name}_${version}'
+		cmd:   '${self.binary_path} --redis-url ${redis_url} --port ${self.http_port} --admin-secret ${self.secret}'
 		reset: reset
 		env:   {
 			'HOME':           os.home_dir()

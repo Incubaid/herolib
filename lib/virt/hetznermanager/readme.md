@@ -27,7 +27,24 @@ source hetzner_env.sh
 
 ### 1.2 SSH Key Configuration
 
-**Important:** The `sshkey` parameter expects the **name** of an SSH key already registered in your Hetzner Robot account, not the actual key content.
+The `sshkey` parameter supports two modes:
+
+- `"*"` - Use **all** SSH keys registered on your Hetzner account (recommended)
+- `"keyname"` - Use a specific key by name (e.g., `"kristof"`, `"mahmoud"`)
+
+**Example using all keys:**
+
+```hs
+!!hetznermanager.configure
+    sshkey: '*'  # All registered keys will have access
+```
+
+**Example using a specific key:**
+
+```hs
+!!hetznermanager.configure
+    sshkey: 'kristof'  # Only the 'kristof' key will have access
+```
 
 To register a new SSH key with Hetzner, use `key_create`:
 
@@ -35,13 +52,6 @@ To register a new SSH key with Hetzner, use `key_create`:
 !!hetznermanager.key_create
     key_name: 'my-laptop-key'
     data: 'ssh-ed25519 AAAAC3...'  # The actual public key content
-```
-
-Once registered, you can reference the key by name in `configure`:
-
-```hs
-!!hetznermanager.configure
-    sshkey: 'my-laptop-key'  # Reference the registered key by name
 ```
 
 ### 1.3 HeroScript Configuration
@@ -52,7 +62,7 @@ Once registered, you can reference the key by name in `configure`:
  user:"${HETZNER_USER}"
  password:"${HETZNER_PASSWORD}"
  whitelist:"1234567"             // Server ID(s) specific to your script
- sshkey:"${HETZNER_SSHKEY_NAME}"
+ sshkey:"*"                      // Use all keys, or specify a key name like "kristof"
 ```
 
 ## 2. Usage
@@ -101,7 +111,7 @@ HeroScript provides a simple, declarative way to execute server operations. You 
   * `user` (string): Hetzner Robot username.
   * `password` (string): Hetzner Robot password.
   * `whitelist` (string, optional): Comma-separated list of server IDs to restrict operations to.
-  * `sshkey` (string, optional): **Name** of an SSH key registered in your Hetzner account (not the key content).
+  * `sshkey` (string, optional): `"*"` for all keys, or a specific key name (e.g., `"kristof"`).
 * `!!hetznermanager.server_rescue`: Activates the rescue system.
   * `instance` (string, optional): The client instance to use (defaults to 'default').
   * `server_name` or `id` (string/int): Identifies the target server.

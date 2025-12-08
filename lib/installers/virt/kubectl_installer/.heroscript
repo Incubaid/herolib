@@ -1,0 +1,12 @@
+
+!!hero_code.generate_installer
+    name:'kubectl_installer'
+    classname:'KubectlInstaller'
+    singleton:0
+    templates:0
+    default:1
+    title:'kubectl CLI installer'
+    supported_platforms:''
+    startupmanager:0
+	hasconfig:1
+    build:0

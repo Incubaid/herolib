@@ -172,6 +172,7 @@ lib/develop
 lib/hero/heromodels
 lib/virt/heropods
 lib/virt/crun
+lib/mycelium/grid3/gridproxy
 '
 
 // the following tests have no prio and can be ignored

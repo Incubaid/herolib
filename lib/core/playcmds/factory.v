@@ -14,11 +14,13 @@ import incubaid.herolib.osal.tmux
 import incubaid.herolib.installers.base
 import incubaid.herolib.installers.lang.vlang
 import incubaid.herolib.installers.lang.herolib
+import incubaid.herolib.installers.sysadmintools.actrunner
 import incubaid.herolib.installers.horus.coordinator
 import incubaid.herolib.installers.horus.supervisor
 import incubaid.herolib.installers.horus.herorunner
 import incubaid.herolib.installers.horus.osirisrunner
 import incubaid.herolib.installers.horus.salrunner
+import incubaid.herolib.clients.namecomclient
 import incubaid.herolib.installers.virt.podman
 import incubaid.herolib.installers.virt.k3s
 import incubaid.herolib.installers.infra.gitea
@@ -83,8 +85,10 @@ pub fn run(args_ PlayArgs) ! {
 	podman.play(mut plbook)!
 	// kubernetes_installer.play(mut plbook)!
 	gitea.play(mut plbook)!
+	actrunner.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
+	namecomclient.play(mut plbook)!
 
 	// Horus
 	coordinator.play(mut plbook)!
