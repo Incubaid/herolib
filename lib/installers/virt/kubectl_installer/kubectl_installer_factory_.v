@@ -4,7 +4,6 @@ import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.ui.console
 import json
-import incubaid.herolib.osal.startupmanager
 
 __global (
 	kubectl_installer_global  map[string]&KubectlInstaller
