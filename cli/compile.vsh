@@ -1,5 +1,6 @@
-#!/usr/bin/env -S v -n -g -cg -w -parallel-cc -showcc -enable-globals run
+#!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 
+// #!/usr/bin/env -S v -n -g -cg -w -parallel-cc -showcc -enable-globals run
 // #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 import os
 import flag
@@ -61,10 +62,13 @@ compile_cmd := if os.user_os() == 'macos' {
 		'v -enable-globals -g -w -n -prod hero.v'
 	} else {
 		'v  -n -g -w -cg -gc none -cc tcc -d use_openssl -enable-globals hero.v'
+		// 'v  -n -g -w -cg -gc none -cc tcc -d use_openssl -enable-globals hero.v'		
+		// 'v -cg -enable-globals -parallel-cc -w -n -d use_openssl hero.v'
 	}
 } else {
 	if prod_mode {
-		'v -cg -enable-globals -parallel-cc -w -n -d use_openssl hero.v'
+		// 'v -cg -enable-globals -parallel-cc -w -n -d use_openssl hero.v'
+		'v  -n -g -w -cg -gc none -cc tcc -d use_openssl -enable-globals hero.v'
 	} else {
 		'v -cg -enable-globals -w -n -d use_openssl hero.v'
 	}

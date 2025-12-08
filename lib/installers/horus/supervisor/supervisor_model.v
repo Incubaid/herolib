@@ -21,6 +21,7 @@ pub mut:
 	ws_port     int    = 9654
 	log_level   string = 'info'
 	repo_path   string = '/root/code/git.ourworld.tf/herocode/horus'
+	secret   string = 'secret'
 }
 
 // your checking & initialization code if needed
@@ -46,6 +47,9 @@ fn obj_init(mycfg_ Supervisor) !Supervisor {
 	}
 	if mycfg.repo_path == '' {
 		mycfg.repo_path = os.join_path(os.home_dir(), 'code/git.ourworld.tf/herocode/horus')
+	}
+	if mycfg.secret == '' {
+		mycfg.secret = 'secret'
 	}
 	return mycfg
 }

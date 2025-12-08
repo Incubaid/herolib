@@ -9,7 +9,7 @@ import incubaid.herolib.installers.ulist
 import os
 
 fn startupcmd() ![]startupmanager.ZProcessNewArgs {
-	mut installer := get()!
+	_ := get()!
 	mut res := []startupmanager.ZProcessNewArgs{}
 	res << startupmanager.ZProcessNewArgs{
 		name: 'traefik'

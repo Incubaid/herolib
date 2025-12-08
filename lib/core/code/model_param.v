@@ -44,6 +44,11 @@ pub fn (p Param) typescript() string {
 pub fn parse_param(code_ string) !Param {
 	mut code := code_.trim_space()
 
+	// Handle empty string (void return type)
+	if code == '' {
+		return Param{}
+	}
+
 	if code == '!' {
 		return Param{
 			is_result: true
@@ -59,6 +64,13 @@ pub fn parse_param(code_ string) !Param {
 		code = code.trim_string_left('mut ').trim_space()
 	}
 	split := code.split(' ').filter(it != '')
+
+	// Handle empty split (void return type after mut check)
+	if split.len == 0 {
+		return Param{
+			mutable: is_mut
+		}
+	}
 
 	if split.len == 1 {
 		// means anonymous param

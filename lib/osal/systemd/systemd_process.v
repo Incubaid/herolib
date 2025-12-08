@@ -50,7 +50,7 @@ pub fn (mut self SystemdProcess) start() ! {
 	systemctl start ${self.name}
 	'
 
-	job := osal.exec(cmd: cmd, stdout: false)!
+	    osal.exec(cmd: cmd, stdout: false)!
 
 	// Wait for service to start with timeout
 	mut attempts := 0

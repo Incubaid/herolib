@@ -99,8 +99,11 @@ pub fn (mut executor ExecutorLocal) download(args SyncArgs) ! {
 }
 
 pub fn (mut executor ExecutorLocal) shell(cmd string) ! {
+	// Note: os.execvp replaces the current process and never returns.
+	// This is intentional - shell() is designed to hand over control to the shell.
+	// Do not put shell() before any other code that needs to execute.
 	if cmd.len > 0 {
-		os.execvp('/bin/bash', ["-c '${cmd}'"])!
+		os.execvp('/bin/bash', ['-c', cmd])!
 	} else {
 		os.execvp('/bin/bash', [])!
 	}

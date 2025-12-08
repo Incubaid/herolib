@@ -114,5 +114,5 @@ fn (q QueryBuilder) build_query(args BuildQueryArgs) string {
 
 fn type_to_map[T](t T) !map[string]json2.Any {
 	encoded_input := json2.encode(t)
-	return json2.raw_decode(encoded_input)!.as_map()
+	    return json2.decode[json2.Any](encoded_input)!.as_map()
 }

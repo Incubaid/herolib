@@ -8,7 +8,7 @@ import incubaid.herolib.core.playbook { Action }
 //     title:'Engineering Division'
 //     avg_monthly_cost:'6000USD' avg_indexation:'5%'
 fn (mut m BizModel) department_define_action(action Action) !Action {
-	bizname := action.params.get_default('bizname', '')!
+	    _ := action.params.get_default('bizname', '')!
 	mut name := action.params.get('name') or { return error('department name is required') }
 	mut descr := action.params.get_default('descr', '')!
 	if descr.len == 0 {

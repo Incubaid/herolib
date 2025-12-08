@@ -1,4 +1,4 @@
-#!/usr/bin/env hero 
+#!/usr/bin/env hero
 
 
 // !!hetznermanager.configure
@@ -33,5 +33,3 @@
     server_name: 'kristof2'
     wait: true
     hero_install: true            // Install Herolib on the new OS
-
-

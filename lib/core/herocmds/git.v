@@ -217,13 +217,15 @@ fn cmd_git_execute(cmd Command) ! {
 	mut gs := gittools.new(coderoot: coderoot)!
 
 	// create the filter for doing group actions, or action on 1 repo
-	mut filter := ''
+	_ := ''
 	mut url := ''
 	mut path := ''
 
 	if cmd.args.len > 0 {
 		arg1 := cmd.args[0]
-		if arg1.starts_with('git') || arg1.starts_with('http') {
+		// Detect URLs: git@, http://, https://, ssh://, or contains common git hosting domains
+		if arg1.starts_with('git@') || arg1.starts_with('http://') || arg1.starts_with('https://')
+			|| arg1.starts_with('ssh://') {
 			url = arg1
 		} else {
 			path = arg1

@@ -74,7 +74,7 @@ fn (mut m BizModel) employee_define_action(action Action) !Action {
 			mut curcost := -costpeople_row.cells[x].val
 			mut curpeople := nrpeople_row.cells[x].val
 			mut currev := revtotal.cells[x].val
-			// println("currev: ${currev}, curcost: ${curcost}, curpeople: ${curpeople}, costpercent_revenue: ${cost_percent_revenue}")
+			println("currev: ${currev}, curcost: ${curcost}, curpeople: ${curpeople}, costpercent_revenue: ${cost_percent_revenue}")
 			if currev * cost_percent_revenue > curcost {
 				costpeople_row.cells[x].val = -currev * cost_percent_revenue
 				nrpeople_row.cells[x].val = f64(currev * cost_percent_revenue / costperson_default.usd())

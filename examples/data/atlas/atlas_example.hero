@@ -1,15 +1,15 @@
 #!/usr/bin/env hero 
 
-!!atlas.scan
-  git_url: 'https://git.ourworld.tf/geomind/atlas_geomind/src/branch/main/content'
-  meta_path: '/tmp/atlas_export_meta'
+!!doctree.scan
+  git_url: 'https://git.ourworld.tf/geomind/doctree_geomind/src/branch/main/content'
+  meta_path: '/tmp/doctree_export_meta'
 
-!!atlas.scan
-  git_url: 'https://git.ourworld.tf/tfgrid/atlas_threefold/src/branch/main/content'
-  meta_path: '/tmp/atlas_export_meta'
+!!doctree.scan
+  git_url: 'https://git.ourworld.tf/tfgrid/doctree_threefold/src/branch/main/content'
+  meta_path: '/tmp/doctree_export_meta'
   ignore3: 'static,templates,groups'
 
-!!atlas.export
-  destination: '/tmp/atlas_export_test'
+!!doctree.export
+  destination: '/tmp/doctree_export_test'
   include: true
   redis: true

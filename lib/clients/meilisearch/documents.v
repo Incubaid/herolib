@@ -228,7 +228,7 @@ pub fn (mut client MeilisearchClient) similar_documents(uid string, args Similar
 		method: .post
 		data:   json.encode(args)
 	}
-	res := client.enable_eperimental_feature(vector_store: true)! // Enable the feature first.
+	    client.enable_eperimental_feature(vector_store: true)! // Enable the feature first.
 	mut http := client.httpclient()!
 	rsponse := http.post_json_str(req)!
 	println('rsponse: ${rsponse}')

@@ -122,12 +122,12 @@ pub fn play(mut plbook PlayBook) ! {
  if plbook.exists_once(filter: 'docusaurus.define') {
   mut action := plbook.get(filter: 'docusaurus.define')!
   mut p := action.params
-  //example how we get parameters from the action see core_params.md for more details
-  ds = new(
-   path: p.get_default('path_publish', '')!
-   production:   p.get_default_false('production')
-  )!
- }
+  //example how we get parameters from the action see aiprompts/herolib_core/core_params.md for more details
+  path_build := p.get_default('path_build', '')!
+  path_publish := p.get_default('path_publish', '')!
+  reset := p.get_default_false('reset')
+  use_doctree := p.get_default_false('use_doctree')
+  }
 
  // Process 'docusaurus.add' actions to configure individual Docusaurus sites
  actions := plbook.find(filter: 'docusaurus.add')!
@@ -138,7 +138,7 @@ pub fn play(mut plbook PlayBook) ! {
 }
 ```
 
-For detailed information on parameter retrieval methods (e.g., `p.get()`, `p.get_int()`, `p.get_default_true()`), refer to `aiprompts/ai_core/core_params.md`.
+For detailed information on parameter retrieval methods (e.g., `p.get()`, `p.get_int()`, `p.get_default_true()`), refer to `aiprompts/herolib_core/core_params.md`.
 
 # PlayBook, process heroscripts
 

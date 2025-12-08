@@ -34,7 +34,7 @@ println('=== Zinit RPC Client Example ===\n')
 // installer.start()!
 
 // Create a new client
-mut client := zinit.new()!
+mut client := zinit.new(socket_path: '/var/run/zinit.sock')!
 
 println(client)
 

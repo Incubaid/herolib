@@ -237,6 +237,7 @@ fn (mut self Coordinator) build() ! {
 fn (mut self Coordinator) destroy() ! {
 	self.stop()!
 
+
 	osal.process_kill_recursive(name: 'coordinator')!
 
 	// Remove the built binary

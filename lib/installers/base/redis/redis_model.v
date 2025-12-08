@@ -17,8 +17,40 @@ pub struct RedisInstall {
 pub mut:
 	name    string = 'default'
 	port    int    = 6379
-	datadir string = '/var/lib/redis'
+	datadir string // platform-specific default set in obj_init
 	ipaddr  string = 'localhost' // can be more than 1, space separated
+}
+
+// Returns platform-specific default data directory
+fn default_datadir() !string {
+	platform := core.platform()!
+	return match platform {
+		.osx => os.home_dir() + '/.redis'
+		else => '/var/lib/redis'
+	}
+}
+
+// Returns platform-specific package name for redis
+fn package_name() !string {
+	platform := core.platform()!
+	return match platform {
+		.ubuntu => 'redis-server'
+		else => 'redis'
+	}
+}
+
+// Returns platform-specific systemd service name
+fn service_name() !string {
+	platform := core.platform()!
+	return match platform {
+		.ubuntu => 'redis-server'
+		else => 'redis'
+	}
+}
+
+// Check if systemd is actually available (not just systemctl command exists)
+fn systemd_available() bool {
+	return os.exists('/run/systemd/system')
 }
 
 // your checking & initialization code if needed
@@ -31,7 +63,7 @@ fn obj_init(mycfg_ RedisInstall) !RedisInstall {
 		mycfg.port = 6379
 	}
 	if mycfg.datadir == '' {
-		mycfg.datadir = '/var/lib/redis'
+		mycfg.datadir = default_datadir()!
 	}
 	if mycfg.ipaddr == '' {
 		mycfg.ipaddr = 'localhost'
@@ -39,11 +71,12 @@ fn obj_init(mycfg_ RedisInstall) !RedisInstall {
 	return mycfg
 }
 
-fn configfilepath(args RedisInstall) string {
-	if core.is_linux() or { panic(err) } {
-		return '/etc/redis/redis.conf'
-	} else {
-		return '${args.datadir}/redis.conf'
+fn configfilepath(args RedisInstall) !string {
+	platform := core.platform()!
+	return match platform {
+		.osx => '${args.datadir}/redis.conf'
+		.alpine => '/etc/redis.conf'
+		else => '/etc/redis/redis.conf'
 	}
 }
 
@@ -51,7 +84,7 @@ fn configfilepath(args RedisInstall) string {
 fn configure_with_args(args RedisInstall) ! {
 	// Use V's template macro like the old installer
 	c := $tmpl('templates/redis_config.conf')
-	pathlib.template_write(c, configfilepath(args), true)!
+	pathlib.template_write(c, configfilepath(args)!, true)!
 }
 
 // called before start if done (uses factory)

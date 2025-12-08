@@ -29,6 +29,13 @@ pub fn (mut c ZinitRPC) service_list() !map[string]string {
 	return client.send[[]string, map[string]string](request)!
 }
 
+// service_exists checks if a service exists in Zinit
+// Returns true if the service is managed by Zinit, false otherwise
+pub fn (mut c ZinitRPC) service_exists(name string) !bool {
+	services := c.service_list()!
+	return name in services
+}
+
 // service_status shows detailed status information for a specific service
 pub fn (mut c ZinitRPC) service_status(name string) !ServiceStatus {
 	mut client := c.client_()!

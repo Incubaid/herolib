@@ -3,7 +3,7 @@ module playcmds
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.data.atlas
 import incubaid.herolib.biz.bizmodel
-import incubaid.herolib.threefold.incatokens
+import incubaid.herolib.mycelium.incatokens
 import incubaid.herolib.web.site
 import incubaid.herolib.virt.hetznermanager
 import incubaid.herolib.virt.heropods
@@ -14,12 +14,15 @@ import incubaid.herolib.osal.tmux
 import incubaid.herolib.installers.base
 import incubaid.herolib.installers.lang.vlang
 import incubaid.herolib.installers.lang.herolib
+import incubaid.herolib.installers.sysadmintools.actrunner
 import incubaid.herolib.installers.horus.coordinator
 import incubaid.herolib.installers.horus.supervisor
 import incubaid.herolib.installers.horus.herorunner
 import incubaid.herolib.installers.horus.osirisrunner
 import incubaid.herolib.installers.horus.salrunner
+import incubaid.herolib.clients.namecomclient
 import incubaid.herolib.installers.virt.podman
+import incubaid.herolib.installers.virt.k3s
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.builder
 
@@ -80,9 +83,12 @@ pub fn run(args_ PlayArgs) ! {
 	herolib.play(mut plbook)!
 	vlang.play(mut plbook)!
 	podman.play(mut plbook)!
+	// kubernetes_installer.play(mut plbook)!
 	gitea.play(mut plbook)!
+	actrunner.play(mut plbook)!
 
 	giteaclient.play(mut plbook)!
+	namecomclient.play(mut plbook)!
 
 	// Horus
 	coordinator.play(mut plbook)!
