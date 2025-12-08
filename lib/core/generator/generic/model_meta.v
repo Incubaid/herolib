@@ -108,6 +108,7 @@ fn args_get(path string) !ModuleMeta {
 		
 	}
 
+	return args
 }
 
 fn (mut m ModuleMeta) check() ! {

@@ -18,7 +18,6 @@ import incubaid.herolib.clients.vastai
 import incubaid.herolib.clients.wireguard
 import incubaid.herolib.clients.zerodb_client
 import incubaid.herolib.clients.zinit
-import incubaid.herolib.develop.heroprompt
 import incubaid.herolib.installers.db.meilisearch_installer
 import incubaid.herolib.installers.horus.coordinator
 import incubaid.herolib.installers.horus.supervisor
@@ -79,7 +78,6 @@ pub fn run_all(args_ PlayArgs) ! {
 	wireguard.play(mut plbook)!
 	zerodb_client.play(mut plbook)!
 	zinit.play(mut plbook)!
-	heroprompt.play(mut plbook)!
 	meilisearch_installer.play(mut plbook)!
 	coredns.play(mut plbook)!
 	gitea.play(mut plbook)!

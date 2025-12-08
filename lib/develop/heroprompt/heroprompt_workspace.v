@@ -8,19 +8,19 @@ import incubaid.herolib.ai.filemap
 
 // Selection API
 @[params]
-pub struct AddDirParams {
+pub struct WorkspaceAddDirParams {
 pub mut:
 	path string @[required]
 }
 
 @[params]
-pub struct AddFileParams {
+pub struct WorkspaceAddFileParams {
 pub mut:
 	path string @[required]
 }
 
 // add a directory to the selection (no recursion stored; recursion is done on-demand)
-pub fn (mut wsp Workspace) add_dir(args AddDirParams) !HeropromptChild {
+pub fn (mut wsp Workspace) add_dir(args WorkspaceAddDirParams) !HeropromptChild {
 	if args.path.len == 0 {
 		return error('the directory path is required')
 	}
@@ -297,13 +297,6 @@ fn (wsp Workspace) build_file_content() !string {
 		}
 	}
 	return content
-}
-
-pub struct HeropromptTmpPrompt {
-pub mut:
-	user_instructions string
-	file_map          string
-	file_contents     string
 }
 
 fn (wsp Workspace) build_user_instructions(text string) string {
