@@ -22,7 +22,7 @@ import incubaid.herolib.installers.horus.osirisrunner
 import incubaid.herolib.installers.horus.salrunner
 import incubaid.herolib.clients.namecomclient
 import incubaid.herolib.installers.virt.podman
-import incubaid.herolib.installers.virt.kubernetes_installer
+import incubaid.herolib.installers.virt.k3s
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.builder
 
@@ -83,7 +83,7 @@ pub fn run(args_ PlayArgs) ! {
 	herolib.play(mut plbook)!
 	vlang.play(mut plbook)!
 	podman.play(mut plbook)!
-	kubernetes_installer.play(mut plbook)!
+	// kubernetes_installer.play(mut plbook)!
 	gitea.play(mut plbook)!
 	actrunner.play(mut plbook)!
 

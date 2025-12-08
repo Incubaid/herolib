@@ -77,6 +77,7 @@ pub fn generate(args_ GenerateArgs) ! {
 		items:       [
 			'installer',
 			'client',
+			'k8sapp'
 		]
 		warning:     'Please select a category'
 	)!
@@ -85,6 +86,8 @@ pub fn generate(args_ GenerateArgs) ! {
 
 	if mycat == 'installer' {
 		meta.cat = .installer
+	} else if mycat == 'k8sapp' {
+		meta.cat = .k8sapp
 	} else {
 		meta.cat = .client
 	}
@@ -145,6 +148,11 @@ pub fn generate(args_ GenerateArgs) ! {
 		meta.build = myconsole.ask_yesno(
 			description: 'Are there builders for the installers (compilation)'
 		)!
+	}
+	if meta.cat == .installer {
+		meta.templates = true
+		meta.startupmanager = true
+		
 	}
 	meta.path = args.path
 	println(meta)

@@ -1,0 +1,116 @@
+#!/usr/bin/env hero
+
+// ============================================================================
+// K3s Cluster Installation Examples
+// ============================================================================
+//
+// This file contains examples for installing K3s clusters with Mycelium IPv6
+// networking. Choose the appropriate section based on your node type.
+//
+// Prerequisites:
+// - Ubuntu OS
+// - Mycelium installed and running
+// - Mycelium interface (default: mycelium0)
+// ============================================================================
+
+// ============================================================================
+// SECTION 1: Install First Master Node
+// ============================================================================
+// This creates the initial master node and initializes the cluster.
+// The token will be auto-generated and displayed for use with other nodes.
+
+!!k3s.configure
+    name:'k3s_master_1'
+    k3s_version:'v1.33.1'
+    data_dir:'~/hero/var/k3s'
+    node_name:'master-1'
+    // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
+
+// Install as first master (will generate token and use --cluster-init)
+!!k3s.install_master name:'k3s_master_1'
+
+// Start K3s
+!!k3s.start name:'k3s_master_1'
+
+// Get kubeconfig (optional - to verify installation)
+// !!k3s.get_kubeconfig name:'k3s_master_1'
+
+// Generate join script for other nodes (optional)
+// !!k3s.generate_join_script name:'k3s_master_1'
+
+// ============================================================================
+// SECTION 2: Join as Additional Master (HA Setup)
+// ============================================================================
+// Use this to add more master nodes for high availability.
+// You MUST have the token and master_url from the first master.
+
+/*
+!!k3s.configure
+    name:'k3s_master_2'
+    k3s_version:'v1.33.1'
+    data_dir:'~/hero/var/k3s'
+    node_name:'master-2'
+    // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
+    token:'<TOKEN_FROM_FIRST_MASTER>'
+    master_url:'https://[<MASTER_IPV6>]:6443'
+
+// Join as additional master
+!!k3s.join_master name:'k3s_master_2'
+
+// Start K3s
+!!k3s.start name:'k3s_master_2'
+*/
+
+// ============================================================================
+// SECTION 3: Install Worker Node
+// ============================================================================
+// Use this to add worker nodes to the cluster.
+// You MUST have the token and master_url from the first master.
+
+/*
+!!k3s.configure
+    name:'k3s_worker_1'
+    k3s_version:'v1.33.1'
+    data_dir:'~/hero/var/k3s'
+    node_name:'worker-1'
+    // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
+    token:'<TOKEN_FROM_FIRST_MASTER>'
+    master_url:'https://[<MASTER_IPV6>]:6443'
+
+// Install as worker
+!!k3s.install_worker name:'k3s_worker_1'
+
+// Start K3s
+!!k3s.start name:'k3s_worker_1'
+*/
+
+// ============================================================================
+// SECTION 4: Lifecycle Management
+// ============================================================================
+// Common operations for managing K3s
+
+// Stop K3s
+// !!k3s.stop name:'k3s_master_1'
+
+// Restart K3s
+// !!k3s.restart name:'k3s_master_1'
+
+// Get kubeconfig
+// !!k3s.get_kubeconfig name:'k3s_master_1'
+
+// Destroy K3s (complete cleanup)
+// !!k3s.destroy name:'k3s_master_1'
+
+// ============================================================================
+// NOTES:
+// ============================================================================
+// 1. Replace <TOKEN_FROM_FIRST_MASTER> with the actual token displayed after
+//    installing the first master
+// 2. Replace <MASTER_IPV6> with the Mycelium IPv6 address of the first master
+// 3. The data_dir defaults to ~/hero/var/k3s if not specified
+// 4. The mycelium_interface defaults to 'mycelium0' if not specified
+// 5. The k3s_version defaults to 'v1.33.1' if not specified
+// 6. After installation, use kubectl to manage your cluster:
+//    - kubectl get nodes
+//    - kubectl get pods --all-namespaces
+// 7. The kubeconfig is located at: <data_dir>/server/cred/admin.kubeconfig

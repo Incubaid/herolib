@@ -84,45 +84,45 @@ check_release() {
     return 0
 }
 
-ubuntu_sources_fix() {
-    # Check if we're on Ubuntu
-    if [[ "${OSNAME}" != "ubuntu" ]]; then
-        echo "ℹ️ Not running on Ubuntu. Skipping mirror fix."
-        return 1
-    fi
+# ubuntu_sources_fix() {
+#     # Check if we're on Ubuntu
+#     if [[ "${OSNAME}" != "ubuntu" ]]; then
+#         echo "ℹ️ Not running on Ubuntu. Skipping mirror fix."
+#         return 1
+#     fi
 
-    if check_release; then
-        local CODENAME
-        CODENAME=$(lsb_release -sc)
-        local TIMESTAMP
-        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+#     if check_release; then
+#         local CODENAME
+#         CODENAME=$(lsb_release -sc)
+#         local TIMESTAMP
+#         TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 
-        echo "🔎 Fixing apt mirror setup for Ubuntu $(lsb_release -rs) ($CODENAME)..."
+#         echo "🔎 Fixing apt mirror setup for Ubuntu $(lsb_release -rs) ($CODENAME)..."
 
-        if [ -f /etc/apt/sources.list ]; then
-            echo "📦 Backing up /etc/apt/sources.list -> /etc/apt/sources.list.backup.$TIMESTAMP"
-            run_sudo mv /etc/apt/sources.list /etc/apt/sources.list.backup.$TIMESTAMP
-        fi
+#         if [ -f /etc/apt/sources.list ]; then
+#             echo "📦 Backing up /etc/apt/sources.list -> /etc/apt/sources.list.backup.$TIMESTAMP"
+#             run_sudo mv /etc/apt/sources.list /tmp/sources.list.backup.$TIMESTAMP
+#         fi
 
-        if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
-            echo "📦 Backing up /etc/apt/sources.list.d/ubuntu.sources -> /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP"
-            run_sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP
-        fi
+#         if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
+#             echo "📦 Backing up /etc/apt/sources.list.d/ubuntu.sources -> /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP"
+#             run_sudo mv /etc/apt/sources.list.d/ubuntu.sources /tmp/ubuntu.sources.backup.$TIMESTAMP
+#         fi
 
-    echo "📝 Writing new /etc/apt/sources.list.d/ubuntu.sources"
-    run_sudo tee /etc/apt/sources.list.d/ubuntu.sources >/dev/null <<EOF
-Types: deb
-URIs: mirror://mirrors.ubuntu.com/mirrors.txt
-Suites: $CODENAME $CODENAME-updates $CODENAME-backports $CODENAME-security
-Components: main restricted universe multiverse
-EOF
+#     echo "📝 Writing new /etc/apt/sources.list.d/ubuntu.sources"
+#     run_sudo tee /etc/apt/sources.list.d/ubuntu.sources >/dev/null <<EOF
+# Types: deb
+# URIs: mirror://mirrors.ubuntu.com/mirrors.txt
+# Suites: $CODENAME $CODENAME-updates $CODENAME-backports $CODENAME-security
+# Components: main restricted universe multiverse
+# EOF
 
-        echo "🔄 Running apt update..."
-        run_sudo apt update -qq
+#         echo "🔄 Running apt update..."
+#         run_sudo apt update -qq
 
-        echo "✅ Done! Your system now uses the rotating Ubuntu mirror list."
-    fi
-}
+#         echo "✅ Done! Your system now uses the rotating Ubuntu mirror list."
+#     fi
+# }
 
 
 
@@ -184,7 +184,7 @@ function myplatform {
 function update_system {
     echo ' - System Update'
     if [[ "${OSNAME}" == "ubuntu" ]]; then
-        ubuntu_sources_fix
+        # ubuntu_sources_fix
         if is_github_actions; then
             echo "github actions: preparing system"
         else

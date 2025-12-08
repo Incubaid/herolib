@@ -1,5 +1,6 @@
-#!/usr/bin/env -S v -n -g -cg -w -parallel-cc -showcc -enable-globals run
+#!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 
+// #!/usr/bin/env -S v -n -g -cg -w -parallel-cc -showcc -enable-globals run
 // #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 import os
 import flag
@@ -9,7 +10,6 @@ fp.application('compile.vsh')
 fp.version('v0.1.0')
 fp.description('Compile hero binary in debug or production mode')
 fp.skip_executable()
-
 
 prod_mode := fp.bool('prod', `p`, false, 'Build production version (optimized)')
 help_requested := fp.bool('help', `h`, false, 'Show help message')
@@ -67,7 +67,8 @@ compile_cmd := if os.user_os() == 'macos' {
 	}
 } else {
 	if prod_mode {
-		'v -cg -enable-globals -parallel-cc -w -n -d use_openssl hero.v'
+		// 'v -cg -enable-globals -parallel-cc -w -n -d use_openssl hero.v'
+		'v  -n -g -w -cg -gc none -cc tcc -d use_openssl -enable-globals hero.v'
 	} else {
 		'v -cg -enable-globals -w -n -d use_openssl hero.v'
 	}
