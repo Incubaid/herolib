@@ -101,12 +101,12 @@ check_release() {
 
 #         if [ -f /etc/apt/sources.list ]; then
 #             echo "📦 Backing up /etc/apt/sources.list -> /etc/apt/sources.list.backup.$TIMESTAMP"
-#             run_sudo mv /etc/apt/sources.list /tmp/sources.list.backup.$TIMESTAMP
+#             run_sudo mv /etc/apt/sources.list /etc/apt/sources.list.backup.$TIMESTAMP
 #         fi
 
 #         if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then
 #             echo "📦 Backing up /etc/apt/sources.list.d/ubuntu.sources -> /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP"
-#             run_sudo mv /etc/apt/sources.list.d/ubuntu.sources /tmp/ubuntu.sources.backup.$TIMESTAMP
+#             run_sudo mv /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.backup.$TIMESTAMP
 #         fi
 
 #     echo "📝 Writing new /etc/apt/sources.list.d/ubuntu.sources"
@@ -133,10 +133,10 @@ function sshknownkeysadd {
     then
         ssh-keyscan github.com >> ~/.ssh/known_hosts
     fi
-    if ! grep git.threefold.info ~/.ssh/known_hosts > /dev/null
-    then
-        ssh-keyscan git.threefold.info >> ~/.ssh/known_hosts
-    fi
+    # if ! grep git.threefold.info ~/.ssh/known_hosts > /dev/null
+    # then
+    #     ssh-keyscan git.threefold.info >> ~/.ssh/known_hosts
+    # fi
     git config --global pull.rebase false
 
 }
@@ -184,7 +184,6 @@ function myplatform {
 function update_system {
     echo ' - System Update'
     if [[ "${OSNAME}" == "ubuntu" ]]; then
-        # ubuntu_sources_fix
         if is_github_actions; then
             echo "github actions: preparing system"
         else
