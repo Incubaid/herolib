@@ -2,6 +2,7 @@
 
 import os
 import incubaid.herolib.mycelium.grid3.deployer
+import incubaid.herolib.osal.core as osal
 
 const node_id = u32(8)
 const deployment_name = 'georunner_deployment'
@@ -12,7 +13,7 @@ const ssh_pubkey = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHvfosOnVY+teTHeT3rr657r
 // Gitea action runner configuration
 const gitea_instance = 'https://git.ourworld.tf/'
 const gitea_token = 'W2KyeBH1ZyICO3GW6T2IaUxzp9tsoOfU3yY514QV'
-const hero_binary_url = 'https://github.com/Incubaid/herolib/releases/download/v1.0.39/hero-x86_64-linux-musl'
+const hero_binary_url = 'https://github.com/Incubaid/herolib/releases/download/v1.0.40/hero-x86_64-linux-musl'
 
 fn deploy_vm() ! {
 	// Initialize deployer (reads from env vars: TFGRID_MNEMONIC, SSH_KEY, TFGRID_NETWORK)
@@ -60,8 +61,8 @@ fn install_action_runner(mycelium_ip string) ! {
 		return error('Mycelium IP is empty, cannot install action runner')
 	}
 	
-	println('Waiting for VM to be fully ready (10 seconds)...')
-	os.execute('sleep 10')
+	// Wait for VM to be ready with retries
+	wait_for_vm_ready(mycelium_ip)!
 	
 	// Create the heroscript
 	heroscript := '// Install actrunner
@@ -101,27 +102,62 @@ echo "Gitea Action Runner setup complete!"
 	
 	// Write setup script to temp file
 	tmp_script := '/tmp/setup_runner.sh'
-	os.write_file(tmp_script, setup_script)!
+	osal.file_write(tmp_script, setup_script)!
 	
 	println('Copying setup script to VM...')
 	scp_cmd := 'scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${tmp_script} root@[${mycelium_ip}]:/root/setup_runner.sh'
-	result := os.execute(scp_cmd)
-	if result.exit_code != 0 {
-		return error('Failed to copy setup script: ${result.output}')
+	osal.execute_silent(scp_cmd) or {
+		return error('Failed to copy setup script: ${err}')
 	}
 	
 	println('Running setup script on VM...')
 	ssh_cmd := 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${mycelium_ip} "chmod +x /root/setup_runner.sh && /root/setup_runner.sh"'
-	result2 := os.execute(ssh_cmd)
-	if result2.exit_code != 0 {
-		println('Warning: Setup script execution had issues: ${result2.output}')
+	osal.execute_stdout(ssh_cmd) or {
+		println('Warning: Setup script execution had issues: ${err}')
 		println('You may need to manually run: ssh root@${mycelium_ip} "/root/setup_runner.sh"')
-	} else {
-		println('✓ Gitea Action Runner installed and started successfully!')
+		return
 	}
+	println('✓ Gitea Action Runner installed and started successfully!')
 	
 	// Cleanup
-	os.rm(tmp_script) or {}
+	osal.rm(tmp_script) or {}
+}
+
+fn wait_for_vm_ready(mycelium_ip string) ! {
+	max_retries := 3
+	wait_time := 5 // seconds
+	ssh_timeout := 10 // seconds for SSH command timeout
+	
+	for attempt in 1 .. max_retries + 1 {
+		println('Waiting for VM to be fully ready (attempt ${attempt}/${max_retries}, ${wait_time} seconds)...')
+		osal.sleep(wait_time)
+		
+		// Test SSH connectivity with timeout command wrapper
+		println('Testing SSH connectivity (${ssh_timeout}s timeout)...')
+		// Use timeout command to enforce hard limit
+		test_cmd := 'timeout ${ssh_timeout} ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -o ServerAliveInterval=2 -o ServerAliveCountMax=2 root@${mycelium_ip} "echo ready" 2>&1'
+		
+		// Use execute_silent which should respect the timeout command
+		output := osal.execute_silent(test_cmd) or {
+			if attempt < max_retries {
+				println('⚠ SSH connection failed on attempt ${attempt}, retrying...')
+				continue
+			}
+			return error('Failed to connect to VM after ${max_retries} attempts')
+		}
+		
+		// Check if we got the expected output
+		if output.contains('ready') {
+			println('✓ VM is ready and SSH is accessible')
+			return
+		}
+		
+		if attempt < max_retries {
+			println('⚠ VM not ready yet on attempt ${attempt}, retrying...')
+		} else {
+			return error('VM did not become ready after ${max_retries} attempts')
+		}
+	}
 }
 
 fn delete_vm() ! {
