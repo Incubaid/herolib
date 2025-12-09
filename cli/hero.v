@@ -17,25 +17,6 @@ fn playcmds_do(path string) ! {
 }
 
 fn do() ! {
-	if !core.is_osx()! {
-		if os.getenv('SUDO_COMMAND') != '' || os.getenv('SUDO_USER') != '' {
-			println('Error: Please do not run this program with sudo!')
-			exit(1) // Exit with error code
-		}
-	}
-
-	if os.getuid() == 0 {
-		if core.is_osx()! {
-			eprintln('please do not run hero as root in osx.')
-			exit(1)
-		}
-	} else {
-		if !core.is_osx()! {
-			eprintln("please do run hero as root, don't use sudo.")
-			exit(1)
-		}
-	}
-
 	if os.args.len == 2 {
 		mypath := os.args[1]
 		if mypath == '.' {
