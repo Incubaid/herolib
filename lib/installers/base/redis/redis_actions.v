@@ -31,8 +31,15 @@ fn (self &RedisInstall) running_check() !bool {
 }
 
 fn (self &RedisInstall) start_pre() ! {
+
+	println("starting redis on port ${self.port}...")
+	println("${core.in_runner()}")
+	println("---")
+
+
 	// Check if already running
 	if self.running_check()! {
+		println("redis already running on port ${self.port}")
 		return
 	}
 
@@ -50,8 +57,13 @@ fn (self &RedisInstall) start_pre() ! {
 	// Kill any existing redis processes
 	osal.process_kill_recursive(name: 'redis-server')!
 
+
+	if true{
+		panic("ssystemd not yet implemented in herolib - cannot start redis via systemd")
+	}
+
 	// On macOS, start redis with daemonize (not via startupmanager)
-	if core.platform()! == .osx {
+	if core.platform()! == .osx  || core.in_runner() {
 		osal.exec(cmd: 'redis-server ${configfilepath(self)!} --daemonize yes')!
 	}
 }
@@ -115,6 +127,7 @@ pub fn redis_install(mut args RedisInstall) ! {
 
 	// Install Redis package if not already installed
 	if !args.installed()! {
+		console.print_header('Installing Redis package')
 		osal.package_install(package_name()!)!
 	}
 
@@ -126,6 +139,7 @@ pub fn redis_install(mut args RedisInstall) ! {
 	}
 
 	// Configure and start Redis
+	console.print_header('Start Redis')
 	start(args)!
 }
 
@@ -152,8 +166,10 @@ pub fn start(args RedisInstall) ! {
 	// Kill any existing Redis processes (including package auto-started ones)
 	osal.process_kill_recursive(name: 'redis-server')!
 
+	console.print_header('Start Redis 2')
+
 	platform := core.platform()!
-	if platform == .osx {
+	if platform == .osx || core.in_runner() {
 		// macOS: start directly with daemonize
 		osal.exec(cmd: 'redis-server ${configfilepath(args)!} --daemonize yes')!
 	} else {
