@@ -25,8 +25,8 @@ pub mut:
 fn default_datadir() !string {
 	platform := core.platform()!
 	return match platform {
-		.osx => os.home_dir() + '/.redis'
-		else => '/var/lib/redis'
+		.osx { os.home_dir() + '/.redis' }
+		else { '/var/lib/redis' }
 	}
 }
 
@@ -34,8 +34,8 @@ fn default_datadir() !string {
 fn package_name() !string {
 	platform := core.platform()!
 	return match platform {
-		.ubuntu => 'redis-server'
-		else => 'redis'
+		.ubuntu { 'redis-server' }
+		else { 'redis' }
 	}
 }
 
@@ -43,8 +43,8 @@ fn package_name() !string {
 fn service_name() !string {
 	platform := core.platform()!
 	return match platform {
-		.ubuntu => 'redis-server'
-		else => 'redis'
+		.ubuntu { 'redis-server' }
+		else { 'redis' }
 	}
 }
 
@@ -74,9 +74,9 @@ fn obj_init(mycfg_ RedisInstall) !RedisInstall {
 fn configfilepath(args RedisInstall) !string {
 	platform := core.platform()!
 	return match platform {
-		.osx => '${args.datadir}/redis.conf'
-		.alpine => '/etc/redis.conf'
-		else => '/etc/redis/redis.conf'
+		.osx { '${args.datadir}/redis.conf' }
+		.alpine { '/etc/redis.conf' }
+		else { '/etc/redis/redis.conf' }
 	}
 }
 

@@ -19,7 +19,7 @@ import incubaid.herolib.clients.vastai
 import incubaid.herolib.clients.wireguard
 import incubaid.herolib.clients.zerodb_client
 import incubaid.herolib.clients.zinit
-import incubaid.herolib.develop.heroprompt
+// import incubaid.herolib.develop.heroprompt
 import incubaid.herolib.installers.base.redis
 import incubaid.herolib.installers.db.herodb
 import incubaid.herolib.installers.db.meilisearch_installer
@@ -55,9 +55,9 @@ import incubaid.herolib.installers.web.tailwind
 import incubaid.herolib.installers.web.tailwind4
 import incubaid.herolib.installers.web.traefik
 import incubaid.herolib.installers.web.zola
-import incubaid.herolib.k8_apps.biz.k8_cryptpad_old
-import incubaid.herolib.k8_apps.communication.k8_element_chat
-import incubaid.herolib.k8_apps.devel.k8_gitea
+// import incubaid.herolib.k8_apps.biz.k8_cryptpad_old
+// import incubaid.herolib.k8_apps.communication.k8_element_chat
+// import incubaid.herolib.k8_apps.devel.k8_gitea
 import incubaid.herolib.virt.heropods
 import incubaid.herolib.virt.hetznermanager
 import incubaid.herolib.virt.kubernetes
@@ -87,7 +87,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	wireguard.play(mut plbook)!
 	zerodb_client.play(mut plbook)!
 	zinit.play(mut plbook)!
-	heroprompt.play(mut plbook)!
+	// heroprompt.play(mut plbook)!
 	redis.play(mut plbook)!
 	herodb.play(mut plbook)!
 	meilisearch_installer.play(mut plbook)!
@@ -123,9 +123,9 @@ pub fn run_all(args_ PlayArgs) ! {
 	tailwind4.play(mut plbook)!
 	traefik.play(mut plbook)!
 	zola.play(mut plbook)!
-	k8_cryptpad_old.play(mut plbook)!
-	k8_element_chat.play(mut plbook)!
-	k8_gitea.play(mut plbook)!
+	// k8_cryptpad_old.play(mut plbook)!
+	// k8_element_chat.play(mut plbook)!
+	// k8_gitea.play(mut plbook)!
 	heropods.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	kubernetes.play(mut plbook)!
