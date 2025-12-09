@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../forgejo-runner"
+		},
+		{
+			"path": "../../../../forge.ourworld.tf"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
