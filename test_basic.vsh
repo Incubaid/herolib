@@ -173,6 +173,7 @@ lib/hero/heromodels
 lib/virt/heropods
 lib/virt/crun
 lib/mycelium/grid3/gridproxy
+develop/gittools/
 '
 
 // the following tests have no prio and can be ignored
@@ -220,7 +221,6 @@ dbfs_test.v
 namedb_test.v
 timetools_test.v
 code/codeparser
-gittools_test.v
 link_def_test.v
 python_test.v
 ipaddress_test.v	

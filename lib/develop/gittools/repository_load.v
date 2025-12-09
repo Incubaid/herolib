@@ -6,6 +6,7 @@ import incubaid.herolib.ui.console
 
 @[params]
 pub struct StatusUpdateArgs {
+pub:
 	reset bool
 }
 
