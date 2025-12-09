@@ -202,9 +202,28 @@ fn play_publish(mut plbook PlayBook, mut config SiteConfig) ! {
 	mut build_dest_actions := plbook.find(filter: 'site.publish')!
 	for mut action in build_dest_actions {
 		mut p := action.params
+		// Get password from config, fallback to RSYNC_PASSWORD env var
+		mut password := p.get_default('rsync_password', '')!
+		if password == '' {
+			password = os.getenv('RSYNC_PASSWORD')
+		}
+		// Only override defaults if explicitly set in config
 		mut dest := BuildDest{
-			path:     p.get_default('path', '')! // can be url
-			ssh_name: p.get_default('ssh_name', '')!
+			site_name:      p.get_default('site_name', '')!
+			rsync_password: password
+		}
+		// Override defaults only if specified
+		if p.exists('rsync_port') {
+			dest.rsync_port = p.get_int_default('rsync_port', 30873)!
+		}
+		if p.exists('rsync_user') {
+			dest.rsync_user = p.get_default('rsync_user', 'atlas')!
+		}
+		if p.exists('rsync_host') {
+			dest.rsync_host = p.get_default('rsync_host', '51.195.61.5')!
+		}
+		if p.exists('rsync_module') {
+			dest.rsync_module = p.get_default('rsync_module', 'sites')!
 		}
 		config.build_dest << dest
 		action.done = true // Mark the action as done
@@ -215,9 +234,28 @@ fn play_publish_dev(mut plbook PlayBook, mut config SiteConfig) ! {
 	mut build_dest_actions := plbook.find(filter: 'site.publish_dev')!
 	for mut action in build_dest_actions {
 		mut p := action.params
+		// Get password from config, fallback to RSYNC_PASSWORD env var
+		mut password := p.get_default('rsync_password', '')!
+		if password == '' {
+			password = os.getenv('RSYNC_PASSWORD')
+		}
+		// Only override defaults if explicitly set in config
 		mut dest := BuildDest{
-			path:     p.get_default('path', '')! // can be url
-			ssh_name: p.get_default('ssh_name', '')!
+			site_name:      p.get_default('site_name', '')!
+			rsync_password: password
+		}
+		// Override defaults only if specified
+		if p.exists('rsync_port') {
+			dest.rsync_port = p.get_int_default('rsync_port', 30873)!
+		}
+		if p.exists('rsync_user') {
+			dest.rsync_user = p.get_default('rsync_user', 'atlas')!
+		}
+		if p.exists('rsync_host') {
+			dest.rsync_host = p.get_default('rsync_host', '51.195.61.5')!
+		}
+		if p.exists('rsync_module') {
+			dest.rsync_module = p.get_default('rsync_module', 'sites')!
 		}
 		config.build_dest_dev << dest
 		action.done = true // Mark the action as done

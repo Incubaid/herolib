@@ -225,9 +225,12 @@ Configure the footer section of your Docusaurus site.
 
 ### 3.4. Publish Destinations (`site.publish`, `site.publish_dev`)
 
-Specify where the built Docusaurus site should be deployed. This typically involves an SSH connection defined elsewhere (e.g., `!!site.ssh_connection`).
+Specify where the built Docusaurus site should be deployed. Two modes are supported:
 
-**HeroScript Example:**
+1. **SSH-based rsync** (legacy): Uses SSH connection for deployment
+2. **Rsync daemon mode**: Uses rsync daemon protocol with password authentication
+
+#### SSH-based Publishing (Legacy)
 
 ```heroscript
 !!site.publish
@@ -239,10 +242,45 @@ Specify where the built Docusaurus site should be deployed. This typically invol
     path:"/tmp/dev-ebook"
 ```
 
-**Arguments:**
+**Arguments (SSH mode):**
 
 * `ssh_name` (string, required): The name of the SSH connection to use for deployment.
 * `path` (string, required): The destination path on the remote server.
+
+#### Rsync Daemon Publishing
+
+For publishing to an rsync daemon (e.g., Atlas server with k8s NodePort):
+
+```heroscript
+!!site.publish
+    rsync_daemon: true
+    rsync_host: "51.195.61.5"
+    rsync_port: 30873
+    rsync_user: "atlas"
+    rsync_module: "sites"
+    site_name: "info"
+    rsync_password: "${RSYNC_PASSWORD}"  // Or set RSYNC_PASSWORD env var
+```
+
+**Arguments (Rsync daemon mode):**
+
+* `rsync_daemon` (bool, required): Set to `true` to use rsync daemon protocol.
+* `rsync_host` (string, required): Host/IP of the rsync daemon server.
+* `rsync_port` (int, required): Port for rsync daemon (e.g., 30873 for k8s NodePort).
+* `rsync_user` (string, required): Username for rsync daemon authentication.
+* `rsync_module` (string, required): Rsync module name (e.g., "sites").
+* `site_name` (string, optional): Site name within the module (e.g., "info"). Combined with rsync_module to form the full path.
+* `rsync_password` (string, optional): Password for rsync daemon auth. Can also be set via `RSYNC_PASSWORD` environment variable.
+
+**Usage with secrets:**
+
+To use secrets from a git repository, source the secrets script before running hero:
+
+```bash
+hero git pull https://forge.ourworld.tf/ourworld_it/secrets
+source ~/code/forge.ourworld.tf/ourworld_it/secrets/secrets.sh
+hero docs -bp /path/to/my_ebook
+```
 
 ### 3.5. Importing External Content (`site.import`)
 

@@ -83,6 +83,13 @@ pub struct BuildDest {
 pub mut:
 	path     string
 	ssh_name string
+	// rsync daemon mode options - defaults configured for Atlas server
+	rsync_port     int    = 30873          // port for rsync daemon (Atlas k8s NodePort)
+	rsync_user     string = 'atlas'        // username for rsync daemon auth
+	rsync_host     string = '51.195.61.5'  // host/IP for rsync daemon (Atlas server)
+	rsync_module   string = 'sites'        // rsync module name
+	site_name      string                  // site name within the module (e.g., 'info') - REQUIRED
+	rsync_password string                  // password for rsync daemon auth (use RSYNC_PASSWORD env var)
 }
 
 // is to import one docusaurus site into another, can be used to e.g. import static parts from one location into the build one we are building
