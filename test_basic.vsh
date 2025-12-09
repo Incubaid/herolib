@@ -172,7 +172,7 @@ lib/develop
 lib/hero/heromodels
 lib/virt/heropods
 lib/virt/crun
-develop/gittools/
+lib/develop/gittools/
 '
 
 // the following tests have no prio and can be ignored
