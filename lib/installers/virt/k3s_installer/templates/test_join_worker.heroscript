@@ -20,21 +20,13 @@ console.print_header('='.repeat(80))
 
 // IMPORTANT: Replace these values with your actual cluster information
 // You can get these from the master's join script or by running:
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/test_join_worker.heroscript
-// !!k3s.generate_join_script name:"k3s_master_1"
-========
 // !!k3s_installer.generate_join_script name:"k3s_master_1"
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/test_join_worker.heroscript
 
 master_token := 'YOUR_CLUSTER_TOKEN_HERE'  // Get from master
 master_url := 'https://[YOUR_MASTER_IPV6]:6443'  // Master's IPv6 address
 
 join_worker_script := '
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/test_join_worker.heroscript
-!!k3s.configure
-========
 !!k3s_installer.configure
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/test_join_worker.heroscript
     name:"k3s_worker_1"
     k3s_version:"v1.33.1"
     data_dir:"~/hero/var/k3s"
@@ -43,15 +35,9 @@ join_worker_script := '
     token:"${master_token}"
     master_url:"${master_url}"
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/test_join_worker.heroscript
-!!k3s.install_worker name:"k3s_worker_1"
-
-!!k3s.start name:"k3s_worker_1"
-========
 !!k3s_installer.install_worker name:"k3s_worker_1"
 
 !!k3s_installer.start name:"k3s_worker_1"
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/test_join_worker.heroscript
 '
 
 console.print_header('⚠️  Before running, make sure to:')

@@ -1,13 +1,8 @@
 
 !!hero_code.generate_installer
     name:''
-<<<<<<<< HEAD:lib/installers/virt/k3s/.heroscript
-    classname:'K3s'
-    singleton:1
-========
     classname:'K3SInstaller'
     singleton:0
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/.heroscript
     templates:1
     default:1
     title:''

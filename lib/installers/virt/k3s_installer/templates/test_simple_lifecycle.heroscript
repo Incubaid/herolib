@@ -13,21 +13,12 @@ console.print_header('='*.repeat(80))
 console.print_header('\n📦 PHASE 1: Installing K3s Master')
 
 install_script := '
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/test_simple_lifecycle.heroscript
-!!k3s.configure
-    name:"k3s_test"
-    node_name:"test-master"
-
-!!k3s.install_master name:"k3s_test"
-!!k3s.start name:"k3s_test"
-========
 !!k3s_installer.configure
     name:"k3s_test"
     node_name:"test-master"
 
 !!k3s_installer.install_master name:"k3s_test"
 !!k3s_installer.start name:"k3s_test"
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/test_simple_lifecycle.heroscript
 '
 
 playcmds.run(heroscript: install_script)!
@@ -39,17 +30,10 @@ console.print_header('✅ Installation completed!')
 console.print_header('\n🧹 PHASE 2: Uninstalling K3s')
 
 uninstall_script := '
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/test_simple_lifecycle.heroscript
-!!k3s.configure
-    name:"k3s_test"
-
-!!k3s.destroy name:"k3s_test"
-========
 !!k3s_installer.configure
     name:"k3s_test"
 
 !!k3s_installer.destroy name:"k3s_test"
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/test_simple_lifecycle.heroscript
 '
 
 playcmds.run(heroscript: uninstall_script)!

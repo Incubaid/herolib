@@ -8,6 +8,7 @@ import incubaid.herolib.clients.mailclient
 import incubaid.herolib.clients.meilisearch
 import incubaid.herolib.clients.mycelium
 import incubaid.herolib.clients.mycelium_rpc
+import incubaid.herolib.clients.namecomclient
 import incubaid.herolib.clients.openai
 import incubaid.herolib.clients.postgresql_client
 import incubaid.herolib.clients.qdrant
@@ -18,12 +19,15 @@ import incubaid.herolib.clients.vastai
 import incubaid.herolib.clients.wireguard
 import incubaid.herolib.clients.zerodb_client
 import incubaid.herolib.clients.zinit
+import incubaid.herolib.develop.heroprompt
+import incubaid.herolib.installers.base.redis
+import incubaid.herolib.installers.db.herodb
 import incubaid.herolib.installers.db.meilisearch_installer
 import incubaid.herolib.installers.horus.coordinator
-import incubaid.herolib.installers.horus.supervisor
 import incubaid.herolib.installers.horus.herorunner
 import incubaid.herolib.installers.horus.osirisrunner
 import incubaid.herolib.installers.horus.salrunner
+import incubaid.herolib.installers.horus.supervisor
 import incubaid.herolib.installers.infra.coredns
 import incubaid.herolib.installers.infra.gitea
 import incubaid.herolib.installers.infra.livekit
@@ -34,11 +38,11 @@ import incubaid.herolib.installers.lang.python
 import incubaid.herolib.installers.lang.rust
 import incubaid.herolib.installers.net.mycelium_installer
 import incubaid.herolib.installers.net.wireguard_installer
-import incubaid.herolib.installers.sysadmintools.actrunner
 import incubaid.herolib.installers.sysadmintools.b2
 import incubaid.herolib.installers.sysadmintools.garage_s3
 import incubaid.herolib.installers.threefold.griddriver
 import incubaid.herolib.installers.virt.cloudhypervisor
+import incubaid.herolib.installers.virt.crun_installer
 import incubaid.herolib.installers.virt.docker
 import incubaid.herolib.installers.virt.k3s_installer
 import incubaid.herolib.installers.virt.kubectl_installer
@@ -51,6 +55,10 @@ import incubaid.herolib.installers.web.tailwind
 import incubaid.herolib.installers.web.tailwind4
 import incubaid.herolib.installers.web.traefik
 import incubaid.herolib.installers.web.zola
+import incubaid.herolib.k8_apps.biz.k8_cryptpad_old
+import incubaid.herolib.k8_apps.communication.k8_element_chat
+import incubaid.herolib.k8_apps.devel.k8_gitea
+import incubaid.herolib.virt.heropods
 import incubaid.herolib.virt.hetznermanager
 import incubaid.herolib.virt.kubernetes
 
@@ -68,6 +76,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	meilisearch.play(mut plbook)!
 	mycelium.play(mut plbook)!
 	mycelium_rpc.play(mut plbook)!
+	namecomclient.play(mut plbook)!
 	openai.play(mut plbook)!
 	postgresql_client.play(mut plbook)!
 	qdrant.play(mut plbook)!
@@ -78,7 +87,15 @@ pub fn run_all(args_ PlayArgs) ! {
 	wireguard.play(mut plbook)!
 	zerodb_client.play(mut plbook)!
 	zinit.play(mut plbook)!
+	heroprompt.play(mut plbook)!
+	redis.play(mut plbook)!
+	herodb.play(mut plbook)!
 	meilisearch_installer.play(mut plbook)!
+	coordinator.play(mut plbook)!
+	herorunner.play(mut plbook)!
+	osirisrunner.play(mut plbook)!
+	salrunner.play(mut plbook)!
+	supervisor.play(mut plbook)!
 	coredns.play(mut plbook)!
 	gitea.play(mut plbook)!
 	livekit.play(mut plbook)!
@@ -89,13 +106,12 @@ pub fn run_all(args_ PlayArgs) ! {
 	rust.play(mut plbook)!
 	mycelium_installer.play(mut plbook)!
 	wireguard_installer.play(mut plbook)!
-	actrunner.play(mut plbook)!
 	b2.play(mut plbook)!
 	garage_s3.play(mut plbook)!
 	griddriver.play(mut plbook)!
 	cloudhypervisor.play(mut plbook)!
+	crun_installer.play(mut plbook)!
 	docker.play(mut plbook)!
-	herorunner.play(mut plbook)!
 	k3s_installer.play(mut plbook)!
 	kubectl_installer.play(mut plbook)!
 	lima.play(mut plbook)!
@@ -107,11 +123,10 @@ pub fn run_all(args_ PlayArgs) ! {
 	tailwind4.play(mut plbook)!
 	traefik.play(mut plbook)!
 	zola.play(mut plbook)!
+	k8_cryptpad_old.play(mut plbook)!
+	k8_element_chat.play(mut plbook)!
+	k8_gitea.play(mut plbook)!
+	heropods.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	kubernetes.play(mut plbook)!
-	coordinator.play(mut plbook)!
-	supervisor.play(mut plbook)!
-	herorunner.play(mut plbook)!
-	osirisrunner.play(mut plbook)!
-	salrunner.play(mut plbook)!
 }

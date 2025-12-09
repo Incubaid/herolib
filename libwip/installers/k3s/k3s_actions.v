@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-module k3s
-========
 module k3s_installer
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.ui.console
@@ -14,9 +10,6 @@ import os
 
 //////////////////// STARTUP COMMAND ////////////////////
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-fn (self &K3s) startupcmd() ![]startupmanager.ZProcessNewArgs {
-========
 @[params]
 pub struct StartArgs {
 pub mut:
@@ -24,7 +17,6 @@ pub mut:
 }
 
 fn (self &K3SInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	mut res := []startupmanager.ZProcessNewArgs{}
 
 	// Get Mycelium IPv6 address
@@ -178,11 +170,7 @@ fn installed() !bool {
 }
 
 // Install first master node
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-pub fn (mut self K3s) install_master() ! {
-========
 pub fn (mut self K3SInstaller) install_master() ! {
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	console.print_header('Installing K3s as first master node')
 
 	// Check OS
@@ -203,11 +191,7 @@ pub fn (mut self K3SInstaller) install_master() ! {
 
 	console.print_header('K3s first master installation completed')
 	console.print_header('Token: ${self.token}')
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	console.print_header('To start K3s, run: k3s.start')
-========
 	console.print_header('To start K3s, run: k3s_installer.start')
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 
 	// Generate join script
 	join_script := self.generate_join_script()!
@@ -215,11 +199,7 @@ pub fn (mut self K3SInstaller) install_master() ! {
 }
 
 // Join as additional master
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-pub fn (mut self K3s) join_master() ! {
-========
 pub fn (mut self K3SInstaller) join_master() ! {
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	console.print_header('Joining K3s cluster as additional master')
 
 	// Check OS
@@ -247,19 +227,11 @@ pub fn (mut self K3SInstaller) join_master() ! {
 	set(self)!
 
 	console.print_header('K3s additional master installation completed')
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	console.print_header('To start K3s, run: k3s.start')
-}
-
-// Install worker node
-pub fn (mut self K3s) install_worker() ! {
-========
 	console.print_header('To start K3s, run: k3s_installer.start')
 }
 
 // Install worker node
 pub fn (mut self K3SInstaller) install_worker() ! {
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	console.print_header('Installing K3s as worker node')
 
 	// Check OS
@@ -287,21 +259,13 @@ pub fn (mut self K3SInstaller) install_worker() ! {
 	set(self)!
 
 	console.print_header('K3s worker installation completed')
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	console.print_header('To start K3s, run: k3s.start')
-========
 	console.print_header('To start K3s, run: k3s_installer.start')
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 }
 
 //////////////////// UTILITY FUNCTIONS ////////////////////
 
 // Get kubeconfig content
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-pub fn (self &K3s) get_kubeconfig() !string {
-========
 pub fn (self &K3SInstaller) get_kubeconfig() !string {
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	kubeconfig_path := self.kubeconfig_path()
 
 	mut kubeconfig_file := pathlib.get_file(path: kubeconfig_path) or {
@@ -316,11 +280,7 @@ pub fn (self &K3SInstaller) get_kubeconfig() !string {
 }
 
 // Generate join script for other nodes
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-pub fn (self &K3s) generate_join_script() !string {
-========
 pub fn (self &K3SInstaller) generate_join_script() !string {
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	if !self.is_first_master {
 		return error('Can only generate join script from first master node')
 	}
@@ -339,11 +299,7 @@ pub fn (self &K3SInstaller) generate_join_script() !string {
 // Section 1: Join as Additional Master (HA)
 // Uncomment to join as additional master node
 /*
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-!!k3s.configure
-========
 !!k3s_installer.configure
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
     name:\'k3s_master_2\'
     k3s_version:\'${self.k3s_version}\'
     data_dir:\'${self.data_dir}\'
@@ -352,23 +308,14 @@ pub fn (self &K3SInstaller) generate_join_script() !string {
     token:\'${self.token}\'
     master_url:\'${master_url}\'
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-!!k3s.join_master name:\'k3s_master_2\'
-!!k3s.start name:\'k3s_master_2\'
-========
 !!k3s_installer.join_master name:\'k3s_master_2\'
 !!k3s_installer.start name:\'k3s_master_2\'
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 */
 
 // Section 2: Join as Worker Node
 // Uncomment to join as worker node
 /*
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-!!k3s.configure
-========
 !!k3s_installer.configure
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
     name:\'k3s_worker_1\'
     k3s_version:\'${self.k3s_version}\'
     data_dir:\'${self.data_dir}\'
@@ -377,13 +324,8 @@ pub fn (self &K3SInstaller) generate_join_script() !string {
     token:\'${self.token}\'
     master_url:\'${master_url}\'
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-!!k3s.install_worker name:\'k3s_worker_1\'
-!!k3s.start name:\'k3s_worker_1\'
-========
 !!k3s_installer.install_worker name:\'k3s_worker_1\'
 !!k3s_installer.start name:\'k3s_worker_1\'
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 */
 '
 
@@ -432,37 +374,19 @@ fn destroy() ! {
 	data_dirs << '/var/lib/rancher/k3s'
 	data_dirs << '/root/hero/var/k3s'
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	// CRITICAL: Complete systemd service deletion FIRST before any other cleanup
-	// This prevents the service from auto-restarting during cleanup
-
 	// Step 1: Stop and delete ALL k3s systemd services using startupmanager
 	console.print_header('Stopping and removing systemd services...')
 
-	// Get systemd startup manager
-========
-	// Step 1: Stop and delete ALL k3s systemd services using startupmanager
-	console.print_header('Stopping and removing systemd services...')
-
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	mut sm := startupmanager_get(.systemd) or {
 		console.print_debug('Failed to get systemd manager: ${err}')
 		return error('Could not get systemd manager: ${err}')
 	}
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	// List all k3s services
-========
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	all_services := sm.list() or {
 		console.print_debug('Failed to list services: ${err}')
 		[]string{}
 	}
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	// Filter and delete k3s services
-========
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	for service_name in all_services {
 		if service_name.starts_with('k3s_') {
 			console.print_debug('Deleting systemd service: ${service_name}')
@@ -480,10 +404,6 @@ fn destroy() ! {
 		console.print_debug('No k3s processes to kill or killall failed')
 	}
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	// Wait for processes to fully terminate
-========
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	osal.exec(cmd: 'sleep 2', stdout: false) or {}
 
 	// Step 3: Unmount kubelet mounts
@@ -495,10 +415,6 @@ fn destroy() ! {
 	// Step 5: Remove data directories
 	console.print_header('Removing data directories...')
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	// Remove all K3s data directories (deduplicated)
-========
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	mut cleaned_dirs := map[string]bool{}
 	for data_dir in data_dirs {
 		if data_dir != '' && data_dir !in cleaned_dirs {
@@ -510,10 +426,6 @@ fn destroy() ! {
 		}
 	}
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	// Also remove /etc/rancher which K3s creates
-========
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	console.print_debug('Removing /etc/rancher')
 	osal.exec(cmd: 'rm -rf /etc/rancher', stdout: false, raise_error: false) or {}
 
@@ -548,22 +460,6 @@ fn cleanup_network() ! {
 		cmd:         'ip -o link show master cni0 2>/dev/null || true'
 		stdout:      false
 		raise_error: false
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-	)
-	{
-		if veth_result.output.trim_space() != '' {
-			veth_interfaces := veth_result.output.trim_space().split(' ')
-			for veth in veth_interfaces {
-				veth_trimmed := veth.trim_space()
-				if veth_trimmed != '' {
-					console.print_debug('Deleting veth interface: ${veth_trimmed}')
-					osal.exec(
-						cmd:         'ip link delete ${veth_trimmed}'
-						stdout:      false
-						raise_error: false
-					) or { console.print_debug('Failed to delete ${veth_trimmed}, continuing...') }
-				}
-========
 	) {
 		for line in res.output.split_into_lines() {
 			l := line.trim_space()
@@ -586,7 +482,6 @@ fn cleanup_network() ! {
 			if name != '' && !seen[name] {
 				seen[name] = true
 				veths << name
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 			}
 		}
 	}
@@ -612,39 +507,6 @@ fn cleanup_network() ! {
 	interfaces := ['cni0', 'flannel.1', 'flannel-v6.1', 'kube-ipvs0', 'flannel-wg', 'flannel-wg-v6']
 	for iface in interfaces {
 		console.print_debug('Deleting interface: ${iface}')
-<<<<<<<< HEAD:lib/installers/virt/k3s/k3s_actions.v
-		// Use timeout to prevent hanging, and redirect stderr to avoid blocking
-		osal.exec(
-			cmd:         'timeout 5 ip link delete ${iface} 2>/dev/null || true'
-			stdout:      false
-			raise_error: false
-		) or { console.print_debug('Interface ${iface} not found or already deleted') }
-	}
-
-	// Remove CNI namespaces
-	if ns_result := osal.exec(
-		cmd:         'ip netns show | grep cni- | xargs'
-		stdout:      false
-		raise_error: false
-	)
-	{
-		if ns_result.output.trim_space() != '' {
-			namespaces := ns_result.output.trim_space().split(' ')
-			for ns in namespaces {
-				ns_trimmed := ns.trim_space()
-				if ns_trimmed != '' {
-					console.print_debug('Deleting namespace: ${ns_trimmed}')
-					osal.exec(
-						cmd:         'ip netns delete ${ns_trimmed}'
-						stdout:      false
-						raise_error: false
-					) or { console.print_debug('Failed to delete namespace ${ns_trimmed}') }
-				}
-			}
-		}
-	} else {
-		console.print_debug('No CNI namespaces found')
-========
 		osal.exec(
 			cmd:         'timeout 3 ip link set dev ${iface} down 2>/dev/null || true'
 			stdout:      false
@@ -655,7 +517,6 @@ fn cleanup_network() ! {
 			stdout:      false
 			raise_error: false
 		) or {}
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/k3s_installer_actions.v
 	}
 }
 

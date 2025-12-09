@@ -19,11 +19,7 @@
 // This creates the initial master node and initializes the cluster.
 // The token will be auto-generated and displayed for use with other nodes.
 
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/examples.heroscript
-!!k3s.configure
-========
 !!k3s_installer.configure
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/examples.heroscript
     name:'k3s_master_1'
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
@@ -31,18 +27,6 @@
     // mycelium_interface:'mycelium0'  // Optional: auto-detected if not specified
 
 // Install as first master (will generate token and use --cluster-init)
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/examples.heroscript
-!!k3s.install_master name:'k3s_master_1'
-
-// Start K3s
-!!k3s.start name:'k3s_master_1'
-
-// Get kubeconfig (optional - to verify installation)
-// !!k3s.get_kubeconfig name:'k3s_master_1'
-
-// Generate join script for other nodes (optional)
-// !!k3s.generate_join_script name:'k3s_master_1'
-========
 !!k3s_installer.install_master name:'k3s_master_1'
 
 // Start K3s
@@ -53,7 +37,6 @@
 
 // Generate join script for other nodes (optional)
 // !!k3s_installer.generate_join_script name:'k3s_master_1'
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/examples.heroscript
 
 // ============================================================================
 // SECTION 2: Join as Additional Master (HA Setup)
@@ -62,11 +45,7 @@
 // You MUST have the token and master_url from the first master.
 
 /*
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/examples.heroscript
-!!k3s.configure
-========
 !!k3s_installer.configure
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/examples.heroscript
     name:'k3s_master_2'
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
@@ -76,17 +55,10 @@
     master_url:'https://[<MASTER_IPV6>]:6443'
 
 // Join as additional master
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/examples.heroscript
-!!k3s.join_master name:'k3s_master_2'
-
-// Start K3s
-!!k3s.start name:'k3s_master_2'
-========
 !!k3s_installer.join_master name:'k3s_master_2'
 
 // Start K3s
 !!k3s_installer.start name:'k3s_master_2'
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/examples.heroscript
 */
 
 // ============================================================================
@@ -96,11 +68,7 @@
 // You MUST have the token and master_url from the first master.
 
 /*
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/examples.heroscript
-!!k3s.configure
-========
 !!k3s_installer.configure
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/examples.heroscript
     name:'k3s_worker_1'
     k3s_version:'v1.33.1'
     data_dir:'~/hero/var/k3s'
@@ -110,17 +78,10 @@
     master_url:'https://[<MASTER_IPV6>]:6443'
 
 // Install as worker
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/examples.heroscript
-!!k3s.install_worker name:'k3s_worker_1'
-
-// Start K3s
-!!k3s.start name:'k3s_worker_1'
-========
 !!k3s_installer.install_worker name:'k3s_worker_1'
 
 // Start K3s
 !!k3s_installer.start name:'k3s_worker_1'
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/examples.heroscript
 */
 
 // ============================================================================
@@ -129,18 +90,6 @@
 // Common operations for managing K3s
 
 // Stop K3s
-<<<<<<<< HEAD:lib/installers/virt/k3s/templates/examples.heroscript
-// !!k3s.stop name:'k3s_master_1'
-
-// Restart K3s
-// !!k3s.restart name:'k3s_master_1'
-
-// Get kubeconfig
-// !!k3s.get_kubeconfig name:'k3s_master_1'
-
-// Destroy K3s (complete cleanup)
-// !!k3s.destroy name:'k3s_master_1'
-========
 // !!k3s_installer.stop name:'k3s_master_1'
 
 // Restart K3s
@@ -151,7 +100,6 @@
 
 // Destroy K3s (complete cleanup)
 // !!k3s_installer.destroy name:'k3s_master_1'
->>>>>>>> development_k32_installer:lib/installers/virt/k3s_installer/templates/examples.heroscript
 
 // ============================================================================
 // NOTES:
