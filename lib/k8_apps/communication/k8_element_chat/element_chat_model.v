@@ -1,4 +1,4 @@
-module element_chat
+module k8_element_chat
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.data.encoderhero

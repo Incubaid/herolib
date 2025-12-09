@@ -1,4 +1,4 @@
-module element_chat
+module k8_element_chat
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
