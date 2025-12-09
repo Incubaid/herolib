@@ -6,8 +6,8 @@ import incubaid.herolib.ui.console
 import json
 
 __global (
-	cryptpad_global  map[string]&K8Cryptpad
-	cryptpad_default string
+	k8_cryptpad_global  map[string]&CryptpadServer
+	k8_cryptpad_default string
 )
 
 /////////FACTORY
@@ -15,68 +15,68 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = cryptpad_default
+	name   string = k8_cryptpad_default
 	fromdb bool // will load from filesystem
 	create bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&K8Cryptpad {
-	mut obj := K8Cryptpad{
+pub fn new(args ArgsGet) !&CryptpadServer {
+	mut obj := CryptpadServer{
 		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!
 }
 
-pub fn get(args ArgsGet) !&K8Cryptpad {
+pub fn get(args ArgsGet) !&CryptpadServer {
 	mut context := base.context()!
-	cryptpad_default = args.name
-	if args.fromdb || args.name !in cryptpad_global {
+	k8_cryptpad_default = args.name
+	if args.fromdb || args.name !in k8_cryptpad_global {
 		mut r := context.redis()!
-		if r.hexists('context:cryptpad', args.name)! {
-			data := r.hget('context:cryptpad', args.name)!
+		if r.hexists('context:k8_cryptpad', args.name)! {
+			data := r.hget('context:k8_cryptpad', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('K8Cryptpad with name: ${args.name} does not exist, prob bug.')
+				return error('CryptpadServer with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(K8Cryptpad, data)!
+			mut obj := json.decode(CryptpadServer, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("K8Cryptpad with name '${args.name}' does not exist")
+				return error("CryptpadServer with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
-	return cryptpad_global[args.name] or {
+	return k8_cryptpad_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for cryptpad with name:${args.name}')
+		return error('could not get config for k8_cryptpad with name:${args.name}')
 	}
 }
 
 // register the config for the future
-pub fn set(o K8Cryptpad) ! {
+pub fn set(o CryptpadServer) ! {
 	mut o2 := set_in_mem(o)!
-	cryptpad_default = o2.name
+	k8_cryptpad_default = o2.name
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hset('context:cryptpad', o2.name, json.encode(o2))!
+	r.hset('context:k8_cryptpad', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
 pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
 	mut r := context.redis()!
-	return r.hexists('context:cryptpad', args.name)!
+	return r.hexists('context:k8_cryptpad', args.name)!
 }
 
 pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hdel('context:cryptpad', args.name)!
+	r.hdel('context:k8_cryptpad', args.name)!
 }
 
 @[params]
@@ -86,17 +86,17 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&K8Cryptpad {
-	mut res := []&K8Cryptpad{}
+pub fn list(args ArgsList) ![]&CryptpadServer {
+	mut res := []&CryptpadServer{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		cryptpad_global = map[string]&K8Cryptpad{}
-		cryptpad_default = ''
+		k8_cryptpad_global = map[string]&CryptpadServer{}
+		k8_cryptpad_default = ''
 	}
 	if args.fromdb {
 		mut r := context.redis()!
-		mut l := r.hkeys('context:cryptpad')!
+		mut l := r.hkeys('context:k8_cryptpad')!
 
 		for name in l {
 			res << get(name: name, fromdb: true)!
@@ -104,7 +104,7 @@ pub fn list(args ArgsList) ![]&K8Cryptpad {
 		return res
 	} else {
 		// load from memory
-		for _, client in cryptpad_global {
+		for _, client in k8_cryptpad_global {
 			res << client
 		}
 	}
@@ -112,18 +112,18 @@ pub fn list(args ArgsList) ![]&K8Cryptpad {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o K8Cryptpad) !K8Cryptpad {
+fn set_in_mem(o CryptpadServer) !CryptpadServer {
 	mut o2 := obj_init(o)!
-	cryptpad_global[o2.name] = &o2
-	cryptpad_default = o2.name
+	k8_cryptpad_global[o2.name] = &o2
+	k8_cryptpad_default = o2.name
 	return o2
 }
 
 pub fn play(mut plbook PlayBook) ! {
-	if !plbook.exists(filter: 'cryptpad.') {
+	if !plbook.exists(filter: 'k8_cryptpad.') {
 		return
 	}
-	mut install_actions := plbook.find(filter: 'cryptpad.configure')!
+	mut install_actions := plbook.find(filter: 'k8_cryptpad.configure')!
 	if install_actions.len > 0 {
 		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
@@ -132,17 +132,17 @@ pub fn play(mut plbook PlayBook) ! {
 			install_action.done = true
 		}
 	}
-	mut other_actions := plbook.find(filter: 'cryptpad.')!
+	mut other_actions := plbook.find(filter: 'k8_cryptpad.')!
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
 			if other_action.name == 'destroy' || reset {
-				console.print_debug('install action cryptpad.destroy')
+				console.print_debug('install action k8_cryptpad.destroy')
 				destroy()!
 			}
 			if other_action.name == 'install' {
-				console.print_debug('install action cryptpad.install')
+				console.print_debug('install action k8_cryptpad.install')
 				install()!
 			}
 		}
@@ -155,7 +155,7 @@ pub fn play(mut plbook PlayBook) ! {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // load from disk and make sure is properly intialized
-pub fn (mut self K8Cryptpad) reload() ! {
+pub fn (mut self CryptpadServer) reload() ! {
 	self = obj_init(self)!
 	set(self)!
 }
@@ -166,19 +166,19 @@ pub mut:
 	reset bool
 }
 
-pub fn (mut self K8Cryptpad) install(args InstallArgs) ! {
+pub fn (mut self CryptpadServer) install(args InstallArgs) ! {
 	switch(self.name)
 	if args.reset || (!installed()!) {
 		install()!
 	}
 }
 
-pub fn (mut self K8Cryptpad) destroy() ! {
+pub fn (mut self CryptpadServer) destroy() ! {
 	switch(self.name)
 	destroy()!
 }
 
-// switch instance to be used for cryptpad
+// switch instance to be used for k8_cryptpad
 pub fn switch(name string) {
-	cryptpad_default = name
+	k8_cryptpad_default = name
 }

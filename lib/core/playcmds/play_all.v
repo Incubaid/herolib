@@ -55,7 +55,7 @@ import incubaid.herolib.installers.web.tailwind
 import incubaid.herolib.installers.web.tailwind4
 import incubaid.herolib.installers.web.traefik
 import incubaid.herolib.installers.web.zola
-// import incubaid.herolib.k8_apps.biz.k8_cryptpad_old
+import incubaid.herolib.k8_apps.biz.k8_cryptpad
 // import incubaid.herolib.k8_apps.communication.k8_element_chat
 import incubaid.herolib.k8_apps.devel.k8_gitea
 import incubaid.herolib.virt.heropods
@@ -123,7 +123,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	tailwind4.play(mut plbook)!
 	traefik.play(mut plbook)!
 	zola.play(mut plbook)!
-	// k8_cryptpad_old.play(mut plbook)!
+	k8_cryptpad.play(mut plbook)!
 	// k8_element_chat.play(mut plbook)!
 	k8_gitea.play(mut plbook)!
 	heropods.play(mut plbook)!
