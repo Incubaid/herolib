@@ -1,8 +1,10 @@
 module docusaurus
 
+import os
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.web.site
 import incubaid.herolib.osal.core as osal
+import incubaid.herolib.osal.rsync
 import incubaid.herolib.ui.console
 
 @[heap]
@@ -50,18 +52,47 @@ pub fn (mut s DocSite) build_publish() ! {
 			'
 		retry: 0
 	)!
-	for item in s.website.siteconfig.build_dest {
-		if item.path.trim_space().trim('/ ') == '' {
-			$if debug {
-				print_backtrace()
-			}
-			return error('build destination path is empty for docusaurus.')
+
+	// If no publish destinations configured, create default one using site name
+	mut destinations := s.website.siteconfig.build_dest.clone()
+	if destinations.len == 0 {
+		destinations << site.BuildDest{
+			site_name: s.website.siteconfig.name
 		}
-		osal.exec(
-			cmd: '
-				cd ${s.path_build.path}
-				rsync -avz --delete -e "ssh -p 22  -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" build/ ${item.path}
-				'
+	}
+
+	for mut item in destinations {
+		// Default site_name to the site's configured name if not explicitly set
+		if item.site_name == '' {
+			item.site_name = s.website.siteconfig.name
+		}
+		if item.site_name == '' {
+			return error('site_name is required (e.g., "info", "manual")')
+		}
+		// Get password from env if not set
+		if item.rsync_password == '' {
+			item.rsync_password = os.getenv('RSYNCD_SECRET')
+		}
+		if item.rsync_password == '' {
+			return error('rsync_password is required. Set RSYNCD_SECRET env var.')
+		}
+
+		// Build the full module path: module/site_name (e.g., 'sites/geomind_memo')
+		// - rsync_module: the rsync daemon module name configured on the server (e.g., "sites")
+		// - site_name: subdirectory within that module for this specific site (defaults to site name)
+		// Result: atlas@51.195.61.5::sites/geomind_memo/
+		module_path := '${item.rsync_module}/${item.site_name}'
+
+		console.print_item('publishing to rsync daemon: ${item.rsync_user}@${item.rsync_host}::${module_path}')
+		rsync.rsync(
+			source:        '${s.path_build.path}/build'
+			daemon_mode:   true
+			daemon_host:   item.rsync_host
+			daemon_port:   item.rsync_port
+			daemon_user:   item.rsync_user
+			daemon_module: module_path
+			password:      item.rsync_password
+			delete:        true
 		)!
 	}
 }
