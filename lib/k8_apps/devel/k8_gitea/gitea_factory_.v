@@ -6,8 +6,8 @@ import incubaid.herolib.ui.console
 import json
 
 __global (
-	gitea_global  map[string]&GiteaK8SInstaller
-	gitea_default string
+	k8_gitea_global  map[string]&GiteaK8SInstaller
+	k8_gitea_default string
 )
 
 /////////FACTORY
@@ -31,14 +31,14 @@ pub fn new(args ArgsGet) !&GiteaK8SInstaller {
 pub fn get(args_ ArgsGet) !&GiteaK8SInstaller {
 	mut context := base.context()!
 	mut args := args_
-	if args.name == 'gitea' && gitea_default != '' {
-		args.name = gitea_default
+	if args.name == 'gitea' && k8_gitea_default != '' {
+		args.name = k8_gitea_default
 	}
 
-	if args.fromdb || args.name !in gitea_global {
+	if args.fromdb || args.name !in k8_gitea_global {
 		mut r := context.redis()!
-		if r.hexists('context:gitea', args.name)! {
-			data := r.hget('context:gitea', args.name)!
+		if r.hexists('context:k8_gitea', args.name)! {
+			data := r.hget('context:k8_gitea', args.name)!
 			if data.len == 0 {
 				print_backtrace()
 				return error('GiteaK8SInstaller with name: ${args.name} does not exist, prob bug.')
@@ -55,32 +55,32 @@ pub fn get(args_ ArgsGet) !&GiteaK8SInstaller {
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
-	return gitea_global[args.name] or {
+	return k8_gitea_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for gitea with name:${args.name}')
+		return error('could not get config for k8_gitea with name:${args.name}')
 	}
 }
 
 // register the config for the future
 pub fn set(o GiteaK8SInstaller) ! {
 	mut o2 := set_in_mem(o)!
-	gitea_default = o2.name
+	k8_gitea_default = o2.name
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hset('context:gitea', o2.name, json.encode(o2))!
+	r.hset('context:k8_gitea', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
 pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
 	mut r := context.redis()!
-	return r.hexists('context:gitea', args.name)!
+	return r.hexists('context:k8_gitea', args.name)!
 }
 
 pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hdel('context:gitea', args.name)!
+	r.hdel('context:k8_gitea', args.name)!
 }
 
 @[params]
@@ -95,12 +95,12 @@ pub fn list(args ArgsList) ![]&GiteaK8SInstaller {
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		gitea_global = map[string]&GiteaK8SInstaller{}
-		gitea_default = ''
+		k8_gitea_global = map[string]&GiteaK8SInstaller{}
+		k8_gitea_default = ''
 	}
 	if args.fromdb {
 		mut r := context.redis()!
-		mut l := r.hkeys('context:gitea')!
+		mut l := r.hkeys('context:k8_gitea')!
 
 		for name in l {
 			res << get(name: name, fromdb: true)!
@@ -108,7 +108,7 @@ pub fn list(args ArgsList) ![]&GiteaK8SInstaller {
 		return res
 	} else {
 		// load from memory
-		for _, client in gitea_global {
+		for _, client in k8_gitea_global {
 			res << client
 		}
 	}
@@ -118,16 +118,16 @@ pub fn list(args ArgsList) ![]&GiteaK8SInstaller {
 // only sets in mem, does not set as config
 fn set_in_mem(o GiteaK8SInstaller) !GiteaK8SInstaller {
 	mut o2 := obj_init(o)!
-	gitea_global[o2.name] = &o2
-	gitea_default = o2.name
+	k8_gitea_global[o2.name] = &o2
+	k8_gitea_default = o2.name
 	return o2
 }
 
 pub fn play(mut plbook PlayBook) ! {
-	if !plbook.exists(filter: 'gitea.') {
+	if !plbook.exists(filter: 'k8_gitea.') {
 		return
 	}
-	mut install_actions := plbook.find(filter: 'gitea.configure')!
+	mut install_actions := plbook.find(filter: 'k8_gitea.configure')!
 	if install_actions.len > 0 {
 		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
@@ -136,17 +136,17 @@ pub fn play(mut plbook PlayBook) ! {
 			install_action.done = true
 		}
 	}
-	mut other_actions := plbook.find(filter: 'gitea.')!
+	mut other_actions := plbook.find(filter: 'k8_gitea.')!
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
 			if other_action.name == 'destroy' || reset {
-				console.print_debug('install action gitea.destroy')
+				console.print_debug('install action k8_gitea.destroy')
 				destroy()!
 			}
 			if other_action.name == 'install' {
-				console.print_debug('install action gitea.install')
+				console.print_debug('install action k8_gitea.install')
 				install()!
 			}
 		}
@@ -182,7 +182,7 @@ pub fn (mut self GiteaK8SInstaller) destroy() ! {
 	destroy()!
 }
 
-// switch instance to be used for gitea
+// switch instance to be used for k8_gitea
 pub fn switch(name string) {
-	gitea_default = name
+	k8_gitea_default = name
 }

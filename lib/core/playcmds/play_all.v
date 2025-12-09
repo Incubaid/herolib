@@ -57,7 +57,7 @@ import incubaid.herolib.installers.web.traefik
 import incubaid.herolib.installers.web.zola
 // import incubaid.herolib.k8_apps.biz.k8_cryptpad_old
 // import incubaid.herolib.k8_apps.communication.k8_element_chat
-// import incubaid.herolib.k8_apps.devel.k8_gitea
+import incubaid.herolib.k8_apps.devel.k8_gitea
 import incubaid.herolib.virt.heropods
 import incubaid.herolib.virt.hetznermanager
 import incubaid.herolib.virt.kubernetes
@@ -125,7 +125,7 @@ pub fn run_all(args_ PlayArgs) ! {
 	zola.play(mut plbook)!
 	// k8_cryptpad_old.play(mut plbook)!
 	// k8_element_chat.play(mut plbook)!
-	// k8_gitea.play(mut plbook)!
+	k8_gitea.play(mut plbook)!
 	heropods.play(mut plbook)!
 	hetznermanager.play(mut plbook)!
 	kubernetes.play(mut plbook)!
