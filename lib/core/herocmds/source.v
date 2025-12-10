@@ -2,7 +2,6 @@ module herocmds
 
 import os
 import incubaid.herolib.ui.console
-import incubaid.herolib.develop.gittools
 import cli { Command, Flag }
 
 pub fn cmd_source(mut cmdroot Command) {
@@ -101,7 +100,6 @@ fn cmd_source_execute(cmd Command) ! {
 
 	mut repo_url := full_url
 	key_arg := cmd.flags.get_string('key') or { '' }
-	host_arg := cmd.flags.get_string('host') or { '' }
 	print_vars := cmd.flags.get_bool('print') or { false }
 	is_script := cmd.flags.get_bool('script') or { false }
 
@@ -109,8 +107,8 @@ fn cmd_source_execute(cmd Command) ! {
 		console.print_header('🔐 Hero Source - Loading Secrets')
 	}
 
-	// Step 1: Setup SSH key and convert URL if needed
-	has_ssh_key := setup_ssh_key(key_arg, repo_url, host_arg)!
+	// Step 1: Validate and normalize SSH key, store in env
+	has_ssh_key := prepare_ssh_key(key_arg)!
 
 	// Convert HTTPS URL to SSH if we have an SSH key
 	if has_ssh_key && (repo_url.starts_with('https://') || repo_url.starts_with('http://')) {
@@ -118,11 +116,16 @@ fn cmd_source_execute(cmd Command) ! {
 		console.print_debug('Converted to SSH URL: ${repo_url}')
 	}
 
-	// Step 2: Clone/pull the repository
+	// Step 2: Clone the repository to temp (writes key to temp file, clones, deletes key)
 	repo_path := clone_secrets_repo(repo_url)!
 
 	// Step 3: Source the secrets file
 	source_secrets_file(repo_path, secrets_file, print_vars, is_script)!
+
+	// Step 4: Clean up - delete the cloned repo
+	os.rmdir_all(repo_path) or {
+		console.print_debug('Warning: Could not delete temp repo: ${err}')
+	}
 
 	if !is_script {
 		console.print_green('✅ Secrets loaded successfully')
@@ -145,10 +148,9 @@ fn https_to_ssh_url(url string) string {
 	return 'git@${host}:${path}'
 }
 
-// Setup SSH key for repository access
-// Returns true if SSH key was configured
-fn setup_ssh_key(key_arg string, repo_url string, host_arg string) !bool {
-	// Determine SSH key content
+// Validate and normalize SSH key, store in SECRETS_SSH_KEY env var
+// Returns true if SSH key is available
+fn prepare_ssh_key(key_arg string) !bool {
 	mut key_content := ''
 
 	if key_arg != '' {
@@ -173,68 +175,15 @@ fn setup_ssh_key(key_arg string, repo_url string, host_arg string) !bool {
 		return false
 	}
 
-	// Setup SSH directory and key file
-	home := os.home_dir()
-	ssh_dir := '${home}/.ssh'
-	key_path := '${ssh_dir}/id_secrets'
-
-	// Create .ssh directory if needed
-	if !os.exists(ssh_dir) {
-		os.mkdir_all(ssh_dir)!
-		os.chmod(ssh_dir, 0o700)!
+	// Normalize key: trim and ensure trailing newline
+	mut final_key := key_content.trim_space()
+	if !final_key.ends_with('\n') {
+		final_key = final_key + '\n'
 	}
 
-	// Write the key file
-	os.write_file(key_path, key_content)!
-	os.chmod(key_path, 0o600)!
-
-	console.print_debug('SSH key written to ${key_path}')
-
-	// Determine host for known_hosts
-	host := if host_arg != '' {
-		host_arg
-	} else {
-		extract_host_from_url(repo_url)
-	}
-
-	if host != '' {
-		// Add to known_hosts
-		known_hosts_path := '${ssh_dir}/known_hosts'
-		result := os.execute('ssh-keyscan -t rsa ${host} 2>/dev/null')
-		if result.exit_code == 0 && result.output.len > 0 {
-			// Append to known_hosts if not already present
-			existing := if os.exists(known_hosts_path) {
-				os.read_file(known_hosts_path) or { '' }
-			} else {
-				''
-			}
-			if !existing.contains(host) {
-				mut f := os.open_append(known_hosts_path)!
-				f.write_string(result.output)!
-				f.close()
-				console.print_debug('Added ${host} to known_hosts')
-			}
-		}
-
-		// Setup SSH config for this host
-		config_path := '${ssh_dir}/config'
-		config_entry := 'Host ${host}\n  IdentityFile ${key_path}\n'
-
-		existing_config := if os.exists(config_path) {
-			os.read_file(config_path) or { '' }
-		} else {
-			''
-		}
-
-		if !existing_config.contains('Host ${host}') {
-			mut f := os.open_append(config_path)!
-			f.write_string('\n${config_entry}')!
-			f.close()
-			console.print_debug('Added SSH config for ${host}')
-		}
-	}
-
-	console.print_green('✓ SSH key configured')
+	// Store normalized key in env for later use
+	os.setenv('SECRETS_SSH_KEY', final_key, true)
+	console.print_green('✓ SSH key validated')
 	return true
 }
 
@@ -269,17 +218,52 @@ fn extract_host_from_url(url string) string {
 	return ''
 }
 
-// Clone or pull the secrets repository
+// Clone secrets repository to a temp directory
+// Writes SSH key to temp file before clone, deletes after
 fn clone_secrets_repo(repo_url string) !string {
-	console.print_debug('Cloning/pulling repository: ${repo_url}')
+	console.print_debug('Cloning repository: ${repo_url}')
 
-	// Use no_cache: true to avoid Redis dependency in CI environments
-	mut gs := gittools.new(no_cache: true)!
-	repo := gs.get_repo(url: repo_url, pull: true)!
+	// Create temp directory for secrets
+	temp_base := '/tmp/hero_secrets'
+	if !os.exists(temp_base) {
+		os.mkdir_all(temp_base)!
+	}
 
-	repo_path := repo.path()
-	console.print_green('✓ Repository ready at ${repo_path}')
+	// Generate a unique path based on repo URL hash
+	repo_hash := repo_url.hash().str().replace('-', '')
+	repo_path := '${temp_base}/${repo_hash}'
 
+	// Get SSH key from env (already validated/normalized by prepare_ssh_key)
+	key_content := os.getenv('SECRETS_SSH_KEY')
+	
+	mut ssh_cmd := ''
+	mut temp_key_path := ''
+	
+	if key_content != '' {
+		// Write key to temp file
+		temp_key_path = '/tmp/hero_secrets_key_${repo_hash}'
+		os.write_file(temp_key_path, key_content)!
+		os.chmod(temp_key_path, 0o600)!
+		ssh_cmd = 'GIT_SSH_COMMAND="ssh -i ${temp_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"'
+	}
+
+	// Always clone fresh (we delete after sourcing anyway)
+	if os.exists(repo_path) {
+		os.rmdir_all(repo_path)!
+	}
+
+	result := os.execute('${ssh_cmd} git clone ${repo_url} ${repo_path}')
+	
+	// Delete temp key file immediately after clone
+	if temp_key_path != '' && os.exists(temp_key_path) {
+		os.rm(temp_key_path) or {}
+	}
+	
+	if result.exit_code != 0 {
+		return error('Failed to clone repository: ${result.output}')
+	}
+
+	console.print_green('✓ Repository cloned')
 	return repo_path
 }
 
