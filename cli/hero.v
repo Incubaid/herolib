@@ -75,7 +75,7 @@ fn do() ! {
 	mut cmd := Command{
 		name:        'hero'
 		description: 'Your HERO toolset.'
-		version:     '1.0.45'
+		version:     '1.0.46'
 	}
 
 	mut toinstall := false
