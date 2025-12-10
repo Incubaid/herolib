@@ -46,7 +46,7 @@ pub struct Logo {
 pub mut:
 	alt      string
 	src      string
-	src_dark string @[json: 'srcDark']
+	src_dark string @[json: 'srcDark'; omitempty]
 }
 
 pub struct NavbarItem {

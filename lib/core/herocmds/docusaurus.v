@@ -106,6 +106,9 @@ pub fn cmd_docusaurus(mut cmdroot Command) Command {
 		description: 'Run your dev environment on local browser.'
 	})
 
+	// Add subcommands
+	cmd_docs_new(mut cmd_run)
+
 	cmdroot.add_command(cmd_run)
 	return cmdroot
 }

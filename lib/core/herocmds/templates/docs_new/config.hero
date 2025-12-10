@@ -1,0 +1,26 @@
+# ${args.title} Documentation - HeroScript Configuration
+
+!!site.config
+    name:"${args.name}"
+    title:"${args.title}"
+    tagline:"${args.title} Documentation"
+    description:"Documentation for ${args.title}"
+    favicon:"img/logo.png"
+    image:"img/logo.png"
+    copyright:"© 2024"
+    url:"https://${args.name}.example.com"
+    base_url:"/${args.name}/"
+    url_home:"docs/"
+
+!!site.config_meta
+    description:"Documentation for ${args.title}"
+    image:"https://${args.name}.example.com/img/logo.png"
+    title:"${args.title} Documentation"
+    keywords:"${args.name}, documentation"
+
+# Import static assets (logos, favicon, images)
+!!site.import path:'../../docusaurusbase'
+
+!!docusaurus.define name:"${args.name}"
+
+!!atlas.export include:true
