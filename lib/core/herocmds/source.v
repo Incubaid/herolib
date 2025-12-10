@@ -99,7 +99,7 @@ fn cmd_source_execute(cmd Command) ! {
 		}
 	}
 
-	repo_url := full_url
+	mut repo_url := full_url
 	key_arg := cmd.flags.get_string('key') or { '' }
 	host_arg := cmd.flags.get_string('host') or { '' }
 	print_vars := cmd.flags.get_bool('print') or { false }
@@ -109,8 +109,14 @@ fn cmd_source_execute(cmd Command) ! {
 		console.print_header('🔐 Hero Source - Loading Secrets')
 	}
 
-	// Step 1: Setup SSH key
-	setup_ssh_key(key_arg, repo_url, host_arg)!
+	// Step 1: Setup SSH key and convert URL if needed
+	has_ssh_key := setup_ssh_key(key_arg, repo_url, host_arg)!
+
+	// Convert HTTPS URL to SSH if we have an SSH key
+	if has_ssh_key && (repo_url.starts_with('https://') || repo_url.starts_with('http://')) {
+		repo_url = https_to_ssh_url(repo_url)
+		console.print_debug('Converted to SSH URL: ${repo_url}')
+	}
 
 	// Step 2: Clone/pull the repository
 	repo_path := clone_secrets_repo(repo_url)!
@@ -123,8 +129,25 @@ fn cmd_source_execute(cmd Command) ! {
 	}
 }
 
+// Convert HTTPS URL to SSH URL
+// https://forge.ourworld.tf/org/repo -> git@forge.ourworld.tf:org/repo
+fn https_to_ssh_url(url string) string {
+	if !url.starts_with('https://') && !url.starts_with('http://') {
+		return url
+	}
+	without_scheme := url.replace('https://', '').replace('http://', '')
+	parts := without_scheme.split_nth('/', 2)
+	if parts.len < 2 {
+		return url
+	}
+	host := parts[0]
+	path := parts[1]
+	return 'git@${host}:${path}'
+}
+
 // Setup SSH key for repository access
-fn setup_ssh_key(key_arg string, repo_url string, host_arg string) ! {
+// Returns true if SSH key was configured
+fn setup_ssh_key(key_arg string, repo_url string, host_arg string) !bool {
 	// Determine SSH key content
 	mut key_content := ''
 
@@ -147,7 +170,7 @@ fn setup_ssh_key(key_arg string, repo_url string, host_arg string) ! {
 
 	if key_content == '' {
 		console.print_debug('No SSH key provided, assuming repository is accessible without authentication')
-		return
+		return false
 	}
 
 	// Setup SSH directory and key file
@@ -212,6 +235,7 @@ fn setup_ssh_key(key_arg string, repo_url string, host_arg string) ! {
 	}
 
 	console.print_green('✓ SSH key configured')
+	return true
 }
 
 // Extract hostname from git URL

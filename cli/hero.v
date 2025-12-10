@@ -115,6 +115,7 @@ fn do() ! {
 	herocmds.cmd_atlas(mut cmd)
 	herocmds.cmd_source(mut cmd)
 	herocmds.cmd_update(mut cmd)
+	herocmds.cmd_compile(mut cmd)
 
 	cmd.setup()
 	cmd.parse(os.args)
