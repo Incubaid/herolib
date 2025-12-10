@@ -1,47 +1,102 @@
 #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
 
+// =============================================================================
+// K3s Installer Lifecycle Example
+// =============================================================================
+// This script demonstrates the full K3s lifecycle:
+//   1. Install as first master (active)
+//   2. Destroy/cleanup (active after install)
+//
+// To test additional node types, uncomment the relevant sections.
+// =============================================================================
+
 import incubaid.herolib.installers.virt.k3s_installer
 import incubaid.herolib.ui.console
 
-console.print_header('=== K3s Installer Test with Custom Configuration ===')
+// Use unique identifiers so we don't collide with other test state
+const cluster_name = 'k3s_lifecycle_test'
+const custom_data_dir = '/opt/k3s_lifecycle_test'
 
-// Create a K3s installer instance with CUSTOM values (not defaults)
-mut k3s := k3s_installer.get(name: 'test_k3s_cluster', create: true)!
+// =============================================================================
+// SECTION 1: Install as First Master
+// =============================================================================
 
-// Set custom values
-k3s.node_name = 'prod-master-node-01'
-k3s.data_dir = '/opt/test_k3s_data'
-k3s.k3s_version = 'v1.33.1'
+console.print_header('K3s Lifecycle Test - Install First Master')
 
-// Save configuration
+// Get or create installer instance with custom config
+mut k3s := k3s_installer.get(name: cluster_name, create: true)!
+k3s.node_name = 'master-lifecycle-test'
+k3s.data_dir = custom_data_dir
+// TFGW CRD config (only deployed on first master)
+k3s.tfgw_mnemonic = '$TFGW_MNEMONIC'
+k3s.tfgw_network = 'main'
 k3s_installer.set(k3s)!
 
-console.print_header('\n📋 Custom Configuration:')
-console.print_debug('  Name: ${k3s.name}')
-console.print_debug('  Node name: ${k3s.node_name}')
-console.print_debug('  Data dir: ${k3s.data_dir}')
-console.print_debug('  K3s version: ${k3s.k3s_version}')
-console.print_debug('  Mycelium interface: ${k3s.mycelium_interface}')
+console.print_debug('Config: name=${k3s.name}, data_dir=${k3s.data_dir}')
 
-// Check if k3s is already installed
+// Check if already installed, destroy first
 if k3s.installed()! {
-	console.print_header('\n⚠️  K3s is already installed, destroying first...')
+	console.print_debug('K3s already installed, destroying first...')
 	k3s.destroy()!
-	console.print_header('✅ Previous installation destroyed')
 }
 
-// ============================================================================
-// SECTION 1: Install as First Master Node
-// ============================================================================
-console.print_header('\n🚀 Installing K3s as first master node...')
+// Install as first master
 k3s.install_master()!
-console.print_header('✅ Installation completed')
 
-console.print_header('\n🔄 Starting K3s service...')
+// Reload to get generated token
+k3s = k3s_installer.get(name: cluster_name)!
+
+// Start K3s service
 k3s.start()!
-console.print_header('✅ K3s service started')
 
-console.print_header('\n📌 Token: ${k3s.token}')
+console.print_header('Install completed. Token: ${k3s.token}')
 
-console.print_header('\n=== Installation Complete ===')
+// =============================================================================
+// SECTION 2: Join as Additional Master (HA Setup)
+// =============================================================================
+// Uncomment to test joining as additional master on another node.
+// Requires: token and master_url from first master.
 
+/*
+mut k3s_master2 := k3s_installer.get(name: 'k3s_master_2', create: true)!
+k3s_master2.node_name = 'master-2'
+k3s_master2.data_dir = '/opt/k3s_master_2'
+k3s_master2.token = '<TOKEN_FROM_FIRST_MASTER>'
+k3s_master2.master_url = 'https://[<FIRST_MASTER_IPV6>]:6443'
+k3s_installer.set(k3s_master2)!
+
+k3s_master2.join_master()!
+k3s_master2.start()!
+*/
+
+// =============================================================================
+// SECTION 3: Join as Worker Node
+// =============================================================================
+// Uncomment to test joining as worker node on another machine.
+// Requires: token and master_url from first master.
+
+/*
+mut k3s_worker := k3s_installer.get(name: 'k3s_worker_1', create: true)!
+k3s_worker.node_name = 'worker-1'
+k3s_worker.data_dir = '/opt/k3s_worker_1'
+k3s_worker.token = '<TOKEN_FROM_FIRST_MASTER>'
+k3s_worker.master_url = 'https://[<FIRST_MASTER_IPV6>]:6443'
+k3s_installer.set(k3s_worker)!
+
+k3s_worker.install_worker()!
+k3s_worker.start()!
+*/
+
+// =============================================================================
+// SECTION 4: Destroy/Uninstall
+// =============================================================================
+// Uncomment to run destroy after install for full lifecycle test.
+// This will stop K3s, unmount volumes, remove data_dir, clean up kubepods slices.
+
+/*
+console.print_header('Destroying K3s installation...')
+k3s.destroy()!
+console.print_header('Destroy completed')
+*/
+
+console.print_header('Lifecycle test completed')

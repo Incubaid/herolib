@@ -67,10 +67,10 @@ fn (self &K3SInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	}
 
 	res << startupmanager.ZProcessNewArgs{
-		name:        'k3s_${self.name}'
+		name: 'k3s_${self.name}'
 		startuptype: .systemd
-		cmd:         cmd
-		env:         {
+		cmd:  cmd
+		env:  {
 			'HOME': os.home_dir()
 		}
 	}
@@ -114,7 +114,12 @@ fn check_ubuntu() ! {
 	}
 
 	// Check /etc/os-release for Ubuntu
-	content := os.read_file('/etc/os-release') or {
+	// Use pathlib.get() which handles symlinks correctly
+	mut os_release := pathlib.get('/etc/os-release')
+	if !os_release.exists() {
+		return error('Could not find /etc/os-release. Is this Ubuntu?')
+	}
+	content := os_release.read() or {
 		return error('Could not read /etc/os-release. Is this Ubuntu?')
 	}
 
@@ -183,8 +188,13 @@ pub fn (mut self K3SInstaller) install_master() ! {
 	// Install dependencies
 	install_deps(self.k3s_version)!
 
-	// Ensure data directory exists
+	// Ensure data directory and manifests directory exist
 	osal.dir_ensure(self.data_dir)!
+	manifests_dir := '${self.data_dir}/server/manifests'
+	osal.dir_ensure(manifests_dir)!
+
+	// Deploy TFGW CRD and Traefik manifests (only on first master)
+	deploy_manifests(&self, manifests_dir)!
 
 	// Save configuration
 	set(self)!
@@ -357,13 +367,36 @@ fn (mut self K3SInstaller) build() ! {
 }
 
 //////////////////// CLEANUP ////////////////////
+
+// Safety check to prevent deleting dangerous paths
+fn is_safe_to_delete(path string) bool {
+	// Never delete empty path
+	if path == '' {
+		return false
+	}
+	
+	// Never delete root or critical top-level paths
+	if path == '/' || path == '/var' || path == '/root' || path == '/home' || path == '/usr' || path == '/etc' || path == '/opt' || path == '/tmp' {
+		return false
+	}
+	
+	// Must be at least 2 levels deep (e.g., /opt/k3s or /var/lib)
+	// This allows /opt/test_k3s_data while blocking top-level directories
+	if path.count('/') < 2 {
+		return false
+	}
+	
+	return true
+}
+
 fn destroy() ! {
 	console.print_header('Destroying K3s installation')
 
 	// Get configuration to find data directory
+	// Use k3s_installer_default which is set by switch() before destroy() is called
 	mut data_dirs := []string{}
 
-	if cfg := get() {
+	if cfg := get(name: k3s_installer_default) {
 		data_dirs << cfg.data_dir
 		console.print_debug('Found configured data directory: ${cfg.data_dir}')
 	} else {
@@ -376,7 +409,6 @@ fn destroy() ! {
 
 	// Step 1: Stop and delete ALL k3s systemd services using startupmanager
 	console.print_header('Stopping and removing systemd services...')
-
 
 	mut sm := startupmanager_get(.systemd) or {
 		console.print_debug('Failed to get systemd manager: ${err}')
@@ -397,57 +429,110 @@ fn destroy() ! {
 		}
 	}
 
-	console.print_header('✓ Systemd services removed')
+	console.print_debug('Systemd services removed')
 
 	// Step 2: Kill any remaining K3s processes
 	console.print_header('Killing any remaining K3s processes...')
-	osal.exec(cmd: 'killall -9 k3s 2>/dev/null || true', stdout: false, raise_error: false) or {
-		console.print_debug('No k3s processes to kill or killall failed')
+	
+	// Kill K3s processes multiple times to ensure they're really dead
+	for _ in 0 .. 3 {
+		osal.exec(cmd: 'killall -9 k3s 2>/dev/null || true', stdout: false, raise_error: false) or {}
+		osal.exec(cmd: 'pkill -9 -f "k3s (server|agent)" 2>/dev/null || true', stdout: false, raise_error: false) or {}
+		osal.exec(cmd: 'sleep 1', stdout: false) or {}
 	}
+	
+	// Wait longer for processes to fully terminate and release mounts
+	console.print_debug('Waiting for K3s processes to fully terminate...')
+	osal.exec(cmd: 'sleep 5', stdout: false) or {}
 
-	osal.exec(cmd: 'sleep 2', stdout: false) or {}
-
-	// Step 3: Unmount kubelet mounts
-	cleanup_mounts()!
+	// Step 3: Unmount kubelet mounts (including custom data directories)
+	cleanup_mounts(data_dirs)!
 
 	// Step 4: Clean up network interfaces
 	cleanup_network()!
 
 	// Step 5: Remove data directories
-	console.print_header('Removing data directories...')
+	console.print_debug('Removing data directories...')
+	
+	// Give time for unmounts to fully complete
+	osal.exec(cmd: 'sleep 1', stdout: false) or {}
 
 	mut cleaned_dirs := map[string]bool{}
 	for data_dir in data_dirs {
 		if data_dir != '' && data_dir !in cleaned_dirs {
 			cleaned_dirs[data_dir] = true
+			
+			// Safety check before deletion
+			if !is_safe_to_delete(data_dir) {
+				console.print_debug('Skipping unsafe path: ${data_dir}')
+				continue
+			}
+			
 			console.print_debug('Removing data directory: ${data_dir}')
-			osal.exec(cmd: 'rm -rf ${data_dir}', stdout: false, raise_error: false) or {
-				console.print_debug('Failed to remove ${data_dir}: ${err}')
+			
+			// Use pathlib to delete directory
+			mut dir := pathlib.get_dir(path: data_dir) or {
+				console.print_debug('Path does not exist or is not a directory: ${data_dir}')
+				continue
+			}
+			
+			if dir.exists() {
+				// Try pathlib delete first
+				dir.delete() or {
+					console.print_debug('Pathlib delete failed for ${data_dir}: ${err}')
+					// Fallback to osal.rm for stubborn directories
+					osal.rm(data_dir) or {
+						console.print_debug('osal.rm also failed for ${data_dir}: ${err}')
+					}
+				}
+				console.print_debug('Removed: ${data_dir}')
+			} else {
+				console.print_debug('Directory does not exist: ${data_dir}')
 			}
 		}
 	}
 
+	// Also remove K3s runtime directories using osal.rm
+	console.print_debug('Removing /run/k3s')
+	osal.rm('/run/k3s') or {
+		console.print_debug('Failed to remove /run/k3s: ${err}')
+	}
+	
+	console.print_debug('Removing /var/lib/kubelet')
+	osal.rm('/var/lib/kubelet') or {
+		console.print_debug('Failed to remove /var/lib/kubelet: ${err}')
+	}
+	
+	console.print_debug('Removing /run/netns')
+	osal.rm('/run/netns') or {
+		console.print_debug('Failed to remove /run/netns: ${err}')
+	}
+
 	console.print_debug('Removing /etc/rancher')
-	osal.exec(cmd: 'rm -rf /etc/rancher', stdout: false, raise_error: false) or {}
+	osal.rm('/etc/rancher') or {
+		console.print_debug('Failed to remove /etc/rancher: ${err}')
+	}
 
 	// Step 6: Clean up CNI
-	console.print_header('Cleaning up CNI directories...')
-	osal.exec(cmd: 'rm -rf /var/lib/cni/', stdout: false, raise_error: false) or {}
+	console.print_debug('Removing /var/lib/cni')
+	osal.rm('/var/lib/cni') or {
+		console.print_debug('Failed to remove /var/lib/cni: ${err}')
+	}
 
-	// Step 7: Clean up iptables rules
-	console.print_header('Cleaning up iptables rules')
-	osal.exec(
-		cmd:         'iptables-save | grep -v KUBE- | grep -v CNI- | grep -iv flannel | iptables-restore'
-		stdout:      false
-		raise_error: false
-	) or {}
-	osal.exec(
-		cmd:         'ip6tables-save | grep -v KUBE- | grep -v CNI- | grep -iv flannel | ip6tables-restore'
-		stdout:      false
-		raise_error: false
-	) or {}
+	// Step 7: Clean up kubepods cgroup slices created by kubelet
+	console.print_debug('Cleaning up kubepods slices...')
+	osal.exec(cmd: 'systemctl stop kubepods.slice 2>/dev/null || true', stdout: false, raise_error: false) or {}
+	osal.exec(cmd: 'systemctl reset-failed kubepods.slice 2>/dev/null || true', stdout: false, raise_error: false) or {}
+	// Also clean any child slices
+	slices_result := osal.exec(cmd: 'systemctl list-units --type=slice --no-legend | grep kubepods | cut -d" " -f1', stdout: false, raise_error: false) or { osal.Job{} }
+	for slice in slices_result.output.split_into_lines() {
+		s := slice.trim_space()
+		if s != '' {
+			osal.exec(cmd: 'systemctl stop "${s}" 2>/dev/null || true', stdout: false, raise_error: false) or {}
+		}
+	}
 
-	console.print_header('K3s destruction completed')
+	console.print_debug('K3s destruction completed')
 }
 
 fn cleanup_network() ! {
@@ -521,36 +606,50 @@ fn cleanup_network() ! {
 	}
 }
 
-fn cleanup_mounts() ! {
+fn cleanup_mounts(data_dirs []string) ! {
 	console.print_header('Cleaning up mounts')
 
-	paths := ['/run/k3s', '/var/lib/kubelet/pods', '/var/lib/kubelet/plugins', '/run/netns/cni-']
+	// Build list of all paths to check for mounts
+	mut all_mount_paths := ['/run/k3s', '/var/lib/kubelet', '/run/netns']
+	for data_dir in data_dirs {
+		if data_dir != '' {
+			all_mount_paths << data_dir
+			// Also explicitly add kubelet subdirectory which contains most pod mounts
+			all_mount_paths << '${data_dir}/kubelet'
+		}
+	}
 
-	for path in paths {
-		if mount_result := osal.exec(
-			cmd:         'mount | grep "${path}" | awk \'{print $3}\' | sort -r'
-			stdout:      false
-			raise_error: false
-		)
-		{
-			if mount_result.output.trim_space() != '' {
-				mount_points := mount_result.output.split_into_lines()
-				for mount_point in mount_points {
-					mp_trimmed := mount_point.trim_space()
-					if mp_trimmed != '' {
-						console.print_debug('Unmounting: ${mp_trimmed}')
-						osal.exec(cmd: 'umount -f ${mp_trimmed}', stdout: false, raise_error: false) or {
-							console.print_debug('Failed to unmount ${mp_trimmed}')
+	// Unmount all K3s-related mounts (try multiple times if needed)
+	console.print_debug('Finding and unmounting all K3s mounts...')
+	for _ in 0 .. 3 {
+		mut found_mounts := false
+		for mount_path in all_mount_paths {
+			// Get list of mount points
+			get_mounts_cmd := 'mount | grep "${mount_path}" | cut -d" " -f3 | sort -r'
+			if mount_result := osal.exec(cmd: get_mounts_cmd, stdout: false, raise_error: false) {
+				if mount_result.output.trim_space() != '' {
+					mount_points := mount_result.output.split_into_lines()
+					for mount_point in mount_points {
+						mp := mount_point.trim_space()
+						if mp != '' {
+							found_mounts = true
+							console.print_debug('Unmounting: ${mp}')
+							// Try lazy unmount first
+							osal.exec(cmd: 'umount -l "${mp}" 2>/dev/null || true', stdout: false, raise_error: false) or {}
+							// If that didn't work, try force unmount
+							osal.exec(cmd: 'umount -f "${mp}" 2>/dev/null || true', stdout: false, raise_error: false) or {}
 						}
 					}
 				}
 			}
-		} else {
-			console.print_debug('No mounts found for ${path}')
 		}
-
-		console.print_debug('Removing directory: ${path}')
-		osal.exec(cmd: 'rm -rf ${path}', stdout: false, raise_error: false) or {}
+		// If no mounts were found, we're done
+		if !found_mounts {
+			break
+		}
+		// Wait a bit before retrying
+		osal.exec(cmd: 'sleep 1', stdout: false) or {}
 	}
+	
+	console.print_debug('Mount cleanup completed')
 }
-
