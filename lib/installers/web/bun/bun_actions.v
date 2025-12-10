@@ -54,9 +54,8 @@ fn destroy() ! {
 
 	osal.cmd_delete('bun')!
 
-	osal.package_remove('
-       bun
-    ')!
+	// Note: bun is not an apt package, it's installed via curl script
+	// so we don't try to remove it via package manager
 
 	// will remove all paths where bun is found
 	osal.profile_path_add_remove(paths2delete: 'bun')!
