@@ -3,7 +3,6 @@ module k3s_installer
 import incubaid.herolib.data.encoderhero
 import incubaid.herolib.osal.core as osal
 import incubaid.herolib.core.pathlib
-import os
 import rand
 
 pub const version = 'v1.33.1'
@@ -14,25 +13,36 @@ const default = true
 @[heap]
 pub struct K3SInstaller {
 pub mut:
-	name string = 'default'
+	name               string = 'default'
 	// K3s version to install
-	k3s_version string = version
+	k3s_version        string = version
 	// Data directory for K3s (default: ~/hero/var/k3s)
-	data_dir string
+	data_dir           string
 	// Unique node name/identifier
-	node_name string
+	node_name          string
 	// Mycelium interface name (auto-detected if not specified)
 	mycelium_interface string
 	// Cluster token for authentication (auto-generated if empty)
-	token string
+	token              string
 	// Master URL for joining cluster (e.g., 'https://[ipv6]:6443')
-	master_url string
+	master_url         string
 	// Node IPv6 address (auto-detected from Mycelium if empty)
-	node_ip string
+	node_ip            string
 	// Is this a master/control-plane node?
-	is_master bool
+	is_master          bool
 	// Is this the first master (uses --cluster-init)?
-	is_first_master bool
+	is_first_master    bool
+	// TFGW CRD config (only deployed on first master)
+	tfgw_mnemonic      string  // Wallet mnemonic for TFGW controller
+	tfgw_network       string  // Network: main, dev, test, qa
+}
+
+// Template values for TFGW CRD manifest rendering
+struct TfgwTemplateValues {
+pub:
+	mnemonic string
+	network  string
+	token    string  // Empty for unencrypted mnemonic
 }
 
 // your checking & initialization code if needed
@@ -41,17 +51,20 @@ fn obj_init(mycfg_ K3SInstaller) !K3SInstaller {
 
 	// Set default data directory if not provided
 	if mycfg.data_dir == '' {
-		mycfg.data_dir = os.join_path(os.home_dir(), 'hero/var/k3s')
+		// pathlib.get() handles ~ expansion automatically
+		mycfg.data_dir = pathlib.get('~/hero/var/k3s').absolute()
 	}
 
 	// Expand home directory in data_dir if it contains ~
-	if mycfg.data_dir.starts_with('~') {
-		mycfg.data_dir = mycfg.data_dir.replace_once('~', os.home_dir())
-	}
+	// pathlib.get() already handles ~ expansion, so just normalize
+	mycfg.data_dir = pathlib.get(mycfg.data_dir).absolute()
 
 	// Set default node name if not provided
 	if mycfg.node_name == '' {
-		hostname := os.execute('hostname').output.trim_space()
+		hostname_result := osal.exec(cmd: 'hostname', stdout: false, raise_error: false) or {
+			osal.Job{}
+		}
+		hostname := hostname_result.output.trim_space()
 		mycfg.node_name = if hostname != '' { hostname } else { 'k3s-node-${rand.hex(4)}' }
 	}
 
@@ -219,9 +232,35 @@ fn configure() ! {
 	// Ensure data directory exists
 	osal.dir_ensure(cfg.data_dir)!
 
-	// Create manifests directory for auto-apply
+	// Create manifests directory for auto-apply (only for server nodes)
 	manifests_dir := '${cfg.data_dir}/server/manifests'
 	osal.dir_ensure(manifests_dir)!
+
+	// Deploy TFGW CRD and Traefik config only on first master
+	if cfg.is_first_master {
+		deploy_manifests(cfg, manifests_dir)!
+	}
+}
+
+// Deploy TFGW CRD and Traefik config manifests to K3s manifests directory
+fn deploy_manifests(cfg &K3SInstaller, manifests_dir string) ! {
+	// Create template values for TFGW CRD
+	tfgw_values := TfgwTemplateValues{
+		mnemonic: cfg.tfgw_mnemonic
+		network:  cfg.tfgw_network
+		token:    ''  // Empty for unencrypted mnemonic
+	}
+
+	// Render and write TFGW CRD template
+	tfgw_yaml := $tmpl('./templates/tfgw-crd.yaml')
+	mut tfgw_path := pathlib.get_file(path: '${manifests_dir}/tfgw-crd.yaml', create: true)!
+	tfgw_path.write(tfgw_yaml)!
+
+	// Copy Traefik config - use $embed_file since it has no template variables
+	// and contains @ symbols in emails that would conflict with $tmpl
+	traefik_yaml := $embed_file('./templates/traefik-config.yaml')
+	mut traefik_path := pathlib.get_file(path: '${manifests_dir}/traefik-config.yaml', create: true)!
+	traefik_path.write(traefik_yaml.to_string())!
 }
 
 /////////////NORMALLY NO NEED TO TOUCH
