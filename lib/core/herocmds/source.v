@@ -175,11 +175,38 @@ fn prepare_ssh_key(key_arg string) !bool {
 		return false
 	}
 
-	// Normalize key: trim and ensure trailing newline
-	mut final_key := key_content.trim_space()
+	// Normalize key:
+	// 1. Replace escaped newlines (\n as literal string) with actual newlines
+	// 2. Trim whitespace
+	// 3. Ensure trailing newline
+	mut final_key := key_content
+	
+	console.print_debug('Raw key length: ${key_content.len}')
+	preview_len := if key_content.len > 50 { 50 } else { key_content.len }
+	console.print_debug('Key starts with: ${key_content[0..preview_len]}...')
+	
+	// Handle escaped newlines from env vars (common in CI systems)
+	if final_key.contains('\\n') {
+		console.print_debug('Found escaped newlines, converting...')
+		final_key = final_key.replace('\\n', '\n')
+	}
+	
+	// Also handle case where newlines might be completely missing (base64 on single line)
+	// SSH keys have specific line lengths, so we need proper newlines
+	
+	final_key = final_key.trim_space()
 	if !final_key.ends_with('\n') {
 		final_key = final_key + '\n'
 	}
+
+	// Validate key format
+	if !final_key.contains('-----BEGIN') || !final_key.contains('-----END') {
+		return error('Invalid SSH key format: missing BEGIN/END markers')
+	}
+	
+	// Count newlines to verify key structure
+	newline_count := final_key.count('\n')
+	console.print_debug('Key has ${newline_count} newlines after normalization')
 
 	// Store normalized key in env for later use
 	os.setenv('SECRETS_SSH_KEY', final_key, true)
@@ -244,7 +271,12 @@ fn clone_secrets_repo(repo_url string) !string {
 		temp_key_path = '/tmp/hero_secrets_key_${repo_hash}'
 		os.write_file(temp_key_path, key_content)!
 		os.chmod(temp_key_path, 0o600)!
+		
+		// Debug: verify key file
+		console.print_debug('Wrote key to ${temp_key_path}, size: ${key_content.len} bytes')
+		
 		ssh_cmd = 'GIT_SSH_COMMAND="ssh -i ${temp_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"'
+		console.print_debug('SSH command: ${ssh_cmd}')
 	}
 
 	// Always clone fresh (we delete after sourcing anyway)
