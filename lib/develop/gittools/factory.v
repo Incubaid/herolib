@@ -20,6 +20,7 @@ pub mut:
 	debug    bool = true
 	reload   bool
 	offline  bool
+	no_cache bool // If true, skip Redis caching (for environments without Redis)
 }
 
 // Retrieve or create a new GitStructure instance with the given configuration.
@@ -48,10 +49,14 @@ pub fn new(args_ GitStructureArgsNew) !&GitStructure {
 		log:      args.log
 		debug:    args.debug
 		offline:  args.offline
+		no_cache: args.no_cache
 	}
 
 	if 'OFFLINE' in os.environ() {
 		gs.offline = true
+	}
+	if 'NO_CACHE' in os.environ() {
+		gs.no_cache = true
 	}
 
 	gs.config()! // will load the config, don't remove

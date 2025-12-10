@@ -1,6 +1,5 @@
 module herocmds
 
-import os
 import incubaid.herolib.ui.console
 import incubaid.herolib.osal.core as osal
 import cli { Command, Flag }
@@ -18,22 +17,22 @@ USAGE:
   hero update [options]
 
 EXAMPLES:
-  hero update           # Update to latest release
-  hero update --dev     # Update from development branch
+  hero update                      # Update from development branch (default)
+  hero update --branch main        # Update from main branch
 
 OPTIONS:
-  --dev, -d    Install from development branch instead of latest release
-  --force, -f  Force reinstall even if already on latest version
+  --branch, -b  Branch to install from (default: development)
+  --force, -f   Force reinstall even if already on latest version
 '
 		execute:       cmd_update_execute
 		sort_commands: true
 	}
 
 	cmd_run.add_flag(Flag{
-		flag:        .bool
-		name:        'dev'
-		abbrev:      'd'
-		description: 'Install from development branch instead of latest release'
+		flag:        .string
+		name:        'branch'
+		abbrev:      'b'
+		description: 'Branch to install from (default: development)'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -54,32 +53,29 @@ OPTIONS:
 }
 
 fn cmd_update_execute(cmd Command) ! {
-	use_dev := cmd.flags.get_bool('dev') or { false }
+	branch := cmd.flags.get_string('branch') or { 'development' }
 	is_script := cmd.flags.get_bool('script') or { false }
 
 	if !is_script {
 		console.print_header('🔄 Hero Update')
-	}
-
-	// Determine install script URL
-	script_url := if use_dev {
-		'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_hero.sh'
-	} else {
-		'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/main/scripts/install_hero.sh'
-	}
-
-	if !is_script {
-		branch := if use_dev { 'development' } else { 'main' }
 		console.print_debug('Updating from ${branch} branch...')
 	}
 
-	// Download and execute install script
-	result := osal.exec(
-		cmd: 'curl -sL ${script_url} | bash'
-		stdout: true
+	// Use correct GitHub raw URL format (no refs/heads/)
+	script_url := 'https://raw.githubusercontent.com/incubaid/herolib/${branch}/scripts/install_hero.sh'
+
+	// Download using osal.download (no Redis dependency)
+	script_path := osal.download(
+		url:        script_url
+		dest:       '/tmp/install_hero.sh'
+		reset:      true
+		minsize_kb: 1
 	) or {
-		return error('Failed to update hero: ${err}')
+		return error('Failed to download install script. Branch "${branch}" may not exist.\nURL: ${script_url}')
 	}
+
+	// Execute the install script
+	osal.exec(cmd: 'bash ${script_path.path}', stdout: true)!
 
 	if !is_script {
 		console.print_green('✅ Hero updated successfully')

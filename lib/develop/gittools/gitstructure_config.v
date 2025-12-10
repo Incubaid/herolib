@@ -13,7 +13,11 @@ pub mut:
 // Load config from redis
 pub fn (mut self GitStructure) config() !GitStructureConfig {
 	mut config := self.config_ or {
-		mut redis := redis_get()
+		// Skip Redis if no_cache is enabled
+		if self.no_cache {
+			return GitStructureConfig{}
+		}
+		mut redis := redis_get()!
 		data := redis.get('${self.cache_key()}:config')!
 		mut c := GitStructureConfig{}
 		if data.len > 0 {
@@ -26,20 +30,32 @@ pub fn (mut self GitStructure) config() !GitStructureConfig {
 }
 
 pub fn (mut self GitStructure) config_set(args GitStructureConfig) ! {
-	mut redis := redis_get()
+	// Skip if no_cache is enabled
+	if self.no_cache {
+		return
+	}
+	mut redis := redis_get()!
 	redis.set('${self.cache_key()}:config', json.encode(args))!
 }
 
 // Reset the configuration cache for Git structures.
 fn (mut self GitStructure) config_reset() ! {
-	mut redis := redis_get()
+	// Skip if no_cache is enabled
+	if self.no_cache {
+		return
+	}
+	mut redis := redis_get()!
 	redis.del('${self.cache_key()}:config')!
 }
 
 // save to the cache
 fn (mut self GitStructure) config_save() ! {
+	// Skip if no_cache is enabled
+	if self.no_cache {
+		return
+	}
 	// Retrieve the configuration from Redis.
-	mut redis := redis_get()
+	mut redis := redis_get()!
 	datajson := json.encode(self.config()!)
 	redis.set('${self.cache_key()}:config', datajson)!
 }

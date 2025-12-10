@@ -2,6 +2,7 @@ module herocmds
 
 import os
 import incubaid.herolib.ui.console
+import incubaid.herolib.develop.gittools
 import cli { Command, Flag }
 
 pub fn cmd_source(mut cmdroot Command) {
@@ -77,12 +78,29 @@ The command will:
 fn cmd_source_execute(cmd Command) ! {
 	// Get repository URL from args
 	if cmd.args.len == 0 {
-		return error('Repository URL is required.\n\nUsage: hero source <repo_url>\n\nExample: hero source https://forge.ourworld.tf/ourworld_it/secrets')
+		return error('Repository URL is required.\n\nUsage: hero source <repo_url>[/filename.sh]\n\nExample: hero source https://forge.ourworld.tf/ourworld_it/secrets/secrets.sh')
 	}
 
-	repo_url := cmd.args[0]
+	// Parse URL - may include filename at the end (e.g., .../secrets/secrets.sh)
+	mut full_url := cmd.args[0]
+	mut secrets_file := cmd.flags.get_string('file') or { '' }
+
+	// If URL ends with .sh, extract the filename
+	if secrets_file == '' {
+		if full_url.ends_with('.sh') {
+			// Split off the filename from the URL
+			last_slash := full_url.last_index('/') or { -1 }
+			if last_slash > 0 {
+				secrets_file = full_url[last_slash + 1..]
+				full_url = full_url[..last_slash]
+			}
+		} else {
+			secrets_file = 'secrets.sh'
+		}
+	}
+
+	repo_url := full_url
 	key_arg := cmd.flags.get_string('key') or { '' }
-	secrets_file := cmd.flags.get_string('file') or { 'secrets.sh' }
 	host_arg := cmd.flags.get_string('host') or { '' }
 	print_vars := cmd.flags.get_bool('print') or { false }
 	is_script := cmd.flags.get_bool('script') or { false }
@@ -227,105 +245,18 @@ fn extract_host_from_url(url string) string {
 	return ''
 }
 
-// Clone or pull the secrets repository using direct git commands (no Redis dependency)
+// Clone or pull the secrets repository
 fn clone_secrets_repo(repo_url string) !string {
 	console.print_debug('Cloning/pulling repository: ${repo_url}')
 
-	// Convert URL to local path following herolib convention: ~/code/{host}/{org}/{repo}
-	repo_path := url_to_local_path(repo_url)!
+	// Use no_cache: true to avoid Redis dependency in CI environments
+	mut gs := gittools.new(no_cache: true)!
+	repo := gs.get_repo(url: repo_url, pull: true)!
 
-	if os.exists(repo_path) {
-		// Repository exists, try to pull
-		console.print_debug('Repository exists, pulling updates...')
-		result := os.execute('cd "${repo_path}" && git pull 2>&1')
-		if result.exit_code != 0 {
-			// If pull fails due to uncommitted changes, just use existing
-			if result.output.contains('uncommitted') || result.output.contains('local changes') {
-				console.print_debug('Repository has local changes, using existing state')
-			} else {
-				return error('Failed to pull repository: ${result.output}')
-			}
-		}
-	} else {
-		// Clone the repository
-		console.print_debug('Cloning repository...')
-		parent_dir := os.dir(repo_path)
-		if !os.exists(parent_dir) {
-			os.mkdir_all(parent_dir)!
-		}
-
-		// Convert HTTPS URL to SSH URL for cloning
-		ssh_url := https_to_ssh_url(repo_url)
-		result := os.execute('git clone "${ssh_url}" "${repo_path}" 2>&1')
-		if result.exit_code != 0 {
-			return error('Failed to clone repository: ${result.output}')
-		}
-	}
-
+	repo_path := repo.path()
 	console.print_green('✓ Repository ready at ${repo_path}')
+
 	return repo_path
-}
-
-// Convert repository URL to local path: ~/code/{host}/{org}/{repo}
-fn url_to_local_path(url string) !string {
-	home := os.home_dir()
-
-	// Parse URL to extract host, org, repo
-	// Supports: https://host/org/repo, git@host:org/repo, ssh://git@host/org/repo
-	mut host := ''
-	mut path_part := ''
-
-	if url.starts_with('https://') || url.starts_with('http://') {
-		without_scheme := url.replace('https://', '').replace('http://', '')
-		parts := without_scheme.split('/')
-		if parts.len < 3 {
-			return error('Invalid repository URL format: ${url}')
-		}
-		host = parts[0]
-		path_part = parts[1..].join('/')
-	} else if url.starts_with('git@') {
-		without_prefix := url.replace('git@', '')
-		if without_prefix.contains(':') {
-			host_and_path := without_prefix.split(':')
-			host = host_and_path[0]
-			path_part = host_and_path[1]
-		}
-	} else if url.starts_with('ssh://') {
-		without_scheme := url.replace('ssh://', '')
-		if without_scheme.contains('@') {
-			after_at := without_scheme.split('@')[1]
-			parts := after_at.split('/')
-			host = parts[0]
-			path_part = parts[1..].join('/')
-		}
-	}
-
-	if host == '' || path_part == '' {
-		return error('Could not parse repository URL: ${url}')
-	}
-
-	// Remove .git suffix if present
-	if path_part.ends_with('.git') {
-		path_part = path_part[..path_part.len - 4]
-	}
-
-	return '${home}/code/${host}/${path_part}'
-}
-
-// Convert HTTPS URL to SSH URL for git operations
-fn https_to_ssh_url(url string) string {
-	if url.starts_with('https://') {
-		// https://forge.ourworld.tf/org/repo -> git@forge.ourworld.tf:org/repo
-		without_scheme := url.replace('https://', '')
-		parts := without_scheme.split('/')
-		if parts.len >= 3 {
-			host := parts[0]
-			path := parts[1..].join('/')
-			return 'git@${host}:${path}'
-		}
-	}
-	// Already SSH or other format, return as-is
-	return url
 }
 
 // Source the secrets file and export variables

@@ -19,35 +19,35 @@ fn playcmds_do(path string) ! {
 // do_update handles the update command without requiring Redis
 fn do_update() ! {
 	// Parse flags manually since we're not using the CLI framework
-	use_dev := '--dev' in os.args || '-d' in os.args
+	// Default to development branch unless --branch is specified
+	mut branch := 'development'
 
-	// Use correct GitHub raw URL format
-	script_url := if use_dev {
-		'https://raw.githubusercontent.com/incubaid/herolib/development/scripts/install_hero.sh'
-	} else {
-		'https://raw.githubusercontent.com/incubaid/herolib/main/scripts/install_hero.sh'
+	for i, arg in os.args {
+		if arg == '--branch' || arg == '-b' {
+			if i + 1 < os.args.len {
+				branch = os.args[i + 1]
+			}
+		}
 	}
 
-	branch := if use_dev { 'development' } else { 'main' }
+	// Use correct GitHub raw URL format (no refs/heads/)
+	script_url := 'https://raw.githubusercontent.com/incubaid/herolib/${branch}/scripts/install_hero.sh'
+
 	println('🔄 Updating hero from ${branch} branch...')
 
-	// Download script to temp file first, then execute
-	tmp_script := '/tmp/install_hero.sh'
-	dl_result := os.execute('curl -sfL "${script_url}" -o ${tmp_script}')
-	if dl_result.exit_code != 0 {
-		return error('Failed to download install script: ${dl_result.output}')
+	// Download using osal.download (no Redis dependency)
+	script_path := osal.download(
+		url:        script_url
+		dest:       '/tmp/install_hero.sh'
+		reset:      true
+		minsize_kb: 1
+	) or {
+		return error('Failed to download install script. Branch "${branch}" may not exist.\nURL: ${script_url}')
 	}
 
-	// Make executable and run
-	os.chmod(tmp_script, 0o755) or {}
-	result := os.execute('bash ${tmp_script}')
-	if result.exit_code != 0 {
-		return error('Failed to update hero: ${result.output}')
-	}
-	println(result.output)
-
-	// Cleanup
-	os.rm(tmp_script) or {}
+	// Execute the install script
+	osal.exec(cmd: 'bash ${script_path.path}')!
+	println('✅ Hero updated successfully')
 }
 
 fn do() ! {

@@ -19,6 +19,7 @@ pub mut:
 	log      bool = true // If true, logs git commands/statements
 	debug    bool = true
 	offline  bool
+	no_cache bool // If true, skip Redis caching
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -166,8 +167,12 @@ pub fn (mut self GitStructure) cache_key() string {
 
 // load from cache
 pub fn (mut self GitStructure) cache_load() ! {
+	// Skip if no_cache is enabled
+	if self.no_cache {
+		return
+	}
 	// Retrieve the configuration from Redis.
-	mut redis := redis_get()
+	mut redis := redis_get()!
 	keys := redis.keys('${self.cache_key()}:repos')!
 	self.repos = map[string]&GitRepo{} // reset
 	for key in keys {
@@ -179,7 +184,11 @@ pub fn (mut self GitStructure) cache_load() ! {
 
 // Reset all caches and configurations for all Git repositories.
 pub fn (mut self GitStructure) cache_reset() ! {
-	mut redis := redis_get()
+	// Skip if no_cache is enabled
+	if self.no_cache {
+		return
+	}
+	mut redis := redis_get()!
 	keys := redis.keys('${self.cache_key()}:**')!
 	for key in keys {
 		redis.del(key)!
