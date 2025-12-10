@@ -16,7 +16,35 @@ fn playcmds_do(path string) ! {
 	playcmds.run(plbook: plbook)!
 }
 
+// do_update handles the update command without requiring Redis
+fn do_update() ! {
+	// Parse flags manually since we're not using the CLI framework
+	use_dev := '--dev' in os.args || '-d' in os.args
+
+	script_url := if use_dev {
+		'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/development/scripts/install_hero.sh'
+	} else {
+		'https://raw.githubusercontent.com/incubaid/herolib/refs/heads/main/scripts/install_hero.sh'
+	}
+
+	branch := if use_dev { 'development' } else { 'main' }
+	println('🔄 Updating hero from ${branch} branch...')
+
+	result := os.execute('curl -sL ${script_url} | bash')
+	if result.exit_code != 0 {
+		return error('Failed to update hero: ${result.output}')
+	}
+	println(result.output)
+}
+
 fn do() ! {
+	// Handle 'update' command early, before Redis initialization
+	// This allows updating hero in environments without Redis
+	if os.args.len >= 2 && os.args[1] == 'update' {
+		do_update()!
+		return
+	}
+
 	if os.args.len == 2 {
 		mypath := os.args[1]
 		if mypath == '.' {
@@ -73,6 +101,7 @@ fn do() ! {
 	herocmds.cmd_sshagent(mut cmd)
 	herocmds.cmd_atlas(mut cmd)
 	herocmds.cmd_source(mut cmd)
+	herocmds.cmd_update(mut cmd)
 
 	cmd.setup()
 	cmd.parse(os.args)
