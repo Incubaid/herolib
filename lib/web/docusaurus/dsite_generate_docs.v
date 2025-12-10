@@ -124,7 +124,7 @@ fn (mut generator SiteGenerator) page_generate(args_ Page) ! {
 	}
 
 	// Fix links to account for nested categories
-	page_content = generator.fix_links(page_content, args.path)
+	page_content = generator.fix_links(page_content, args.path, args.slug)
 
 	c += '\n${page_content}\n'
 
@@ -259,26 +259,36 @@ fn calculate_relative_path(current_dir string, target_dir string, page_name stri
 }
 
 // Fix links to account for nested categories and Docusaurus URL conventions
-fn (generator SiteGenerator) fix_links(content string, current_page_path string) string {
+// current_page_slug: if set, use slug instead of path to determine URL position for relative links
+fn (generator SiteGenerator) fix_links(content string, current_page_path string, current_page_slug string) string {
 	mut result := content
 
-	// Extract current page's directory path
-	mut current_dir := current_page_path.trim('/')
-	if current_dir.contains('/') && !current_dir.ends_with('/') {
-		last_part := current_dir.all_after_last('/')
-		if last_part.contains('.') {
-			current_dir = current_dir.all_before_last('/')
+	// Determine current page's directory for relative path calculations
+	// If page has a custom slug, use it; otherwise use filesystem path
+	mut current_dir := ''
+	if current_page_slug.len > 0 {
+		slug_path := current_page_slug.trim('/')
+		if slug_path.contains('/') {
+			current_dir = slug_path.all_before_last('/')
 		}
-	}
-	// If path is just a filename or empty, current_dir should be empty (root level)
-	if !current_dir.contains('/') && current_dir.contains('.') {
-		current_dir = ''
+	} else {
+		current_dir = current_page_path.trim('/')
+		if current_dir.contains('/') && !current_dir.ends_with('/') {
+			last_part := current_dir.all_after_last('/')
+			if last_part.contains('.') {
+				current_dir = current_dir.all_before_last('/')
+			}
+		}
+		if !current_dir.contains('/') && current_dir.contains('.') {
+			current_dir = ''
+		}
 	}
 
 	// Build maps for link fixing
-	mut collection_paths := map[string]string{} // collection -> directory path (for nested collections)
-	mut page_to_path := map[string]string{} // page_name -> full directory path in Docusaurus
+	mut collection_paths := map[string]string{} // collection -> directory path
+	mut page_to_path := map[string]string{} // page_name -> directory path
 	mut collection_page_map := map[string]string{} // "collection:page" -> directory path
+	mut page_to_slug := map[string]string{} // page_name -> custom slug
 
 	for page in generator.site.pages {
 		parts := page.src.split(':')
@@ -309,6 +319,11 @@ fn (generator SiteGenerator) fix_links(content string, current_page_path string)
 
 		// Store collection:page -> directory path for fixing collection:page format links
 		collection_page_map['${collection}:${clean_page_name}'] = dir_path
+
+		// Store custom slug if present - links to these pages use slug instead of relative path
+		if page.slug.len > 0 {
+			page_to_slug[clean_page_name] = page.slug
+		}
 	}
 
 	// STEP 1: Strip numeric prefixes from all page references in links FIRST
@@ -353,38 +368,42 @@ fn (generator SiteGenerator) fix_links(content string, current_page_path string)
 		result = result.replace('../${collection}/', '../${actual_path}/')
 	}
 
-	// STEP 3: Fix same-collection links: ./page -> correct path based on Docusaurus structure
+	// STEP 3: Fix same-collection links: ./page -> correct path
 	for page_name, target_dir in page_to_path {
 		old_link := './${page_name}'
 		if result.contains(old_link) {
-			new_link := calculate_relative_path(current_dir, target_dir, page_name)
+			new_link := if slug := page_to_slug[page_name] {
+				slug
+			} else {
+				calculate_relative_path(current_dir, target_dir, page_name)
+			}
 			result = result.replace(old_link, new_link)
 		}
 	}
 
 	// STEP 4: Convert collection:page format to proper relative paths
-	// Calculate relative path from current page to target page
 	for collection_page, target_dir in collection_page_map {
-		old_pattern := collection_page
-		if result.contains(old_pattern) {
-			// Extract just the page name from "collection:page"
+		if result.contains(collection_page) {
 			page_name := collection_page.all_after(':')
-			new_link := calculate_relative_path(current_dir, target_dir, page_name)
-			result = result.replace(old_pattern, new_link)
+			new_link := if slug := page_to_slug[page_name] {
+				slug
+			} else {
+				calculate_relative_path(current_dir, target_dir, page_name)
+			}
+			result = result.replace(collection_page, new_link)
 		}
 	}
 
 	// STEP 5: Fix bare page references (from atlas self-contained exports)
-	// Atlas exports convert cross-collection links to simple relative links like "token_system2.md"
-	// We need to transform these to proper relative paths based on Docusaurus structure
 	for page_name, target_dir in page_to_path {
-		// Match links in the format ](page_name) or ](page_name.md)
 		old_link_with_md := '](${page_name}.md)'
 		old_link_without_md := '](${page_name})'
-
 		if result.contains(old_link_with_md) || result.contains(old_link_without_md) {
-			new_link := calculate_relative_path(current_dir, target_dir, page_name)
-			// Replace both .md and non-.md versions
+			new_link := if slug := page_to_slug[page_name] {
+				slug
+			} else {
+				calculate_relative_path(current_dir, target_dir, page_name)
+			}
 			result = result.replace(old_link_with_md, '](${new_link})')
 			result = result.replace(old_link_without_md, '](${new_link})')
 		}
