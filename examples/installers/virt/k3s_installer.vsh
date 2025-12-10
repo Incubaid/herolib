@@ -28,7 +28,7 @@ mut k3s := k3s_installer.get(name: cluster_name, create: true)!
 k3s.node_name = 'master-lifecycle-test'
 k3s.data_dir = custom_data_dir
 // TFGW CRD config (only deployed on first master)
-k3s.tfgw_mnemonic = 'habit acoustic keen dose differ pact small unveil sail kind bright cage'
+k3s.tfgw_mnemonic = '$TFGW_MNEMONIC'
 k3s.tfgw_network = 'main'
 k3s_installer.set(k3s)!
 
