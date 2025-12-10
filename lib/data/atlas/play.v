@@ -47,6 +47,10 @@ pub fn play(mut plbook PlayBook) ! {
 		if path == '' {
 			return error('Either "path" or "git_url" must be provided for atlas.scan action.')
 		}
+		// Resolve relative paths from the playbook's directory
+		if !path.starts_with('/') && plbook.path != '' {
+			path = os.abs_path(os.join_path(plbook.path, path))
+		}
 		atlas_instance.scan(path: path, ignore: ignore)!
 		action.done = true
 

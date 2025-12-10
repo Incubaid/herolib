@@ -1,0 +1,18 @@
+# Introduction Page (at root level with slug:"/")
+!!site.page src:"${args.name}:introduction"
+    title:"Introduction"
+    position:1
+    hide_title:true
+    slug:"/"
+
+# Usage Guide Page
+!!site.page src:"${args.name}:usage"
+    title:"Usage Guide"
+    position:2
+    hide_title:true
+
+# Support Page
+!!site.page src:"${args.name}:support"
+    title:"Support"
+    position:3
+    hide_title:true

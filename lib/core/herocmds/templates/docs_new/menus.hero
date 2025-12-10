@@ -1,0 +1,24 @@
+# Menu Configuration
+!!site.navbar
+    title:"${args.title}"
+    logo_alt:"${args.title} Logo"
+    logo_src:"img/logo.png"
+
+# Footer Configuration
+!!site.footer
+    style:"dark"
+
+!!site.footer_item
+    title:"Documentation"
+    label:"Introduction"
+    to:"/docs/"
+
+!!site.footer_item
+    title:"Documentation"
+    label:"Usage Guide"
+    to:"/docs/usage"
+
+!!site.footer_item
+    title:"Documentation"
+    label:"Support"
+    to:"/docs/support"
