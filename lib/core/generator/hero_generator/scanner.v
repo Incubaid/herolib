@@ -46,6 +46,11 @@ pub fn scan_modules(args_ ScannerArgs) !ScanResult {
 	mut res := []ModuleMeta{}
 	for mut p in plist.paths {
 		pparent := p.parent()!
+		// Skip libwip directories - they are work-in-progress and not part of the main lib
+		if pparent.path.contains('/libwip/') {
+			console.print_debug('Skipping ${pparent.path} (in libwip/)')
+			continue
+		}
 		mut t := args_get(pparent.path)!
 		if t.active {
 			res << t
