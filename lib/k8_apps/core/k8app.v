@@ -53,8 +53,8 @@ pub fn k8app(args_ K8AppArgs)!K8App {
 	kube_client.config.namespace = args.namespace
 
 	// Generate hostname and validate it doesn't exceed TFGW limit
-	// Replace underscores with hyphens for RFC 1123 DNS compliance
-	raw_hostname := texttools.name_fix("${args.namespace}_${args.app_name}-${args.app_instance}").replace('_', '-')
+	// TFGW hostnames must be alphanumeric only (no dashes or underscores)
+	raw_hostname := texttools.name_fix("${args.app_name}${args.app_instance}").replace('_', '').replace('-', '')
 	validated_hostname := validate_hostname(raw_hostname)
 
 	mut app := K8App{
@@ -210,4 +210,46 @@ pub fn verify_deployment_ready(args VerifyDeploymentArgs) !bool {
 	}
 
 	return false
+}
+
+// Parameters for verifying pod readiness
+@[params]
+pub struct VerifyPodArgs {
+pub mut:
+	pod_name  string @[required] // name of the pod to check
+	namespace string @[required] // namespace where pod is located
+	k8s       kubernetes.KubeClient @[required]
+	retry     int = max_deployment_retries
+}
+
+// Verify pod is ready with retry logic
+// Checks if a pod exists and is in Running phase
+pub fn verify_pod_ready(args VerifyPodArgs) ! {
+	console.print_info('Verifying pod ${args.pod_name} is ready...')
+	mut k8s := args.k8s
+	mut is_ready := false
+
+	for i in 0 .. args.retry {
+		// Check if pod exists and is running
+		result := k8s.kubectl_exec(
+			command: 'get pod ${args.pod_name} -n ${args.namespace} -o jsonpath="{.status.phase}"'
+		) or {
+			console.print_info('Waiting for pod ${args.pod_name} to be created... (${i + 1}/${args.retry})')
+			time.sleep(deployment_check_interval_seconds * time.second)
+			continue
+		}
+
+		if result.success && result.stdout == 'Running' {
+			is_ready = true
+			break
+		}
+		console.print_info('Waiting for pod ${args.pod_name} to be ready... (${i + 1}/${args.retry})')
+		time.sleep(deployment_check_interval_seconds * time.second)
+	}
+
+	if !is_ready {
+		console.print_stderr('Pod ${args.pod_name} failed to become ready.')
+		return error('Pod ${args.pod_name} failed to become ready.')
+	}
+	console.print_info('Pod ${args.pod_name} is ready.')
 }

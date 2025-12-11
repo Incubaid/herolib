@@ -15,7 +15,7 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = 'element_chat'
+	name   string = element_chat_default
 	fromdb bool // will load from filesystem
 	create bool // default will not create if not exist
 }

@@ -10,10 +10,11 @@ import time
 // checks if a certain version or above is installed
 pub fn installed() !bool {
 	installer := get()!
-	mut k8s := installer.kube_client
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 
 	// Try to get the gitea deployment
-	deployments := k8s.get_deployments(installer.namespace) or {
+	deployments := k8s.get_deployments(k8app.namespace) or {
 		// If we can't get deployments, it's not running
 		return false
 	}
@@ -47,7 +48,8 @@ fn install() ! {
 
 	// Get installer config to access namespace
 	installer := get()!
-	mut k8s := installer.kube_client
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 	configure()!
 
 	// 1. Check for dependencies.
@@ -64,7 +66,7 @@ fn install() ! {
 	console.print_info('Gateway YAML file applied successfully.')
 
 	// 3. Verify TFGW deployment
-	core.verify_tfgw_deployment(tfgw_name: 'gitea', namespace: installer.namespace, k8s: k8s)!
+	core.verify_tfgw_deployment(tfgw_name: 'gitea', namespace: k8app.namespace, k8s: k8s)!
 
 	// 4. Apply PostgreSQL YAML if postgres is selected
 	if installer.db_type == 'postgres' {
@@ -75,8 +77,8 @@ fn install() ! {
 		}
 		console.print_info('PostgreSQL YAML file applied successfully.')
 
-		// Verify PostgreSQL pod is ready
-		verify_postgres_pod(namespace: installer.namespace)!
+		// Verify PostgreSQL pod is ready using core function
+		core.verify_pod_ready(pod_name: installer.db_host, namespace: k8app.namespace, k8s: k8s)!
 	}
 
 	// 5. Apply Gitea App YAML
@@ -107,48 +109,10 @@ fn install() ! {
 	}
 }
 
-// params for verifying postgres pod is ready
-@[params]
-struct VerifyPostgresPod {
-pub mut:
-	namespace string // namespace name for postgres pod
-}
-
-// Function for verifying postgres pod is ready
-fn verify_postgres_pod(args VerifyPostgresPod) ! {
-	console.print_info('Verifying PostgreSQL pod is ready...')
-	installer := get()!
-	mut k8s := installer.kube_client
-	mut is_ready := false
-
-	for i in 0 .. core.max_deployment_retries {
-		// Check if postgres pod exists and is running
-		result := k8s.kubectl_exec(
-			command: 'get pod ${installer.db_host} -n ${args.namespace} -o jsonpath="{.status.phase}"'
-		) or {
-			console.print_info('Waiting for PostgreSQL pod to be created... (${i + 1}/${core.max_deployment_retries})')
-			time.sleep(core.deployment_check_interval_seconds * time.second)
-			continue
-		}
-
-		if result.success && result.stdout == 'Running' {
-			is_ready = true
-			break
-		}
-		console.print_info('Waiting for PostgreSQL pod to be ready... (${i + 1}/${core.max_deployment_retries})')
-		time.sleep(core.deployment_check_interval_seconds * time.second)
-	}
-
-	if !is_ready {
-		console.print_stderr('PostgreSQL pod failed to become ready.')
-		return error('PostgreSQL pod failed to become ready.')
-	}
-	console.print_info('PostgreSQL pod is ready.')
-}
-
 fn destroy() ! {
 	installer := get()!
-	mut k8s := installer.kube_client
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 	
-	core.destroy_namespace(mut k8s, installer.namespace)!
+	core.destroy_namespace(mut k8s, k8app.namespace)!
 }

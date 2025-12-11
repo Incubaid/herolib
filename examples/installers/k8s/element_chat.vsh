@@ -1,18 +1,18 @@
 #!/usr/bin/env -S v -n -w -gc none  -cc tcc -d use_openssl -enable-globals run
 
-import incubaid.herolib.installers.k8s.element_chat
+import incubaid.herolib.k8_apps.communication.k8_element_chat
 
 // This example demonstrates how to use the Element Chat installer.
 
 // 1. Create a new installer instance with specific hostnames.
 //    Replace 'matrixchattest' and 'elementchattest' with your desired hostnames.
 //    Note: Use only alphanumeric characters (no underscores or dashes).
-mut installer := element_chat.get(
-	name:   'kristof'
+mut installer := k8_element_chat.get(
+	name:   'demo'
 	create: true
 )!
 
-// element_chat.delete()!
+// k8_element_chat.delete()!
 
 // 2. Configure the installer (all settings are optional with sensible defaults)
 // installer.matrix_hostname = 'matrixchattest'

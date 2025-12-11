@@ -1,4 +1,4 @@
-module k8_element_chat
+module stalwart
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.installers.ulist
@@ -13,25 +13,20 @@ pub fn installed() !bool {
 	k8app := installer.k8app or { return error('k8app not initialized') }
 	mut k8s := k8app.kube_client
 
-	// Try to get the conduit deployment
+	// Try to get the stalwart deployment
 	deployments := k8s.get_deployments(k8app.namespace) or {
 		// If we can't get deployments, it's not running
 		return false
 	}
 
-	// Check if conduit and element-web deployments exist
-	mut conduit_found := false
-	mut element_found := false
+	// Check if stalwart deployment exists
 	for deployment in deployments {
-		if deployment.name == 'conduit' {
-			conduit_found = true
-		}
-		if deployment.name == 'element-web' {
-			element_found = true
+		if deployment.name == 'stalwart' {
+			return true
 		}
 	}
 
-	return conduit_found && element_found
+	return false
 }
 
 // get the Upload List of the files
@@ -43,13 +38,13 @@ fn ulist_get() !ulist.UList {
 // uploads to S3 server if configured
 fn upload() ! {
 	// installers.upload(
-	//     cmdname: 'element_chat'
-	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/element_chat'
+	//     cmdname: 'stalwart'
+	//     source: '${gitpath}/target/x86_64-unknown-linux-musl/release/stalwart'
 	// )!
 }
 
 fn install() ! {
-	console.print_header('Installing Element Chat...')
+	console.print_header('Installing Stalwart Mail Server...')
 
 	// Get installer config to access namespace
 	installer := get()!
@@ -62,27 +57,26 @@ fn install() ! {
 	core.kubectl_installed(mut k8s)!
 	console.print_info('kubectl is installed and configured.')
 
-	// 4. Apply the YAML files using kubernetes client
+	// 2. Apply the YAML files using kubernetes client
 	console.print_info('Applying Gateway YAML file to the cluster...')
-	res1 := k8s.apply_yaml('/tmp/element_chat/tfgw-element.yaml')!
+	res1 := k8s.apply_yaml(installer.tfgw_path)!
 	if !res1.success {
-		return error('Failed to apply tfgw-element.yaml: ${res1.stderr}')
+		return error('Failed to apply tfgw-stalwart.yaml: ${res1.stderr}')
 	}
 	console.print_info('Gateway YAML file applied successfully.')
 
-	// 5. Verify TFGW deployments
-	core.verify_tfgw_deployment(tfgw_name: 'matrix-gw', namespace: k8app.namespace, k8s: k8s)!
-	core.verify_tfgw_deployment(tfgw_name: 'element-gw', namespace: k8app.namespace, k8s: k8s)!
+	// 3. Verify TFGW deployment
+	core.verify_tfgw_deployment(tfgw_name: 'stalwart-tfgw', namespace: k8app.namespace, k8s: k8s)!
 
-	// 6. Apply Chat App YAML
-	console.print_info('Applying Chat App YAML file to the cluster...')
-	res2 := k8s.apply_yaml('/tmp/element_chat/chat-app.yaml')!
+	// 4. Apply Stalwart App YAML
+	console.print_info('Applying Stalwart App YAML file to the cluster...')
+	res2 := k8s.apply_yaml(installer.stalwart_app_path)!
 	if !res2.success {
-		return error('Failed to apply chat-app.yaml: ${res2.stderr}')
+		return error('Failed to apply stalwart-app.yaml: ${res2.stderr}')
 	}
-	console.print_info('Chat App YAML file applied successfully.')
+	console.print_info('Stalwart App YAML file applied successfully.')
 
-	// 7. Verify deployment status
+	// 5. Verify deployment status
 	console.print_info('Verifying deployment status...')
 	mut is_running := false
 	for i in 0 .. core.max_deployment_retries {
@@ -90,16 +84,17 @@ fn install() ! {
 			is_running = true
 			break
 		}
-		console.print_info('Waiting for Element Chat deployment to be ready... (${i + 1}/${core.max_deployment_retries})')
+		console.print_info('Waiting for Stalwart deployment to be ready... (${i + 1}/${core.max_deployment_retries})')
 		time.sleep(core.deployment_check_interval_seconds * time.second)
 	}
 
 	if is_running {
-		console.print_header('Element Chat installation successful!')
-		console.print_header('You can access Element Chat at https://${installer.element_hostname}.gent01.grid.tf')
-		console.print_header('You can access Matrix at https://${installer.matrix_hostname}.gent01.grid.tf')
+		console.print_header('Stalwart Mail Server installation successful!')
+		console.print_header('You can access Stalwart Web UI at https://${installer.hostname}.gent01.grid.tf')
+		console.print_header('Admin user: ${installer.admin_user}')
+		console.print_info('Mail ports (SMTP/IMAP/POP3) are available via LoadBalancer service.')
 	} else {
-		return error('Element Chat deployment failed to start.')
+		return error('Stalwart deployment failed to start.')
 	}
 }
 
@@ -107,6 +102,6 @@ fn destroy() ! {
 	installer := get()!
 	k8app := installer.k8app or { return error('k8app not initialized') }
 	mut k8s := k8app.kube_client
-	
+
 	core.destroy_namespace(mut k8s, k8app.namespace)!
 }

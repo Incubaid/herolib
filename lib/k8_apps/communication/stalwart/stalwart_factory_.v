@@ -1,4 +1,4 @@
-module k8_gitea
+module stalwart
 
 import incubaid.herolib.core.base
 import incubaid.herolib.core.playbook { PlayBook }
@@ -6,8 +6,8 @@ import incubaid.herolib.ui.console
 import json
 
 __global (
-	k8_gitea_global  map[string]&GiteaK8SInstaller
-	k8_gitea_default string
+	stalwart_global  map[string]&Stalwart
+	stalwart_default string
 )
 
 /////////FACTORY
@@ -15,72 +15,68 @@ __global (
 @[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = k8_gitea_default
+	name   string = stalwart_default
 	fromdb bool // will load from filesystem
 	create bool // default will not create if not exist
 }
 
-pub fn new(args ArgsGet) !&GiteaK8SInstaller {
-	mut obj := GiteaK8SInstaller{
+pub fn new(args ArgsGet) !&Stalwart {
+	mut obj := Stalwart{
 		name: args.name
 	}
 	set(obj)!
 	return get(name: args.name)!
 }
 
-pub fn get(args_ ArgsGet) !&GiteaK8SInstaller {
+pub fn get(args ArgsGet) !&Stalwart {
 	mut context := base.context()!
-	mut args := args_
-	if args.name == 'gitea' && k8_gitea_default != '' {
-		args.name = k8_gitea_default
-	}
-
-	if args.fromdb || args.name !in k8_gitea_global {
+	stalwart_default = args.name
+	if args.fromdb || args.name !in stalwart_global {
 		mut r := context.redis()!
-		if r.hexists('context:k8_gitea', args.name)! {
-			data := r.hget('context:k8_gitea', args.name)!
+		if r.hexists('context:stalwart', args.name)! {
+			data := r.hget('context:stalwart', args.name)!
 			if data.len == 0 {
 				print_backtrace()
-				return error('GiteaK8SInstaller with name: ${args.name} does not exist, prob bug.')
+				return error('Stalwart with name: ${args.name} does not exist, prob bug.')
 			}
-			mut obj := json.decode(GiteaK8SInstaller, data)!
+			mut obj := json.decode(Stalwart, data)!
 			set_in_mem(obj)!
 		} else {
 			if args.create {
 				new(args)!
 			} else {
 				print_backtrace()
-				return error("GiteaK8SInstaller with name '${args.name}' does not exist")
+				return error("Stalwart with name '${args.name}' does not exist")
 			}
 		}
 		return get(name: args.name)! // no longer from db nor create
 	}
-	return k8_gitea_global[args.name] or {
+	return stalwart_global[args.name] or {
 		print_backtrace()
-		return error('could not get config for k8_gitea with name:${args.name}')
+		return error('could not get config for stalwart with name:${args.name}')
 	}
 }
 
 // register the config for the future
-pub fn set(o GiteaK8SInstaller) ! {
+pub fn set(o Stalwart) ! {
 	mut o2 := set_in_mem(o)!
-	k8_gitea_default = o2.name
+	stalwart_default = o2.name
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hset('context:k8_gitea', o2.name, json.encode(o2))!
+	r.hset('context:stalwart', o2.name, json.encode(o2))!
 }
 
 // does the config exists?
 pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
 	mut r := context.redis()!
-	return r.hexists('context:k8_gitea', args.name)!
+	return r.hexists('context:stalwart', args.name)!
 }
 
 pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
 	mut r := context.redis()!
-	r.hdel('context:k8_gitea', args.name)!
+	r.hdel('context:stalwart', args.name)!
 }
 
 @[params]
@@ -90,17 +86,17 @@ pub mut:
 }
 
 // if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
-pub fn list(args ArgsList) ![]&GiteaK8SInstaller {
-	mut res := []&GiteaK8SInstaller{}
+pub fn list(args ArgsList) ![]&Stalwart {
+	mut res := []&Stalwart{}
 	mut context := base.context()!
 	if args.fromdb {
 		// reset what is in mem
-		k8_gitea_global = map[string]&GiteaK8SInstaller{}
-		k8_gitea_default = ''
+		stalwart_global = map[string]&Stalwart{}
+		stalwart_default = ''
 	}
 	if args.fromdb {
 		mut r := context.redis()!
-		mut l := r.hkeys('context:k8_gitea')!
+		mut l := r.hkeys('context:stalwart')!
 
 		for name in l {
 			res << get(name: name, fromdb: true)!
@@ -108,7 +104,7 @@ pub fn list(args ArgsList) ![]&GiteaK8SInstaller {
 		return res
 	} else {
 		// load from memory
-		for _, client in k8_gitea_global {
+		for _, client in stalwart_global {
 			res << client
 		}
 	}
@@ -116,18 +112,18 @@ pub fn list(args ArgsList) ![]&GiteaK8SInstaller {
 }
 
 // only sets in mem, does not set as config
-fn set_in_mem(o GiteaK8SInstaller) !GiteaK8SInstaller {
+fn set_in_mem(o Stalwart) !Stalwart {
 	mut o2 := obj_init(o)!
-	k8_gitea_global[o2.name] = &o2
-	k8_gitea_default = o2.name
+	stalwart_global[o2.name] = &o2
+	stalwart_default = o2.name
 	return o2
 }
 
 pub fn play(mut plbook PlayBook) ! {
-	if !plbook.exists(filter: 'k8_gitea.') {
+	if !plbook.exists(filter: 'stalwart.') {
 		return
 	}
-	mut install_actions := plbook.find(filter: 'k8_gitea.configure')!
+	mut install_actions := plbook.find(filter: 'stalwart.configure')!
 	if install_actions.len > 0 {
 		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
@@ -136,17 +132,17 @@ pub fn play(mut plbook PlayBook) ! {
 			install_action.done = true
 		}
 	}
-	mut other_actions := plbook.find(filter: 'k8_gitea.')!
+	mut other_actions := plbook.find(filter: 'stalwart.')!
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build'] {
 			mut p := other_action.params
 			reset := p.get_default_false('reset')
 			if other_action.name == 'destroy' || reset {
-				console.print_debug('install action k8_gitea.destroy')
+				console.print_debug('install action stalwart.destroy')
 				destroy()!
 			}
 			if other_action.name == 'install' {
-				console.print_debug('install action k8_gitea.install')
+				console.print_debug('install action stalwart.install')
 				install()!
 			}
 		}
@@ -159,9 +155,10 @@ pub fn play(mut plbook PlayBook) ! {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // load from disk and make sure is properly intialized
-pub fn (mut self GiteaK8SInstaller) reload() ! {
+pub fn (mut self Stalwart) reload() ! {
 	switch(self.name)
 	self = obj_init(self)!
+	set(self)!
 }
 
 @[params]
@@ -170,19 +167,19 @@ pub mut:
 	reset bool
 }
 
-pub fn (mut self GiteaK8SInstaller) install(args InstallArgs) ! {
+pub fn (mut self Stalwart) install(args InstallArgs) ! {
 	switch(self.name)
 	if args.reset || (!installed()!) {
 		install()!
 	}
 }
 
-pub fn (mut self GiteaK8SInstaller) destroy() ! {
+pub fn (mut self Stalwart) destroy() ! {
 	switch(self.name)
 	destroy()!
 }
 
-// switch instance to be used for k8_gitea
+// switch instance to be used for stalwart
 pub fn switch(name string) {
-	k8_gitea_default = name
+	stalwart_default = name
 }

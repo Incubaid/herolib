@@ -2,8 +2,8 @@ module k8_element_chat
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.data.encoderhero
-import incubaid.herolib.virt.kubernetes
 import incubaid.herolib.core.pathlib
+import incubaid.herolib.k8_apps.core
 import strings
 
 pub const version = '0.0.0'
@@ -48,7 +48,8 @@ pub mut:
 	tfgw_path        string = '/tmp/element_chat/tfgw-element.yaml'
 	conduit_cfg_path string = '/tmp/element_chat/conduit.toml'
 	element_cfg_path string = '/tmp/element_chat/element-config.json'
-	kube_client      kubernetes.KubeClient @[skip]
+	// K8App instance for kubernetes operations
+	k8app ?core.K8App @[skip]
 }
 
 // your checking & initialization code if needed
@@ -59,18 +60,19 @@ fn obj_init(mycfg_ ElementChat) !ElementChat {
 		mycfg.name = 'elementchat'
 	}
 
-	// Replace the dashes, dots, and underscores with nothing
-	mycfg.name = mycfg.name.replace('_', '')
-	mycfg.name = mycfg.name.replace('-', '')
-	mycfg.name = mycfg.name.replace('.', '')
+	// Use core name_fix for consistent name handling
+	mycfg.name = core.name_fix(mycfg.name)
 
 	if mycfg.namespace == '' {
-		mycfg.namespace = '${mycfg.name}-element-chat-namespace'
+		mycfg.namespace = '${mycfg.name}elementchatns'
 	}
 
-	if mycfg.namespace.contains('_') || mycfg.namespace.contains('.') {
-		console.print_stderr('namespace cannot contain _, was: ${mycfg.namespace}, use dashes instead.')
-		return error('namespace cannot contain _, was: ${mycfg.namespace}')
+	// Apply name_fix to namespace for consistency with k8app
+	mycfg.namespace = core.name_fix(mycfg.namespace)
+
+	if mycfg.namespace.contains('.') {
+		console.print_stderr('namespace cannot contain ., was: ${mycfg.namespace}')
+		return error('namespace cannot contain ., was: ${mycfg.namespace}')
 	}
 
 	if mycfg.matrix_hostname == '' {
@@ -81,8 +83,16 @@ fn obj_init(mycfg_ ElementChat) !ElementChat {
 		mycfg.element_hostname = '${mycfg.name}element'
 	}
 
-	mycfg.kube_client = kubernetes.get(create: true)!
-	mycfg.kube_client.config.namespace = mycfg.namespace
+	// Validate hostnames don't exceed TFGW limit
+	mycfg.matrix_hostname = core.validate_hostname(mycfg.matrix_hostname)
+	mycfg.element_hostname = core.validate_hostname(mycfg.element_hostname)
+
+	// Initialize K8App for kubernetes operations
+	mycfg.k8app = core.k8app(
+		app_name: 'elementchat'
+		app_instance: mycfg.name
+		namespace: mycfg.namespace
+	)!
 	return mycfg
 }
 
@@ -90,7 +100,11 @@ fn obj_init(mycfg_ ElementChat) !ElementChat {
 fn configure() ! {
 	mut installer := get()!
 
-	master_ips := get_master_node_ips()!
+	// Unwrap k8app once
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+
+	master_ips := core.get_master_node_ips(mut k8s)!
 	console.print_info('Master node IPs: ${master_ips}')
 
 	mut backends_str_builder := strings.new_builder(100)
@@ -101,11 +115,12 @@ fn configure() ! {
 	console.print_info('Generating configuration files from templates...')
 
 	// Create config_values for template generation
+	// Use k8app.namespace to ensure consistency with kubernetes client
 	mut config_values := ConfigValues{
 		matrix_hostname:    installer.matrix_hostname
 		element_hostname:   installer.element_hostname
 		backends:           backends_str_builder.str()
-		namespace:          installer.namespace
+		namespace:          k8app.namespace
 		conduit_port:       installer.conduit_port
 		database_backend:   installer.database_backend
 		database_path:      installer.database_path
@@ -160,27 +175,6 @@ fn configure() ! {
 	chat_app_path.write(chat_app_yaml)!
 
 	console.print_info('Configuration files generated successfully.')
-}
-
-// Get Kubernetes master node IPs
-fn get_master_node_ips() ![]string {
-	mut master_ips := []string{}
-	installer := get()!
-
-	// Get all nodes using the kubernetes client
-	mut k8s := installer.kube_client
-	nodes := k8s.get_nodes()!
-
-	// Extract IPv6 internal IPs from all nodes (dual-stack support)
-	for node in nodes {
-		// Check all internal IPs (not just the first one) for IPv6 addresses
-		for ip in node.internal_ips {
-			if ip.len > 0 && ip.contains(':') {
-				master_ips << ip
-			}
-		}
-	}
-	return master_ips
 }
 
 /////////////NORMALLY NO NEED TO TOUCH

@@ -1,0 +1,149 @@
+# ---------- ConfigMap (embeds config.toml) ----------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stalwart-config
+  namespace: @{config_values.namespace}
+data:
+  config.toml: |
+@{config_values.config_toml}
+---
+# ---------- Persistent storage ----------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: stalwart-data
+  namespace: @{config_values.namespace}
+  labels:
+    app.kubernetes.io/name: stalwart
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: @{config_values.storage_size}
+---
+# ---------- Deployment (no hostNetwork) ----------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: stalwart
+  namespace: @{config_values.namespace}
+  labels:
+    app.kubernetes.io/name: stalwart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: stalwart
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: stalwart
+    spec:
+      containers:
+        - name: stalwart
+          image: stalwartlabs/stalwart:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            capabilities:
+              add: ["NET_BIND_SERVICE"]
+          volumeMounts:
+            - name: cfg
+              mountPath: /opt/stalwart/etc/config.toml
+              subPath: config.toml
+            - name: data
+              mountPath: /opt/stalwart
+          readinessProbe:
+            httpGet:
+              path: /login
+              port: @{config_values.http_port}
+            initialDelaySeconds: 25
+            periodSeconds: 10
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: @{config_values.http_port}
+            initialDelaySeconds: 40
+            periodSeconds: 20
+            failureThreshold: 6
+          resources:
+            requests: { cpu: 200m, memory: 512Mi }
+            limits:   { cpu: "2",  memory: 2Gi }
+      initContainers:
+        - name: init-dirs
+          image: busybox:1.36
+          command: ["sh","-lc","mkdir -p /opt/stalwart/data /opt/stalwart/logs && chmod -R 0777 /opt/stalwart"]
+          volumeMounts:
+            - name: data
+              mountPath: /opt/stalwart
+      volumes:
+        - name: cfg
+          configMap:
+            name: stalwart-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: stalwart-data
+---
+# ---------- ClusterIP for HTTP routed by Ingress ----------
+apiVersion: v1
+kind: Service
+metadata:
+  name: stalwart-http
+  namespace: @{config_values.namespace}
+  labels:
+    app.kubernetes.io/name: stalwart
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: stalwart
+  ports:
+    - name: http
+      port: 80
+      targetPort: @{config_values.http_port}
+      protocol: TCP
+---
+# ---------- Ingress (host must match TFGW-minted FQDN) ----------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: stalwart-ingress
+  namespace: @{config_values.namespace}
+  labels:
+    app.kubernetes.io/name: stalwart
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: @{config_values.hostname}.gent01.grid.tf
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: stalwart-http
+                port:
+                  number: 80
+---
+# ---------- Dual-stack LoadBalancer for mail TCP ports ----------
+apiVersion: v1
+kind: Service
+metadata:
+  name: stalwart-mail
+  namespace: @{config_values.namespace}
+  labels:
+    app.kubernetes.io/name: stalwart
+spec:
+  type: LoadBalancer
+  ipFamilyPolicy: PreferDualStack
+  ipFamilies: ["IPv4","IPv6"]
+  selector:
+    app.kubernetes.io/name: stalwart
+  ports:
+    - { name: smtp,   port: 25,   targetPort: 25,   protocol: TCP }
+    - { name: smtps,  port: 465,  targetPort: 465,  protocol: TCP }
+    - { name: msmtp,  port: 587,  targetPort: 587,  protocol: TCP }
+    - { name: imap,   port: 143,  targetPort: 143,  protocol: TCP }
+    - { name: imaps,  port: 993,  targetPort: 993,  protocol: TCP }
+    - { name: pop3,   port: 110,  targetPort: 110,  protocol: TCP }
+    - { name: pop3s,  port: 995,  targetPort: 995,  protocol: TCP }
+    - { name: sieve,  port: 4190, targetPort: 4190, protocol: TCP }
