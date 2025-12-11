@@ -58,17 +58,10 @@ The command will:
 	})
 
 	cmd_run.add_flag(Flag{
-		flag:        .bool
-		name:        'print'
-		abbrev:      'p'
-		description: 'Print the exported variables (masked values)'
-	})
-
-	cmd_run.add_flag(Flag{
-		flag:        .bool
-		name:        'script'
-		abbrev:      's'
-		description: 'Run in script/non-interactive mode'
+		flag:        .string
+		name:        'output'
+		abbrev:      'o'
+		description: 'Output file path for secrets (default: /tmp/hero_secrets.sh)'
 	})
 
 	cmdroot.add_command(cmd_run)
@@ -100,12 +93,10 @@ fn cmd_source_execute(cmd Command) ! {
 
 	mut repo_url := full_url
 	key_arg := cmd.flags.get_string('key') or { '' }
-	print_vars := cmd.flags.get_bool('print') or { false }
-	is_script := cmd.flags.get_bool('script') or { false }
+	output_flag := cmd.flags.get_string('output') or { '' }
+	output_path := if output_flag == '' { '/tmp/hero_secrets.sh' } else { output_flag }
 
-	if !is_script {
-		console.print_header('🔐 Hero Source - Loading Secrets')
-	}
+	console.print_header('🔐 Hero Source - Loading Secrets')
 
 	// Step 1: Validate and normalize SSH key, store in env
 	has_ssh_key := prepare_ssh_key(key_arg)!
@@ -119,17 +110,20 @@ fn cmd_source_execute(cmd Command) ! {
 	// Step 2: Clone the repository to temp (writes key to temp file, clones, deletes key)
 	repo_path := clone_secrets_repo(repo_url)!
 
-	// Step 3: Source the secrets file
-	source_secrets_file(repo_path, secrets_file, print_vars, is_script)!
+	// Step 3: Copy secrets file to output location
+	secrets_src := '${repo_path}/${secrets_file}'
+	if !os.exists(secrets_src) {
+		return error('Secrets file not found: ${secrets_src}')
+	}
+	os.cp(secrets_src, output_path)!
+	console.print_green('✓ Secrets written to ${output_path}')
 
 	// Step 4: Clean up - delete the cloned repo
 	os.rmdir_all(repo_path) or {
 		console.print_debug('Warning: Could not delete temp repo: ${err}')
 	}
 
-	if !is_script {
-		console.print_green('✅ Secrets loaded successfully')
-	}
+	console.print_green('✅ Source with: source ${output_path}')
 }
 
 // Convert HTTPS URL to SSH URL
@@ -175,25 +169,11 @@ fn prepare_ssh_key(key_arg string) !bool {
 		return false
 	}
 
-	// Normalize key:
-	// 1. Replace escaped newlines (\n as literal string) with actual newlines
-	// 2. Trim whitespace
-	// 3. Ensure trailing newline
+	// Normalize key: replace escaped newlines and ensure trailing newline
 	mut final_key := key_content
-	
-	console.print_debug('Raw key length: ${key_content.len}')
-	preview_len := if key_content.len > 50 { 50 } else { key_content.len }
-	console.print_debug('Key starts with: ${key_content[0..preview_len]}...')
-	
-	// Handle escaped newlines from env vars (common in CI systems)
 	if final_key.contains('\\n') {
-		console.print_debug('Found escaped newlines, converting...')
 		final_key = final_key.replace('\\n', '\n')
 	}
-	
-	// Also handle case where newlines might be completely missing (base64 on single line)
-	// SSH keys have specific line lengths, so we need proper newlines
-	
 	final_key = final_key.trim_space()
 	if !final_key.ends_with('\n') {
 		final_key = final_key + '\n'
@@ -203,10 +183,6 @@ fn prepare_ssh_key(key_arg string) !bool {
 	if !final_key.contains('-----BEGIN') || !final_key.contains('-----END') {
 		return error('Invalid SSH key format: missing BEGIN/END markers')
 	}
-	
-	// Count newlines to verify key structure
-	newline_count := final_key.count('\n')
-	console.print_debug('Key has ${newline_count} newlines after normalization')
 
 	// Store normalized key in env for later use
 	os.setenv('SECRETS_SSH_KEY', final_key, true)
@@ -248,10 +224,8 @@ fn extract_host_from_url(url string) string {
 // Clone secrets repository to a temp directory
 // Writes SSH key to temp file before clone, deletes after
 fn clone_secrets_repo(repo_url string) !string {
-	console.print_debug('Cloning repository: ${repo_url}')
-
 	// Create temp directory for secrets
-	temp_base := '/tmp/hero_secrets'
+	temp_base := '/tmp/hero_secrets_repo'
 	if !os.exists(temp_base) {
 		os.mkdir_all(temp_base)!
 	}
@@ -271,12 +245,7 @@ fn clone_secrets_repo(repo_url string) !string {
 		temp_key_path = '/tmp/hero_secrets_key_${repo_hash}'
 		os.write_file(temp_key_path, key_content)!
 		os.chmod(temp_key_path, 0o600)!
-		
-		// Debug: verify key file
-		console.print_debug('Wrote key to ${temp_key_path}, size: ${key_content.len} bytes')
-		
 		ssh_cmd = 'GIT_SSH_COMMAND="ssh -i ${temp_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"'
-		console.print_debug('SSH command: ${ssh_cmd}')
 	}
 
 	// Always clone fresh (we delete after sourcing anyway)
@@ -284,7 +253,7 @@ fn clone_secrets_repo(repo_url string) !string {
 		os.rmdir_all(repo_path)!
 	}
 
-	result := os.execute('${ssh_cmd} git clone ${repo_url} ${repo_path}')
+	result := os.execute('${ssh_cmd} git clone -q ${repo_url} ${repo_path}')
 	
 	// Delete temp key file immediately after clone
 	if temp_key_path != '' && os.exists(temp_key_path) {
@@ -299,67 +268,3 @@ fn clone_secrets_repo(repo_url string) !string {
 	return repo_path
 }
 
-// Source the secrets file and export variables
-fn source_secrets_file(repo_path string, filename string, print_vars bool, is_script bool) ! {
-	secrets_path := '${repo_path}/${filename}'
-
-	if !os.exists(secrets_path) {
-		return error('Secrets file not found: ${secrets_path}')
-	}
-
-	console.print_debug('Sourcing secrets from ${secrets_path}')
-
-	// Read and parse the shell file
-	content := os.read_file(secrets_path)!
-	lines := content.split('\n')
-
-	mut exported_count := 0
-
-	for line in lines {
-		trimmed := line.trim_space()
-
-		// Skip empty lines and comments
-		if trimmed == '' || trimmed.starts_with('#') {
-			continue
-		}
-
-		// Handle export statements: export VAR=value or export VAR="value"
-		mut var_line := trimmed
-		if var_line.starts_with('export ') {
-			var_line = var_line.replace('export ', '')
-		}
-
-		// Parse VAR=value
-		if var_line.contains('=') {
-			parts := var_line.split_nth('=', 2)
-			if parts.len == 2 {
-				key := parts[0].trim_space()
-				mut value := parts[1].trim_space()
-
-				// Remove surrounding quotes
-				if (value.starts_with('"') && value.ends_with('"'))
-					|| (value.starts_with("'") && value.ends_with("'")) {
-					value = value[1..value.len - 1]
-				}
-
-				// Set environment variable
-				os.setenv(key, value, true)
-				exported_count++
-
-				if print_vars {
-					// Mask the value for security
-					masked := if value.len > 4 {
-						'${value[0..2]}***${value[value.len - 2..]}'
-					} else {
-						'****'
-					}
-					console.print_item('${key}=${masked}')
-				}
-			}
-		}
-	}
-
-	if !is_script {
-		console.print_green('✓ Exported ${exported_count} environment variables')
-	}
-}
