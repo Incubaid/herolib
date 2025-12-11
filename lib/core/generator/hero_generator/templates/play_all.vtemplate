@@ -16,3 +16,4 @@ pub fn run_all(args_ PlayArgs) ! {
     @{item.module_path.split(".").last()}.play(mut plbook)!
     @end
 }
+

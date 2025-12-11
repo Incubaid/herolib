@@ -1,0 +1,83 @@
+# ${args.classname}
+
+This module provides a client for ${args.classname}.
+
+## Quick Start
+
+### Using HeroScript
+
+```hero
+!!${args.name}.configure
+    name: 'default'
+    mail_server: 'smtp.example.com'
+    mail_port: 587
+```
+
+### Using V Code
+
+```v
+import incubaid.herolib.clients.${args.name}
+
+fn main() {
+@if args.singleton
+    // Get the singleton instance
+    mut obj := ${args.name}.get()!
+@else
+    // Create a new instance
+    mut obj := ${args.name}.new(name: 'myinstance')!
+    
+    // Or get an existing instance
+    // mut obj := ${args.name}.get(name: 'myinstance')!
+@end
+
+    // Use the client
+    // result := obj.some_operation()!
+}
+```
+
+## Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | string | 'default' | Instance name |
+| `mail_server` | string | '' | Mail server address |
+| `mail_port` | int | 0 | Mail server port |
+
+## API Reference
+
+### Factory Functions
+
+| Function | Description |
+|----------|-------------|
+@if args.singleton
+| `get()` | Get the singleton instance |
+@else
+| `new(name, create)` | Create or get an instance |
+| `get(name)` | Get an existing instance |
+| `set(obj)` | Store an instance |
+| `exists(name)` | Check if instance exists |
+| `list()` | List all instances |
+| `delete(name)` | Delete an instance |
+@end
+| `play(heroscript)` | Execute HeroScript |
+| `heroscript_loads(script)` | Load config from HeroScript |
+
+## HeroScript Actions
+
+| Action | Description |
+|--------|-------------|
+| `!!${args.name}.configure` | Configure instance |
+
+## Testing
+
+Run the module tests:
+
+```bash
+v test lib/clients/${args.name}/
+```
+
+## See Also
+
+- [HeroLib Documentation](https://github.com/incubaid/herolib)
+- [Client Development Guide](https://herolib.dev/docs/clients)
+

@@ -1,0 +1,174 @@
+//! ${args.classname} Factory Module
+//!
+//! This module provides factory functions for creating, retrieving, and managing
+//! ${args.classname} instances. It implements the HeroLib factory pattern with
+//! Redis-based persistence for configuration storage.
+//!
+//! ## Quick Start
+//!
+//! ```v
+//! import ${args.module_path}
+//!
+//! // Create a new instance
+//! mut obj := ${args.name}.new(name: 'my_instance')!
+//!
+//! // Or get an existing instance
+//! mut obj := ${args.name}.get(name: 'my_instance')!
+//! ```
+//!
+//! ## HeroScript Usage
+//!
+//! ```heroscript
+//! !!${args.name}.configure name:'my_instance'
+//! ```
+module ${args.name}
+
+import incubaid.herolib.core.base
+import json
+import incubaid.herolib.core.playbook { PlayBook }
+
+__global (
+	${args.name}_global map[string]&${args.classname}
+	${args.name}_default string
+)
+
+/////////FACTORY
+
+@@[params]
+pub struct ArgsGet {
+pub mut:
+	name   string = "default"
+	fromdb bool   // load from Redis storage
+	create bool   // create if not exists (default: false)
+}
+
+// Creates a new ${args.classname} instance with the given name.
+pub fn new(args ArgsGet) !&${args.classname} {
+	mut obj := ${args.classname}{
+			name: args.name
+		}
+	set(obj)!
+	return get(name:args.name)!
+}
+
+// Retrieves a ${args.classname} instance by name.
+pub fn get(args ArgsGet) !&${args.classname} {
+	mut context := base.context()!
+	${args.name}_default = args.name
+	if args.fromdb || args.name !in ${args.name}_global {
+		mut r := context.redis()!
+		if r.hexists('context:${args.name}', args.name)! {
+			data := r.hget('context:${args.name}', args.name)!
+			if data.len == 0 {
+                print_backtrace()
+				return error('${args.classname} with name: ??{args.name} does not exist, prob bug.')
+			}
+			mut obj := json.decode(${args.classname},data)!
+			set_in_mem(obj)!
+		}else{
+			if args.create {
+				new(args)!
+			}else{
+                print_backtrace()
+				return error("${args.classname} with name '??{args.name}' does not exist")
+			}
+		}
+		return get(name: args.name)!
+	}
+	return ${args.name}_global[args.name] or {
+        print_backtrace()
+		return error('could not get config for ${args.name} with name:??{args.name}')
+	}
+}
+
+// Persists the ${args.classname} configuration to Redis storage.
+pub fn set(o ${args.classname}) ! {
+	mut o2:=set_in_mem(o)!
+	${args.name}_default = o2.name
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hset('context:${args.name}', o2.name, json.encode(o2))!
+}
+
+// Checks if a ${args.classname} instance exists in Redis storage.
+pub fn exists(args ArgsGet) !bool {
+	mut context := base.context()!
+	mut r := context.redis()!
+	return r.hexists('context:${args.name}', args.name)!
+}
+
+// Deletes a ${args.classname} instance from Redis storage.
+pub fn delete(args ArgsGet) ! {
+	mut context := base.context()!
+	mut r := context.redis()!
+	r.hdel('context:${args.name}', args.name)!
+}
+
+@@[params]
+pub struct ArgsList {
+pub mut:
+	fromdb bool
+}
+
+// Lists all ${args.classname} instances.
+pub fn list(args ArgsList) ![]&${args.classname} {
+	mut res := []&${args.classname}{}
+	mut context := base.context()!
+	if args.fromdb {
+		${args.name}_global = map[string]&${args.classname}{}
+		${args.name}_default = ''
+	}
+	if args.fromdb {
+		mut r := context.redis()!
+		mut l := r.hkeys('context:${args.name}')!
+		for name in l{
+			res << get(name:name,fromdb:true)!
+		}
+		return res
+	} else {
+		for _, client in ${args.name}_global {
+			res << client
+		}
+	}
+	return res
+}
+
+// Internal function to store an instance in the memory cache.
+fn set_in_mem(o ${args.classname}) ! ${args.classname} {
+	mut o2 := obj_init(o)!
+	${args.name}_global[o2.name] = &o2
+	${args.name}_default = o2.name
+    return o2
+}
+
+// Executes HeroScript playbook actions for ${args.name}.
+pub fn play(mut plbook PlayBook) ! {
+    if ! plbook.exists(filter: '${args.name}.'){
+        return
+    }
+	mut install_actions := plbook.find(filter: '${args.name}.configure')!
+	if install_actions.len > 0 {
+		for mut install_action in install_actions {
+			heroscript := install_action.heroscript()
+			mut obj2 := heroscript_loads(heroscript)!
+			set(obj2)!
+            install_action.done = true
+		}           
+	}
+}
+
+// Reloads the ${args.classname} configuration from storage.
+pub fn (mut self ${args.classname}) reload() ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    self=obj_init(self)!
+}
+
+// Switches the default ${args.classname} instance to use.
+pub fn switch(name string) {
+@if ! args.singleton
+	${args.name}_default = name
+@end
+}
+

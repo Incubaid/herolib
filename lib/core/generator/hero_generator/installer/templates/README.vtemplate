@@ -1,0 +1,123 @@
+# ${args.classname}
+
+This module provides an installer for ${args.classname} with lifecycle management (install, start, stop, restart, destroy).
+
+## Quick Start
+
+### Using HeroScript
+
+```hero
+!!${args.name}.configure
+    name: 'default'
+    host: 'localhost'
+    port: 8080
+
+!!${args.name}.install reset:false
+
+@if args.startupmanager
+!!${args.name}.start
+@end
+```
+
+### Using V Code
+
+```v
+import incubaid.herolib.installers.${args.name}
+
+fn main() {
+@if args.singleton
+    // Get the singleton instance
+    mut obj := ${args.name}.get()!
+@else
+    // Create a new instance
+    mut obj := ${args.name}.new(name: 'myinstance')!
+    
+    // Or get an existing instance
+    // mut obj := ${args.name}.get(name: 'myinstance')!
+@end
+
+    // Install
+    obj.install()!
+    
+@if args.startupmanager
+    // Start the service
+    obj.start()!
+    
+    // Check if running
+    if obj.running()! {
+        println('${args.classname} is running')
+    }
+    
+    // Stop when done
+    obj.stop()!
+@end
+}
+```
+
+## Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | string | 'default' | Instance name |
+| `host` | string | 'localhost' | Service host address |
+| `port` | int | 8080 | Service port |
+
+## API Reference
+
+### Factory Functions
+
+| Function | Description |
+|----------|-------------|
+@if args.singleton
+| `get()` | Get the singleton instance |
+@else
+| `new(name, create)` | Create or get an instance |
+| `get(name)` | Get an existing instance |
+| `set(obj)` | Store an instance |
+| `exists(name)` | Check if instance exists |
+| `list()` | List all instances |
+| `delete(name)` | Delete an instance |
+@end
+| `play(heroscript)` | Execute HeroScript |
+| `heroscript_loads(script)` | Load config from HeroScript |
+
+### Lifecycle Methods
+
+| Method | Description |
+|--------|-------------|
+| `install()` | Install ${args.classname} |
+| `installed()` | Check if installed |
+@if args.startupmanager
+| `start()` | Start the service |
+| `stop()` | Stop the service |
+| `restart()` | Restart the service |
+| `running()` | Check if service is running |
+@end
+| `destroy()` | Uninstall and clean up |
+
+## HeroScript Actions
+
+| Action | Description |
+|--------|-------------|
+| `!!${args.name}.configure` | Configure instance |
+| `!!${args.name}.install` | Install ${args.classname} |
+@if args.startupmanager
+| `!!${args.name}.start` | Start service |
+| `!!${args.name}.stop` | Stop service |
+| `!!${args.name}.restart` | Restart service |
+@end
+| `!!${args.name}.destroy` | Uninstall and clean up |
+
+## Testing
+
+Run the module tests:
+
+```bash
+v test lib/installers/${args.name}/
+```
+
+## See Also
+
+- [HeroLib Documentation](https://github.com/incubaid/herolib)
+- [Installer Development Guide](https://herolib.dev/docs/installers)
+

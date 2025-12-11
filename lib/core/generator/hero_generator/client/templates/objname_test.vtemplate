@@ -1,0 +1,71 @@
+module ${args.name}
+
+import incubaid.herolib.core.base
+
+// Test factory functions for ${args.classname}
+fn testsuite_begin() ! {
+	base.context(reload: true)!
+}
+
+fn test_new_and_get() ! {
+	// Create new instance
+	mut obj := new(name: 'test_instance', create: true)!
+	assert obj.name == 'test_instance'
+
+	// Get existing instance
+	mut obj2 := get(name: 'test_instance')!
+	assert obj2.name == 'test_instance'
+}
+
+fn test_set_and_exists() ! {
+	// Create and set instance
+	mut obj := ${args.classname}{
+		name: 'test_set'
+	}
+	set(obj)!
+
+	// Check exists
+	assert exists(name: 'test_set')! == true
+	assert exists(name: 'nonexistent')! == false
+}
+
+fn test_list() ! {
+	// Create test instances
+	new(name: 'list_test_1', create: true)!
+	new(name: 'list_test_2', create: true)!
+
+	// List all instances
+	instances := list()!
+	assert instances.len >= 2
+}
+
+fn test_delete() ! {
+	// Create instance
+	new(name: 'to_delete', create: true)!
+	assert exists(name: 'to_delete')! == true
+
+	// Delete instance
+	delete(name: 'to_delete')!
+	assert exists(name: 'to_delete')! == false
+}
+
+fn test_heroscript_loads() ! {
+	heroscript := '
+!!${args.name}.configure
+    name: "heroscript_test"
+    mail_server: "smtp.test.com"
+    mail_port: 587
+'
+	obj := heroscript_loads(heroscript)!
+	assert obj.name == 'heroscript_test'
+	assert obj.mail_server == 'smtp.test.com'
+	assert obj.mail_port == 587
+}
+
+fn testsuite_end() ! {
+	// Cleanup test instances
+	for name in ['test_instance', 'test_set', 'list_test_1', 'list_test_2', 'heroscript_test'] {
+		delete(name: name) or {}
+	}
+}
+

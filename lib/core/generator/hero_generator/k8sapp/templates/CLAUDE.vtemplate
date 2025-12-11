@@ -1,0 +1,92 @@
+# ${args.classname} Module
+
+This is a HeroLib Kubernetes application module for ${args.classname}.
+
+## Important Commands
+
+```bash
+# Run tests for this module
+v -enable-globals test .
+
+# Format code
+v -enable-globals fmt -w .
+
+# Generate/regenerate module files (from herolib root)
+hero generate k8sapp -path lib/k8_apps/${args.name}
+```
+
+## Code Style
+
+- Use V language idioms and conventions
+- All public functions must have documentation comments
+- Use `!` suffix for functions that can fail (return Result type)
+- Use `@[heap]` attribute for structs that need heap allocation
+- Use `@[params]` for function parameter structs
+- Configuration secrets should use `@[secret]` attribute
+
+## Module Structure
+
+```
+${args.name}/
+├── ${args.name}_model.v      # Data model and config struct
+├── ${args.name}_factory_.v   # Factory pattern (new, get, set, delete, list)
+├── ${args.name}_actions.v    # Kubernetes deployment actions (install, destroy)
+├── templates/                # Kubernetes YAML manifests
+│   └── deployment.yaml       # Main deployment manifest
+├── ${args.name}_test.v       # Unit tests
+├── README.md                 # Documentation
+└── CLAUDE.md                 # This file
+```
+
+## Key Patterns
+
+### Factory Pattern
+@if args.singleton
+- This is a singleton module - only one instance exists
+- Use `get()!` to retrieve the instance
+@else
+- Use `new(name: 'myname')!` to create a new instance
+- Use `get(name: 'myname')!` to retrieve an existing instance
+- Use `set(obj)!` to store an instance
+- Use `delete(name: 'myname')!` to remove an instance
+- Use `list()!` to get all instances
+- Use `exists(name: 'myname')!` to check existence
+@end
+
+### HeroScript Integration
+- Use `play(heroscript: script)!` to execute HeroScript actions
+- Use `heroscript_loads(script)!` to parse config from HeroScript
+- Actions are prefixed with `!!${args.name}.`
+
+### Kubernetes Application Lifecycle
+- `install()!` - Deploy to Kubernetes cluster
+- `installed()!` - Check if deployed (returns bool)
+- `destroy()!` - Remove from Kubernetes cluster
+- `configure()!` - Generate YAML manifests from templates
+
+### Templates
+- YAML templates are in `templates/` directory
+- Use V template syntax: `??{variable}` for interpolation
+- Templates are processed during `configure()` call
+
+## Testing
+
+When writing tests:
+1. Use `testsuite_begin()` and `testsuite_end()` for setup/teardown
+2. Test names should be descriptive: `test_<function>_<scenario>`
+3. Clean up test data in `testsuite_end()`
+4. Use `base.context(reload: true)!` to reset context between tests
+
+## Common Issues
+
+- Ensure kubectl is configured and cluster is accessible
+- Check namespace exists before deployment
+- Verify YAML templates are valid Kubernetes manifests
+- Check pod logs with `kubectl logs -n <namespace> <pod>`
+
+## Related Files
+
+- `lib/core/base/context.v` - Base context and session management
+- `lib/core/base/factory.v` - Factory pattern base implementation
+- `lib/k8_apps/core/` - Kubernetes app core utilities
+

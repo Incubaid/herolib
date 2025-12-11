@@ -1,0 +1,105 @@
+# ${args.classname}
+
+This module provides a Kubernetes application deployment for ${args.classname}.
+
+## Quick Start
+
+### Using HeroScript
+
+```hero
+!!${args.name}.configure
+    name: 'default'
+
+!!${args.name}.install reset:false
+```
+
+### Using V Code
+
+```v
+import incubaid.herolib.k8_apps.${args.name}
+
+fn main() {
+@if args.singleton
+    // Get the singleton instance
+    mut obj := ${args.name}.get()!
+@else
+    // Create a new instance
+    mut obj := ${args.name}.new(name: 'myinstance')!
+    
+    // Or get an existing instance
+    // mut obj := ${args.name}.get(name: 'myinstance')!
+@end
+
+    // Deploy to Kubernetes
+    obj.install()!
+    
+    // Check if deployed
+    if installed()! {
+        println('${args.classname} is deployed')
+    }
+    
+    // Remove deployment
+    obj.destroy()!
+}
+```
+
+## Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | string | 'default' | Instance name |
+| `deployment_path` | string | '/tmp/${args.name}/deployment.yaml' | Path to generated YAML |
+
+## API Reference
+
+### Factory Functions
+
+| Function | Description |
+|----------|-------------|
+@if args.singleton
+| `get()` | Get the singleton instance |
+@else
+| `new(name, create)` | Create or get an instance |
+| `get(name)` | Get an existing instance |
+| `set(obj)` | Store an instance |
+| `exists(name)` | Check if instance exists |
+| `list()` | List all instances |
+| `delete(name)` | Delete an instance |
+@end
+| `play(heroscript)` | Execute HeroScript |
+| `heroscript_loads(script)` | Load config from HeroScript |
+
+### Lifecycle Methods
+
+| Method | Description |
+|--------|-------------|
+| `install()` | Deploy to Kubernetes cluster |
+| `installed()` | Check if deployed |
+| `destroy()` | Remove from Kubernetes cluster |
+
+## HeroScript Actions
+
+| Action | Description |
+|--------|-------------|
+| `!!${args.name}.configure` | Configure instance |
+| `!!${args.name}.install` | Deploy to Kubernetes |
+| `!!${args.name}.destroy` | Remove deployment |
+
+## Templates
+
+Kubernetes YAML manifests are in the `templates/` directory:
+- `deployment.yaml` - Main deployment manifest
+
+## Testing
+
+Run the module tests:
+
+```bash
+v test lib/k8_apps/${args.name}/
+```
+
+## See Also
+
+- [HeroLib Documentation](https://github.com/incubaid/herolib)
+- [Kubernetes App Development Guide](https://herolib.dev/docs/k8sapps)
+

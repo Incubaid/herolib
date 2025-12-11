@@ -1,0 +1,77 @@
+//! ${args.classname} Data Model
+//!
+//! This module defines the data model and configuration structure for ${args.classname}.
+//! It includes the main struct definition, initialization logic, and HeroScript parsing.
+//!
+//! ## Configuration
+//!
+//! The ${args.classname} struct can be configured via HeroScript:
+//!
+//! ```heroscript
+//! !!${args.name}.configure
+//!     name:'my_instance'
+//!     host:'localhost'
+//!     port:8080
+//! ```
+//!
+//! ## V Code Usage
+//!
+//! ```v
+//! import ${args.module_path}
+//!
+//! // Create and configure
+//! mut obj := ${args.name}.new(name: 'my_instance')!
+//! obj.host = 'localhost'
+//! obj.port = 8080
+//! ${args.name}.set(obj)!
+//! ```
+module ${args.name}
+
+import incubaid.herolib.data.encoderhero
+
+pub const version = '0.0.0'
+const singleton = ${args.singleton}
+const default = ${args.default}
+
+// ${args.classname} represents the configuration and state for the ${args.name} installer.
+// Use the factory functions (new, get, set) to manage instances.
+^^[heap]
+pub struct ${args.classname} {
+pub mut:
+    name string = 'default'
+	namespace string = 'default'
+	homedir    string
+	configpath string
+	username   string
+	password   string @@[secret]
+	title      string
+	host       string
+	port       int
+}
+
+// Initializes and validates a ${args.classname} instance.
+fn obj_init(mycfg_ ${args.classname})!${args.classname}{
+    mut mycfg:=mycfg_
+    return mycfg
+}
+
+// Called during installation to configure the service.
+fn configure() ! {
+	// mut installer := get()!
+@if args.templates
+	// Example: Generate config from template
+	// mut mycode := ??tmpl('templates/config.yaml')
+	// mut path := pathlib.get_file(path: installer.configpath, create: true)!
+	// path.write(mycode)!
+@end
+}
+
+
+/////////////HEROSCRIPT INTEGRATION
+
+// Parses a HeroScript string and returns a ${args.classname} instance.
+pub fn heroscript_loads(heroscript string) !${args.classname} {
+    mut obj := encoderhero.decode[${args.classname}](heroscript)!
+    return obj
+}
+
