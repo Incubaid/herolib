@@ -288,16 +288,16 @@ pub fn (mut self ${args.classname}) start(args StartArgs) ! {
         self.install()!
     }
 
-    self.start_pre()!
+    start_pre(&self)!
 
-    for zprocess in self.startupcmd(args)!{
+    for zprocess in startupcmd(&self, args)!{
         mut sm:=startupmanager_get(zprocess.startuptype)!
         console.print_debug('installer: ${args.name} starting with ??{zprocess.startuptype}...')
         sm.new(zprocess)!
     	sm.start(zprocess.name)!
     }
 
-    self.start_post()!
+    start_post(&self)!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -318,12 +318,12 @@ pub fn (mut self ${args.classname}) install_start(args InstallArgs) ! {
 // Stops the ${args.classname} service.
 pub fn (mut self ${args.classname}) stop() ! {
     switch(self.name)
-    self.stop_pre()!
-    for zprocess in self.startupcmd()!{
+    stop_pre(&self)!
+    for zprocess in startupcmd(&self, StartArgs{})!{
         mut sm:=startupmanager_get(zprocess.startuptype)!
     	sm.stop(zprocess.name)!
     }
-    self.stop_post()!
+    stop_post(&self)!
 }
 
 // Restarts the ${args.classname} service by stopping and starting it.
@@ -336,7 +336,7 @@ pub fn (mut self ${args.classname}) restart(args StartArgs) ! {
 // Checks if the ${args.classname} service is currently running.
 pub fn (mut self ${args.classname}) running() !bool {
     switch(self.name)
-    for zprocess in self.startupcmd()!{
+    for zprocess in startupcmd(&self, StartArgs{})!{
         if zprocess.startuptype != .screen{
             mut sm:=startupmanager_get(zprocess.startuptype)!
     	    r:=sm.running(zprocess.name)!
@@ -345,7 +345,7 @@ pub fn (mut self ${args.classname}) running() !bool {
             }
         }
     }
-    return self.running_check()!
+    return running_check(&self)!
 }
 @end
 
@@ -356,3 +356,59 @@ pub fn switch(name string) {
 @end
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////# PUBLIC LIFECYCLE WRAPPERS //////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Installs ${args.name} on the system.
+pub fn (mut self ${args.classname}) install(args InstallArgs) ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    install(mut self, args)!
+}
+
+@if args.build
+// Builds ${args.name} from source.
+pub fn (mut self ${args.classname}) build() ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    build(mut self)!
+}
+@end
+
+// Destroys the ${args.name} installation.
+pub fn (mut self ${args.classname}) destroy() ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    destroy(mut self)!
+}
+
+// Checks if ${args.name} is installed.
+pub fn (self &${args.classname}) installed() !bool {
+    return installed_check(self)!
+}
+
+@if args.startupmanager
+// Hook called before the service starts.
+pub fn (self &${args.classname}) start_pre() ! {
+    start_pre(self)!
+}
+
+// Hook called after the service starts successfully.
+pub fn (self &${args.classname}) start_post() ! {
+    start_post(self)!
+}
+
+// Hook called before the service stops.
+pub fn (self &${args.classname}) stop_pre() ! {
+    stop_pre(self)!
+}
+
+// Hook called after the service stops.
+pub fn (self &${args.classname}) stop_post() ! {
+    stop_post(self)!
+}
+@end

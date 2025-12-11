@@ -116,8 +116,31 @@ Run the module tests:
 v test lib/installers/${args.name}/
 ```
 
-## See Also
+### Testing Best Practice
 
-- [HeroLib Documentation](https://github.com/incubaid/herolib)
-- [Installer Development Guide](https://herolib.dev/docs/installers)
+Create a `.vsh` example script to test your module interactively:
 
+1. Create the example directory:
+   ```bash
+   mkdir -p examples/installers/${args.name}
+   ```
+
+2. Create `examples/installers/${args.name}/${args.name}.vsh`:
+   ```v
+   #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
+
+   import ${args.module_path}
+
+   mut installer := ${args.name}.get(create: true)!
+
+   installer.install()!
+   @if args.startupmanager
+   installer.start()!
+   @end
+   installer.destroy()!
+   ```
+
+3. Run the example:
+   ```bash
+   examples/installers/${args.name}/${args.name}.vsh
+   ```

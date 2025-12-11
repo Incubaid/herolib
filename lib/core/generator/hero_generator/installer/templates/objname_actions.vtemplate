@@ -36,7 +36,7 @@ pub mut:
 }
 
 // Returns the list of processes to be managed by the startup manager.
-fn (self &${args.classname}) startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
+fn startupcmd(self &${args.classname}, args StartArgs) ![]startupmanager.ZProcessNewArgs {
 	mut res := []startupmanager.ZProcessNewArgs{}
 	_ = args.reset  // TODO: use reset flag if needed
 
@@ -51,7 +51,7 @@ fn (self &${args.classname}) startupcmd(args StartArgs) ![]startupmanager.ZProce
 }
 
 // Performs a health check to verify the service is running correctly.
-fn (self &${args.classname}) running_check() !bool {
+fn running_check(self &${args.classname}) !bool {
 	// Example: HTTP health check
 	// url := 'http://127.0.0.1:??{self.port}/health'
 	// mut conn := httpconnection.new(name: '${args.name}', url: url)!
@@ -61,26 +61,26 @@ fn (self &${args.classname}) running_check() !bool {
 }
 
 // Hook called before the service starts.
-fn (self &${args.classname}) start_pre() ! {
+fn start_pre(self &${args.classname}) ! {
 }
 
 // Hook called after the service starts successfully.
-fn (self &${args.classname}) start_post() ! {
+fn start_post(self &${args.classname}) ! {
 }
 
 // Hook called before the service stops.
-fn (self &${args.classname}) stop_pre() ! {
+fn stop_pre(self &${args.classname}) ! {
 }
 
 // Hook called after the service stops.
-fn (self &${args.classname}) stop_post() ! {
+fn stop_post(self &${args.classname}) ! {
 }
 @end
 
 //////////////////// INSTALLATION ACTIONS
 
 // Checks if ${args.name} is installed at the required version.
-fn (self &${args.classname}) installed() !bool {
+fn installed_check(self &${args.classname}) !bool {
 	// Example: Check if binary exists and version matches
 	// res := os.execute('${args.name} version')
 	// if res.exit_code != 0 { return false }
@@ -110,7 +110,7 @@ pub mut:
 }
 
 // Installs ${args.name} on the system.
-fn (mut self ${args.classname}) install(args InstallArgs) ! {
+fn install(mut self ${args.classname}, args InstallArgs) ! {
 	console.print_header('install ${args.name}')
 	_ = args.reset  // TODO: use reset to force reinstall
 
@@ -120,7 +120,7 @@ fn (mut self ${args.classname}) install(args InstallArgs) ! {
 
 @if args.build
 // Builds ${args.name} from source.
-fn (mut self ${args.classname}) build() ! {
+fn build(mut self ${args.classname}) ! {
 	console.print_header('build ${args.name}')
 
 	// TODO: Implement build logic
@@ -131,13 +131,13 @@ fn (mut self ${args.classname}) build() ! {
 // Destroys the ${args.name} installation.
 @if args.startupmanager
 // Stops the service and removes all installed files.
-fn (mut self ${args.classname}) destroy() ! {
+fn destroy(mut self ${args.classname}) ! {
 	self.stop()!
 	// TODO: Implement cleanup logic
 }
 @else
 // Removes all installed files and configuration.
-fn (mut self ${args.classname}) destroy() ! {
+fn destroy(mut self ${args.classname}) ! {
 	// TODO: Implement cleanup logic
 }
 @end

@@ -76,8 +76,29 @@ Run the module tests:
 v test lib/clients/${args.name}/
 ```
 
-## See Also
+### Testing Best Practice
 
-- [HeroLib Documentation](https://github.com/incubaid/herolib)
-- [Client Development Guide](https://herolib.dev/docs/clients)
+Create a `.vsh` example script to test your module interactively:
+
+1. Create the example directory:
+   ```bash
+   mkdir -p examples/clients/${args.name}
+   ```
+
+2. Create `examples/clients/${args.name}/${args.name}.vsh`:
+   ```v
+   #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
+
+   import ${args.module_path}
+
+   mut client := ${args.name}.get(create: true)!
+
+   // Test your client operations here
+   // result := client.some_operation()!
+   ```
+
+3. Run the example:
+   ```bash
+   examples/clients/${args.name}/${args.name}.vsh
+   ```
 
