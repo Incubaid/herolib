@@ -46,6 +46,10 @@ fn upload() ! {
 fn install() ! {
 	console.print_header('install bun')
 	destroy()!
+	
+	// Ensure unzip is installed (required by bun installer)
+	osal.package_install('unzip')!
+	
 	osal.exec(cmd: 'unset BUN_INSTALL && curl -fsSL https://bun.sh/install | bash')!
 }
 
