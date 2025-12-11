@@ -48,6 +48,8 @@ fn install() ! {
 	destroy()!
 	
 	// Ensure unzip is installed (required by bun installer)
+	// Run apt-get update first in case cache is stale
+	osal.exec(cmd: 'apt-get update -qq || true')!
 	osal.package_install('unzip')!
 	
 	osal.exec(cmd: 'unset BUN_INSTALL && curl -fsSL https://bun.sh/install | bash')!
