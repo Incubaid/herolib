@@ -86,7 +86,7 @@ pub fn start(args RedisInstallArgs) ! {
 	// remove all redis in memory
 	osal.process_kill_recursive(name: 'redis-server')!
 
-	if core.platform()! == .osx || core.in_runner(){
+	if core.platform()! == .osx || core.in_runner() {
 		osal.exec(cmd: 'redis-server ${configfilepath()} --daemonize yes')!
 		// osal.exec(cmd:"brew services start redis") or {
 		// 	osal.exec(cmd:"redis-server ${configfilepath()} --daemonize yes")!

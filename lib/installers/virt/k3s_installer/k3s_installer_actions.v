@@ -67,10 +67,10 @@ fn (self &K3SInstaller) startupcmd() ![]startupmanager.ZProcessNewArgs {
 	}
 
 	res << startupmanager.ZProcessNewArgs{
-		name: 'k3s_${self.name}'
+		name:        'k3s_${self.name}'
 		startuptype: .systemd
-		cmd:  cmd
-		env:  {
+		cmd:         cmd
+		env:         {
 			'HOME': os.home_dir()
 		}
 	}
@@ -374,18 +374,19 @@ fn is_safe_to_delete(path string) bool {
 	if path == '' {
 		return false
 	}
-	
+
 	// Never delete root or critical top-level paths
-	if path == '/' || path == '/var' || path == '/root' || path == '/home' || path == '/usr' || path == '/etc' || path == '/opt' || path == '/tmp' {
+	if path == '/' || path == '/var' || path == '/root' || path == '/home' || path == '/usr'
+		|| path == '/etc' || path == '/opt' || path == '/tmp' {
 		return false
 	}
-	
+
 	// Must be at least 2 levels deep (e.g., /opt/k3s or /var/lib)
 	// This allows /opt/test_k3s_data while blocking top-level directories
 	if path.count('/') < 2 {
 		return false
 	}
-	
+
 	return true
 }
 
@@ -433,14 +434,18 @@ fn destroy() ! {
 
 	// Step 2: Kill any remaining K3s processes
 	console.print_header('Killing any remaining K3s processes...')
-	
+
 	// Kill K3s processes multiple times to ensure they're really dead
 	for _ in 0 .. 3 {
 		osal.exec(cmd: 'killall -9 k3s 2>/dev/null || true', stdout: false, raise_error: false) or {}
-		osal.exec(cmd: 'pkill -9 -f "k3s (server|agent)" 2>/dev/null || true', stdout: false, raise_error: false) or {}
+		osal.exec(
+			cmd:         'pkill -9 -f "k3s (server|agent)" 2>/dev/null || true'
+			stdout:      false
+			raise_error: false
+		) or {}
 		osal.exec(cmd: 'sleep 1', stdout: false) or {}
 	}
-	
+
 	// Wait longer for processes to fully terminate and release mounts
 	console.print_debug('Waiting for K3s processes to fully terminate...')
 	osal.exec(cmd: 'sleep 5', stdout: false) or {}
@@ -453,7 +458,7 @@ fn destroy() ! {
 
 	// Step 5: Remove data directories
 	console.print_debug('Removing data directories...')
-	
+
 	// Give time for unmounts to fully complete
 	osal.exec(cmd: 'sleep 1', stdout: false) or {}
 
@@ -461,21 +466,21 @@ fn destroy() ! {
 	for data_dir in data_dirs {
 		if data_dir != '' && data_dir !in cleaned_dirs {
 			cleaned_dirs[data_dir] = true
-			
+
 			// Safety check before deletion
 			if !is_safe_to_delete(data_dir) {
 				console.print_debug('Skipping unsafe path: ${data_dir}')
 				continue
 			}
-			
+
 			console.print_debug('Removing data directory: ${data_dir}')
-			
+
 			// Use pathlib to delete directory
 			mut dir := pathlib.get_dir(path: data_dir) or {
 				console.print_debug('Path does not exist or is not a directory: ${data_dir}')
 				continue
 			}
-			
+
 			if dir.exists() {
 				// Try pathlib delete first
 				dir.delete() or {
@@ -494,41 +499,49 @@ fn destroy() ! {
 
 	// Also remove K3s runtime directories using osal.rm
 	console.print_debug('Removing /run/k3s')
-	osal.rm('/run/k3s') or {
-		console.print_debug('Failed to remove /run/k3s: ${err}')
-	}
-	
+	osal.rm('/run/k3s') or { console.print_debug('Failed to remove /run/k3s: ${err}') }
+
 	console.print_debug('Removing /var/lib/kubelet')
 	osal.rm('/var/lib/kubelet') or {
 		console.print_debug('Failed to remove /var/lib/kubelet: ${err}')
 	}
-	
+
 	console.print_debug('Removing /run/netns')
-	osal.rm('/run/netns') or {
-		console.print_debug('Failed to remove /run/netns: ${err}')
-	}
+	osal.rm('/run/netns') or { console.print_debug('Failed to remove /run/netns: ${err}') }
 
 	console.print_debug('Removing /etc/rancher')
-	osal.rm('/etc/rancher') or {
-		console.print_debug('Failed to remove /etc/rancher: ${err}')
-	}
+	osal.rm('/etc/rancher') or { console.print_debug('Failed to remove /etc/rancher: ${err}') }
 
 	// Step 6: Clean up CNI
 	console.print_debug('Removing /var/lib/cni')
-	osal.rm('/var/lib/cni') or {
-		console.print_debug('Failed to remove /var/lib/cni: ${err}')
-	}
+	osal.rm('/var/lib/cni') or { console.print_debug('Failed to remove /var/lib/cni: ${err}') }
 
 	// Step 7: Clean up kubepods cgroup slices created by kubelet
 	console.print_debug('Cleaning up kubepods slices...')
-	osal.exec(cmd: 'systemctl stop kubepods.slice 2>/dev/null || true', stdout: false, raise_error: false) or {}
-	osal.exec(cmd: 'systemctl reset-failed kubepods.slice 2>/dev/null || true', stdout: false, raise_error: false) or {}
+	osal.exec(
+		cmd:         'systemctl stop kubepods.slice 2>/dev/null || true'
+		stdout:      false
+		raise_error: false
+	) or {}
+	osal.exec(
+		cmd:         'systemctl reset-failed kubepods.slice 2>/dev/null || true'
+		stdout:      false
+		raise_error: false
+	) or {}
 	// Also clean any child slices
-	slices_result := osal.exec(cmd: 'systemctl list-units --type=slice --no-legend | grep kubepods | cut -d" " -f1', stdout: false, raise_error: false) or { osal.Job{} }
+	slices_result := osal.exec(
+		cmd:         'systemctl list-units --type=slice --no-legend | grep kubepods | cut -d" " -f1'
+		stdout:      false
+		raise_error: false
+	) or { osal.Job{} }
 	for slice in slices_result.output.split_into_lines() {
 		s := slice.trim_space()
 		if s != '' {
-			osal.exec(cmd: 'systemctl stop "${s}" 2>/dev/null || true', stdout: false, raise_error: false) or {}
+			osal.exec(
+				cmd:         'systemctl stop "${s}" 2>/dev/null || true'
+				stdout:      false
+				raise_error: false
+			) or {}
 		}
 	}
 
@@ -546,7 +559,8 @@ fn cleanup_network() ! {
 		cmd:         'ip -o link show master cni0 2>/dev/null || true'
 		stdout:      false
 		raise_error: false
-	) {
+	)
+	{
 		for line in res.output.split_into_lines() {
 			l := line.trim_space()
 			if l == '' {
@@ -584,9 +598,7 @@ fn cleanup_network() ! {
 			cmd:         'timeout 3 ip link del ${veth} 2>/dev/null || true'
 			stdout:      false
 			raise_error: false
-		) or {
-			console.print_debug('Failed/timed out deleting ${veth}, continuing...')
-		}
+		) or { console.print_debug('Failed/timed out deleting ${veth}, continuing...') }
 	}
 
 	// 3) Delete known k3s/CNI interfaces (also timeout + silence errors)
@@ -635,9 +647,17 @@ fn cleanup_mounts(data_dirs []string) ! {
 							found_mounts = true
 							console.print_debug('Unmounting: ${mp}')
 							// Try lazy unmount first
-							osal.exec(cmd: 'umount -l "${mp}" 2>/dev/null || true', stdout: false, raise_error: false) or {}
+							osal.exec(
+								cmd:         'umount -l "${mp}" 2>/dev/null || true'
+								stdout:      false
+								raise_error: false
+							) or {}
 							// If that didn't work, try force unmount
-							osal.exec(cmd: 'umount -f "${mp}" 2>/dev/null || true', stdout: false, raise_error: false) or {}
+							osal.exec(
+								cmd:         'umount -f "${mp}" 2>/dev/null || true'
+								stdout:      false
+								raise_error: false
+							) or {}
 						}
 					}
 				}
@@ -650,6 +670,6 @@ fn cleanup_mounts(data_dirs []string) ! {
 		// Wait a bit before retrying
 		osal.exec(cmd: 'sleep 1', stdout: false) or {}
 	}
-	
+
 	console.print_debug('Mount cleanup completed')
 }

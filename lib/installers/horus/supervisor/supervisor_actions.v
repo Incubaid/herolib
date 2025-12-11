@@ -32,7 +32,7 @@ fn (self &Supervisor) startupcmd(args StartArgs) ![]startupmanager.ZProcessNewAr
 	version_result := osal.execute_silent('${self.binary_path} --version') or {
 		return error('Failed to get osiris runner version: ${err}')
 	}
-	
+
 	// Standardize version format
 	version := texttools.version(version_result.trim_space())
 

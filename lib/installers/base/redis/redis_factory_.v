@@ -136,13 +136,14 @@ pub fn play(mut plbook PlayBook) ! {
 	}
 	mut other_actions := plbook.find(filter: 'redis.')!
 	for mut other_action in other_actions {
-		if other_action.name in ['destroy', 'install', 'start', 'stop', 'restart', 'start_pre', 'start_post', 'stop_pre', 'stop_post'] {
+		if other_action.name in ['destroy', 'install', 'start', 'stop', 'restart', 'start_pre',
+			'start_post', 'stop_pre', 'stop_post'] {
 			mut p := other_action.params
 			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
 			mut redis_obj := get(name: name)!
 			console.print_debug('action object:\n${redis_obj}')
-			
+
 			if other_action.name == 'destroy' || reset {
 				console.print_debug('install action redis.destroy')
 				redis_obj.destroy()!
@@ -292,7 +293,6 @@ pub fn (mut self RedisInstall) running() !bool {
 	}
 	return self.running_check()!
 }
-
 
 // switch instance to be used for redis
 pub fn switch(name string) {
