@@ -1,3 +1,13 @@
+//! ${args.classname} Tests
+//!
+//! Unit tests for the ${args.classname} client module.
+//! Tests cover factory functions and HeroScript integration.
+//!
+//! ## Running Tests
+//!
+//! ```bash
+//! v -enable-globals test ${args.module_path}/
+//! ```
 module ${args.name}
 
 import incubaid.herolib.core.base
