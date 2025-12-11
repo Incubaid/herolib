@@ -53,6 +53,13 @@ fn install() ! {
 	osal.package_install('unzip')!
 	
 	osal.exec(cmd: 'unset BUN_INSTALL && curl -fsSL https://bun.sh/install | bash')!
+	
+	// Add bun to PATH for current process (for CI environments that don't source .bashrc)
+	bun_bin := '${os.home_dir()}/.bun/bin'
+	current_path := os.getenv('PATH')
+	if !current_path.contains(bun_bin) {
+		os.setenv('PATH', '${bun_bin}:${current_path}', true)
+	}
 }
 
 fn destroy() ! {
