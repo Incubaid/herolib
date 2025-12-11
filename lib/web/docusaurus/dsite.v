@@ -25,6 +25,7 @@ pub fn (mut s DocSite) build() ! {
 	s.generate()!
 	osal.exec(
 		cmd:   '
+			export PATH="${os.home_dir()}/.bun/bin:\$PATH"
 			cd ${s.path_build.path}
 			bun run build
 			'
@@ -36,6 +37,7 @@ pub fn (mut s DocSite) build_dev_publish() ! {
 	s.generate()!
 	osal.exec(
 		cmd:   '
+			export PATH="${os.home_dir()}/.bun/bin:\$PATH"
 			cd ${s.path_build.path}
 			bun run buildp
 			'
@@ -47,6 +49,7 @@ pub fn (mut s DocSite) build_publish() ! {
 	s.generate()!
 	osal.exec(
 		cmd:   '
+			export PATH="${os.home_dir()}/.bun/bin:\$PATH"
 			cd ${s.path_build.path}
 			bun run build
 			'
