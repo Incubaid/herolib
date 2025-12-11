@@ -96,15 +96,12 @@ fn cmd_source_execute(cmd Command) ! {
 	output_flag := cmd.flags.get_string('output') or { '' }
 	output_path := if output_flag == '' { '/tmp/hero_secrets.sh' } else { output_flag }
 
-	console.print_header('🔐 Hero Source - Loading Secrets')
-
 	// Step 1: Validate and normalize SSH key, store in env
 	has_ssh_key := prepare_ssh_key(key_arg)!
 
 	// Convert HTTPS URL to SSH if we have an SSH key
 	if has_ssh_key && (repo_url.starts_with('https://') || repo_url.starts_with('http://')) {
 		repo_url = https_to_ssh_url(repo_url)
-		console.print_debug('Converted to SSH URL: ${repo_url}')
 	}
 
 	// Step 2: Clone the repository to temp (writes key to temp file, clones, deletes key)
@@ -116,14 +113,12 @@ fn cmd_source_execute(cmd Command) ! {
 		return error('Secrets file not found: ${secrets_src}')
 	}
 	os.cp(secrets_src, output_path)!
-	console.print_green('✓ Secrets written to ${output_path}')
 
 	// Step 4: Clean up - delete the cloned repo
-	os.rmdir_all(repo_path) or {
-		console.print_debug('Warning: Could not delete temp repo: ${err}')
-	}
+	os.rmdir_all(repo_path) or {}
 
-	console.print_green('✅ Source with: source ${output_path}')
+	// Output the path so it can be sourced: source $(hero source ...)
+	println(output_path)
 }
 
 // Convert HTTPS URL to SSH URL
@@ -165,7 +160,6 @@ fn prepare_ssh_key(key_arg string) !bool {
 	}
 
 	if key_content == '' {
-		console.print_debug('No SSH key provided, assuming repository is accessible without authentication')
 		return false
 	}
 
@@ -186,7 +180,6 @@ fn prepare_ssh_key(key_arg string) !bool {
 
 	// Store normalized key in env for later use
 	os.setenv('SECRETS_SSH_KEY', final_key, true)
-	console.print_green('✓ SSH key validated')
 	return true
 }
 
@@ -264,7 +257,6 @@ fn clone_secrets_repo(repo_url string) !string {
 		return error('Failed to clone repository: ${result.output}')
 	}
 
-	console.print_green('✓ Repository cloned')
 	return repo_path
 }
 
