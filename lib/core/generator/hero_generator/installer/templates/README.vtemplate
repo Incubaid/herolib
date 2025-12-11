@@ -9,8 +9,7 @@ This module provides an installer for ${args.classname} with lifecycle managemen
 ```hero
 !!${args.name}.configure
     name: 'default'
-    host: 'localhost'
-    port: 8080
+    version: '1.0.0'
 
 !!${args.name}.install reset:false
 
@@ -26,28 +25,28 @@ import incubaid.herolib.installers.${args.name}
 
 fn main() {
 @if args.singleton
-    // Get the singleton instance
-    mut obj := ${args.name}.get()!
+    // Get the singleton instance (version is required)
+    mut obj := ${args.name}.get(version: '1.0.0')!
 @else
-    // Create a new instance
-    mut obj := ${args.name}.new(name: 'myinstance')!
-    
+    // Create a new instance (version is required)
+    mut obj := ${args.name}.new(name: 'myinstance', version: '1.0.0')!
+
     // Or get an existing instance
-    // mut obj := ${args.name}.get(name: 'myinstance')!
+    // mut obj := ${args.name}.get(name: 'myinstance', version: '1.0.0')!
 @end
 
     // Install
     obj.install()!
-    
+
 @if args.startupmanager
     // Start the service
     obj.start()!
-    
+
     // Check if running
     if obj.running()! {
         println('${args.classname} is running')
     }
-    
+
     // Stop when done
     obj.stop()!
 @end
@@ -59,8 +58,7 @@ fn main() {
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `name` | string | 'default' | Instance name |
-| `host` | string | 'localhost' | Service host address |
-| `port` | int | 8080 | Service port |
+| `version` | string | - | Version to install (required) |
 
 ## API Reference
 
@@ -131,7 +129,7 @@ Create a `.vsh` example script to test your module interactively:
 
    import ${args.module_path}
 
-   mut installer := ${args.name}.get(create: true)!
+   mut installer := ${args.name}.get(create: true, version: '1.0.0')!
 
    installer.install()!
    @if args.startupmanager

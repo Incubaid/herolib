@@ -9,17 +9,17 @@
 //! ```v
 //! import ${args.module_path}
 //!
-//! // Create a new instance
-//! mut obj := ${args.name}.new(name: 'my_instance')!
+//! // Create a new instance (version is required)
+//! mut obj := ${args.name}.new(name: 'my_instance', version: '1.0.0')!
 //!
 //! // Or get an existing instance
-//! mut obj := ${args.name}.get(name: 'my_instance')!
+//! mut obj := ${args.name}.get(name: 'my_instance', version: '1.0.0')!
 //! ```
 //!
 //! ## HeroScript Usage
 //!
 //! ```heroscript
-//! !!${args.name}.configure name:'my_instance'
+//! !!${args.name}.configure name:'my_instance' version:'1.0.0'
 //! !!${args.name}.install
 @if args.startupmanager
 //! !!${args.name}.start
@@ -46,18 +46,20 @@ __global (
 @@[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = "default"
-	fromdb bool   // load from Redis storage
-	create bool   // create if not exists (default: false)
+	name    string = "default"
+	version string  // Version to install (required)
+	fromdb  bool   // load from Redis storage
+	create  bool   // create if not exists (default: false)
 }
 
-// Creates a new ${args.classname} instance with the given name.
+// Creates a new ${args.classname} instance with the given name and version.
 pub fn new(args ArgsGet) !&${args.classname} {
 	mut obj := ${args.classname}{
 			name: args.name
+			version: args.version
 		}
 	set(obj)!
-	return get(name:args.name)!
+	return get(name:args.name, version:args.version)!
 }
 
 // Retrieves a ${args.classname} instance by name.
@@ -82,7 +84,7 @@ pub fn get(args ArgsGet) !&${args.classname} {
 				return error("${args.classname} with name '??{args.name}' does not exist")
 			}
 		}
-		return get(name: args.name)!
+		return get(name: args.name, version: args.version)!
 	}
 	return ${args.name}_global[args.name] or {
         print_backtrace()

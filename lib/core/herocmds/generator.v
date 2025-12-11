@@ -210,6 +210,8 @@ fn run_generator(meta hero_generator.ModuleMeta, reset bool) ! {
 		.client { client.generate_exec(meta, reset)! }
 		.k8sapp { k8sapp.generate_exec(meta, reset)! }
 	}
+	// Register the module in factory.v so it can be used via heroscript
+	hero_generator.register_in_factory(meta)!
 }
 
 // cmd_scan_execute handles the scan subcommand
@@ -225,11 +227,6 @@ fn cmd_scan_execute(cmd Command) ! {
 		for meta in result.modules {
 			run_generator(meta, false)!
 		}
-	}
-
-	if result.generate_all {
-		console.print_debug('Generating play_all.v...')
-		hero_generator.generate_play_all(result.modules)!
 	}
 }
 

@@ -65,11 +65,76 @@ pub fn scan_modules(args_ ScannerArgs) !ScanResult {
 	}
 }
 
-// generate_play_all generates the play_all.v file with imports and play calls for all modules
-pub fn generate_play_all(meta_items []ModuleMeta) ! {
-	mut path := pathlib.get('${os.home_dir()}/code/github/incubaid/herolib/lib/core/playcmds/play_all.v')
-	mut templ_1 := $tmpl('templates/play_all.vtemplate')
-	pathlib.template_write(templ_1, path.path, true)!
-	console.print_debug('formatting ${path.path}')
-	osal.execute_silent('v fmt -w ${path.path}')!
+// register_in_factory adds a module's import and play() call to factory.v
+// This is called when generating a new module so it's automatically registered
+pub fn register_in_factory(meta ModuleMeta) ! {
+	factory_path := get_factory_path(meta.path) or {
+		console.print_debug('Could not determine factory.v path, skipping registration')
+		return
+	}
+
+	mut content := os.read_file(factory_path) or {
+		return error('Failed to read factory.v: ${err}')
+	}
+
+	import_line := 'import ${meta.module_path}'
+	module_short_name := meta.module_path.split('.').last()
+	play_call := '\t${module_short_name}.play(mut plbook)!'
+
+	// Skip if already registered
+	if content.contains(import_line) {
+		console.print_debug('Module ${meta.module_path} already registered in factory.v')
+		return
+	}
+
+	mut lines := content.split('\n')
+
+	// Add import after the last import line
+	last_import_idx := find_last_import_line(lines)
+	lines.insert(last_import_idx + 1, import_line)
+
+	// Add play call before the emptycheck block
+	play_insert_idx := find_line_containing(lines, 'if args.emptycheck {')
+	if play_insert_idx > 0 {
+		lines.insert(play_insert_idx, play_call)
+	}
+
+	os.write_file(factory_path, lines.join('\n')) or {
+		return error('Failed to write factory.v: ${err}')
+	}
+
+	console.print_debug('Formatting factory.v')
+	osal.execute_silent('v fmt -w ${factory_path}')!
+	console.print_green('Registered ${meta.name} in factory.v')
+}
+
+// get_factory_path derives factory.v path from a module path within herolib
+fn get_factory_path(module_path string) ?string {
+	// Find herolib root by looking for 'incubaid/herolib' in the path
+	if idx := module_path.index('incubaid/herolib') {
+		herolib_root := module_path[..idx + 'incubaid/herolib'.len]
+		return '${herolib_root}/lib/core/playcmds/factory.v'
+	}
+	return none
+}
+
+// find_last_import_line returns the index of the last import statement
+fn find_last_import_line(lines []string) int {
+	mut last_idx := 0
+	for i, line in lines {
+		if line.trim_space().starts_with('import ') {
+			last_idx = i
+		}
+	}
+	return last_idx
+}
+
+// find_line_containing returns the index of the first line containing the pattern
+fn find_line_containing(lines []string, pattern string) int {
+	for i, line in lines {
+		if line.contains(pattern) {
+			return i
+		}
+	}
+	return 0
 }
