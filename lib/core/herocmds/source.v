@@ -1,7 +1,7 @@
 module herocmds
 
 import os
-import incubaid.herolib.osal.sshagent
+import incubaid.herolib.osal.sshkeys
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.ui.console
 import cli { Command, Flag }
@@ -13,8 +13,8 @@ pub fn cmd_source(mut cmdroot Command) {
 		usage:       '
 Hero Source - Fetch secrets file from git
 
-Fetches a file from a git repository. SSH keys are loaded from
-environment variables (SECRETS_SSH_KEY, SSH_KEY, {ORG}_SSH_KEY) into ssh-agent.
+Fetches a file from a git repository. SSH keys are read from
+environment variables (SECRETS_SSH_KEY, SSH_KEY, {ORG}_SSH_KEY).
 
 USAGE:
   hero source <url_to_file>
@@ -23,9 +23,11 @@ EXAMPLES:
   hero source https://forge.ourworld.tf/ourworld_it/secrets/src/branch/main/secrets.sh
 
 The command will:
-  1. Load SSH keys from environment into ssh-agent
-  2. Use gittools to clone/fetch the file
+  1. Find SSH keys from environment variables
+  2. Use gittools to clone/fetch the file (with temp SSH key if needed)
   3. Output the local path (can be sourced: source $(hero source <url>))
+
+Note: Keys are NOT added to the system ssh-agent.
 '
 		execute:       cmd_source_execute
 		sort_commands: true
@@ -69,22 +71,21 @@ fn cmd_source_execute(cmd Command) ! {
 		console.print_debug('source: file_url=${file_url}, use_ssh=${use_ssh}, output_path=${output_path}')
 	}
 
-	// Load SSH keys from environment into agent
-	mut agent := sshagent.new()!
-	agent.load_keys_from_env()!
+	// Load SSH keys from environment (does NOT touch system ssh-agent)
+	mut keys := sshkeys.new()
+	loaded_count := keys.load_from_env()
 
 	if verbose {
-		loaded_keys := agent.keys_loaded() or { []sshagent.SSHKey{} }
-		console.print_debug('source: loaded ${loaded_keys.len} SSH keys into agent')
-		for key in loaded_keys {
-			console.print_debug('  - key: ${key.name}')
+		console.print_debug('source: found ${loaded_count} SSH keys in environment')
+		for name in keys.list() {
+			console.print_debug('  - key: ${name}')
 		}
 	}
 
 	// Find appropriate SSH key if --ssh flag is set
 	mut sshkey := ''
 	if use_ssh {
-		sshkey = find_ssh_key_for_url(file_url, mut agent)
+		sshkey = find_ssh_key_for_url(file_url, keys)
 		if verbose {
 			if sshkey.len > 0 {
 				console.print_debug('source: found SSH key (${sshkey.len} bytes)')
@@ -114,34 +115,14 @@ fn cmd_source_execute(cmd Command) ! {
 }
 
 // Find the best SSH key for a URL based on org/provider from loaded keys
-fn find_ssh_key_for_url(url string, mut agent sshagent.SSHAgent) string {
+fn find_ssh_key_for_url(url string, keys sshkeys.SSHKeys) string {
 	// Parse URL to get org/provider
 	mut gs := gittools.new() or { return '' }
 	git_loc := gs.gitlocation_from_url(url) or { return '' }
 
-	// Priority: org-specific, provider-specific, any loaded key
-	candidates := [
-		git_loc.account.to_lower().replace('-', '_'),
-		git_loc.provider.to_lower(),
-	]
-
-	for candidate in candidates {
-		if mut key := agent.get(name: candidate) {
-			// Return the key content
-			if key_path := key.keypath() {
-				content := os.read_file(key_path.path) or { continue }
-				return content
-			}
-		}
-	}
-
-	// Fallback: return first loaded key if any
-	loaded := agent.keys_loaded() or { return '' }
-	if loaded.len > 0 {
-		mut first_key := loaded[0]
-		key_path := first_key.keypath() or { return '' }
-		content := os.read_file(key_path.path) or { return '' }
-		return content
+	// Use sshkeys to find the best key for this repo
+	if key := keys.find_for_repo(git_loc.account, git_loc.provider) {
+		return key.content
 	}
 
 	return ''
