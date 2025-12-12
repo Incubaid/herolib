@@ -15,6 +15,7 @@ pub mut:
 	provider      string // Git provider (e.g., GitHub).
 	pull          bool   // Pull the last changes.
 	reset         bool   // Reset the changes.
+	sshkey        string // SSH key content for clone
 	status_clean  bool   // make sure each cache status is but on 0, if we also do status_update this will result in a reload
 	status_update bool   // make sure each repo get's status updated
 	url           string // Repository URL
@@ -112,7 +113,7 @@ pub fn (mut gitstructure GitStructure) get_repo(args_ ReposGetArgs) !&GitRepo {
 		if args.url.len == 0 {
 			return error('Cannot clone the repository, no URL provided: ${args.url}')
 		}
-		return gitstructure.clone(url: args.url)!
+		return gitstructure.clone(url: args.url, sshkey: args.sshkey)!
 	}
 
 	if repositories.len > 1 {

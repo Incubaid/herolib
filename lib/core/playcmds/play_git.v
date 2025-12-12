@@ -2,6 +2,7 @@ module playcmds
 
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.core.playbook { PlayBook }
+import incubaid.herolib.osal.sshagent
 import incubaid.herolib.ui.console // For verbose error reporting
 
 // ---------------------------------------------------------------
@@ -53,15 +54,21 @@ fn play_git(mut plbook PlayBook) ! {
 		light := p.get_default_true('light')
 		recursive := p.get_default_false('recursive')
 
+		// If sshkey provided, load it into ssh-agent
+		if sshkey.len > 0 {
+			mut agent := sshagent.new()!
+			agent.add('hero_git_clone', sshkey) or {
+				console.print_debug('Failed to load SSH key into agent: ${err}')
+			}
+		}
+
 		mut clone_args := gittools.GitCloneArgs{
 			url:       url
-			sshkey:    sshkey
 			recursive: recursive
 			light:     light
 		}
 		if coderoot.len > 0 {
 			// Re-initialize GitStructure only when a coderoot is explicitly given.
-			// This shadows the previous `gs` and loses the original configuration (e.g. `light`, `log`).
 			gs = gittools.new(coderoot: coderoot)!
 		}
 		gs.clone(clone_args)!

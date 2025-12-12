@@ -344,3 +344,56 @@ pub fn (mut agent SSHAgent) str() string {
 pub fn (mut agent SSHAgent) keys_loaded() ![]SSHKey {
 	return agent.keys.filter(it.loaded)
 }
+
+// load_keys_from_env loads SSH keys from environment variables into the agent.
+// Looks for: SECRETS_SSH_KEY, SSH_KEY, and {ORG}_SSH_KEY patterns.
+// Keys are normalized (escaped newlines converted) before loading.
+pub fn (mut agent SSHAgent) load_keys_from_env() !int {
+	mut loaded := 0
+	mut env_vars := ['SECRETS_SSH_KEY', 'SSH_KEY']
+
+	// Also check for org-specific keys like GITHUB_SSH_KEY, GITLAB_SSH_KEY, etc.
+	for _, val in os.environ() {
+		if val.ends_with('_SSH_KEY') && val !in env_vars {
+			env_vars << val
+		}
+	}
+
+	for env_name in env_vars {
+		key_content := os.getenv(env_name)
+		if key_content.len == 0 {
+			continue
+		}
+
+		// Normalize key: handle escaped newlines
+		mut final_key := key_content
+		if final_key.contains('\\n') {
+			final_key = final_key.replace('\\n', '\n')
+		}
+		final_key = final_key.trim_space()
+		if !final_key.ends_with('\n') {
+			final_key = final_key + '\n'
+		}
+
+		// Validate key format
+		if !final_key.contains('-----BEGIN') || !final_key.contains('-----END') {
+			console.print_debug('Skipping invalid key from ${env_name}')
+			continue
+		}
+
+		// Generate key name from env var name
+		key_name := env_name.to_lower().replace('_ssh_key', '').replace('_', '-')
+		if key_name.len == 0 {
+			continue
+		}
+
+		agent.add(key_name, final_key) or {
+			console.print_debug('Failed to load key from ${env_name}: ${err}')
+			continue
+		}
+		console.print_debug('Loaded SSH key from ${env_name} as ${key_name}')
+		loaded += 1
+	}
+
+	return loaded
+}

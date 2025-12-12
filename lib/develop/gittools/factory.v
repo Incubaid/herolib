@@ -80,16 +80,12 @@ pub mut:
 	git_reset  bool
 	git_root   string
 	git_pull   bool
-	currentdir bool // can use currentdir
+	sshkey     string // SSH key content for clone
+	currentdir bool   // can use currentdir
 }
 
-// return pathlib Path based on, will pull...
-// params:
-// 	path      string
-// 	git_url   string
-// 	git_reset bool
-// 	git_root  string
-// 	git_pull  bool
+// return pathlib Path based on git_url, will clone/pull as needed
+// SSH is auto-detected from URL format, or forced via ssh=true
 pub fn path(args_ GitPathGetArgs) !pathlib.Path {
 	mut args := args_
 
@@ -105,10 +101,12 @@ pub fn path(args_ GitPathGetArgs) !pathlib.Path {
 
 	if args.git_url.len > 0 {
 		mut gs := new(coderoot: args.git_root)!
+
 		mut repo := gs.get_repo(
-			url:   args.git_url
-			pull:  args.git_pull
-			reset: args.git_reset
+			url:    args.git_url
+			pull:   args.git_pull
+			reset:  args.git_reset
+			sshkey: args.sshkey
 		)!
 		args.path = repo.get_path_of_url(args.git_url)!
 	}
@@ -116,4 +114,9 @@ pub fn path(args_ GitPathGetArgs) !pathlib.Path {
 		return error('Path needs to be provided.')
 	}
 	return pathlib.get(args.path)
+}
+
+// Check if URL is an SSH URL format
+fn is_ssh_url(url string) bool {
+	return url.starts_with('git@') || url.starts_with('ssh://') || (url.contains('@') && url.contains(':'))
 }
