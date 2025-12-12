@@ -353,9 +353,9 @@ pub fn (mut agent SSHAgent) load_keys_from_env() !int {
 	mut env_vars := ['SECRETS_SSH_KEY', 'SSH_KEY']
 
 	// Also check for org-specific keys like GITHUB_SSH_KEY, GITLAB_SSH_KEY, etc.
-	for _, val in os.environ() {
-		if val.ends_with('_SSH_KEY') && val !in env_vars {
-			env_vars << val
+	for env_name, _ in os.environ() {
+		if env_name.ends_with('_SSH_KEY') && env_name !in env_vars {
+			env_vars << env_name
 		}
 	}
 

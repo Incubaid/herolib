@@ -18,8 +18,10 @@ pub fn (mut gitstructure GitStructure) clone(args GitCloneArgs) !&GitRepo {
 		return error('url needs to be specified when doing a clone.')
 	}
 
+	console.print_debug('clone: url=${args.url}, sshkey_len=${args.sshkey.len}')
 	console.print_header('Git clone from the URL: ${args.url}.')
 	git_location := gitstructure.gitlocation_from_url(args.url)!
+	console.print_debug('clone: provider=${git_location.provider}, account=${git_location.account}, name=${git_location.name}')
 
 	// Initialize a new GitRepo instance
 	mut repo := GitRepo{
@@ -49,28 +51,55 @@ pub fn (mut gitstructure GitStructure) clone(args GitCloneArgs) !&GitRepo {
 		return error('Path exists but is not a git repository: ${repo.path()}')
 	}
 
-	if args.sshkey.len > 0 {
-		repo.set_sshkey(args.sshkey)!
-	}
-
 	parent_dir := repo.get_parent_dir(create: true)!
+	console.print_debug('clone: parent_dir=${parent_dir}')
 
 	mut extra := ''
 	if args.light {
 		extra = '--depth 1 --no-single-branch '
 	}
 
-	mut cmd := 'cd ${parent_dir} && git clone ${extra} ${repo.get_repo_url_for_clone()!} ${repo.name}'
-
-	mut sshkey_include := ''
 	cfg := gitstructure.config()!
-	if cfg.ssh_key_path.len > 0 {
-		sshkey_include = 'GIT_SSH_COMMAND="ssh -i ${cfg.ssh_key_path}" '
-		cmd = 'cd ${parent_dir} && ${sshkey_include}git clone ${extra} ${repo.get_ssh_url()!} ${repo.name}'
+	mut cmd := ''
+	mut temp_key_path := ''
+
+	// Determine SSH key to use: args.sshkey (content) > cfg.ssh_key_path (file path)
+	if args.sshkey.len > 0 {
+		// Write SSH key content to temp file
+		temp_key_path = '/tmp/hero_git_key_${git_location.account}'
+		console.print_debug('clone: writing SSH key to ${temp_key_path}')
+		
+		mut final_key := args.sshkey
+		if !final_key.ends_with('\n') {
+			final_key = final_key + '\n'
+		}
+		os.write_file(temp_key_path, final_key) or {
+			return error('Failed to write SSH key to temp file: ${err}')
+		}
+		os.chmod(temp_key_path, 0o600) or {
+			return error('Failed to set permissions on SSH key file: ${err}')
+		}
+		
+		clone_url := repo.get_ssh_url()!
+		console.print_debug('clone: using SSH URL=${clone_url}')
+		cmd = 'cd ${parent_dir} && GIT_SSH_COMMAND="ssh -i ${temp_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git clone ${extra} ${clone_url} ${repo.name}'
+	} else if cfg.ssh_key_path.len > 0 {
+		console.print_debug('clone: using config ssh_key_path=${cfg.ssh_key_path}')
+		clone_url := repo.get_ssh_url()!
+		cmd = 'cd ${parent_dir} && GIT_SSH_COMMAND="ssh -i ${cfg.ssh_key_path}" git clone ${extra} ${clone_url} ${repo.name}'
+	} else {
+		console.print_debug('clone: no SSH key, using default URL')
+		clone_url := repo.get_repo_url_for_clone()!
+		cmd = 'cd ${parent_dir} && git clone ${extra} ${clone_url} ${repo.name}'
 	}
 
-	console.print_debug(cmd)
+	console.print_debug('clone: executing: ${cmd}')
 	result := os.execute(cmd)
+
+	// Clean up temp key file
+	if temp_key_path.len > 0 && os.exists(temp_key_path) {
+		os.rm(temp_key_path) or {}
+	}
 
 	if result.exit_code != 0 {
 		return error('Cannot clone the repository due to: \n${result.output}')
