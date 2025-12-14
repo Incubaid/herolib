@@ -103,9 +103,6 @@ pub fn (app &App) admin_index(mut ctx Context) veb.Result {
 pub fn (app &App) admin_section(mut ctx Context, path string) veb.Result {
 	// Route to specific feature renderers
 	match path {
-		'heroprompt' {
-			return ctx.html(render_heroprompt(app))
-		}
 		'heroscript' {
 			return ctx.html(render_heroscript(app))
 		}
@@ -158,23 +155,6 @@ fn render_heroscript(app &App) string {
 	return result
 }
 
-fn render_heroprompt(app &App) string {
-	template_path := os.join_path(os.dir(@FILE), 'templates', 'heroprompt.html')
-	template_content := os.read_file(template_path) or { return render_heroprompt_fallback(app) }
-	menu_content := menu_html(app.menu, 0, 'm')
-	mut result := template_content
-	result = result.replace('{{.title}}', app.title)
-	result = result.replace('{{.menu_html}}', menu_content)
-	result = result.replace('{{.css_colors_url}}', '/static/css/colors.css')
-	result = result.replace('{{.css_main_url}}', '/static/css/main.css')
-	result = result.replace('{{.css_heroprompt_url}}', '/static/css/heroprompt.css')
-	result = result.replace('{{.js_theme_url}}', '/static/js/theme.js')
-	result = result.replace('{{.js_heroprompt_url}}', '/static/js/heroprompt.js')
-	// version banner
-	result = result.replace('</body>', '<div class="v-badge">Rendered by: heroprompt</div></body>')
-	return result
-}
-
 fn render_chat(app &App) string {
 	template_path := os.join_path(os.dir(@FILE), 'templates', 'chat.html')
 	template_content := os.read_file(template_path) or { return render_chat_fallback(app) }
@@ -191,10 +171,6 @@ fn render_chat(app &App) string {
 }
 
 // Fallbacks
-fn render_heroprompt_fallback(app &App) string {
-	return '\n<!doctype html>\n<html lang="en">\n<head>\n\t<meta charset="utf-8">\n\t<meta name="viewport" content="width=device-width, initial-scale=1">\n\t<title>${app.title} - Heroprompt</title>\n\t<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">\n</head>\n<body>\n\t<div class="container mt-5">\n\t\t<h1>Heroprompt</h1>\n\t\t<p>Heroprompt template not found. Please check the template files.</p>\n\t\t<a href="/admin" class="btn btn-primary">Back to Admin</a>\n\t</div>\n</body>\n</html>\n'
-}
-
 fn render_heroscript_fallback(app &App) string {
 	return '\n<!doctype html>\n<html lang="en">\n<head>\n\t<meta charset="utf-8">\n\t<meta name="viewport" content="width=device-width, initial-scale=1">\n\t<title>${app.title} - HeroScript Editor</title>\n\t<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">\n</head>\n<body>\n\t<div class="container mt-5">\n\t\t<h1>HeroScript Editor</h1>\n\t\t<p>HeroScript editor template not found. Please check the template files.</p>\n\t\t<a href="/admin" class="btn btn-primary">Back to Admin</a>\n\t</div>\n</body>\n</html>\n'
 }

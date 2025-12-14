@@ -129,6 +129,12 @@ fn (mut path Path) list_internal(args ListArgsInternal) ![]Path {
 
 		// Process directories
 		if new_path.is_dir() || (new_path.is_dir_link() && args.include_links) {
+			// Check ignore patterns BEFORE recursing into directories
+			// This prevents traversing ignored directories like node_modules
+			// Check both "item" and "item/" to handle gitignore directory patterns
+			if !args.matcher.match(item) || !args.matcher.match('${item}/') {
+				continue
+			}
 			if args.recursive {
 				mut rec_list := new_path.list_internal(args)!
 				all_list << rec_list

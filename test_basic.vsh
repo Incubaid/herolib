@@ -174,6 +174,7 @@ lib/virt/heropods
 lib/virt/crun
 lib/develop/gittools/
 lib/core/texttools/regext/
+lib/ai/heroprompt_backend
 '
 
 // the following tests have no prio and can be ignored
