@@ -173,6 +173,7 @@ lib/hero/heromodels
 lib/virt/heropods
 lib/virt/crun
 lib/develop/gittools/
+lib/core/texttools/regext/
 '
 
 // the following tests have no prio and can be ignored
