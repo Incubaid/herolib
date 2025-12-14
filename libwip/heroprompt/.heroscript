@@ -1,9 +1,0 @@
-
-!!hero_code.generate_client
-    name:'heroprompt'
-    classname:'HeroPrompt'
-    singleton:1
-    default:1
-	hasconfig:1
-    templates:
-    reset:0
