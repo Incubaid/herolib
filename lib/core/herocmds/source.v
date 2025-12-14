@@ -1,36 +1,33 @@
 module herocmds
 
 import os
+import incubaid.herolib.osal.sshkeys
+import incubaid.herolib.develop.gittools
 import incubaid.herolib.ui.console
 import cli { Command, Flag }
 
 pub fn cmd_source(mut cmdroot Command) {
 	mut cmd_run := Command{
 		name:        'source'
-		description: 'Clone a secrets repository and source environment variables from it.'
+		description: 'Fetch a secrets file from a git repository.'
 		usage:       '
-Hero Source - Secrets Repository Management
+Hero Source - Fetch secrets file from git
 
-Clones a git repository (typically containing secrets) and sources a shell script
-from it to load environment variables. Handles SSH key setup automatically.
+Fetches a file from a git repository. SSH keys are read from
+environment variables (SECRETS_SSH_KEY, SSH_KEY, {ORG}_SSH_KEY).
 
 USAGE:
-  hero source <repo_url> [options]
+  hero source <url_to_file>
 
 EXAMPLES:
-  hero source https://forge.ourworld.tf/ourworld_it/secrets
-  hero source https://forge.ourworld.tf/ourworld_it/secrets --key /path/to/key
-  hero source https://forge.ourworld.tf/ourworld_it/secrets --file secrets.sh
-
-ENVIRONMENT VARIABLES:
-  SECRETS_SSH_KEY    SSH private key content (used if --key not specified)
-  SSH_KEY            Alternative env var for SSH private key
+  hero source https://forge.ourworld.tf/ourworld_it/secrets/src/branch/main/secrets.sh
 
 The command will:
-  1. Setup SSH with the provided key (from --key flag or env var)
-  2. Clone/pull the repository
-  3. Source the specified shell file (default: secrets.sh)
-  4. Export all variables to the current environment
+  1. Find SSH keys from environment variables
+  2. Use gittools to clone/fetch the file (with temp SSH key if needed)
+  3. Output the local path (can be sourced: source $(hero source <url>))
+
+Note: Keys are NOT added to the system ssh-agent.
 '
 		execute:       cmd_source_execute
 		sort_commands: true
@@ -38,225 +35,96 @@ The command will:
 
 	cmd_run.add_flag(Flag{
 		flag:        .string
-		name:        'key'
-		abbrev:      'k'
-		description: 'Path to SSH private key file, or the key content directly. If not provided, uses SECRETS_SSH_KEY or SSH_KEY env var.'
-	})
-
-	cmd_run.add_flag(Flag{
-		flag:        .string
-		name:        'file'
-		abbrev:      'f'
-		description: 'Name of the shell file to source (default: secrets.sh)'
-	})
-
-	cmd_run.add_flag(Flag{
-		flag:        .string
-		name:        'host'
-		abbrev:      'h'
-		description: 'Git host for SSH known_hosts setup (auto-detected from URL if not specified)'
-	})
-
-	cmd_run.add_flag(Flag{
-		flag:        .string
 		name:        'output'
 		abbrev:      'o'
-		description: 'Output file path for secrets (default: /tmp/hero_secrets.sh)'
+		description: 'Output file path (default: print local path)'
+	})
+
+	cmd_run.add_flag(Flag{
+		flag:        .bool
+		name:        'ssh'
+		abbrev:      's'
+		description: 'Use SSH for git operations'
+	})
+
+	cmd_run.add_flag(Flag{
+		flag:        .bool
+		name:        'verbose'
+		abbrev:      'v'
+		description: 'Enable verbose debug output'
 	})
 
 	cmdroot.add_command(cmd_run)
 }
 
 fn cmd_source_execute(cmd Command) ! {
-	// Get repository URL from args
 	if cmd.args.len == 0 {
-		return error('Repository URL is required.\n\nUsage: hero source <repo_url>[/filename.sh]\n\nExample: hero source https://forge.ourworld.tf/ourworld_it/secrets/secrets.sh')
+		return error('URL to file is required.\n\nUsage: hero source <url_to_file>\n\nExample: hero source https://forge.ourworld.tf/ourworld_it/secrets/src/branch/main/secrets.sh')
 	}
 
-	// Parse URL - may include filename at the end (e.g., .../secrets/secrets.sh)
-	mut full_url := cmd.args[0]
-	mut secrets_file := cmd.flags.get_string('file') or { '' }
+	file_url := cmd.args[0]
+	output_path := cmd.flags.get_string('output') or { '' }
+	use_ssh := cmd.flags.get_bool('ssh') or { false }
+	verbose := cmd.flags.get_bool('verbose') or { false }
 
-	// If URL ends with .sh, extract the filename
-	if secrets_file == '' {
-		if full_url.ends_with('.sh') {
-			// Split off the filename from the URL
-			last_slash := full_url.last_index('/') or { -1 }
-			if last_slash > 0 {
-				secrets_file = full_url[last_slash + 1..]
-				full_url = full_url[..last_slash]
+	if verbose {
+		console.print_debug('source: file_url=${file_url}, use_ssh=${use_ssh}, output_path=${output_path}')
+	}
+
+	// Load SSH keys from environment (does NOT touch system ssh-agent)
+	mut keys := sshkeys.new()
+	loaded_count := keys.load_from_env()
+
+	if verbose {
+		console.print_debug('source: found ${loaded_count} SSH keys in environment')
+		for name in keys.list() {
+			console.print_debug('  - key: ${name}')
+		}
+	}
+
+	// Find appropriate SSH key if --ssh flag is set
+	mut sshkey := ''
+	if use_ssh {
+		sshkey = find_ssh_key_for_url(file_url, keys)
+		if verbose {
+			if sshkey.len > 0 {
+				console.print_debug('source: found SSH key (${sshkey.len} bytes)')
+			} else {
+				console.print_debug('source: no SSH key found for URL')
 			}
-		} else {
-			secrets_file = 'secrets.sh'
 		}
 	}
 
-	mut repo_url := full_url
-	key_arg := cmd.flags.get_string('key') or { '' }
-	output_flag := cmd.flags.get_string('output') or { '' }
-	output_path := if output_flag == '' { '/tmp/hero_secrets.sh' } else { output_flag }
-
-	// Step 1: Validate and normalize SSH key, store in env
-	has_ssh_key := prepare_ssh_key(key_arg)!
-
-	// Convert HTTPS URL to SSH if we have an SSH key
-	if has_ssh_key && (repo_url.starts_with('https://') || repo_url.starts_with('http://')) {
-		repo_url = https_to_ssh_url(repo_url)
+	// Use gittools to get the file path
+	if verbose {
+		console.print_debug('source: calling gittools.path()')
+	}
+	file_path := gittools.path(git_url: file_url, sshkey: sshkey)!
+	if verbose {
+		console.print_debug('source: resolved path=${file_path.path}')
 	}
 
-	// Step 2: Clone the repository to temp (writes key to temp file, clones, deletes key)
-	repo_path := clone_secrets_repo(repo_url)!
-
-	// Step 3: Copy secrets file to output location
-	secrets_src := '${repo_path}/${secrets_file}'
-	if !os.exists(secrets_src) {
-		return error('Secrets file not found: ${secrets_src}')
-	}
-	os.cp(secrets_src, output_path)!
-
-	// Step 4: Clean up - delete the cloned repo
-	os.rmdir_all(repo_path) or {}
-
-	// Output the path so it can be sourced: source $(hero source ...)
-	println(output_path)
-}
-
-// Convert HTTPS URL to SSH URL
-// https://forge.ourworld.tf/org/repo -> git@forge.ourworld.tf:org/repo
-fn https_to_ssh_url(url string) string {
-	if !url.starts_with('https://') && !url.starts_with('http://') {
-		return url
-	}
-	without_scheme := url.replace('https://', '').replace('http://', '')
-	parts := without_scheme.split_nth('/', 2)
-	if parts.len < 2 {
-		return url
-	}
-	host := parts[0]
-	path := parts[1]
-	return 'git@${host}:${path}'
-}
-
-// Validate and normalize SSH key, store in SECRETS_SSH_KEY env var
-// Returns true if SSH key is available
-fn prepare_ssh_key(key_arg string) !bool {
-	mut key_content := ''
-
-	if key_arg != '' {
-		// Check if it's a file path or key content
-		if os.exists(key_arg) {
-			key_content = os.read_file(key_arg)!
-		} else if key_arg.contains('PRIVATE KEY') {
-			key_content = key_arg
-		} else {
-			return error('SSH key argument is neither a valid file path nor key content: ${key_arg}')
-		}
+	if output_path.len > 0 {
+		// Copy to specified output location
+		os.cp(file_path.path, output_path)!
+		println(output_path)
 	} else {
-		// Try environment variables
-		key_content = os.getenv('SECRETS_SSH_KEY')
-		if key_content == '' {
-			key_content = os.getenv('SSH_KEY')
-		}
+		// Just print the local path
+		println(file_path.path)
 	}
-
-	if key_content == '' {
-		return false
-	}
-
-	// Normalize key: replace escaped newlines and ensure trailing newline
-	mut final_key := key_content
-	if final_key.contains('\\n') {
-		final_key = final_key.replace('\\n', '\n')
-	}
-	final_key = final_key.trim_space()
-	if !final_key.ends_with('\n') {
-		final_key = final_key + '\n'
-	}
-
-	// Validate key format
-	if !final_key.contains('-----BEGIN') || !final_key.contains('-----END') {
-		return error('Invalid SSH key format: missing BEGIN/END markers')
-	}
-
-	// Store normalized key in env for later use
-	os.setenv('SECRETS_SSH_KEY', final_key, true)
-	return true
 }
 
-// Extract hostname from git URL
-fn extract_host_from_url(url string) string {
-	// Handle various URL formats:
-	// https://forge.ourworld.tf/org/repo
-	// git@forge.ourworld.tf:org/repo
-	// ssh://git@forge.ourworld.tf/org/repo
+// Find the best SSH key for a URL based on org/provider from loaded keys
+fn find_ssh_key_for_url(url string, keys sshkeys.SSHKeys) string {
+	// Parse URL to get org/provider
+	mut gs := gittools.new() or { return '' }
+	git_loc := gs.gitlocation_from_url(url) or { return '' }
 
-	if url.starts_with('https://') || url.starts_with('http://') {
-		// https://forge.ourworld.tf/org/repo
-		without_scheme := url.replace('https://', '').replace('http://', '')
-		return without_scheme.split('/')[0]
-	} else if url.starts_with('git@') {
-		// git@forge.ourworld.tf:org/repo
-		without_prefix := url.replace('git@', '')
-		if without_prefix.contains(':') {
-			return without_prefix.split(':')[0]
-		}
-		return without_prefix.split('/')[0]
-	} else if url.starts_with('ssh://') {
-		// ssh://git@forge.ourworld.tf/org/repo
-		without_scheme := url.replace('ssh://', '')
-		if without_scheme.contains('@') {
-			after_at := without_scheme.split('@')[1]
-			return after_at.split('/')[0]
-		}
-		return without_scheme.split('/')[0]
+	// Use sshkeys to find the best key for this repo
+	if key := keys.find_for_repo(git_loc.account, git_loc.provider) {
+		return key.content
 	}
 
 	return ''
-}
-
-// Clone secrets repository to a temp directory
-// Writes SSH key to temp file before clone, deletes after
-fn clone_secrets_repo(repo_url string) !string {
-	// Create temp directory for secrets
-	temp_base := '/tmp/hero_secrets_repo'
-	if !os.exists(temp_base) {
-		os.mkdir_all(temp_base)!
-	}
-
-	// Generate a unique path based on repo URL hash
-	repo_hash := repo_url.hash().str().replace('-', '')
-	repo_path := '${temp_base}/${repo_hash}'
-
-	// Get SSH key from env (already validated/normalized by prepare_ssh_key)
-	key_content := os.getenv('SECRETS_SSH_KEY')
-	
-	mut ssh_cmd := ''
-	mut temp_key_path := ''
-	
-	if key_content != '' {
-		// Write key to temp file
-		temp_key_path = '/tmp/hero_secrets_key_${repo_hash}'
-		os.write_file(temp_key_path, key_content)!
-		os.chmod(temp_key_path, 0o600)!
-		ssh_cmd = 'GIT_SSH_COMMAND="ssh -i ${temp_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"'
-	}
-
-	// Always clone fresh (we delete after sourcing anyway)
-	if os.exists(repo_path) {
-		os.rmdir_all(repo_path)!
-	}
-
-	result := os.execute('${ssh_cmd} git clone -q ${repo_url} ${repo_path}')
-	
-	// Delete temp key file immediately after clone
-	if temp_key_path != '' && os.exists(temp_key_path) {
-		os.rm(temp_key_path) or {}
-	}
-	
-	if result.exit_code != 0 {
-		return error('Failed to clone repository: ${result.output}')
-	}
-
-	return repo_path
 }
 

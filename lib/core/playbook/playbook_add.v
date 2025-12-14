@@ -3,7 +3,6 @@ module playbook
 import incubaid.herolib.core.texttools
 import incubaid.herolib.data.paramsparser
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.develop.gittools // Added import for gittools
 
 enum State {
 	start
@@ -12,29 +11,9 @@ enum State {
 	othertext
 }
 
-// pub struct PlayBookNewArgs {
-// 	path       string
-// 	text       string
-// 	git_url    string
-// 	git_pull   bool
-// 	git_branch string
-// 	git_reset  bool
-// 	prio       int = 50
-// 	priorities map[int]string // filter and give priority, see filtersort method to know how to use
-// replace    map[string]string
-// }
+// PlayBook.add() adds heroscript content from a local path or text.
 pub fn (mut plbook PlayBook) add(args_ PlayBookNewArgs) ! {
 	mut args := args_
-
-	if args.git_url.len > 0 {
-		mut git_path_args := gittools.GitPathGetArgs{
-			git_url:   args.git_url
-			git_pull:  args.git_pull
-			git_reset: args.git_reset
-		}
-		newpath := gittools.path(git_path_args)!
-		args.path = newpath.path
-	}
 
 	if plbook.path == '' && args.path != '' {
 		plbook.path = args.path
