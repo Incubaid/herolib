@@ -35,10 +35,10 @@ fn test_escape_regex_chars_empty() {
 }
 
 fn test_wildcard_to_regex_no_wildcard() {
-	// Pattern without wildcards returns substring matcher
-	assert wildcard_to_regex('config') == '.*config.*'
-	assert wildcard_to_regex('test.txt') == '.*test\\.txt.*'
-	assert wildcard_to_regex('hello') == '.*hello.*'
+	// Pattern without wildcards returns literal pattern (no implicit substring matching)
+	assert wildcard_to_regex('config') == 'config'
+	assert wildcard_to_regex('test.txt') == 'test\\.txt'
+	assert wildcard_to_regex('hello') == 'hello'
 }
 
 fn test_wildcard_to_regex_start_wildcard() {
@@ -75,14 +75,14 @@ fn test_wildcard_to_regex_only_wildcard() {
 }
 
 fn test_wildcard_to_regex_special_chars_in_pattern() {
-	// Patterns containing special regex characters should be escaped
-	assert wildcard_to_regex('[test]') == '.*\\[test\\].*'
-	assert wildcard_to_regex('test.file') == '.*test\\.file.*'
-	assert wildcard_to_regex('(test)') == '.*\\(test\\).*'
+	// Patterns containing special regex characters should be escaped (no implicit substring matching)
+	assert wildcard_to_regex('[test]') == '\\[test\\]'
+	assert wildcard_to_regex('test.file') == 'test\\.file'
+	assert wildcard_to_regex('(test)') == '\\(test\\)'
 }
 
 fn test_wildcard_to_regex_edge_cases() {
-	assert wildcard_to_regex('') == '.*.*'
-	assert wildcard_to_regex('a') == '.*a.*'
-	assert wildcard_to_regex('.') == '.*\\..*'
+	assert wildcard_to_regex('') == ''
+	assert wildcard_to_regex('a') == 'a'
+	assert wildcard_to_regex('.') == '\\.'
 }
