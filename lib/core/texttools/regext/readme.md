@@ -22,8 +22,11 @@ Converts simple wildcard patterns to regex patterns for flexible file matching.
 
 **Conversion rules:**
 - `*` becomes `.*` (matches any sequence of characters)
-- Literal text is escaped (special regex characters are escaped)
-- Patterns without `*` match as substrings anywhere
+- `?` becomes `.` (matches any single character)
+- Special regex characters are escaped (`. + ( ) [ ] { } ^ $ \ |`)
+- Patterns without wildcards return the literal pattern (no implicit `.*` wrapping)
+
+> **Note:** This function only converts wildcards to regex. It does NOT add implicit `^` and `$` anchors or `.*` wrappers. The caller is responsible for determining how the resulting pattern should be matched (e.g., substring vs exact match). When used with the `Matcher`, patterns without wildcards are treated as **exact matches**.
 
 ```v
 import incubaid.herolib.core.texttools.regext
@@ -36,9 +39,9 @@ pattern1 := regext.wildcard_to_regex("*.txt")
 pattern2 := regext.wildcard_to_regex("test*")
 // Result: "test.*"
 
-// Match anything containing 'config' (no wildcard)
+// Literal pattern (no wildcards) - returns as-is with escaped special chars
 pattern3 := regext.wildcard_to_regex("config")
-// Result: ".*config.*"
+// Result: "config"
 
 // Complex pattern with special chars
 pattern4 := regext.wildcard_to_regex("src/*.v")
@@ -47,6 +50,10 @@ pattern4 := regext.wildcard_to_regex("src/*.v")
 // Multiple wildcards
 pattern5 := regext.wildcard_to_regex("*test*file*")
 // Result: ".*test.*file.*"
+
+// For substring matching, use explicit wildcards:
+pattern6 := regext.wildcard_to_regex("*config*")
+// Result: ".*config.*"
 ```
 
 ## Regex Group Finders
