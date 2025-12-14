@@ -37,15 +37,17 @@ __global (
 @@[params]
 pub struct ArgsGet {
 pub mut:
-	name   string = "default"
-	fromdb bool   // load from Redis storage
-	create bool   // create if not exists (default: false)
+	name    string = "default"
+	version string  // Version of the client (required for new instances)
+	fromdb  bool    // load from Redis storage
+	create  bool    // create if not exists (default: false)
 }
 
-// Creates a new ${args.classname} instance with the given name.
+// Creates a new ${args.classname} instance with the given name and version.
 pub fn new(args ArgsGet) !&${args.classname} {
 	mut obj := ${args.classname}{
 			name: args.name
+			version: args.version
 		}
 	set(obj)!
 	return get(name:args.name)!

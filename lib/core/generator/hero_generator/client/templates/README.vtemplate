@@ -9,8 +9,7 @@ This module provides a client for ${args.classname}.
 ```hero
 !!${args.name}.configure
     name: 'default'
-    mail_server: 'smtp.example.com'
-    mail_port: 587
+    version: '1.0.0'
 ```
 
 ### Using V Code
@@ -23,9 +22,9 @@ fn main() {
     // Get the singleton instance
     mut obj := ${args.name}.get()!
 @else
-    // Create a new instance
-    mut obj := ${args.name}.new(name: 'myinstance')!
-    
+    // Create a new instance (version is required)
+    mut obj := ${args.name}.new(name: 'myinstance', version: '1.0.0')!
+
     // Or get an existing instance
     // mut obj := ${args.name}.get(name: 'myinstance')!
 @end
@@ -40,8 +39,7 @@ fn main() {
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `name` | string | 'default' | Instance name |
-| `mail_server` | string | '' | Mail server address |
-| `mail_port` | int | 0 | Mail server port |
+| `version` | string | '' | Version of the client (required) |
 
 ## API Reference
 
@@ -91,7 +89,8 @@ Create a `.vsh` example script to test your module interactively:
 
    import ${args.module_path}
 
-   mut client := ${args.name}.get(create: true)!
+   // Create a new instance (version is required)
+   mut client := ${args.name}.new(name: 'test', version: '1.0.0')!
 
    // Test your client operations here
    // result := client.some_operation()!

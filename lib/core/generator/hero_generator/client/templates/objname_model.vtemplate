@@ -10,8 +10,7 @@
 //! ```heroscript
 //! !!${args.name}.configure
 //!     name:'my_instance'
-//!     mail_server:'smtp.example.com'
-//!     mail_port:587
+//!     version:'1.0.0'
 //! ```
 //!
 //! ## V Code Usage
@@ -19,17 +18,14 @@
 //! ```v
 //! import ${args.module_path}
 //!
-//! // Create and configure
-//! mut obj := ${args.name}.new(name: 'my_instance')!
-//! obj.mail_server = 'smtp.example.com'
-//! obj.mail_port = 587
+//! // Create and configure (version is required)
+//! mut obj := ${args.name}.new(name: 'my_instance', version: '1.0.0')!
 //! ${args.name}.set(obj)!
 //! ```
 module ${args.name}
 
 import incubaid.herolib.data.encoderhero
 
-pub const version = '0.0.0'
 const singleton = ${args.singleton}
 const default = ${args.default}
 
@@ -39,15 +35,15 @@ const default = ${args.default}
 pub struct ${args.classname} {
 pub mut:
     name string = 'default'
-	mail_server string
-	mail_port   int
-	mail_user   string
-	mail_pass   string @@[secret]
+	version string  // Version of the client (required)
 }
 
 // Initializes and validates a ${args.classname} instance.
 fn obj_init(mycfg_ ${args.classname})!${args.classname}{
     mut mycfg:=mycfg_
+    if mycfg.version == '' {
+        return error('version is required for ${args.classname}')
+    }
     return mycfg
 }
 
