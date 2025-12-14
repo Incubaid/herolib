@@ -63,14 +63,15 @@ pub mut:
 }
 
 // Deploys ${args.name} to the Kubernetes cluster.
-fn (mut self ${args.classname}) install(args InstallArgs) ! {
+fn install(args InstallArgs) ! {
+	mut self := get(name: ${args.name}_default)!
 	console.print_header('Installing ${args.classname}...')
 
 	k8app := self.k8app or { return error('k8app not initialized') }
 	mut k8s := k8app.kube_client
 
 	if args.reset {
-		self.destroy()!
+		destroy()!
 	}
 
 	// Configure and generate YAML from templates
@@ -109,10 +110,11 @@ fn (mut self ${args.classname}) install(args InstallArgs) ! {
 }
 
 // Removes the ${args.name} deployment from the Kubernetes cluster.
-fn (mut self ${args.classname}) destroy() ! {
+fn destroy() ! {
+	mut self := get(name: ${args.name}_default)!
 	k8app := self.k8app or { return error('k8app not initialized') }
 	mut k8s := k8app.kube_client
-	
+
 	core.destroy_namespace(mut k8s, k8app.namespace)!
 }
 

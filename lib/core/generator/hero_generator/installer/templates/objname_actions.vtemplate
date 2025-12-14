@@ -36,9 +36,11 @@ pub mut:
 }
 
 // Returns the list of processes to be managed by the startup manager.
-fn startupcmd(self &${args.classname}, args StartArgs) ![]startupmanager.ZProcessNewArgs {
+fn startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
+	mut self := get(name: ${args.name}_default)!
 	mut res := []startupmanager.ZProcessNewArgs{}
-	_ = args.reset  // TODO: use reset flag if needed
+	_ = args.reset  // use reset flag if needed
+	_ = self  // use self if needed
 
 	// Example: Add a process to be managed
 	// res << startupmanager.ZProcessNewArgs{
@@ -51,7 +53,9 @@ fn startupcmd(self &${args.classname}, args StartArgs) ![]startupmanager.ZProces
 }
 
 // Performs a health check to verify the service is running correctly.
-fn running_check(self &${args.classname}) !bool {
+fn running_check() !bool {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
 	// Example: HTTP health check
 	// url := 'http://127.0.0.1:??{self.port}/health'
 	// mut conn := httpconnection.new(name: '${args.name}', url: url)!
@@ -61,26 +65,36 @@ fn running_check(self &${args.classname}) !bool {
 }
 
 // Hook called before the service starts.
-fn start_pre(self &${args.classname}) ! {
+fn start_pre() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
 }
 
 // Hook called after the service starts successfully.
-fn start_post(self &${args.classname}) ! {
+fn start_post() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
 }
 
 // Hook called before the service stops.
-fn stop_pre(self &${args.classname}) ! {
+fn stop_pre() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
 }
 
 // Hook called after the service stops.
-fn stop_post(self &${args.classname}) ! {
+fn stop_post() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
 }
 @end
 
 //////////////////// INSTALLATION ACTIONS
 
 // Checks if ${args.name} is installed at the required version.
-fn installed_check(self &${args.classname}) !bool {
+fn installed_check() !bool {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
 	// Example: Check if binary exists and version matches
 	// res := os.execute('${args.name} version')
 	// if res.exit_code != 0 { return false }
@@ -110,20 +124,24 @@ pub mut:
 }
 
 // Installs ${args.name} on the system.
-fn install(mut self ${args.classname}, args InstallArgs) ! {
+fn install(args InstallArgs) ! {
+	mut self := get(name: ${args.name}_default)!
 	console.print_header('install ${args.name}')
-	_ = args.reset  // TODO: use reset to force reinstall
+	_ = args.reset  // use reset to force reinstall
+	_ = self  // use self if needed
 
-	// TODO: Implement installation logic
+	// Implement installation logic
 	// See lib/installers/ for examples of downloading and installing binaries
 }
 
 @if args.build
 // Builds ${args.name} from source.
-fn build(mut self ${args.classname}) ! {
+fn build() ! {
+	mut self := get(name: ${args.name}_default)!
 	console.print_header('build ${args.name}')
+	_ = self  // use self if needed
 
-	// TODO: Implement build logic
+	// Implement build logic
 	// See lib/installers/ for examples of building from source
 }
 @end
@@ -131,14 +149,17 @@ fn build(mut self ${args.classname}) ! {
 // Destroys the ${args.name} installation.
 @if args.startupmanager
 // Stops the service and removes all installed files.
-fn destroy(mut self ${args.classname}) ! {
+fn destroy() ! {
+	mut self := get(name: ${args.name}_default)!
 	self.stop()!
-	// TODO: Implement cleanup logic
+	// Implement cleanup logic
 }
 @else
 // Removes all installed files and configuration.
-fn destroy(mut self ${args.classname}) ! {
-	// TODO: Implement cleanup logic
+fn destroy() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+	// Implement cleanup logic
 }
 @end
 

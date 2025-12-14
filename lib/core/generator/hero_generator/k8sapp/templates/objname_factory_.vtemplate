@@ -188,6 +188,11 @@ pub fn (mut self ${args.classname}) reload() ! {
     self=obj_init(self)!
 }
 
+// Saves the ${args.classname} instance to Redis storage.
+pub fn (self &${args.classname}) save() ! {
+    set(*self)!
+}
+
 // Switches the default ${args.classname} instance to use.
 pub fn switch(name string) {
 @if ! args.singleton
@@ -195,3 +200,27 @@ pub fn switch(name string) {
 @end
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////# PUBLIC LIFECYCLE WRAPPERS //////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Installs ${args.name} to the Kubernetes cluster.
+pub fn (mut self ${args.classname}) install(args InstallArgs) ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    install(args)!
+}
+
+// Destroys the ${args.name} deployment from the Kubernetes cluster.
+pub fn (mut self ${args.classname}) destroy() ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    destroy()!
+}
+
+// Checks if ${args.name} is deployed.
+pub fn (self &${args.classname}) installed() !bool {
+    return installed()!
+}

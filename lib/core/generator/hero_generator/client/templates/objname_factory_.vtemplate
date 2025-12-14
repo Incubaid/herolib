@@ -167,10 +167,14 @@ pub fn (mut self ${args.classname}) reload() ! {
     self=obj_init(self)!
 }
 
+// Saves the ${args.classname} instance to Redis storage.
+pub fn (self &${args.classname}) save() ! {
+    set(*self)!
+}
+
 // Switches the default ${args.classname} instance to use.
 pub fn switch(name string) {
 @if ! args.singleton
 	${args.name}_default = name
 @end
 }
-
