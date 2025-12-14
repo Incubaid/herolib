@@ -75,6 +75,7 @@ hero generate scan -g
 ### Client
 - Factory pattern with Redis-based persistence
 - CRUD operations: new, get, set, delete, exists, list
+- Instance methods: save, reload
 - No lifecycle management
 
 ### K8sapp

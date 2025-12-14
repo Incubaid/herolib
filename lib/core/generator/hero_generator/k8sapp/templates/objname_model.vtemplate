@@ -61,7 +61,7 @@ fn obj_init(mycfg_ ${args.classname})!${args.classname}{
 
 // Generates Kubernetes YAML manifests from templates.
 fn configure() ! {
-	mut installer := get()!
+	mut installer := get(name: ${args.name}_default)!
 	
 	k8app := installer.k8app or { return error('k8app not initialized') }
 	mut k8s := k8app.kube_client
