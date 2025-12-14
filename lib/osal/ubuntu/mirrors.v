@@ -42,8 +42,6 @@ fn test_download_speed(mirror string) f64 {
 		return -1.0
 	}
 	size_kb := f64(resp.body.len) / 1024.0
-	println(size_kb)
-	$dbg;
 	return size_kb / elapsed // KB/sec
 }
 

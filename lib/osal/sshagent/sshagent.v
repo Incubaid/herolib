@@ -77,7 +77,6 @@ pub fn (mut agent SSHAgent) cleanup_orphaned_agents() ! {
 			}
 		}
 	}
-	$dbg;
 }
 
 // check if specific agent PID is valid and responsive

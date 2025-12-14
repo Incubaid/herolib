@@ -270,7 +270,6 @@ pub fn profile_handle(mut f ModelsFactory, rpcid int, servercontext map[string]s
 		}
 		else {
 			println('Method not found on profile: ${method}')
-			$dbg;
 			return new_error(rpcid,
 				code:    32601
 				message: 'Method ${method} not found on profile'
