@@ -2,7 +2,7 @@ module heromodels
 
 import incubaid.herolib.develop.gittools
 import incubaid.herolib.core.pathlib
-import incubaid.herolib.lib.develop.codewalker
+// import incubaid.herolib.lib.develop.codewalker
 
 pub fn aiprompts_path() !string {
 	return instructions_cache['aiprompts_path'] or {
@@ -26,14 +26,13 @@ pub fn ai_instructions_vlang_herolib_core() !string {
 	return ppath.read()!
 }
 
-pub fn ai_instructions_herolib_core_all() !string {
-	path := '${aiprompts_path()!}/herolib_core'
-	mut cw := codewalker.new()!
-	mut filemap := cw.filemap_get(
-		path: path
-	)!
+// Code walker module is gone, TODO: implement the replacement?
+// pub fn ai_instructions_herolib_core_all() !string {
+// 	path := '${aiprompts_path()!}/herolib_core'
+// 	mut cw := codewalker.new()!
+// 	mut filemap := cw.filemap_get(
+// 		path: path
+// 	)!
 
-	println(false)
-	$dbg;
-	return filemap.content()
-}
+// 	return filemap.content()
+// }
