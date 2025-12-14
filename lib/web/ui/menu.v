@@ -16,10 +16,6 @@ pub fn get_default_menu() []MenuItem {
 			href:  '/admin/chat'
 		},
 		MenuItem{
-			title: 'Heroprompt'
-			href:  '/admin/heroprompt'
-		},
-		MenuItem{
 			title:    'Users'
 			children: [
 				MenuItem{
