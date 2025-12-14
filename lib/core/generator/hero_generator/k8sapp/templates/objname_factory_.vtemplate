@@ -28,8 +28,6 @@ import incubaid.herolib.core.base
 import json
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.ui.console
-import incubaid.herolib.installers.ulist
-import time
 
 __global (
 	${args.name}_global map[string]&${args.classname}

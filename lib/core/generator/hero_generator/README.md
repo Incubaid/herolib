@@ -11,8 +11,7 @@ lib/core/generator/
     ├── generator.v           # prepare_meta() - prepares metadata
     ├── heroscript.v          # args_get(), create_heroscript()
     ├── interactive.v         # prompt_interactive() - interactive mode
-    ├── scanner.v             # scan_modules(), generate_play_all()
-    ├── templates/            # play_all.vtemplate
+    ├── scanner.v             # scan_modules(), register_in_factory()
     ├── installer/            # Installer-specific generator
     │   ├── generate.v        # generate_exec()
     │   └── templates/        # Installer templates
@@ -43,6 +42,8 @@ run_generator(meta, reset):
         .installer → installer.generate_exec()
         .client    → client.generate_exec()
         .k8sapp    → k8sapp.generate_exec()
+
+    register_in_factory(meta)  # Auto-registers module in factory.v
 ```
 
 ## Usage
@@ -81,3 +82,10 @@ hero generate scan -g
 - Deploy/destroy operations
 - Always includes templates directory
 
+## Automatic Registration
+
+When a module is generated, it is automatically registered in `lib/core/playcmds/factory.v`:
+1. An import statement is added
+2. A `module.play(mut plbook)!` call is inserted before the empty check
+
+This allows the module to be immediately usable via HeroScript without manual registration.
