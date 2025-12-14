@@ -1,0 +1,58 @@
+//! ${args.classname} Data Model
+//!
+//! This module defines the data model and configuration structure for ${args.classname}.
+//! It includes the main struct definition, initialization logic, and HeroScript parsing.
+//!
+//! ## Configuration
+//!
+//! The ${args.classname} struct can be configured via HeroScript:
+//!
+//! ```heroscript
+//! !!${args.name}.configure
+//!     name:'my_instance'
+//!     version:'1.0.0'
+//! ```
+//!
+//! ## V Code Usage
+//!
+//! ```v
+//! import ${args.module_path}
+//!
+//! // Create and configure (version is required)
+//! mut obj := ${args.name}.new(name: 'my_instance', version: '1.0.0')!
+//! ${args.name}.set(obj)!
+//! ```
+module ${args.name}
+
+import incubaid.herolib.data.encoderhero
+
+const singleton = ${args.singleton}
+const default = ${args.default}
+
+// ${args.classname} represents the configuration and state for the ${args.name} client.
+// Use the factory functions (new, get, set) to manage instances.
+^^[heap]
+pub struct ${args.classname} {
+pub mut:
+    name string = 'default'
+	version string  // Version of the client (required)
+}
+
+// Initializes and validates a ${args.classname} instance.
+fn obj_init(mycfg_ ${args.classname})!${args.classname}{
+    mut mycfg:=mycfg_
+    if mycfg.version == '' {
+        return error('version is required for ${args.classname}')
+    }
+    return mycfg
+}
+
+
+/////////////HEROSCRIPT INTEGRATION
+
+// Parses a HeroScript string and returns a ${args.classname} instance.
+pub fn heroscript_loads(heroscript string) !${args.classname} {
+    mut obj := encoderhero.decode[${args.classname}](heroscript)!
+    return obj
+}
+

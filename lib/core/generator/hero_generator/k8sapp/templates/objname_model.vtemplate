@@ -1,0 +1,94 @@
+//! ${args.classname} Data Model
+//!
+//! This module defines the data model and configuration structure for ${args.classname}.
+//! It includes the main struct definition, initialization logic, and HeroScript parsing.
+//!
+//! ## Configuration
+//!
+//! The ${args.classname} struct can be configured via HeroScript:
+//!
+//! ```heroscript
+//! !!${args.name}.configure
+//!     name:'my_instance'
+//!     namespace:'my-namespace'
+//! ```
+//!
+//! ## V Code Usage
+//!
+//! ```v
+//! import ${args.module_path}
+//!
+//! // Create and configure
+//! mut obj := ${args.name}.new(name: 'my_instance')!
+//! ${args.name}.set(obj)!
+//! obj.install()!
+//! ```
+module ${args.name}
+
+import incubaid.herolib.ui.console
+import incubaid.herolib.data.encoderhero
+import incubaid.herolib.k8_apps.core
+import incubaid.herolib.core.pathlib
+
+pub const version = '0.0.0'
+const singleton = ${args.singleton}
+const default = ${args.default}
+
+// ${args.classname} represents the configuration and state for the ${args.name} Kubernetes app.
+// Use the factory functions (new, get, set) to manage instances.
+^^[heap]
+pub struct ${args.classname} {
+pub mut:
+    name            string = 'default'
+	deployment_path string = '/tmp/${args.name}/deployment.yaml'
+	k8app           ?core.K8App @@[skip]
+}
+
+// Initializes and validates a ${args.classname} instance.
+fn obj_init(mycfg_ ${args.classname})!${args.classname}{
+    mut mycfg:=mycfg_
+    
+    // Set default namespace based on instance name
+    namespace := '??{mycfg.name}-${args.name}-namespace'
+    
+    mycfg.k8app = core.k8app(
+        app_name: '${args.name}'
+        app_instance: mycfg.name
+        namespace: namespace
+    )!
+    return mycfg
+}
+
+// Generates Kubernetes YAML manifests from templates.
+fn configure() ! {
+	mut installer := get(name: ${args.name}_default)!
+	
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+
+	// Get master node IPs for backend configuration
+	master_ips := core.get_master_node_ips(mut k8s)!
+	console.print_info('Master node IPs: ??{master_ips}')
+
+	// Ensure the output directory exists
+	_ := pathlib.get_dir(path: '/tmp/${args.name}', create: true)!
+
+	console.print_info('Generating YAML files from templates...')
+	
+	// Generate deployment YAML from template
+	deployment_yaml := ??tmpl('./templates/deployment.yaml')
+	mut deployment_path := pathlib.get_file(path: installer.deployment_path, create: true)!
+	deployment_path.write(deployment_yaml)!
+
+	console.print_info('YAML files generated successfully.')
+}
+
+
+/////////////HEROSCRIPT INTEGRATION
+
+// Parses a HeroScript string and returns a ${args.classname} instance.
+pub fn heroscript_loads(heroscript string) !${args.classname} {
+    mut obj := encoderhero.decode[${args.classname}](heroscript)!
+    return obj
+}
+

@@ -13,28 +13,28 @@ const default = true
 @[heap]
 pub struct K3SInstaller {
 pub mut:
-	name               string = 'default'
+	name string = 'default'
 	// K3s version to install
-	k3s_version        string = version
+	k3s_version string = version
 	// Data directory for K3s (default: ~/hero/var/k3s)
-	data_dir           string
+	data_dir string
 	// Unique node name/identifier
-	node_name          string
+	node_name string
 	// Mycelium interface name (auto-detected if not specified)
 	mycelium_interface string
 	// Cluster token for authentication (auto-generated if empty)
-	token              string
+	token string
 	// Master URL for joining cluster (e.g., 'https://[ipv6]:6443')
-	master_url         string
+	master_url string
 	// Node IPv6 address (auto-detected from Mycelium if empty)
-	node_ip            string
+	node_ip string
 	// Is this a master/control-plane node?
-	is_master          bool
+	is_master bool
 	// Is this the first master (uses --cluster-init)?
-	is_first_master    bool
+	is_first_master bool
 	// TFGW CRD config (only deployed on first master)
-	tfgw_mnemonic      string  // Wallet mnemonic for TFGW controller
-	tfgw_network       string  // Network: main, dev, test, qa
+	tfgw_mnemonic string // Wallet mnemonic for TFGW controller
+	tfgw_network  string // Network: main, dev, test, qa
 }
 
 // Template values for TFGW CRD manifest rendering
@@ -42,7 +42,7 @@ struct TfgwTemplateValues {
 pub:
 	mnemonic string
 	network  string
-	token    string  // Empty for unencrypted mnemonic
+	token    string // Empty for unencrypted mnemonic
 }
 
 // your checking & initialization code if needed
@@ -248,7 +248,7 @@ fn deploy_manifests(cfg &K3SInstaller, manifests_dir string) ! {
 	tfgw_values := TfgwTemplateValues{
 		mnemonic: cfg.tfgw_mnemonic
 		network:  cfg.tfgw_network
-		token:    ''  // Empty for unencrypted mnemonic
+		token:    '' // Empty for unencrypted mnemonic
 	}
 
 	// Render and write TFGW CRD template

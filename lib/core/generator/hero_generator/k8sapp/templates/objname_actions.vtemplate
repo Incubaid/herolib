@@ -1,0 +1,120 @@
+//! ${args.classname} Actions Module
+//!
+//! This module contains the Kubernetes deployment actions for ${args.classname}:
+//! - install: Deploy the application to Kubernetes
+//! - destroy: Remove the deployment from Kubernetes
+//!
+//! ## Usage
+//!
+//! These actions are typically invoked via HeroScript:
+//!
+//! ```heroscript
+//! !!${args.name}.install
+//! !!${args.name}.destroy
+//! ```
+module ${args.name}
+
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.ulist
+import incubaid.herolib.k8_apps.core
+import time
+
+//////////////////// KUBERNETES DEPLOYMENT ACTIONS
+
+// Checks if the ${args.name} deployment is running in the cluster.
+fn installed() !bool {
+	installer := get()!
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+
+	// Try to get the deployment
+	deployments := k8s.get_deployments(k8app.namespace) or {
+		return false
+	}
+
+	// Check if deployment exists
+	for deployment in deployments {
+		if deployment.name == '${args.name}' {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Returns a list of files produced by building ${args.name}.
+fn ulist_get() !ulist.UList {
+	return ulist.UList{}
+}
+
+// Uploads built artifacts to configured S3 storage.
+fn upload() ! {
+	// Example:
+	// installers.upload(
+	// 	cmdname: '${args.name}'
+	// 	source: '/path/to/artifact'
+	// )!
+}
+
+^^[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
+}
+
+// Deploys ${args.name} to the Kubernetes cluster.
+fn install(args InstallArgs) ! {
+	mut self := get(name: ${args.name}_default)!
+	console.print_header('Installing ${args.classname}...')
+
+	k8app := self.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+
+	if args.reset {
+		destroy()!
+	}
+
+	// Configure and generate YAML from templates
+	configure()!
+
+	// Check for kubectl
+	console.print_info('Checking for kubectl...')
+	core.kubectl_installed(mut k8s)!
+	console.print_info('kubectl is installed and configured.')
+
+	// Apply the deployment YAML
+	console.print_info('Applying deployment YAML to the cluster...')
+	res := k8s.apply_yaml(self.deployment_path)!
+	if !res.success {
+		return error('Failed to apply deployment.yaml: ??{res.stderr}')
+	}
+	console.print_info('Deployment YAML applied successfully.')
+
+	// Verify deployment status
+	console.print_info('Verifying deployment status...')
+	mut is_running := false
+	for i in 0 .. core.max_deployment_retries {
+		if installed()! {
+			is_running = true
+			break
+		}
+		console.print_info('Waiting for deployment to be ready... (??{i + 1}/??{core.max_deployment_retries})')
+		time.sleep(core.deployment_check_interval_seconds * time.second)
+	}
+
+	if is_running {
+		console.print_header('${args.classname} installation successful!')
+	} else {
+		return error('${args.classname} deployment failed to start.')
+	}
+}
+
+// Removes the ${args.name} deployment from the Kubernetes cluster.
+fn destroy() ! {
+	mut self := get(name: ${args.name}_default)!
+	k8app := self.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+
+	core.destroy_namespace(mut k8s, k8app.namespace)!
+}
+

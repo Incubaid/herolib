@@ -25,10 +25,10 @@ fn (self &Osirisrunner) startupcmd(args StartArgs) ![]startupmanager.ZProcessNew
 	version_result := osal.execute_silent('${self.binary_path} --version') or {
 		return error('Failed to get osiris runner version: ${err}')
 	}
-	
+
 	// Standardize version format
 	version := texttools.version(version_result.trim_space())
-	
+
 	// Ensure redis_addr has the redis:// prefix
 	redis_url := if self.redis_addr.starts_with('redis://') {
 		self.redis_addr

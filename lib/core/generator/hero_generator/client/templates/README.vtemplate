@@ -1,0 +1,103 @@
+# ${args.classname}
+
+This module provides a client for ${args.classname}.
+
+## Quick Start
+
+### Using HeroScript
+
+```hero
+!!${args.name}.configure
+    name: 'default'
+    version: '1.0.0'
+```
+
+### Using V Code
+
+```v
+import incubaid.herolib.clients.${args.name}
+
+fn main() {
+@if args.singleton
+    // Get the singleton instance
+    mut obj := ${args.name}.get()!
+@else
+    // Create a new instance (version is required)
+    mut obj := ${args.name}.new(name: 'myinstance', version: '1.0.0')!
+
+    // Or get an existing instance
+    // mut obj := ${args.name}.get(name: 'myinstance')!
+@end
+
+    // Use the client
+    // result := obj.some_operation()!
+}
+```
+
+## Configuration
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `name` | string | 'default' | Instance name |
+| `version` | string | '' | Version of the client (required) |
+
+## API Reference
+
+### Factory Functions
+
+| Function | Description |
+|----------|-------------|
+@if args.singleton
+| `get()` | Get the singleton instance |
+@else
+| `new(name, create)` | Create or get an instance |
+| `get(name)` | Get an existing instance |
+| `set(obj)` | Store an instance |
+| `exists(name)` | Check if instance exists |
+| `list()` | List all instances |
+| `delete(name)` | Delete an instance |
+@end
+| `play(heroscript)` | Execute HeroScript |
+| `heroscript_loads(script)` | Load config from HeroScript |
+
+## HeroScript Actions
+
+| Action | Description |
+|--------|-------------|
+| `!!${args.name}.configure` | Configure instance |
+
+## Testing
+
+Run the module tests:
+
+```bash
+v test lib/clients/${args.name}/
+```
+
+### Testing Best Practice
+
+Create a `.vsh` example script to test your module interactively:
+
+1. Create the example directory:
+   ```bash
+   mkdir -p examples/clients/${args.name}
+   ```
+
+2. Create `examples/clients/${args.name}/${args.name}.vsh`:
+   ```v
+   #!/usr/bin/env -S v -n -w -gc none -cc tcc -d use_openssl -enable-globals run
+
+   import ${args.module_path}
+
+   // Create a new instance (version is required)
+   mut client := ${args.name}.new(name: 'test', version: '1.0.0')!
+
+   // Test your client operations here
+   // result := client.some_operation()!
+   ```
+
+3. Run the example:
+   ```bash
+   examples/clients/${args.name}/${args.name}.vsh
+   ```
+

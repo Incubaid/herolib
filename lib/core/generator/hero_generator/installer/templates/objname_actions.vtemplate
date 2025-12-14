@@ -1,0 +1,165 @@
+//! ${args.classname} Actions Module
+//!
+//! This module contains the lifecycle actions for ${args.classname}:
+//! - install: Download and install the software
+//! - destroy: Remove the installation
+@if args.startupmanager
+//! - start/stop/restart: Service lifecycle management
+@end
+@if args.build
+//! - build: Compile from source
+@end
+//!
+//! ## Usage
+//!
+//! These actions are typically invoked via HeroScript:
+//!
+//! ```heroscript
+//! !!${args.name}.install
+@if args.startupmanager
+//! !!${args.name}.start
+@end
+//! ```
+module ${args.name}
+
+import incubaid.herolib.ui.console
+import incubaid.herolib.installers.ulist
+@if args.startupmanager
+import incubaid.herolib.osal.startupmanager
+@end
+
+@if args.startupmanager
+^^[params]
+pub struct StartArgs {
+pub mut:
+	reset bool
+}
+
+// Returns the list of processes to be managed by the startup manager.
+fn startupcmd(args StartArgs) ![]startupmanager.ZProcessNewArgs {
+	mut self := get(name: ${args.name}_default)!
+	mut res := []startupmanager.ZProcessNewArgs{}
+	_ = args.reset  // use reset flag if needed
+	_ = self  // use self if needed
+
+	// Example: Add a process to be managed
+	// res << startupmanager.ZProcessNewArgs{
+	// 	name: '${args.name}'
+	// 	cmd: '${args.name} server'
+	// 	reset: args.reset
+	// 	env: { 'HOME': '/root' }
+	// }
+	return res
+}
+
+// Performs a health check to verify the service is running correctly.
+fn running_check() !bool {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+	// Example: HTTP health check
+	// url := 'http://127.0.0.1:??{self.port}/health'
+	// mut conn := httpconnection.new(name: '${args.name}', url: url)!
+	// r := conn.get(prefix: 'health') or { return false }
+	// return r.status == 200
+	return false
+}
+
+// Hook called before the service starts.
+fn start_pre() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+}
+
+// Hook called after the service starts successfully.
+fn start_post() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+}
+
+// Hook called before the service stops.
+fn stop_pre() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+}
+
+// Hook called after the service stops.
+fn stop_post() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+}
+@end
+
+//////////////////// INSTALLATION ACTIONS
+
+// Checks if ${args.name} is installed at the required version.
+fn installed_check() !bool {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+	// Example: Check if binary exists and version matches
+	// res := os.execute('${args.name} version')
+	// if res.exit_code != 0 { return false }
+	// installed_version := res.output.trim_space()
+	// return texttools.version(version) == texttools.version(installed_version)
+	return false
+}
+
+// Returns a list of files produced by building ${args.name}.
+fn ulist_get() !ulist.UList {
+	return ulist.UList{}
+}
+
+// Uploads built artifacts to configured S3 storage.
+fn upload() ! {
+	// Example:
+	// installers.upload(
+	// 	cmdname: '${args.name}'
+	// 	source: '/path/to/binary'
+	// )!
+}
+
+^^[params]
+pub struct InstallArgs {
+pub mut:
+	reset bool
+}
+
+// Installs ${args.name} on the system.
+fn install(args InstallArgs) ! {
+	mut self := get(name: ${args.name}_default)!
+	console.print_header('install ${args.name}')
+	_ = args.reset  // use reset to force reinstall
+	_ = self  // use self if needed
+
+	// Implement installation logic
+	// See lib/installers/ for examples of downloading and installing binaries
+}
+
+@if args.build
+// Builds ${args.name} from source.
+fn build() ! {
+	mut self := get(name: ${args.name}_default)!
+	console.print_header('build ${args.name}')
+	_ = self  // use self if needed
+
+	// Implement build logic
+	// See lib/installers/ for examples of building from source
+}
+@end
+
+// Destroys the ${args.name} installation.
+@if args.startupmanager
+// Stops the service and removes all installed files.
+fn destroy() ! {
+	mut self := get(name: ${args.name}_default)!
+	self.stop()!
+	// Implement cleanup logic
+}
+@else
+// Removes all installed files and configuration.
+fn destroy() ! {
+	mut self := get(name: ${args.name}_default)!
+	_ = self  // use self if needed
+	// Implement cleanup logic
+}
+@end
+

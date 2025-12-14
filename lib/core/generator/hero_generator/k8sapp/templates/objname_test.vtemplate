@@ -1,0 +1,107 @@
+//! ${args.classname} Tests
+//!
+//! Unit tests for the ${args.classname} Kubernetes application module.
+//! Tests cover factory functions, deployment operations, and HeroScript integration.
+//!
+//! ## Running Tests
+//!
+//! ```bash
+//! v -enable-globals test ${args.module_path}/
+//! ```
+module ${args.name}
+
+import incubaid.herolib.core.base
+
+// Test factory functions for ${args.classname}
+fn testsuite_begin() ! {
+	base.context(reload: true)!
+}
+
+fn test_new_and_get() ! {
+	// Create new instance
+	mut obj := new(name: 'test_instance', create: true)!
+	assert obj.name == 'test_instance'
+
+	// Get existing instance
+	mut obj2 := get(name: 'test_instance')!
+	assert obj2.name == 'test_instance'
+}
+
+fn test_set_and_exists() ! {
+	// Create and set instance
+	mut obj := ${args.classname}{
+		name: 'test_set'
+	}
+	set(obj)!
+
+	// Check exists
+	assert exists(name: 'test_set')! == true
+	assert exists(name: 'nonexistent')! == false
+}
+
+fn test_list() ! {
+	// Create test instances
+	new(name: 'list_test_1', create: true)!
+	new(name: 'list_test_2', create: true)!
+
+	// List all instances
+	instances := list()!
+	assert instances.len >= 2
+}
+
+fn test_delete() ! {
+	// Create instance
+	new(name: 'to_delete', create: true)!
+	assert exists(name: 'to_delete')! == true
+
+	// Delete instance
+	delete(name: 'to_delete')!
+	assert exists(name: 'to_delete')! == false
+}
+
+fn test_heroscript_loads() ! {
+	heroscript := '
+!!${args.name}.configure
+    name: "heroscript_test"
+'
+	obj := heroscript_loads(heroscript)!
+	assert obj.name == 'heroscript_test'
+}
+
+fn test_install() ! {
+	mut obj := get(name: 'install_test', create: true)!
+
+	// Test install (may fail if k8s not configured - that's expected in test environment)
+	obj.install() or {
+		// Installation may fail in test environment, log but don't fail test
+		println('Install test skipped: ??{err}')
+		return
+	}
+
+	// Verify installed
+	assert installed()! == true
+}
+
+fn test_destroy() ! {
+	mut obj := get(name: 'destroy_test', create: true)!
+
+	// Install first (skip if fails)
+	obj.install() or {
+		println('Destroy test skipped: install failed')
+		return
+	}
+
+	// Destroy
+	obj.destroy()!
+
+	// Verify destroyed
+	assert installed()! == false
+}
+
+fn testsuite_end() ! {
+	// Cleanup test instances
+	for name in ['test_instance', 'test_set', 'list_test_1', 'list_test_2', 'heroscript_test', 'install_test', 'destroy_test'] {
+		delete(name: name) or {}
+	}
+}
+

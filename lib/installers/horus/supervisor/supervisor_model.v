@@ -21,7 +21,7 @@ pub mut:
 	ws_port     int    = 9654
 	log_level   string = 'info'
 	repo_path   string = '/root/code/git.ourworld.tf/herocode/horus'
-	secret   string = 'secret'
+	secret      string = 'secret'
 }
 
 // your checking & initialization code if needed

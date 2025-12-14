@@ -1,17 +1,39 @@
+//! ${args.classname} Factory Module
+//!
+//! This module provides factory functions for creating, retrieving, and managing
+//! ${args.classname} instances. It implements the HeroLib factory pattern with
+//! Redis-based persistence for configuration storage.
+//!
+//! ## Quick Start
+//!
+//! ```v
+//! import ${args.module_path}
+//!
+//! // Create a new instance (version is required)
+//! mut obj := ${args.name}.new(name: 'my_instance', version: '1.0.0')!
+//!
+//! // Or get an existing instance
+//! mut obj := ${args.name}.get(name: 'my_instance', version: '1.0.0')!
+//! ```
+//!
+//! ## HeroScript Usage
+//!
+//! ```heroscript
+//! !!${args.name}.configure name:'my_instance' version:'1.0.0'
+//! !!${args.name}.install
+@if args.startupmanager
+//! !!${args.name}.start
+@end
+//! ```
 module ${args.name}
 
-@if args.hasconfig
 import incubaid.herolib.core.base
-@end
+import json
 import incubaid.herolib.core.playbook { PlayBook }
 import incubaid.herolib.ui.console
-import json
-
-@if args.cat == .installer
-import incubaid.herolib.osal.startupmanager
 @if args.startupmanager
+import incubaid.herolib.osal.startupmanager
 import time
-@end
 @end
 
 __global (
@@ -21,31 +43,26 @@ __global (
 
 /////////FACTORY
 
-@if args.hasconfig
 @@[params]
 pub struct ArgsGet {
 pub mut:
-	name  string = "default"
-	fromdb bool //will load from filesystem
-	create bool //default will not create if not exist
+	name    string = "default"
+	version string  // Version to install (required)
+	fromdb  bool   // load from Redis storage
+	create  bool   // create if not exists (default: false)
 }
-@else
-@@[params]
-pub struct ArgsGet {
-pub mut:
-	name  string = "default"
-}
-@end
 
-@if args.hasconfig
+// Creates a new ${args.classname} instance with the given name and version.
 pub fn new(args ArgsGet) !&${args.classname} {
 	mut obj := ${args.classname}{
 			name: args.name
+			version: args.version
 		}
 	set(obj)!
-	return get(name:args.name)!
+	return get(name:args.name, version:args.version)!
 }
 
+// Retrieves a ${args.classname} instance by name.
 pub fn get(args ArgsGet) !&${args.classname} {
 	mut context := base.context()!
 	${args.name}_default = args.name
@@ -67,7 +84,7 @@ pub fn get(args ArgsGet) !&${args.classname} {
 				return error("${args.classname} with name '??{args.name}' does not exist")
 			}
 		}
-		return get(name: args.name)! //no longer from db nor create
+		return get(name: args.name, version: args.version)!
 	}
 	return ${args.name}_global[args.name] or {
         print_backtrace()
@@ -75,7 +92,7 @@ pub fn get(args ArgsGet) !&${args.classname} {
 	}
 }
 
-// register the config for the future
+// Persists the ${args.classname} configuration to Redis storage.
 pub fn set(o ${args.classname}) ! {
 	mut o2:=set_in_mem(o)!
 	${args.name}_default = o2.name
@@ -84,13 +101,14 @@ pub fn set(o ${args.classname}) ! {
 	r.hset('context:${args.name}', o2.name, json.encode(o2))!
 }
 
-// does the config exists?
+// Checks if a ${args.classname} instance exists in Redis storage.
 pub fn exists(args ArgsGet) !bool {
 	mut context := base.context()!
 	mut r := context.redis()!
 	return r.hexists('context:${args.name}', args.name)!
 }
 
+// Deletes a ${args.classname} instance from Redis storage.
 pub fn delete(args ArgsGet) ! {
 	mut context := base.context()!
 	mut r := context.redis()!
@@ -100,28 +118,25 @@ pub fn delete(args ArgsGet) ! {
 @@[params]
 pub struct ArgsList {
 pub mut:
-	fromdb bool //will load from filesystem
+	fromdb bool
 }
 
-// if fromdb set: load from filesystem, and not from mem, will also reset what is in mem
+// Lists all ${args.classname} instances.
 pub fn list(args ArgsList) ![]&${args.classname} {
 	mut res := []&${args.classname}{}
 	mut context := base.context()!
 	if args.fromdb {
-		// reset what is in mem
 		${args.name}_global = map[string]&${args.classname}{}
 		${args.name}_default = ''
 	}
 	if args.fromdb {
 		mut r := context.redis()!
 		mut l := r.hkeys('context:${args.name}')!
-
 		for name in l{
 			res << get(name:name,fromdb:true)!
 		}
 		return res
 	} else {
-		// load from memory
 		for _, client in ${args.name}_global {
 			res << client
 		}
@@ -129,8 +144,7 @@ pub fn list(args ArgsList) ![]&${args.classname} {
 	return res
 }
 
-
-// only sets in mem, does not set as config
+// Internal function to store an instance in the memory cache.
 fn set_in_mem(o ${args.classname}) ! ${args.classname} {
 	mut o2 := obj_init(o)!
 	${args.name}_global[o2.name] = &o2
@@ -138,48 +152,42 @@ fn set_in_mem(o ${args.classname}) ! ${args.classname} {
     return o2
 }
 
-
-@else
-pub fn new(args ArgsGet) !&${args.classname} {
-	return &${args.classname}{}
-}
-pub fn get(args ArgsGet) !&${args.classname} {
-	return new(args)!
-}
-@end
-
-
+// Executes HeroScript playbook actions for ${args.name}.
 pub fn play(mut plbook PlayBook) ! {
     if ! plbook.exists(filter: '${args.name}.'){
         return
     }
 	mut install_actions := plbook.find(filter: '${args.name}.configure')!
 	if install_actions.len > 0 {
-        @if args.hasconfig
 		for mut install_action in install_actions {
 			heroscript := install_action.heroscript()
 			mut obj2 := heroscript_loads(heroscript)!
 			set(obj2)!
             install_action.done = true
-		}           
-        @else
-        return error("can't configure ${args.name}, because no configuration allowed for this installer.")
-        @end
+		}
 	}
-    @if args.cat == .installer
+
     mut other_actions := plbook.find(filter: '${args.name}.')!
     for mut other_action in other_actions {
-        @if args.startupmanager
+        @if args.startupmanager && args.build
         if other_action.name in ["destroy","install","build","start","stop","restart","start_pre","start_post","stop_pre","stop_post"]{
         @else
+        @if args.startupmanager
+        if other_action.name in ["destroy","install","start","stop","restart","start_pre","start_post","stop_pre","stop_post"]{
+        @else
+        @if args.build
         if other_action.name in ["destroy","install","build"]{
+        @else
+        if other_action.name in ["destroy","install"]{
+        @end
+        @end
         @end
             mut p := other_action.params
             name := p.get_default('name', 'default')!
             reset:=p.get_default_false("reset")
             mut ${args.name}_obj:=get(name:name)!
             console.print_debug("action object:\n??{${args.name}_obj}")
-            
+
             if other_action.name == "destroy" || reset{
                 console.print_debug("install action ${args.name}.destroy")
                 ${args.name}_obj.destroy()!
@@ -188,10 +196,12 @@ pub fn play(mut plbook PlayBook) ! {
                 console.print_debug("install action ${args.name}.install")
                 ${args.name}_obj.install(reset: reset)!
             }
+            @if args.build
             if other_action.name == "build"{
                 console.print_debug("install action ${args.name}.build")
                 ${args.name}_obj.build()!
             }
+            @end
             @if args.startupmanager
             if other_action.name == "start"{
                 console.print_debug("install action ${args.name}.??{other_action.name}")
@@ -225,23 +235,16 @@ pub fn play(mut plbook PlayBook) ! {
         }
         other_action.done = true
     }
-    @end    
 }
 
 
-@if args.cat == .installer
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////# LIVE CYCLE MANAGEMENT FOR INSTALLERS ///////////////////////////////////
+//////////////////////////# LIFECYCLE MANAGEMENT FOR INSTALLERS ////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @if args.startupmanager
+// Internal helper to get the appropriate startup manager based on type.
 fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.StartupManager {
-	// unknown
-	// screen
-	// zinit
-	// tmux
-	// systemd  
     match cat{
         .screen {
             console.print_debug("installer: ${args.name}' startupmanager get screen")
@@ -262,17 +265,21 @@ fn startupmanager_get(cat startupmanager.StartupManagerType) !startupmanager.Sta
 }
 @end
 
-@if args.hasconfig
-//load from disk and make sure is properly intialized
+// Reloads the ${args.classname} configuration from storage.
 pub fn (mut self ${args.classname}) reload() ! {
     @if ! args.singleton
     switch(self.name)
     @end
     self=obj_init(self)!
 }
-@end
+
+// Saves the ${args.classname} instance to Redis storage.
+pub fn (self &${args.classname}) save() ! {
+    set(*self)!
+}
 
 @if args.startupmanager
+// Starts the ${args.classname} service.
 pub fn (mut self ${args.classname}) start(args StartArgs) ! {
     @if ! args.singleton
     switch(self.name)
@@ -288,19 +295,16 @@ pub fn (mut self ${args.classname}) start(args StartArgs) ! {
         self.install()!
     }
 
-    self.start_pre()!
+    start_pre()!
 
-    for zprocess in self.startupcmd(args)!{
+    for zprocess in startupcmd(args)!{
         mut sm:=startupmanager_get(zprocess.startuptype)!
-
         console.print_debug('installer: ${args.name} starting with ??{zprocess.startuptype}...')
-
         sm.new(zprocess)!
-
     	sm.start(zprocess.name)!
     }
 
-    self.start_post()!
+    start_post()!
 
 	for _ in 0 .. 50 {
 		if self.running()! {
@@ -309,36 +313,37 @@ pub fn (mut self ${args.classname}) start(args StartArgs) ! {
 		time.sleep(100 * time.millisecond)
 	}
 	return error('${args.name} did not install properly.')
-
 }
 
+// Convenience method to install and immediately start the service.
 pub fn (mut self ${args.classname}) install_start(args InstallArgs) ! {
     switch(self.name)
     self.install(args)!
     self.start(reset: false)!
 }
 
+// Stops the ${args.classname} service.
 pub fn (mut self ${args.classname}) stop() ! {
     switch(self.name)
-    self.stop_pre()!
-    for zprocess in self.startupcmd()!{
+    stop_pre()!
+    for zprocess in startupcmd(StartArgs{})!{
         mut sm:=startupmanager_get(zprocess.startuptype)!
     	sm.stop(zprocess.name)!
     }
-    self.stop_post()!
+    stop_post()!
 }
 
+// Restarts the ${args.classname} service by stopping and starting it.
 pub fn (mut self ${args.classname}) restart(args StartArgs) ! {
     switch(self.name)
     self.stop()!
     self.start(args)!
 }
 
+// Checks if the ${args.classname} service is currently running.
 pub fn (mut self ${args.classname}) running() !bool {
     switch(self.name)
-
-    //walk over the generic processes, if not running return
-    for zprocess in self.startupcmd()!{
+    for zprocess in startupcmd(StartArgs{})!{
         if zprocess.startuptype != .screen{
             mut sm:=startupmanager_get(zprocess.startuptype)!
     	    r:=sm.running(zprocess.name)!
@@ -347,17 +352,70 @@ pub fn (mut self ${args.classname}) running() !bool {
             }
         }
     }
-    return self.running_check()!
+    return running_check()!
 }
 @end
 
-
-@end
-
-
-// switch instance to be used for ${args.name}
+// Switches the default ${args.classname} instance to use.
 pub fn switch(name string) {
 @if ! args.singleton
 	${args.name}_default = name
 @end
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////# PUBLIC LIFECYCLE WRAPPERS //////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Installs ${args.name} on the system.
+pub fn (mut self ${args.classname}) install(args InstallArgs) ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    install(args)!
+}
+
+@if args.build
+// Builds ${args.name} from source.
+pub fn (mut self ${args.classname}) build() ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    build()!
+}
+@end
+
+// Destroys the ${args.name} installation.
+pub fn (mut self ${args.classname}) destroy() ! {
+    @if ! args.singleton
+    switch(self.name)
+    @end
+    destroy()!
+}
+
+// Checks if ${args.name} is installed.
+pub fn (self &${args.classname}) installed() !bool {
+    return installed_check()!
+}
+
+@if args.startupmanager
+// Hook called before the service starts.
+pub fn (self &${args.classname}) start_pre() ! {
+    start_pre()!
+}
+
+// Hook called after the service starts successfully.
+pub fn (self &${args.classname}) start_post() ! {
+    start_post()!
+}
+
+// Hook called before the service stops.
+pub fn (self &${args.classname}) stop_pre() ! {
+    stop_pre()!
+}
+
+// Hook called after the service stops.
+pub fn (self &${args.classname}) stop_post() ! {
+    stop_post()!
+}
+@end

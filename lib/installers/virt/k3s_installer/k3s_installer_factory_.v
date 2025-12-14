@@ -137,7 +137,8 @@ pub fn play(mut plbook PlayBook) ! {
 	mut other_actions := plbook.find(filter: 'k3s_installer.')!
 	for mut other_action in other_actions {
 		if other_action.name in ['destroy', 'install', 'build', 'start', 'stop', 'restart',
-			'start_pre', 'start_post', 'stop_pre', 'stop_post', 'install_master', 'join_master', 'install_worker'] {
+			'start_pre', 'start_post', 'stop_pre', 'stop_post', 'install_master', 'join_master',
+			'install_worker'] {
 			mut p := other_action.params
 			name := p.get_default('name', 'default')!
 			reset := p.get_default_false('reset')
@@ -327,9 +328,7 @@ pub fn (mut self K3SInstaller) destroy() ! {
 	destroy()!
 }
 
-
 // switch instance to be used for k3s_installer
 pub fn switch(name string) {
 	k3s_installer_default = name
 }
-
