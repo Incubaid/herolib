@@ -14,19 +14,25 @@ const default = false
 
 struct ConfigValues {
 pub mut:
-	hostname                string
-	backends                string
-	namespace               string
-	nextcloud_storage_size  string
-	postgres_storage_size   string
-	admin_user              string
-	admin_password          string
-	db_name                 string
-	db_user                 string
-	db_password             string
-	postgres_host           string
-	redis_host              string
-	fqdn                    string
+	hostname                  string
+	backends                  string
+	namespace                 string
+	nextcloud_storage_size    string
+	postgres_storage_size     string
+	admin_user                string
+	admin_password            string
+	db_name                   string
+	db_user                   string
+	db_password               string
+	postgres_host             string
+	redis_host                string
+	fqdn                      string
+	onlyoffice_enabled        bool
+	onlyoffice_jwt_secret     string
+	onlyoffice_host           string
+	onlyoffice_hostname       string  // OnlyOffice TFGW hostname
+	onlyoffice_fqdn           string  // OnlyOffice public FQDN for browser access
+	onlyoffice_middleware_ref string  // Full Traefik middleware reference
 }
 
 @[heap]
@@ -53,12 +59,17 @@ pub mut:
 	// Redis (no auth by default)
 	redis_host string = 'nextcloud-redis'
 	
+	// OnlyOffice integration
+	onlyoffice_enabled    bool   = true
+	onlyoffice_jwt_secret string // Auto-generated if empty
+	
 	// YAML output paths
-	secrets_path   string = '/tmp/nextcloud/secrets.yaml'
-	postgres_path  string = '/tmp/nextcloud/postgres.yaml'
-	redis_path     string = '/tmp/nextcloud/redis.yaml'
-	tfgw_path      string = '/tmp/nextcloud/tfgw.yaml'
-	nextcloud_path string = '/tmp/nextcloud/nextcloud.yaml'
+	secrets_path    string = '/tmp/nextcloud/secrets.yaml'
+	postgres_path   string = '/tmp/nextcloud/postgres.yaml'
+	redis_path      string = '/tmp/nextcloud/redis.yaml'
+	tfgw_path       string = '/tmp/nextcloud/tfgw.yaml'
+	nextcloud_path  string = '/tmp/nextcloud/nextcloud.yaml'
+	onlyoffice_path string = '/tmp/nextcloud/onlyoffice.yaml'
 	
 	// Internal
 	kube_client kubernetes.KubeClient @[skip]
@@ -100,6 +111,11 @@ fn obj_init(mycfg_ NextcloudK8SInstaller) !NextcloudK8SInstaller {
 	if mycfg.db_password == '' {
 		mycfg.db_password = generate_password()
 		console.print_info('Generated database password: ${mycfg.db_password}')
+	}
+	
+	if mycfg.onlyoffice_enabled && mycfg.onlyoffice_jwt_secret == '' {
+		mycfg.onlyoffice_jwt_secret = generate_password()
+		console.print_info('Generated OnlyOffice JWT secret: ${mycfg.onlyoffice_jwt_secret}')
 	}
 	
 	mycfg.kube_client = kubernetes.get(create: true)!
@@ -148,28 +164,49 @@ fn configure_tfgw() ! {
 	console.print_info('TFGW configuration file generated.')
 }
 
-// Generate remaining YAML files using the actual FQDN from TFGW
-fn configure_with_fqdn(fqdn string) ! {
+// Generate remaining YAML files using the actual FQDNs from TFGW
+fn configure_with_fqdn(fqdn string, onlyoffice_fqdn string) ! {
 	mut installer := get()!
 	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 	
 	console.print_info('Generating configuration files with FQDN: ${fqdn}...')
 	
-	// Create config_values for template generation with actual FQDN
+	// Get master IPs again for backends (needed for OnlyOffice TFGW)
+	master_ips := core.get_master_node_ips(mut k8s)!
+	mut backends_str_builder := strings.new_builder(100)
+	for ip in master_ips {
+		backends_str_builder.writeln('    - "http://[${ip}]:80"')
+	}
+	
+	// Generate OnlyOffice hostname from the FQDN
+	onlyoffice_hostname := if onlyoffice_fqdn.len > 0 {
+		onlyoffice_fqdn.all_before('.')
+	} else {
+		'${k8app.hostname}office'
+	}
+	
+	// Create config_values for template generation with actual FQDNs
 	mut config_values := ConfigValues{
-		hostname:               k8app.hostname
-		backends:               ''
-		namespace:              k8app.namespace
-		nextcloud_storage_size: installer.nextcloud_storage_size
-		postgres_storage_size:  installer.postgres_storage_size
-		admin_user:             installer.admin_user
-		admin_password:         installer.admin_password
-		db_name:                installer.db_name
-		db_user:                installer.db_user
-		db_password:            installer.db_password
-		postgres_host:          'nextcloud-postgres'
-		redis_host:             installer.redis_host
-		fqdn:                   fqdn
+		hostname:                  k8app.hostname
+		backends:                  backends_str_builder.str()
+		namespace:                 k8app.namespace
+		nextcloud_storage_size:    installer.nextcloud_storage_size
+		postgres_storage_size:     installer.postgres_storage_size
+		admin_user:                installer.admin_user
+		admin_password:            installer.admin_password
+		db_name:                   installer.db_name
+		db_user:                   installer.db_user
+		db_password:               installer.db_password
+		postgres_host:             'nextcloud-postgres'
+		redis_host:                installer.redis_host
+		fqdn:                      fqdn
+		onlyoffice_enabled:        installer.onlyoffice_enabled
+		onlyoffice_jwt_secret:     installer.onlyoffice_jwt_secret
+		onlyoffice_host:           'onlyoffice'
+		onlyoffice_hostname:       onlyoffice_hostname
+		onlyoffice_fqdn:           onlyoffice_fqdn
+		onlyoffice_middleware_ref: '${k8app.namespace}-onlyoffice-force-https@kubernetescrd'
 	}
 	
 	// Generate Secrets YAML
@@ -199,6 +236,14 @@ fn configure_with_fqdn(fqdn string) ! {
 	mut nextcloud_path := pathlib.get_file(path: installer.nextcloud_path, create: true)!
 	nextcloud_path.write(nextcloud_yaml)!
 	console.print_info('Nextcloud configuration file generated.')
+	
+	// Generate OnlyOffice YAML if enabled
+	if installer.onlyoffice_enabled {
+		onlyoffice_yaml := $tmpl('./templates/onlyoffice.yaml')
+		mut onlyoffice_path := pathlib.get_file(path: installer.onlyoffice_path, create: true)!
+		onlyoffice_path.write(onlyoffice_yaml)!
+		console.print_info('OnlyOffice configuration file generated.')
+	}
 	
 	console.print_info('All configuration files generated successfully.')
 }

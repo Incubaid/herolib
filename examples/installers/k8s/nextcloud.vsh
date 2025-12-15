@@ -28,6 +28,7 @@ installer.nextcloud_path = '/tmp/nextcloud-demo/nextcloud.yaml'
 installer.postgres_path = '/tmp/nextcloud-demo/postgres.yaml'
 installer.redis_path = '/tmp/nextcloud-demo/redis.yaml'
 installer.tfgw_path = '/tmp/nextcloud-demo/tfgw.yaml'
+installer.onlyoffice_path = '/tmp/nextcloud-demo/onlyoffice.yaml'
 
 // 3. Install Nextcloud
 // Note: The actual FQDN will be dynamically fetched from TFGW status after deployment

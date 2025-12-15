@@ -68,8 +68,18 @@ fn install() ! {
 	// 3. Get the actual FQDN from TFGW status
 	fqdn := core.get_tfgw_fqdn(tfgw_name: 'nextcloud', namespace: k8app.namespace, k8s: k8s)!
 
-	// 4. Generate remaining YAML files with the actual FQDN
-	configure_with_fqdn(fqdn)!
+	// 4. Determine OnlyOffice FQDN (will be fetched later after OnlyOffice TFGW is applied)
+	// For now, generate it from the same domain pattern but with 'office' suffix
+	onlyoffice_fqdn := if installer.onlyoffice_enabled {
+		// Extract domain from fqdn (e.g., gent02.grid.tf from nextclouddimo.gent02.grid.tf)
+		domain := fqdn.all_after_first('.')
+		'${k8app.hostname}office.${domain}'
+	} else {
+		''
+	}
+
+	// 5. Generate remaining YAML files with the actual FQDNs
+	configure_with_fqdn(fqdn, onlyoffice_fqdn)!
 
 	// 5. Apply Secrets YAML (must be before PostgreSQL)
 	console.print_info('Applying Secrets YAML file to the cluster...')
@@ -109,7 +119,20 @@ fn install() ! {
 	}
 	console.print_info('Nextcloud YAML file applied successfully.')
 
-	// 11. Verify deployment is running
+	// 11. Apply OnlyOffice YAML if enabled
+	if installer.onlyoffice_enabled {
+		console.print_info('Applying OnlyOffice YAML file to the cluster...')
+		res_onlyoffice := k8s.apply_yaml(installer.onlyoffice_path)!
+		if !res_onlyoffice.success {
+			return error('Failed to apply onlyoffice.yaml: ${res_onlyoffice.stderr}')
+		}
+		console.print_info('OnlyOffice YAML file applied successfully.')
+		
+		// Verify OnlyOffice deployment
+		verify_onlyoffice_ready(namespace: k8app.namespace)!
+	}
+
+	// 12. Verify Nextcloud deployment is running
 	console.print_info('Verifying deployment status...')
 	mut is_running := false
 	for i in 0 .. core.max_deployment_retries {
@@ -125,14 +148,31 @@ fn install() ! {
 		return error('Nextcloud deployment failed to start.')
 	}
 
-	// 12. Verify Nextcloud is fully installed using occ status
+	// 13. Verify Nextcloud is fully installed using occ status
 	console.print_info('Verifying Nextcloud installation status...')
 	verify_nextcloud_installed(namespace: k8app.namespace)!
+
+	// 14. Configure OnlyOffice connector in Nextcloud if enabled
+	if installer.onlyoffice_enabled {
+		// Get actual OnlyOffice FQDN from TFGW (it was deployed in step 11)
+		actual_onlyoffice_fqdn := core.get_tfgw_fqdn(tfgw_name: 'onlyoffice', namespace: k8app.namespace, k8s: k8s)!
+		
+		configure_onlyoffice_connector(
+			namespace:       k8app.namespace
+			jwt_secret:      installer.onlyoffice_jwt_secret
+			public_url:      'https://${actual_onlyoffice_fqdn}'
+			internal_url:    'http://onlyoffice'
+		)!
+	}
+
 
 	console.print_header('Nextcloud installation successful!')
 	console.print_header('You can access Nextcloud at https://${fqdn}')
 	console.print_info('Admin user: ${installer.admin_user}')
 	console.print_info('Admin password: ${installer.admin_password}')
+	if installer.onlyoffice_enabled {
+		console.print_info('OnlyOffice integration: Enabled')
+	}
 }
 
 // params for verifying postgres pod is ready
@@ -267,6 +307,144 @@ fn verify_nextcloud_installed(args VerifyNextcloudInstalled) ! {
 		console.print_info('Nextcloud is fully installed and ready.')
 	}
 }
+
+// params for verifying OnlyOffice is ready
+@[params]
+struct VerifyOnlyOfficeReady {
+pub mut:
+	namespace string
+}
+
+// Verify OnlyOffice deployment is ready
+fn verify_onlyoffice_ready(args VerifyOnlyOfficeReady) ! {
+	console.print_info('Verifying OnlyOffice deployment is ready...')
+	installer := get()!
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+	mut is_ready := false
+
+	for i in 0 .. core.max_deployment_retries {
+		deployments := k8s.get_deployments(args.namespace) or {
+			console.print_info('Waiting for OnlyOffice deployment to be created... (${i + 1}/${core.max_deployment_retries})')
+			time.sleep(core.deployment_check_interval_seconds * time.second)
+			continue
+		}
+
+		for deployment in deployments {
+			if deployment.name == 'onlyoffice' {
+				is_ready = true
+				break
+			}
+		}
+
+		if is_ready {
+			break
+		}
+
+		console.print_info('Waiting for OnlyOffice deployment to be ready... (${i + 1}/${core.max_deployment_retries})')
+		time.sleep(core.deployment_check_interval_seconds * time.second)
+	}
+
+	if !is_ready {
+		console.print_stderr('OnlyOffice deployment failed to become ready.')
+		return error('OnlyOffice deployment failed to become ready.')
+	}
+	console.print_info('OnlyOffice deployment is ready.')
+}
+
+// params for configuring OnlyOffice connector
+@[params]
+struct ConfigureOnlyOfficeConnector {
+pub mut:
+	namespace    string
+	jwt_secret   string
+	public_url   string  // Public URL for browser access (https://...)
+	internal_url string  // Internal URL for server-side requests (http://onlyoffice)
+}
+
+// Configure Nextcloud to connect to OnlyOffice
+fn configure_onlyoffice_connector(args ConfigureOnlyOfficeConnector) ! {
+	console.print_info('Configuring OnlyOffice connector in Nextcloud...')
+	installer := get()!
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
+
+	// Install and enable OnlyOffice app
+	console.print_info('Installing OnlyOffice app in Nextcloud...')
+	install_result := k8s.kubectl_exec(
+		command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ app:install onlyoffice"'
+	) or {
+		console.print_info('OnlyOffice app may already be installed, enabling...')
+		k8s.kubectl_exec(
+			command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ app:enable onlyoffice"'
+		) or {
+			console.print_stderr('Failed to enable OnlyOffice app.')
+			return error('Failed to enable OnlyOffice app.')
+		}
+		return
+	}
+
+	if !install_result.success && !install_result.stdout.contains('already installed') {
+		console.print_info('Enabling OnlyOffice app...')
+		k8s.kubectl_exec(
+			command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ app:enable onlyoffice"'
+		) or {
+			console.print_stderr('Failed to enable OnlyOffice app.')
+			return error('Failed to enable OnlyOffice app.')
+		}
+	}
+
+	// Configure OnlyOffice public server URL (for browser access)
+	console.print_info('Configuring OnlyOffice public URL: ${args.public_url}')
+	k8s.kubectl_exec(
+		command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ config:app:set onlyoffice DocumentServerUrl --value=${args.public_url}"'
+	) or {
+		console.print_stderr('Failed to configure OnlyOffice server URL.')
+		return error('Failed to configure OnlyOffice server URL.')
+	}
+
+	// Configure OnlyOffice internal URL (for server-side requests from Nextcloud to OnlyOffice)
+	console.print_info('Configuring OnlyOffice internal URL: ${args.internal_url}')
+	k8s.kubectl_exec(
+		command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ config:app:set onlyoffice DocumentServerInternalUrl --value=${args.internal_url}/"'
+	) or {
+		console.print_stderr('Failed to configure OnlyOffice internal URL.')
+		return error('Failed to configure OnlyOffice internal URL.')
+	}
+
+	// Configure Storage URL for OnlyOffice → Nextcloud internal requests
+	console.print_info('Configuring OnlyOffice StorageUrl (Nextcloud internal): http://nextcloud-web/')
+	k8s.kubectl_exec(
+		command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ config:app:set onlyoffice StorageUrl --value=http://nextcloud-web/"'
+	) or {
+		console.print_stderr('Failed to configure OnlyOffice StorageUrl.')
+		return error('Failed to configure OnlyOffice StorageUrl.')
+	}
+
+	// Configure JWT secret
+	console.print_info('Configuring OnlyOffice JWT secret...')
+	k8s.kubectl_exec(
+		command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ config:app:set onlyoffice jwt_secret --value=${args.jwt_secret}"'
+	) or {
+		console.print_stderr('Failed to configure OnlyOffice JWT secret.')
+		return error('Failed to configure OnlyOffice JWT secret.')
+	}
+
+	// Configure JWT header (must match ONLYOFFICE env JWT_HEADER)
+	console.print_info('Configuring OnlyOffice JWT header: Authorization')
+	k8s.kubectl_exec(
+		command: 'exec deploy/nextcloud -n ${args.namespace} -- su -s /bin/bash www-data -c "php /var/www/html/occ config:app:set onlyoffice jwt_header --value=Authorization"'
+	) or {
+		console.print_stderr('Failed to configure OnlyOffice JWT header.')
+		return error('Failed to configure OnlyOffice JWT header.')
+	}
+
+	console.print_info('OnlyOffice connector configured successfully.')
+	console.print_info('  Public URL (browsers): ${args.public_url}')
+	console.print_info('  Internal URL (NC→OO): ${args.internal_url}')
+	console.print_info('  Storage URL (OO→NC): http://nextcloud-web/')
+}
+
 
 fn destroy() ! {
 	installer := get()!

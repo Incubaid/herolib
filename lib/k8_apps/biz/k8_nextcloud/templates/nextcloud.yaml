@@ -115,7 +115,7 @@ spec:
         - name: REDIS_HOST
           value: @{config_values.redis_host}
         - name: NEXTCLOUD_TRUSTED_DOMAINS
-          value: @{config_values.fqdn}
+          value: "@{config_values.fqdn} nextcloud-web nextcloud-web.@{config_values.namespace}.svc.cluster.local"
         - name: OVERWRITEHOST
           value: @{config_values.fqdn}
         - name: OVERWRITEPROTOCOL
