@@ -88,6 +88,45 @@ pub fn get_master_node_ips(mut k8s kubernetes.KubeClient) ![]string {
 	return master_ips
 }
 
+// Parameters for getting TFGW FQDN
+@[params]
+pub struct GetTfgwFqdnArgs {
+pub mut:
+	tfgw_name string @[required]
+	namespace string @[required]
+	k8s       kubernetes.KubeClient @[required]
+	retry     int = max_deployment_retries
+}
+
+// Get the FQDN from TFGW status after it's generated
+// Returns the actual FQDN (e.g., "myapp.gent02.grid.tf")
+pub fn get_tfgw_fqdn(args GetTfgwFqdnArgs) !string {
+	console.print_info('Getting FQDN from TFGW ${args.tfgw_name}...')
+	mut k8s := args.k8s
+
+	for i in 0 .. args.retry {
+		result := k8s.kubectl_exec(
+			command: 'get tfgw ${args.tfgw_name} -n ${args.namespace} -o jsonpath="{.status.fqdn}"'
+		) or {
+			console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
+			time.sleep(deployment_check_interval_seconds * time.second)
+			continue
+		}
+
+		if result.success && result.stdout != '' {
+			fqdn := result.stdout.trim('"').trim_space()
+			if fqdn.len > 0 {
+				console.print_info('TFGW FQDN: ${fqdn}')
+				return fqdn
+			}
+		}
+		console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
+		time.sleep(deployment_check_interval_seconds * time.second)
+	}
+
+	return error('Failed to get FQDN for ${args.tfgw_name} after ${args.retry} retries.')
+}
+
 // Parameters for verifying TFGW deployment
 @[params]
 pub struct VerifyTfgwArgs {
