@@ -25,32 +25,32 @@ rerank_result := jina_client.rerank(
 
 println('Rerank result: ${rerank_result}')
 
-// Train
+// Train - using jina-embeddings-v2-base-en model (jina-clip-v1/v2 may have server-side issues)
 train_result := jina_client.train(
-	model: .jina_clip_v1
+	model: .jina_embeddings_v2_base_en
 	input: [
 		jina.TrainingExample{
-			text:  'Sample text'
-			label: 'positive'
+			text:  'A photo of a cat'
+			label: 'cat'
 		},
 		jina.TrainingExample{
-			image: 'https://picsum.photos/id/11/367/267'
-			label: 'negative'
+			text:  'A photo of a dog'
+			label: 'dog'
 		},
 	]
 ) or { panic('Error while training: ${err}') }
 
 println('Train result: ${train_result}')
 
-// Classify
+// Classify - using text inputs with embeddings model (jina-clip-v1/v2 may have server-side issues)
 classify_result := jina_client.classify(
-	model:  .jina_clip_v1
+	model:  .jina_embeddings_v2_base_en
 	input:  [
 		jina.ClassificationInput{
 			text: 'A photo of a cat'
 		},
 		jina.ClassificationInput{
-			image: 'https://picsum.photos/id/11/367/267'
+			text: 'A photo of a dog'
 		},
 	]
 	labels: ['cat', 'dog']
@@ -68,19 +68,10 @@ delete_result := jina_client.delete_classifier(classifier_id: classifiers[0].cla
 }
 println('Delete result: ${delete_result}')
 
-// Create multi vector
+// Create multi vector - using jina-colbert-v2 model (v1 has server-side issues)
 multi_vector := jina_client.create_multi_vector(
-	input:          [
-		jina.MultiVectorTextDoc{
-			text:       'Hello world'
-			input_type: .document
-		},
-		jina.MultiVectorTextDoc{
-			text:       "What's up?"
-			input_type: .query
-		},
-	]
-	embedding_type: ['float']
-	// dimensions:     96
+	model:      .jina_colbert_v2
+	input:      ['Hello world', "What's up?"]
+	input_type: .document
 )!
 println('Multi vector: ${multi_vector}')
