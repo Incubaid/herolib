@@ -2,7 +2,6 @@ module k8_gitea
 
 import incubaid.herolib.ui.console
 import incubaid.herolib.data.encoderhero
-import incubaid.herolib.virt.kubernetes
 import incubaid.herolib.core.pathlib
 import incubaid.herolib.k8_apps.core
 import strings
@@ -53,7 +52,8 @@ pub mut:
 	gitea_app_path string = '/tmp/gitea/gitea.yaml'
 	tfgw_path      string = '/tmp/gitea/tfgw-gitea.yaml'
 	postgres_path  string = '/tmp/gitea/postgres.yaml'
-	kube_client    kubernetes.KubeClient @[skip]
+	// K8App instance for kubernetes operations
+	k8app ?core.K8App @[skip]
 }
 
 // your checking & initialization code if needed
@@ -64,23 +64,27 @@ fn obj_init(mycfg_ GiteaK8SInstaller) !GiteaK8SInstaller {
 		mycfg.name = 'gitea'
 	}
 
-	// Replace the dashes, dots, and underscores with nothing
-	mycfg.name = mycfg.name.replace('_', '')
-	mycfg.name = mycfg.name.replace('-', '')
-	mycfg.name = mycfg.name.replace('.', '')
+	// Use core name_fix for consistent name handling
+	mycfg.name = core.name_fix(mycfg.name)
 
 	if mycfg.namespace == '' {
-		mycfg.namespace = '${mycfg.name}-gitea-namespace'
+		mycfg.namespace = '${mycfg.name}giteans'
 	}
 
-	if mycfg.namespace.contains('_') || mycfg.namespace.contains('.') {
-		console.print_stderr('namespace cannot contain _, was: ${mycfg.namespace}, use dashes instead.')
-		return error('namespace cannot contain _, was: ${mycfg.namespace}')
+	// Apply name_fix to namespace for consistency with k8app
+	mycfg.namespace = core.name_fix(mycfg.namespace)
+
+	if mycfg.namespace.contains('.') {
+		console.print_stderr('namespace cannot contain ., was: ${mycfg.namespace}')
+		return error('namespace cannot contain ., was: ${mycfg.namespace}')
 	}
 
 	if mycfg.hostname == '' {
 		mycfg.hostname = '${mycfg.name}giteaapp'
 	}
+
+	// Validate hostname doesn't exceed TFGW limit
+	mycfg.hostname = core.validate_hostname(mycfg.hostname)
 
 	// Validate database type
 	if mycfg.db_type !in ['sqlite3', 'postgres'] {
@@ -88,15 +92,22 @@ fn obj_init(mycfg_ GiteaK8SInstaller) !GiteaK8SInstaller {
 		return error('Unsupported database type: ${mycfg.db_type}. Only sqlite3 and postgres are supported.')
 	}
 
-	mycfg.kube_client = kubernetes.get(create: true)!
-	mycfg.kube_client.config.namespace = mycfg.namespace
+	// Initialize K8App for kubernetes operations
+	mycfg.k8app = core.k8app(
+		app_name: 'gitea'
+		app_instance: mycfg.name
+		namespace: mycfg.namespace
+	)!
 	return mycfg
 }
 
 // called before start if done
 fn configure() ! {
 	mut installer := get()!
-	mut k8s := installer.kube_client
+
+	// Unwrap k8app once
+	k8app := installer.k8app or { return error('k8app not initialized') }
+	mut k8s := k8app.kube_client
 
 	master_ips := core.get_master_node_ips(mut k8s)!
 	console.print_info('Master node IPs: ${master_ips}')
@@ -112,10 +123,11 @@ fn configure() ! {
 	fqdn := '${installer.hostname}.gent01.grid.tf'
 
 	// Create config_values for template generation
+	// Use k8app.namespace to ensure consistency with kubernetes client
 	mut config_values := ConfigValues{
 		hostname:             installer.hostname
 		backends:             backends_str_builder.str()
-		namespace:            installer.namespace
+		namespace:            k8app.namespace
 		root_url:             'https://${fqdn}/'
 		domain:               fqdn
 		http_port:            installer.http_port
@@ -125,7 +137,7 @@ fn configure() ! {
 		storage_size:         installer.storage_size
 		// Postgres connection details
 		// db_host is the full DNS name for Gitea to connect
-		db_host:     '${installer.db_host}.${installer.namespace}.svc.cluster.local'
+		db_host:     '${installer.db_host}.${k8app.namespace}.svc.cluster.local'
 		db_name:     installer.db_name
 		db_user:     installer.db_user
 		db_password: installer.db_password

@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: onlyoffice-jwt
+  namespace: @{config_values.namespace}
+type: Opaque
+stringData:
+  JWT_SECRET: "@{config_values.onlyoffice_jwt_secret}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: onlyoffice
+  namespace: @{config_values.namespace}
+  labels:
+    app.kubernetes.io/name: onlyoffice
+    app.kubernetes.io/part-of: nextcloud
+spec:
+  selector:
+    app.kubernetes.io/name: onlyoffice
+    app.kubernetes.io/part-of: nextcloud
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onlyoffice
+  namespace: @{config_values.namespace}
+  labels:
+    app.kubernetes.io/name: onlyoffice
+    app.kubernetes.io/part-of: nextcloud
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: onlyoffice
+      app.kubernetes.io/part-of: nextcloud
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: onlyoffice
+        app.kubernetes.io/part-of: nextcloud
+    spec:
+      containers:
+      - name: onlyoffice
+        image: onlyoffice/documentserver:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: JWT_ENABLED
+          value: "true"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: onlyoffice-jwt
+              key: JWT_SECRET
+        - name: JWT_HEADER
+          value: "Authorization"
+        - name: JWT_IN_BODY
+          value: "true"
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 10
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 3
+          failureThreshold: 5
+---
+apiVersion: ingress.grid.tf/v1
+kind: TFGW
+metadata:
+  name: onlyoffice
+  namespace: @{config_values.namespace}
+spec:
+  hostname: "@{config_values.onlyoffice_hostname}"
+  backends:
+@{config_values.backends}
+---
+# Traefik Middleware to force HTTPS headers for OnlyOffice
+# This fixes Mixed Content errors when browser tries to load OnlyOffice assets
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: onlyoffice-force-https
+  namespace: @{config_values.namespace}
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-Proto: "https"
+      X-Forwarded-Port: "443"
+      X-Forwarded-Ssl: "on"
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: onlyoffice
+  namespace: @{config_values.namespace}
+  annotations:
+    # Apply middleware to force HTTPS headers for OnlyOffice
+    traefik.ingress.kubernetes.io/router.middlewares: "@{config_values.onlyoffice_middleware_ref}"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: @{config_values.onlyoffice_fqdn}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: onlyoffice
+            port:
+              number: 80

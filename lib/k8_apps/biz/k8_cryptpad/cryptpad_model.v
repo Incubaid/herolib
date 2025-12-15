@@ -33,9 +33,16 @@ pub mut:
 // your checking & initialization code if needed
 fn obj_init(mycfg_ CryptpadServer) !CryptpadServer {
 	mut mycfg := mycfg_
+
+	if mycfg.name == '' {
+		mycfg.name = 'cryptpad'
+	}
+
+	// Use core name_fix for consistent name handling
+	mycfg.name = core.name_fix(mycfg.name)
 	
-	// Set default namespace if not provided
-	namespace := '${mycfg.name}-cryptpad-namespace'
+	// Set default namespace (no dashes to avoid name_fix issues)
+	namespace := '${mycfg.name}cryptpadns'
 	
 	mycfg.k8app = core.k8app(
 		app_name: 'cryptpad'

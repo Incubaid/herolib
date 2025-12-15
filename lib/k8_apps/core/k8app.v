@@ -53,8 +53,8 @@ pub fn k8app(args_ K8AppArgs)!K8App {
 	kube_client.config.namespace = args.namespace
 
 	// Generate hostname and validate it doesn't exceed TFGW limit
-	// Replace underscores with hyphens for RFC 1123 DNS compliance
-	raw_hostname := texttools.name_fix("${args.namespace}_${args.app_name}-${args.app_instance}").replace('_', '-')
+	// TFGW hostnames must be alphanumeric only (no dashes or underscores)
+	raw_hostname := texttools.name_fix("${args.app_name}${args.app_instance}").replace('_', '').replace('-', '')
 	validated_hostname := validate_hostname(raw_hostname)
 
 	mut app := K8App{
@@ -86,6 +86,45 @@ pub fn get_master_node_ips(mut k8s kubernetes.KubeClient) ![]string {
 		}
 	}
 	return master_ips
+}
+
+// Parameters for getting TFGW FQDN
+@[params]
+pub struct GetTfgwFqdnArgs {
+pub mut:
+	tfgw_name string @[required]
+	namespace string @[required]
+	k8s       kubernetes.KubeClient @[required]
+	retry     int = max_deployment_retries
+}
+
+// Get the FQDN from TFGW status after it's generated
+// Returns the actual FQDN (e.g., "myapp.gent02.grid.tf")
+pub fn get_tfgw_fqdn(args GetTfgwFqdnArgs) !string {
+	console.print_info('Getting FQDN from TFGW ${args.tfgw_name}...')
+	mut k8s := args.k8s
+
+	for i in 0 .. args.retry {
+		result := k8s.kubectl_exec(
+			command: 'get tfgw ${args.tfgw_name} -n ${args.namespace} -o jsonpath="{.status.fqdn}"'
+		) or {
+			console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
+			time.sleep(deployment_check_interval_seconds * time.second)
+			continue
+		}
+
+		if result.success && result.stdout != '' {
+			fqdn := result.stdout.trim('"').trim_space()
+			if fqdn.len > 0 {
+				console.print_info('TFGW FQDN: ${fqdn}')
+				return fqdn
+			}
+		}
+		console.print_info('Waiting for FQDN to be generated for ${args.tfgw_name}... (${i + 1}/${args.retry})')
+		time.sleep(deployment_check_interval_seconds * time.second)
+	}
+
+	return error('Failed to get FQDN for ${args.tfgw_name} after ${args.retry} retries.')
 }
 
 // Parameters for verifying TFGW deployment
@@ -210,4 +249,46 @@ pub fn verify_deployment_ready(args VerifyDeploymentArgs) !bool {
 	}
 
 	return false
+}
+
+// Parameters for verifying pod readiness
+@[params]
+pub struct VerifyPodArgs {
+pub mut:
+	pod_name  string @[required] // name of the pod to check
+	namespace string @[required] // namespace where pod is located
+	k8s       kubernetes.KubeClient @[required]
+	retry     int = max_deployment_retries
+}
+
+// Verify pod is ready with retry logic
+// Checks if a pod exists and is in Running phase
+pub fn verify_pod_ready(args VerifyPodArgs) ! {
+	console.print_info('Verifying pod ${args.pod_name} is ready...')
+	mut k8s := args.k8s
+	mut is_ready := false
+
+	for i in 0 .. args.retry {
+		// Check if pod exists and is running
+		result := k8s.kubectl_exec(
+			command: 'get pod ${args.pod_name} -n ${args.namespace} -o jsonpath="{.status.phase}"'
+		) or {
+			console.print_info('Waiting for pod ${args.pod_name} to be created... (${i + 1}/${args.retry})')
+			time.sleep(deployment_check_interval_seconds * time.second)
+			continue
+		}
+
+		if result.success && result.stdout == 'Running' {
+			is_ready = true
+			break
+		}
+		console.print_info('Waiting for pod ${args.pod_name} to be ready... (${i + 1}/${args.retry})')
+		time.sleep(deployment_check_interval_seconds * time.second)
+	}
+
+	if !is_ready {
+		console.print_stderr('Pod ${args.pod_name} failed to become ready.')
+		return error('Pod ${args.pod_name} failed to become ready.')
+	}
+	console.print_info('Pod ${args.pod_name} is ready.')
 }
