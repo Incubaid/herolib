@@ -106,6 +106,21 @@ pub fn cmd_docusaurus(mut cmdroot Command) Command {
 		description: 'Run your dev environment on local browser.'
 	})
 
+	cmd_run.add_flag(Flag{
+		flag:        .string
+		required:    false
+		name:        'host'
+		abbrev:      'h'
+		description: 'Host to bind the dev server to (default: localhost). Use 0.0.0.0 for container access.'
+	})
+
+	cmd_run.add_flag(Flag{
+		flag:        .int
+		required:    false
+		name:        'port'
+		description: 'Port to run the dev server on (default: 3000).'
+	})
+
 	// Add subcommands
 	cmd_docs_new(mut cmd_run)
 
@@ -121,6 +136,8 @@ fn cmd_docusaurus_execute(cmd Command) ! {
 	mut dev := cmd.flags.get_bool('dev') or { false }
 	mut reset := cmd.flags.get_bool('reset') or { false }
 	mut update := cmd.flags.get_bool('update') or { false }
+	host := cmd.flags.get_string('host') or { 'localhost' }
+	port := cmd.flags.get_int('port') or { 3000 }
 
 	// ---------- PATH LOGIC ----------
 	// Resolve the source directory that contains a “cfg” sub‑directory.
@@ -156,6 +173,8 @@ fn cmd_docusaurus_execute(cmd Command) ! {
 		dsite.dev(
 			open:          open_
 			watch_changes: false
+			host:          host
+			port:          port
 		)!
 	} else {
 		// Default: just build the static site
