@@ -13,21 +13,32 @@ pub fn cmd_source(mut cmdroot Command) {
 		usage:       '
 Hero Source - Fetch secrets file from git
 
-Fetches a file from a git repository. SSH keys are read from
-environment variables (SECRETS_SSH_KEY, SSH_KEY, {ORG}_SSH_KEY).
+Fetches a file from a git repository. SSH keys are automatically loaded from
+environment variables and used if a matching key is found for the repository.
 
 USAGE:
   hero source <url_to_file>
+  hero source --key <ENV_VAR_NAME> <url_to_file>
 
 EXAMPLES:
   hero source https://forge.ourworld.tf/ourworld_it/secrets/src/branch/main/secrets.sh
+  hero source --key MY_DEPLOY_KEY https://github.com/myorg/private-repo
+
+SSH KEY DETECTION:
+  Keys are automatically loaded from environment variables matching:
+  - SECRETS_SSH_KEY
+  - SSH_KEY  
+  - {ORG}_SSH_KEY (e.g., OURWORLD_IT_SSH_KEY, GITHUB_SSH_KEY)
+  - {ORG}_{REPO}_SSH_KEY (e.g., OURWORLD_IT_SECRETS_SSH_KEY)
+
+  The best matching key is selected based on org/repo name in the URL.
+  Use --key to explicitly specify which env var to use.
 
 The command will:
-  1. Find SSH keys from environment variables
-  2. Use gittools to clone/fetch the file (with temp SSH key if needed)
-  3. Output the local path (can be sourced: source $(hero source <url>))
-
-Note: Keys are NOT added to the system ssh-agent.
+  1. Load SSH keys from environment variables (does NOT modify ssh-agent)
+  2. Auto-select best matching key for the repo, or use --key if specified
+  3. Clone/fetch using temp SSH key file with GIT_SSH_COMMAND
+  4. Output the local path (can be sourced: source $(hero source <url>))
 '
 		execute:       cmd_source_execute
 		sort_commands: true
@@ -41,10 +52,10 @@ Note: Keys are NOT added to the system ssh-agent.
 	})
 
 	cmd_run.add_flag(Flag{
-		flag:        .bool
-		name:        'ssh'
-		abbrev:      's'
-		description: 'Use SSH for git operations'
+		flag:        .string
+		name:        'key'
+		abbrev:      'k'
+		description: 'Environment variable name containing SSH key (e.g., MY_DEPLOY_KEY)'
 	})
 
 	cmd_run.add_flag(Flag{
@@ -64,11 +75,11 @@ fn cmd_source_execute(cmd Command) ! {
 
 	file_url := cmd.args[0]
 	output_path := cmd.flags.get_string('output') or { '' }
-	use_ssh := cmd.flags.get_bool('ssh') or { false }
+	key_env_var := cmd.flags.get_string('key') or { '' }
 	verbose := cmd.flags.get_bool('verbose') or { false }
 
 	if verbose {
-		console.print_debug('source: file_url=${file_url}, use_ssh=${use_ssh}, output_path=${output_path}')
+		console.print_debug('source: file_url=${file_url}, key_env_var=${key_env_var}, output_path=${output_path}')
 	}
 
 	// Load SSH keys from environment (does NOT touch system ssh-agent)
@@ -82,15 +93,28 @@ fn cmd_source_execute(cmd Command) ! {
 		}
 	}
 
-	// Find appropriate SSH key if --ssh flag is set
+	// Find appropriate SSH key
 	mut sshkey := ''
-	if use_ssh {
-		sshkey = find_ssh_key_for_url(file_url, keys)
+	mut key_source := ''
+
+	if key_env_var.len > 0 {
+		// Explicit key specified via --key flag
+		sshkey = os.getenv(key_env_var)
+		if sshkey.len == 0 {
+			return error('SSH key environment variable "${key_env_var}" is not set or empty')
+		}
+		key_source = key_env_var
+		if verbose {
+			console.print_debug('source: using explicit key from ${key_env_var}')
+		}
+	} else {
+		// Auto-detect best matching key for the URL
+		sshkey, key_source = find_ssh_key_for_url(file_url, keys)
 		if verbose {
 			if sshkey.len > 0 {
-				console.print_debug('source: found SSH key (${sshkey.len} bytes)')
+				console.print_debug('source: auto-selected SSH key "${key_source}" (${sshkey.len} bytes)')
 			} else {
-				console.print_debug('source: no SSH key found for URL')
+				console.print_debug('source: no matching SSH key found, using default git auth')
 			}
 		}
 	}
@@ -115,16 +139,17 @@ fn cmd_source_execute(cmd Command) ! {
 }
 
 // Find the best SSH key for a URL based on org/provider from loaded keys
-fn find_ssh_key_for_url(url string, keys sshkeys.SSHKeys) string {
+// Returns (key_content, key_name)
+fn find_ssh_key_for_url(url string, keys sshkeys.SSHKeys) (string, string) {
 	// Parse URL to get org/provider
-	mut gs := gittools.new() or { return '' }
-	git_loc := gs.gitlocation_from_url(url) or { return '' }
+	mut gs := gittools.new() or { return '', '' }
+	git_loc := gs.gitlocation_from_url(url) or { return '', '' }
 
 	// Use sshkeys to find the best key for this repo
 	if key := keys.find_for_repo(git_loc.account, git_loc.provider) {
-		return key.content
+		return key.content, key.name
 	}
 
-	return ''
+	return '', ''
 }
 

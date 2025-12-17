@@ -82,9 +82,11 @@ pub fn (mut gitstructure GitStructure) clone(args GitCloneArgs) !&GitRepo {
 		
 		clone_url := repo.get_ssh_url()!
 		console.print_debug('clone: using SSH URL=${clone_url}')
+		console.print_item('Using SSH key (${args.sshkey.len} bytes) for clone')
 		cmd = 'cd ${parent_dir} && GIT_SSH_COMMAND="ssh -i ${temp_key_path} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" git clone ${extra} ${clone_url} ${repo.name}'
 	} else if cfg.ssh_key_path.len > 0 {
 		console.print_debug('clone: using config ssh_key_path=${cfg.ssh_key_path}')
+		console.print_item('Using SSH key from config: ${cfg.ssh_key_path}')
 		clone_url := repo.get_ssh_url()!
 		cmd = 'cd ${parent_dir} && GIT_SSH_COMMAND="ssh -i ${cfg.ssh_key_path}" git clone ${extra} ${clone_url} ${repo.name}'
 	} else {
