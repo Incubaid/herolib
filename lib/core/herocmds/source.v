@@ -78,8 +78,17 @@ fn cmd_source_execute(cmd Command) ! {
 	key_env_var := cmd.flags.get_string('key') or { '' }
 	verbose := cmd.flags.get_bool('verbose') or { false }
 
+	// Suppress all console output so only the path goes to stdout
+	// This allows: source $(hero source <url>)
+	if !verbose {
+		console.silent_set()
+	}
+	defer {
+		console.silent_unset()
+	}
+
 	if verbose {
-		console.print_debug('source: file_url=${file_url}, key_env_var=${key_env_var}, output_path=${output_path}')
+		eprintln('source: file_url=${file_url}, key_env_var=${key_env_var}, output_path=${output_path}')
 	}
 
 	// Load SSH keys from environment (does NOT touch system ssh-agent)
@@ -87,9 +96,9 @@ fn cmd_source_execute(cmd Command) ! {
 	loaded_count := keys.load_from_env()
 
 	if verbose {
-		console.print_debug('source: found ${loaded_count} SSH keys in environment')
+		eprintln('source: found ${loaded_count} SSH keys in environment')
 		for name in keys.list() {
-			console.print_debug('  - key: ${name}')
+			eprintln('  - key: ${name}')
 		}
 	}
 
@@ -105,27 +114,27 @@ fn cmd_source_execute(cmd Command) ! {
 		}
 		key_source = key_env_var
 		if verbose {
-			console.print_debug('source: using explicit key from ${key_env_var}')
+			eprintln('source: using explicit key from ${key_env_var}')
 		}
 	} else {
 		// Auto-detect best matching key for the URL
 		sshkey, key_source = find_ssh_key_for_url(file_url, keys)
 		if verbose {
 			if sshkey.len > 0 {
-				console.print_debug('source: auto-selected SSH key "${key_source}" (${sshkey.len} bytes)')
+				eprintln('source: auto-selected SSH key "${key_source}" (${sshkey.len} bytes)')
 			} else {
-				console.print_debug('source: no matching SSH key found, using default git auth')
+				eprintln('source: no matching SSH key found, using default git auth')
 			}
 		}
 	}
 
 	// Use gittools to get the file path
 	if verbose {
-		console.print_debug('source: calling gittools.path()')
+		eprintln('source: calling gittools.path()')
 	}
 	file_path := gittools.path(git_url: file_url, sshkey: sshkey)!
 	if verbose {
-		console.print_debug('source: resolved path=${file_path.path}')
+		eprintln('source: resolved path=${file_path.path}')
 	}
 
 	if output_path.len > 0 {
